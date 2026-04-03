@@ -31,5 +31,8 @@
     "inimigoPuloDistanciaAlerta": 240,
     "inimigoPuloCooldown": 35,
     "inimigoPuloDelayMin": 0,
-    "inimigoPuloDelayMax": 35
+    "inimigoPuloDelayMax": 35,
+    "distanciaTiroInimigo": 300,
+    "cooldownTiro": 45,
+    "maxMunicao": 5
 }

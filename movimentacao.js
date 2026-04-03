@@ -26,7 +26,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         chutando: false,
         tempoChute: 0,
         cooldownChute: 0,
+        cooldownPulo: 0,
         cooldownTiro: 0,
+        municao: config.maxMunicao || 5,
         dano: 0,
         teclas: {}
     };
@@ -86,8 +88,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Lógica de Disparo (tecla I)
-        if ((controle.teclas['i'] || controle.teclas['I']) && controle.cooldownTiro === 0) {
-            controle.cooldownTiro = 25; // Intervalo entre disparos
+        if ((controle.teclas['i'] || controle.teclas['I']) && controle.cooldownTiro === 0 && controle.municao > 0) {
+            controle.cooldownTiro = config.cooldownTiro; 
+            controle.municao--;
             const dir = controle.direcao === 'd' ? 1 : -1;
             
             // Inicia na frente do personagem (considerando 32px de largura do sprite)
@@ -110,9 +113,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 x: xPartida,
                 y: yPartida,
                 direcao: dir,
-                elemento: projElemento
+                elemento: projElemento,
+                origem: 'player'
             });
-            console.log("Disparo efetuado em X:", xPartida, "Y:", yPartida);
+            console.log(`Jogador disparou! Munição restante: ${controle.municao}`);
         }
 
         if (controle.tempoChute > 0) {
@@ -132,6 +136,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.cooldownTiro--;
         }
 
+        // Diminui o cooldown do pulo
+        if (controle.cooldownPulo > 0) {
+            controle.cooldownPulo--;
+        }
+
         // 1. Colisão Horizontal (HITBOX com altura 32)
         if (typeof verificarColisaoComTiles === 'function' && 
             verificarColisaoComTiles(controle.x + config.HITBOX_OFFSET_X, controle.y, config.HITBOX_LARGURA, config.HITBOX_ALTURA, window.plataformas)) {
@@ -139,7 +148,13 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Aplica gravidade e pulo (definido em fisica.js)
-        aplicarFisica(controle, controle.teclas);
+        aplicarFisica(
+            controle, 
+            controle.teclas, 
+            config.inimigoForcaPulo, 
+            config.inimigoGravidade, 
+            config.inimigoPuloCooldown
+        );
 
         // Resetamos o estado para ser revalidado pelas colisões verticais abaixo
         controle.noChao = false;
@@ -263,8 +278,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 proj.x += config.velocidadeProjetil * proj.direcao;
                 proj.elemento.style.left = proj.x + 'px';
 
-                let hitInimigo = false;
-                if (window.inimigos) {
+                let hitAlvo = false;
+
+                if (proj.origem === 'player' && window.inimigos) {
                     for (let j = window.inimigos.length - 1; j >= 0; j--) {
                         const inimigo = window.inimigos[j];
                         const hitboxInimigo = {
@@ -299,16 +315,39 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 inimigo.elemento.remove();
                                 window.inimigos.splice(j, 1);
                             }
-                            hitInimigo = true;
+                            hitAlvo = true;
                             break;
                         }
+                    }
+                } else if (proj.origem === 'inimigo' && window.playerControle) {
+                    const hitboxPlayer = { 
+                        x: window.playerControle.x + config.HITBOX_OFFSET_X, 
+                        y: window.playerControle.y, 
+                        largura: config.HITBOX_LARGURA, 
+                        altura: config.HITBOX_ALTURA 
+                    };
+                    const hitboxProjetil = { x: proj.x, y: proj.y, largura: config.PROJETIL_LARGURA, altura: config.PROJETIL_ALTURA };
+
+                    if (detectarColisaoHitbox(hitboxProjetil, hitboxPlayer, 0, 0, 0)) {
+                        window.playerControle.dano = (window.playerControle.dano || 0) + 1;
+                        
+                        // Knockback no Jogador baseado na direção do tiro
+                        window.playerControle.x += config.knockbackInimigo * proj.direcao;
+                        
+                        console.log(`Dano: Jogador atingido por projétil! Total: ${window.playerControle.dano}/3`);
+
+                        if (window.playerControle.dano >= 3) {
+                            alert("Game Over! Você foi derrotado pelos projéteis inimigos.");
+                            location.reload();
+                        }
+                        hitAlvo = true;
                     }
                 }
 
                 const hitCenario = verificarColisaoComTiles(proj.x, proj.y, config.PROJETIL_LARGURA, config.PROJETIL_ALTURA, window.plataformas);
 
                 // Remove o projétil se bater em algo ou sair da tela (limite de 700px)
-                if (hitCenario || hitInimigo || proj.x < -50 || proj.x > 700) {
+                if (hitCenario || hitAlvo || proj.x < -50 || proj.x > 700) {
                     proj.elemento.remove();
                     window.projeteis.splice(i, 1);
                 }

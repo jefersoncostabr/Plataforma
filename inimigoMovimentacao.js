@@ -24,7 +24,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         // Só executa se houver um jogador e inimigos no mapa
         if (player && window.inimigos && window.inimigos.length > 0) {
             const playerX = parseInt(player.style.left) || 0;
-            const distanciaAtivacao = 6 * 32; // 6 blocos de 32px = 192px
+            const alcanceTiro = config.distanciaTiroInimigo || 300;
+            const distanciaAtivacao = Math.max(alcanceTiro, 6 * 32); 
 
             window.inimigos.forEach(inimigo => {
                 const distanciaAtual = Math.abs(playerX - inimigo.x);
@@ -33,7 +34,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inimigo.tempoChute === undefined) {
                     inimigo.tempoChute = 0;
                     inimigo.cooldownChute = 0;
+                    inimigo.cooldownTiro = 0;
+                    inimigo.municao = config.maxMunicao || 5;
                     inimigo.direcao = 'e';
+                    inimigo.cooldownPulo = 0;
                     inimigo.velocidadeY = 0;
                     inimigo.noChao = false;
                     inimigo.puloTimer = 0;
@@ -42,33 +46,34 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 // Atualiza timers de chute
                 if (inimigo.tempoChute > 0) inimigo.tempoChute--;
                 if (inimigo.cooldownChute > 0) inimigo.cooldownChute--;
+                if (inimigo.cooldownTiro > 0) inimigo.cooldownTiro--;
 
-                // Se o inimigo ainda não está perseguindo, verifica se o player entrou no raio de 6 blocos
-                if (!inimigo.perseguindo && distanciaAtual <= distanciaAtivacao) {
+                // Lógica de detecção de projétil vindo (radar de ameaça)
+                const projVindo = window.projeteis ? window.projeteis.find(proj => {
+                    // Distância ao inimigo na direção do projétil
+                    const dx = proj.direcao === 1 ? inimigo.x - proj.x : proj.x - inimigo.x;
+                    const dy = Math.abs((proj.y + config.PROJETIL_ALTURA / 2) - (inimigo.y + config.HITBOX_ALTURA / 2));
+                    const chegaPerto = dx >= 0 && dx <= config.inimigoPuloDistanciaAlerta;
+                    const mesmaAltura = dy <= config.HITBOX_ALTURA;
+                    const vemNaDirecao = (proj.direcao === 1 && proj.x < inimigo.x) || (proj.direcao === -1 && proj.x > inimigo.x);
+                    
+                    if (chegaPerto && mesmaAltura && vemNaDirecao) {
+                        console.log('Inimigo detectou projétil vindo em sua direção!');
+                    }
+                    return chegaPerto && mesmaAltura && vemNaDirecao;
+                }) : null;
+
+                // Ativa a perseguição se o jogador estiver perto OU se detectar um tiro vindo no radar
+                if (!inimigo.perseguindo && (distanciaAtual <= distanciaAtivacao || projVindo)) {
                     inimigo.perseguindo = true;
+                    console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
                 }
 
-                // Lógica de pulo de desvio (projétil vindo)
-                if (window.projeteis && inimigo.noChao) {
-                    // Lembre-se: inimigo está no chão e pode pular
-                    const projVindo = window.projeteis.find(proj => {
-                        // Distância ao inimigo _na direção do projétil_.
-                        const dx = proj.direcao === 1 ? inimigo.x - proj.x : proj.x - inimigo.x;
-                        const dy = Math.abs((proj.y + config.PROJETIL_ALTURA / 2) - (inimigo.y + config.HITBOX_ALTURA / 2));
-                        const chegaPerto = dx >= 0 && dx <= config.inimigoPuloDistanciaAlerta;
-                        const mesmaAltura = dy <= config.HITBOX_ALTURA;
-                        const vemNaDirecao = (proj.direcao === 1 && proj.x < inimigo.x) || (proj.direcao === -1 && proj.x > inimigo.x);
-                        if (chegaPerto && mesmaAltura && vemNaDirecao) {
-                            console.log('Inimigo detectou projétil no radar', {dx, dy, projX: proj.x, inimigoX: inimigo.x});
-                        }
-                        return chegaPerto && mesmaAltura && vemNaDirecao;
-                    });
-
-                    if (projVindo && (inimigo.puloCooldown || 0) === 0 && inimigo.puloTimer === 0) {
-                        // Define um delay randômico antes de pular
-                        inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
-                        console.log('Inimigo iniciou timer de pulo:', inimigo.puloTimer, 'frames');
-                    }
+                // Lógica de pulo de desvio (usa o projVindo detectado acima)
+                if (projVindo && inimigo.noChao && inimigo.puloTimer === 0) {
+                    // Define um delay randômico antes de pular
+                    inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
+                    console.log('Inimigo iniciou timer de pulo:', inimigo.puloTimer, 'frames');
                 }
 
                 // Decrementa o timer de pulo
@@ -77,19 +82,22 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.puloTimer === 0 && inimigo.noChao) {
                         inimigo.velocidadeY = config.inimigoForcaPulo;
                         inimigo.noChao = false;
-                        inimigo.puloCooldown = config.inimigoPuloCooldown || 35;
                         console.log('Inimigo pulou para desviar de projétil!');
                     }
                 }
-
-                if (inimigo.puloCooldown > 0) inimigo.puloCooldown--;
 
                 // A física (gravidade e pulo) deve rodar sempre para o inimigo reagir ao ambiente
                 if (typeof aplicarFisica === 'function') {
                     const inimigoTeclasParaFisica = {
                         ' ': window.debugInimigoTeclas && window.debugInimigoTeclas[' ']
                     };
-                    aplicarFisica(inimigo, inimigoTeclasParaFisica);
+                    aplicarFisica(
+                        inimigo, 
+                        inimigoTeclasParaFisica, 
+                        config.inimigoForcaPulo, 
+                        config.inimigoGravidade, 
+                        config.inimigoPuloCooldown
+                    );
                 }
 
                 // Colisão Vertical constante para garantir que o inimigo pule e caia corretamente
@@ -126,6 +134,36 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         // Dash do inimigo
                         const mult = (inimigo.direcao === 'd' ? 1 : -1);
                         inimigo.x += config.impulsoChute * mult;
+                    }
+
+                    // Lógica para INICIAR o disparo
+                    if (distanciaAtual <= alcanceTiro && distanciaAtual > config.distanciaAtaqueInimigo && inimigo.cooldownTiro === 0 && inimigo.municao > 0) {
+                        inimigo.cooldownTiro = config.cooldownTiro;
+                        inimigo.municao--;
+                        
+                        const dir = inimigo.direcao === 'd' ? 1 : -1;
+                        const xPartida = (inimigo.direcao === 'd') ? inimigo.x + 32 : inimigo.x - config.PROJETIL_LARGURA;
+                        const yPartida = inimigo.y + 12;
+
+                        const projElemento = document.createElement('img');
+                        projElemento.src = config.spriteProjetil;
+                        projElemento.style.position = 'absolute';
+                        projElemento.style.width = config.PROJETIL_LARGURA + 'px';
+                        projElemento.style.height = config.PROJETIL_ALTURA + 'px';
+                        projElemento.style.zIndex = '10';
+                        projElemento.style.left = xPartida + 'px';
+                        projElemento.style.bottom = yPartida + 'px';
+                        projElemento.style.imageRendering = 'pixelated';
+                        inimigo.elemento.parentElement.appendChild(projElemento);
+
+                        window.projeteis.push({
+                            x: xPartida,
+                            y: yPartida,
+                            direcao: dir,
+                            elemento: projElemento,
+                            origem: 'inimigo'
+                        });
+                        console.log(`Inimigo disparou! Munição restante: ${inimigo.municao}`);
                     }
 
                     // Lógica de perseguição: move-se na direção do Player
