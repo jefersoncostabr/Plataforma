@@ -62,14 +62,16 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         const xAnterior = controle.x;
         const yAnterior = controle.y;
 
+        const velAtiva = config.velocidadeHorizontal || velocidade;
+
         // Movimentação Horizontal
         if (controle.teclas['ArrowLeft'] || controle.teclas['a'] || controle.teclas['A']) {
-            controle.x -= velocidade;
+            controle.x -= velAtiva;
             if (!controle.chutando) controle.direcao = 'e';
             controle.movendoHorizontal = true;
         }
         if (controle.teclas['ArrowRight'] || controle.teclas['d'] || controle.teclas['D']) {
-            controle.x += velocidade;
+            controle.x += velAtiva;
             if (!controle.chutando) controle.direcao = 'd';
             controle.movendoHorizontal = true;
         }

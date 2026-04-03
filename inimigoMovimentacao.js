@@ -27,6 +27,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             const alcanceTiro = config.distanciaTiroInimigo || 300;
             const distanciaAtivacao = Math.max(alcanceTiro, 6 * 32); 
 
+            const velAtiva = config.velocidadeHorizontal || velocidade;
+
             window.inimigos.forEach(inimigo => {
                 const distanciaAtual = Math.abs(playerX - inimigo.x);
                 
@@ -169,14 +171,14 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     // Lógica de perseguição: move-se na direção do Player
                     if (inimigo.x < playerX - 2) {
                         if (inimigo.tempoChute === 0) {
-                            inimigo.x += velocidade;
+                            inimigo.x += velAtiva;
                             inimigo.direcao = 'd';
                             inimigo.elemento.style.transform = 'scaleX(1)';
                             movendoDestaVez = true;
                         }
                     } else if (inimigo.x > playerX + 2) {
                         if (inimigo.tempoChute === 0) {
-                            inimigo.x -= velocidade;
+                            inimigo.x -= velAtiva;
                             inimigo.direcao = 'e';
                             inimigo.elemento.style.transform = 'scaleX(-1)';
                             movendoDestaVez = true;

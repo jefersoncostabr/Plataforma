@@ -34,5 +34,6 @@
     "inimigoPuloDelayMax": 35,
     "distanciaTiroInimigo": 300,
     "cooldownTiro": 45,
-    "maxMunicao": 5
+    "maxMunicao": 5,
+    "velocidadeHorizontal": 4
 }
