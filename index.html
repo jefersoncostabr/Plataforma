@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palco do Jogo</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #333;
+            margin: 0;
+            overflow: hidden;
+        }
+        #game-stage {
+            width: 640px; /* Exemplo: 20 tiles de 32px */
+            height: 480px; /* Exemplo: 15 tiles de 32px */
+            background-color: #555;
+            border: 2px solid #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        .character {
+            position: absolute;
+            bottom: 0; 
+            left: 0;
+            /* Removido o transform fixo para o JS controlar a direção */
+            width: 32px; /* Tamanho do personagem */
+            height: 32px; /* Tamanho do personagem */
+            image-rendering: pixelated; /* Garante que o pixel art não seja suavizado */
+        }
+    </style>
+</head>
+<body>
+    <div id="game-stage">
+        <img id="player" class="character" src="personagem/Personagem_parado.png" alt="Personagem">
+    </div>
+
+    <script src="animacao_andando.js"></script>
+    <script src="posicionamento.js"></script>
+    <script src="colisao.js"></script>
+    <script src="grade.js"></script>
+    <script src="fisica.js"></script>
+    <script src="inimigo.js"></script>
+    <script src="inimigoMovimentacao.js"></script>
+    <script src="cenario.js"></script>
+    <script src="movimentacao.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const playerElement = document.getElementById('player');
+            const player2Element = document.getElementById('player2');
+            
+            // Inicializa a grade de visualização
+            configurarGrade('game-stage');
+
+            // Renderiza o chão na base do palco
+            renderizarChao('game-stage', 'personagem/chao.png');
+
+            // Renderiza as plataformas designadas (definidas em cenario.js)
+            renderizarPlataformas('game-stage', 'personagem/chao.png', plataformas);
+
+            // Renderiza o objetivo na posição f19
+            renderizarObjetivo('game-stage', 'personagem/objetivo.png', 'f19');
+
+            // Cria inimigos em posições estratégicas
+            criarInimigo('game-stage', 'personagem/Personagem_parado.png', 'b15', 'e');
+
+            // Inicia a movimentação automática dos inimigos (IA de perseguição)
+            iniciarIAInimigos(1.5);
+
+            if (playerElement) {
+                // Posiciona o primeiro jogador: x=50, y=32 (em cima do chão)
+                configurarPosicaoInicial('player', 50, 32, 'd');
+
+                // Ativa os controles e a animação integrada
+                iniciarMovimentacao(
+                    'player', 
+                    5, 
+                    'personagem/Personagem_parado.png', 
+                    'personagem/Personagem_andando.png',
+                    'personagem/personagem_chute2.png'
+                );
+            }
+
+            if (player2Element) {
+                // Posiciona o segundo jogador: x=500, y=100 (numa plataforma alta), virado para a esquerda
+                configurarPosicaoInicial('player2', 500, 100, 'e');
+            }
+        });
+    </script>
+</body>
+</html>
