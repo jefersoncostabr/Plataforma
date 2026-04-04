@@ -12,6 +12,24 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     const resposta = await fetch('configuracoesGerais.json');
     const config = await resposta.json();
 
+    function obterKnockback(config, fonte = 'default') {
+        const base = Number(config.knockbackBase ?? config.knockbackInimigo ?? 150);
+        const ajuste = Number(config.knockbackAjustes?.[fonte] ?? 0);
+        return base + ajuste;
+    }
+
+    function temEscudoAtivo() {
+        return window.playerControle?.temEscudo && !window.playerControle?.escudoVermelho;
+    }
+
+    function obterKnockbackRecebido(config, fonte = 'default') {
+        const valor = obterKnockback(config, fonte);
+        if (temEscudoAtivo()) {
+            return valor * Number(config.escudoKnockbackMultiplicador ?? 0.5);
+        }
+        return valor;
+    }
+
     window.resetarInimigos = (dadosInimigos) => {
         // Limpa referências antigas e remove armas
         if (window.inimigos) {
@@ -24,8 +42,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
         if (!palco) return;
         dadosInimigos.forEach(dado => {
-            const pos = typeof dado === 'string' ? gridParaPixels(dado) : dado;
-            
+            const posStr = typeof dado === 'object' ? dado.pos : dado;
+            const pos = gridParaPixels(posStr);
             const img = document.createElement('img');
             img.src = spriteParado;
             img.style.position = 'absolute';
@@ -40,8 +58,11 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             window.inimigos.push({
                 x: pos.x,
                 y: pos.y,
+                largura: config.HITBOX_LARGURA,
+                altura: config.HITBOX_ALTURA,
                 elemento: img,
-                perseguindo: false
+                perseguindo: false,
+                tipo: dado.tipo !== undefined ? dado.tipo : 1
             });
         });
     };
@@ -73,6 +94,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.cooldownTiro = 0;
                     inimigo.municao = config.maxMunicao || 5;
                     inimigo.direcao = 'e';
+                    inimigo.temArma = (inimigo.tipo === 1);
                     inimigo.cooldownPulo = 0;
                     inimigo.velocidadeY = 0;
                     inimigo.noChao = false;
@@ -87,6 +109,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     arma.style.zIndex = '6'; // Mesma camada da arma do player
                     arma.style.imageRendering = 'pixelated';
                     arma.style.pointerEvents = 'none';
+                    arma.style.display = inimigo.temArma ? 'block' : 'none';
                     inimigo.elemento.parentElement.appendChild(arma);
                     inimigo.armaElemento = arma;
                 }
@@ -185,7 +208,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     }
 
                     // Lógica para INICIAR o disparo
-                    if (distanciaAtual <= alcanceTiro && distanciaAtual > config.distanciaAtaqueInimigo && inimigo.cooldownTiro === 0 && inimigo.municao > 0) {
+                    if (inimigo.temArma && distanciaAtual <= alcanceTiro && distanciaAtual > config.distanciaAtaqueInimigo && inimigo.cooldownTiro === 0 && inimigo.municao > 0) {
                         inimigo.cooldownTiro = config.cooldownTiro;
                         inimigo.municao--;
                         
@@ -283,13 +306,17 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             
                             inimigo.jaAtacouNesteChute = true;
                             
-                            // Incrementa o dano do jogador
-                            window.playerControle.dano = (window.playerControle.dano || 0) + 1;
-                            console.log(`Dano: Jogador atingido! Total: ${window.playerControle.dano}/3`);
+                            const escudoAtivo = temEscudoAtivo();
+                            if (!escudoAtivo) {
+                                window.playerControle.dano = (window.playerControle.dano || 0) + 1;
+                                console.log(`Dano: Jogador atingido! Total: ${window.playerControle.dano}/3`);
+                            } else {
+                                console.log('Escudo bloqueou o chute! Apenas knockback aplicado.');
+                            }
                             
                             // Knockback no Jogador
                             const direcaoKnockback = (inimigo.direcao === 'd' ? 1 : -1);
-                            window.playerControle.x += config.knockbackInimigo * direcaoKnockback;
+                            window.playerControle.x += obterKnockbackRecebido(config, 'inimigoChute') * direcaoKnockback;
 
                             // Condição de Game Over
                             if (window.playerControle.dano >= 3) {

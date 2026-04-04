@@ -15,6 +15,36 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     const resposta = await fetch('configuracoesGerais.json');
     const config = await resposta.json();
 
+    function obterKnockback(config, fonte = 'default') {
+        const base = Number(config.knockbackBase ?? config.knockbackInimigo ?? 150);
+        const ajuste = Number(config.knockbackAjustes?.[fonte] ?? 0);
+        return base + ajuste;
+    }
+
+    function temEscudoAtivo() {
+        return controle.temEscudo && !controle.escudoVermelho;
+    }
+
+    function obterKnockbackRecebido(fonte = 'default') {
+        const valor = obterKnockback(config, fonte);
+        if (temEscudoAtivo()) {
+            return valor * Number(config.escudoKnockbackMultiplicador ?? 0.5);
+        }
+        return valor;
+    }
+
+    function atualizarVisualEscudo() {
+        if (controle.temEscudo || controle.escudoVermelho) {
+            escudoElemento.style.display = 'block';
+        } else {
+            escudoElemento.style.display = 'none';
+        }
+
+        escudoElemento.src = controle.escudoVermelho
+            ? (config.spriteEscudoVermelho || 'personagem/escudo_vermelho.png')
+            : (config.spriteEscudoPlayer || 'personagem/escudo.png');
+    }
+
     // Estado interno para rastrear posição e teclas pressionadas
     const controle = {
         x: parseInt(elemento.style.left) || 0,
@@ -30,6 +60,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         cooldownTiro: 0,
         municao: 0, // Inicia sem munição
         temArma: false, // Inicia sem a capacidade de atirar
+        temEscudo: false, // Inicia sem escudo
+        escudoVermelho: false,
+        escudoProtegido: 0,
         dano: 0,
         teclas: {}
     };
@@ -37,6 +70,38 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     window.playerControle = controle;
     window.projeteis = [];
     window.itensColetaveis = [];
+
+    // Função para resetar/spawnar itens baseados no JSON da fase
+    window.resetarItens = (dadosItens) => {
+        // O array é limpo aqui; limparCenario já remove as imagens do DOM
+        window.itensColetaveis = [];
+        if (!dadosItens) return;
+
+        dadosItens.forEach(dado => {
+            const pos = typeof gridParaPixels === 'function' ? gridParaPixels(dado.pos) : {x: 0, y: 0};
+            const itemImg = document.createElement('img');
+            
+            // Define o sprite baseado no tipo (escudo ou revolver)
+            itemImg.src = dado.tipo === 'escudo' 
+                ? (config.spriteItemEscudo || 'personagem/escudo_pegavel.png')
+                : (config.spriteItemRevolver || 'personagem/revolver_pegavel.png');
+
+            itemImg.style.position = 'absolute';
+            itemImg.style.width = '32px';
+            itemImg.style.height = '32px';
+            itemImg.style.left = pos.x + 'px';
+            itemImg.style.bottom = pos.y + 'px';
+            itemImg.style.zIndex = '3';
+            itemImg.style.imageRendering = 'pixelated';
+            elemento.parentElement.appendChild(itemImg);
+
+            window.itensColetaveis.push({
+                x: pos.x, y: pos.y,
+                elemento: itemImg, velocidadeY: 0,
+                tipo: dado.tipo
+            });
+        });
+    };
     
     // Elemento da arma
     const armaElemento = document.createElement('img');
@@ -50,6 +115,20 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     armaElemento.style.imageRendering = 'pixelated';
     armaElemento.style.pointerEvents = 'none';
     elemento.parentElement.appendChild(armaElemento);
+
+    // Elemento do escudo
+    const escudoElemento = document.createElement('img');
+    escudoElemento.id = 'player-shield';
+    escudoElemento.src = config.spriteEscudoPlayer || 'personagem/escudo.png';
+    escudoElemento.style.position = 'absolute';
+    escudoElemento.style.width = '32px';
+    escudoElemento.style.height = '32px';
+    escudoElemento.style.zIndex = '7'; // À frente da arma
+    escudoElemento.style.display = 'none';
+    escudoElemento.style.imageRendering = 'pixelated';
+    escudoElemento.style.pointerEvents = 'none';
+    elemento.parentElement.appendChild(escudoElemento);
+    atualizarVisualEscudo();
 
     window.debugInimigoTeclas = {}; // Inicializa o objeto para teclas de debug do inimigo
 
@@ -66,17 +145,20 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         if (e.key === '9' && window.inimigos) {
             for (let i = window.inimigos.length - 1; i >= 0; i--) {
                 const inimigo = window.inimigos[i];
-                const itemImg = document.createElement('img');
-                itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
-                itemImg.style.position = 'absolute';
-                itemImg.style.width = '32px';
-                itemImg.style.height = '32px';
-                itemImg.style.zIndex = '3';
-                elemento.parentElement.appendChild(itemImg);
-                window.itensColetaveis.push({
-                    x: inimigo.x, y: inimigo.y,
-                    elemento: itemImg, velocidadeY: 0
-                });
+                if (inimigo.tipo === 1) {
+                    const itemImg = document.createElement('img');
+                    itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
+                    itemImg.style.position = 'absolute';
+                    itemImg.style.width = '32px';
+                    itemImg.style.height = '32px';
+                    itemImg.style.zIndex = '3';
+                    elemento.parentElement.appendChild(itemImg);
+                    window.itensColetaveis.push({
+                        x: inimigo.x, y: inimigo.y,
+                        elemento: itemImg, velocidadeY: 0,
+                        tipo: 'revolver'
+                    });
+                }
                 if (inimigo.armaElemento) inimigo.armaElemento.remove();
                 inimigo.elemento.remove();
                 window.inimigos.splice(i, 1);
@@ -98,7 +180,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         const xAnterior = controle.x;
         const yAnterior = controle.y;
 
-        const velAtiva = config.velocidadeHorizontal || velocidade;
+        const velBase = config.velocidadePlayer || velocidade;
+        const velAtiva = temEscudoAtivo()
+            ? Math.max(0, velBase - (config.escudoVelocidadeReduzida ?? 2))
+            : velBase;
 
         // Movimentação Horizontal
         if (controle.teclas['ArrowLeft'] || controle.teclas['a'] || controle.teclas['A']) {
@@ -284,14 +369,21 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         altura: config.ATAQUE_ALTURA
                     };
 
+                    const hitboxInimigo = {
+                        x: inimigo.x + config.HITBOX_OFFSET_X,
+                        y: inimigo.y,
+                        largura: config.HITBOX_LARGURA,
+                        altura: config.HITBOX_ALTURA
+                    };
+
                     // Só aplica o dano se o inimigo ainda não foi atingido por este chute específico
-                    if (!inimigo.foiAtingidoNesteChute && detectarColisaoHitbox(hitboxAtaque, inimigo, 0, 0, 0)) {
+                    if (!inimigo.foiAtingidoNesteChute && detectarColisaoHitbox(hitboxAtaque, hitboxInimigo, 0, 0, 0)) {
                         inimigo.foiAtingidoNesteChute = true;
                         inimigo.vida = (inimigo.vida || 0) + 1;
 
-                        // Knockback: Lança o inimigo 28px para trás com base na direção do jogador
+                        // Knockback: Lança o inimigo para trás com base na direção do jogador
                         const direcaoKnockback = (controle.direcao === 'd' ? 1 : -1);
-                        inimigo.x += config.knockbackInimigo * direcaoKnockback;
+                        inimigo.x += obterKnockback(config, 'playerChute') * direcaoKnockback;
 
                         // Limita a posição para o inimigo não sair do palco no momento do impacto
                         if (typeof limitarPosicaoAoPalco === 'function') {
@@ -306,17 +398,20 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         // Se atingir 3 golpes, o inimigo morre e desaparece
                         if (inimigo.vida >= 3) {
                             console.log("Ataque: Inimigo derrotado!");
-                            const itemImg = document.createElement('img');
-                            itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
-                            itemImg.style.position = 'absolute';
-                            itemImg.style.width = '32px';
-                            itemImg.style.height = '32px';
-                            itemImg.style.zIndex = '3';
-                            elemento.parentElement.appendChild(itemImg);
-                            window.itensColetaveis.push({
-                                x: inimigo.x, y: inimigo.y,
-                                elemento: itemImg, velocidadeY: 0
-                            });
+                            if (inimigo.tipo === 1) {
+                                const itemImg = document.createElement('img');
+                                itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
+                                itemImg.style.position = 'absolute';
+                                itemImg.style.width = '32px';
+                                itemImg.style.height = '32px';
+                                itemImg.style.zIndex = '3';
+                                elemento.parentElement.appendChild(itemImg);
+                                window.itensColetaveis.push({
+                                    x: inimigo.x, y: inimigo.y,
+                                    elemento: itemImg, velocidadeY: 0,
+                                    tipo: 'revolver'
+                                });
+                            }
                             if (inimigo.armaElemento) inimigo.armaElemento.remove();
                             inimigo.elemento.remove();
                             window.inimigos.splice(i, 1);
@@ -356,7 +451,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             inimigo.vida = (inimigo.vida || 0) + 1;
 
                             // Knockback: Lança o inimigo para trás com base na direção do projétil
-                            inimigo.x += config.knockbackInimigo * proj.direcao;
+                            inimigo.x += obterKnockback(config, 'playerProjetil') * proj.direcao;
 
                             // Limita a posição para o inimigo não sair do palco no momento do impacto
                             if (typeof limitarPosicaoAoPalco === 'function') {
@@ -367,17 +462,20 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             inimigo.elemento.style.left = inimigo.x + 'px';
 
                             if (inimigo.vida >= 3) {
-                                const itemImg = document.createElement('img');
-                                itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
-                                itemImg.style.position = 'absolute';
-                                itemImg.style.width = '32px';
-                                itemImg.style.height = '32px';
-                                itemImg.style.zIndex = '3';
-                                elemento.parentElement.appendChild(itemImg);
-                                window.itensColetaveis.push({
-                                    x: inimigo.x, y: inimigo.y,
-                                    elemento: itemImg, velocidadeY: 0
-                                });
+                                if (inimigo.tipo === 1) {
+                                    const itemImg = document.createElement('img');
+                                    itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
+                                    itemImg.style.position = 'absolute';
+                                    itemImg.style.width = '32px';
+                                    itemImg.style.height = '32px';
+                                    itemImg.style.zIndex = '3';
+                                    elemento.parentElement.appendChild(itemImg);
+                                    window.itensColetaveis.push({
+                                        x: inimigo.x, y: inimigo.y,
+                                        elemento: itemImg, velocidadeY: 0,
+                                        tipo: 'revolver'
+                                    });
+                                }
                                 if (inimigo.armaElemento) inimigo.armaElemento.remove();
                                 inimigo.elemento.remove();
                                 window.inimigos.splice(j, 1);
@@ -396,19 +494,32 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     const hitboxProjetil = { x: proj.x, y: proj.y, largura: config.PROJETIL_LARGURA, altura: config.PROJETIL_ALTURA };
 
                     if (detectarColisaoHitbox(hitboxProjetil, hitboxPlayer, 0, 0, 0)) {
-                        window.playerControle.dano = (window.playerControle.dano || 0) + 1;
-                        
-                        // Knockback no Jogador baseado na direção do tiro
-                        window.playerControle.x += config.knockbackInimigo * proj.direcao;
-                        
-                        console.log(`Dano: Jogador atingido por projétil! Total: ${window.playerControle.dano}/3`);
-
-                        if (window.playerControle.dano >= 3) {
-                            alert("Game Over! Você foi derrotado pelos projéteis inimigos.");
-                            location.reload();
+                        if (temEscudoAtivo()) {
+                            controle.escudoProtegido = (controle.escudoProtegido || 0) + 1;
+                            const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
+                            if (controle.escudoProtegido >= tirosProtegidos) {
+                                controle.temEscudo = false;
+                                controle.escudoVermelho = true;
+                                console.log('Escudo danificado: agora vermelho e sem proteção.');
+                            } else {
+                                console.log(`Escudo bloqueou o tiro! ${controle.escudoProtegido}/${tirosProtegidos}`);
+                            }
+                            atualizarVisualEscudo();
+                        } else {
+                            controle.dano = (controle.dano || 0) + 1;
+                            console.log(`Dano: Jogador atingido por projétil! Total: ${controle.dano}/3`);
+                            if (controle.dano >= 3) {
+                                alert("Game Over! Você foi derrotado pelos projéteis inimigos.");
+                                location.reload();
+                            }
                         }
+
+                        // Knockback no Jogador baseado na direção do tiro
+                        controle.x += obterKnockbackRecebido('inimigoProjetil') * proj.direcao;
+                        
                         hitAlvo = true;
                     }
+
                 }
 
                 const hitCenario = verificarColisaoComTiles(proj.x, proj.y, config.PROJETIL_LARGURA, config.PROJETIL_ALTURA, window.plataformas);
@@ -429,13 +540,19 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 // Lógica de Coleta pelo Jogador
                 const hitboxItem = { x: item.x, y: item.y, largura: 32, altura: 32 };
                 if (typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(hitboxPlayer, hitboxItem, 0, 0, 0)) {
-                    console.log("Jogador coletou o revólver!");
-                    console.log("Arma visível antes:", armaElemento.style.display);
-                    controle.temArma = true;
-                    controle.municao = config.maxMunicao || 5;
-                    armaElemento.style.display = 'block'; // Mostra a arma visualmente
-                    console.log("Arma visível depois:", armaElemento.style.display);
-                    
+                    if (item.tipo === 'escudo') {
+                        console.log("Jogador coletou o escudo!");
+                        controle.temEscudo = true;
+                        controle.escudoVermelho = false;
+                        controle.escudoProtegido = 0;
+                        escudoElemento.style.display = 'block';
+                        atualizarVisualEscudo();
+                    } else {
+                        console.log("Jogador coletou o revólver!");
+                        controle.temArma = true;
+                        controle.municao = config.maxMunicao || 5;
+                        armaElemento.style.display = 'block';
+                    }
                     item.elemento.remove();
                     window.itensColetaveis.splice(i, 1);
                     continue; // Pula o processamento de física para este item removido
@@ -478,6 +595,16 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         armaElemento.style.left = controle.x + 'px';
         armaElemento.style.bottom = controle.y + 'px';
         armaElemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+
+        // Atualiza o sprite da arma baseado na munição
+        armaElemento.src = (controle.municao <= 0)
+            ? (config.spriteArmaVermelha || 'personagem/revolver_vermelho.png')
+            : (config.spriteArmaPlayer || 'personagem/revolver.png');
+
+        // Sincroniza a posição do escudo com o jogador
+        escudoElemento.style.left = controle.x + 'px';
+        escudoElemento.style.bottom = controle.y + 'px';
+        escudoElemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
 
         requestAnimationFrame(atualizar);
     }

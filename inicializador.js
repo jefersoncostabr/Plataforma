@@ -34,8 +34,17 @@ async function carregarFase(nomeArquivo) {
     }
 
     // 4. Cria os novos inimigos
-    if (fase.inimigos && typeof resetarInimigos === 'function') {
-        resetarInimigos(fase.inimigos);
+    if (typeof resetarInimigos === 'function') {
+        const inimigosParaReset = [];
+        if (fase.inimigos1) fase.inimigos1.forEach(p => inimigosParaReset.push({tipo: 1, pos: p}));
+        if (fase.inimigos0) fase.inimigos0.forEach(p => inimigosParaReset.push({tipo: 0, pos: p}));
+        
+        resetarInimigos(inimigosParaReset);
+    }
+
+    // 5. Cria os itens iniciais da fase (como o escudo)
+    if (typeof resetarItens === 'function') {
+        resetarItens(fase.itens || []);
     }
 }
 
@@ -59,7 +68,7 @@ async function iniciarJogo() {
     window.nivelAtual = (config.faseInicial !== undefined) ? config.faseInicial : 0;
 
     // Inicia os sistemas básicos (apenas uma vez)
-    await iniciarMovimentacao('player', 4, 'personagem/Personagem_parado.png', 'personagem/Personagem_andando.png', 'personagem/personagem_chute2.png');
+    await iniciarMovimentacao('player', config.velocidadePlayer || 4, 'personagem/Personagem_parado.png', 'personagem/Personagem_andando.png', 'personagem/personagem_chute2.png');
     await iniciarIAInimigos(1, 'personagem/Personagem_parado.png', 'personagem/Personagem_andando.png', 'personagem/personagem_chute2.png');
     
     // Carrega a primeira fase

@@ -32,8 +32,8 @@ function limparCenario() {
     const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
     if (!palco) return;
     
-    // Remove todos os filhos exceto o player
-    const elementosParaRemover = palco.querySelectorAll('img:not(#player):not(#player-weapon)');
+    // Remove todos os filhos exceto o player, sua arma e seu escudo
+    const elementosParaRemover = palco.querySelectorAll('img:not(#player):not(#player-weapon):not(#player-shield)');
     elementosParaRemover.forEach(el => el.remove());
     
     window.plataformas = {};

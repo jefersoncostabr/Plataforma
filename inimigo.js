@@ -10,8 +10,9 @@ window.inimigos = [];
  * @param {string} imagemPath - Caminho para a imagem do inimigo.
  * @param {string} coord - Coordenada no grid (ex: "b10").
  * @param {string} direcao - 'd' para direita ou 'e' para esquerda (padrão 'e').
+ * @param {number} tipo - 0 para melee, 1 para revolver.
  */
-function criarInimigo(idPalco, imagemPath, coord, direcao = 'e') {
+function criarInimigo(idPalco, imagemPath, coord, direcao = 'e', tipo = 1) {
     const palco = document.getElementById(idPalco);
     if (!palco) return;
 
@@ -46,7 +47,8 @@ function criarInimigo(idPalco, imagemPath, coord, direcao = 'e') {
         altura: tamanhoTile,
         elemento: inimigoImg,
         velocidadeY: 0,
-        noChao: true
+        noChao: true,
+        tipo: tipo
     });
     console.log(`Inimigo inserido em ${coord} (x: ${x}, y: ${y})`);
 }
