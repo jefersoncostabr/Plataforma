@@ -321,7 +321,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             // Condição de Game Over
                             if (window.playerControle.dano >= 3) {
                                 alert("Game Over! Você foi derrotado pelos inimigos.");
-                                location.reload();
+                                if (typeof reiniciarJogo === 'function') reiniciarJogo();
                             }
                         }
                     }

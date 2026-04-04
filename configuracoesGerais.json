@@ -49,7 +49,7 @@
     "distanciaTiroInimigo": 300,
     "cooldownTiro": 45,
     "maxMunicao": 5,
-    "velocidadeHorizontal": 3,
+    "velocidadeHorizontal": 2,
     "velocidadePlayer": 5,
-    "faseInicial": 1
+    "faseInicial": 0
 }

@@ -25,6 +25,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         return controle.temEscudo && !controle.escudoVermelho;
     }
 
+    const INVENTARIO_STORAGE_KEY = 'plataformaInventario';
+
     function obterKnockbackRecebido(fonte = 'default') {
         const valor = obterKnockback(config, fonte);
         if (temEscudoAtivo()) {
@@ -32,6 +34,40 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
         return valor;
     }
+
+    function carregarInventarioSalvo() {
+        try {
+            const raw = localStorage.getItem(INVENTARIO_STORAGE_KEY);
+            if (!raw) return null;
+            return JSON.parse(raw);
+        } catch (error) {
+            console.error('Erro ao ler inventário salvo:', error);
+            return null;
+        }
+    }
+
+    function salvarInventario() {
+        try {
+            const estado = {
+                temEscudo: controle.temEscudo,
+                escudoVermelho: controle.escudoVermelho,
+                escudoProtegido: controle.escudoProtegido,
+                temArma: controle.temArma,
+                municao: controle.municao
+            };
+            localStorage.setItem(INVENTARIO_STORAGE_KEY, JSON.stringify(estado));
+        } catch (error) {
+            console.error('Erro ao salvar inventário:', error);
+        }
+    }
+
+    function limparInventarioSalvo() {
+        localStorage.removeItem(INVENTARIO_STORAGE_KEY);
+    }
+
+    window.salvarInventario = salvarInventario;
+    window.limparInventarioSalvo = limparInventarioSalvo;
+    window.carregarInventarioSalvo = carregarInventarioSalvo;
 
     function atualizarVisualEscudo() {
         if (controle.temEscudo || controle.escudoVermelho) {
@@ -44,6 +80,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             ? (config.spriteEscudoVermelho || 'personagem/escudo_vermelho.png')
             : (config.spriteEscudoPlayer || 'personagem/escudo.png');
     }
+
+    // Expose for restart
+    window.atualizarVisualEscudo = atualizarVisualEscudo;
 
     // Estado interno para rastrear posição e teclas pressionadas
     const controle = {
@@ -71,6 +110,15 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     window.projeteis = [];
     window.itensColetaveis = [];
 
+    const inventarioSalvo = carregarInventarioSalvo();
+    if (inventarioSalvo) {
+        controle.temEscudo = Boolean(inventarioSalvo.temEscudo);
+        controle.escudoVermelho = Boolean(inventarioSalvo.escudoVermelho);
+        controle.escudoProtegido = Number(inventarioSalvo.escudoProtegido ?? 0);
+        controle.temArma = Boolean(inventarioSalvo.temArma);
+        controle.municao = Number(inventarioSalvo.municao ?? 0);
+    }
+
     // Função para resetar/spawnar itens baseados no JSON da fase
     window.resetarItens = (dadosItens) => {
         // O array é limpo aqui; limparCenario já remove as imagens do DOM
@@ -78,6 +126,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         if (!dadosItens) return;
 
         dadosItens.forEach(dado => {
+            if ((dado.tipo === 'escudo' && controle.temEscudo) || (dado.tipo === 'revolver' && controle.temArma)) {
+                return;
+            }
+
             const pos = typeof gridParaPixels === 'function' ? gridParaPixels(dado.pos) : {x: 0, y: 0};
             const itemImg = document.createElement('img');
             
@@ -115,6 +167,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     armaElemento.style.imageRendering = 'pixelated';
     armaElemento.style.pointerEvents = 'none';
     elemento.parentElement.appendChild(armaElemento);
+    armaElemento.style.display = controle.temArma ? 'block' : 'none';
 
     // Elemento do escudo
     const escudoElemento = document.createElement('img');
@@ -140,6 +193,20 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         if (e.key === '8') {
             window.debugInimigoTeclas[' '] = true;
+        }
+
+        if (e.key === '0') {
+            limparInventarioSalvo();
+            console.log('Inventário salvo zerado.');
+            controle.temEscudo = false;
+            controle.escudoVermelho = false;
+            controle.escudoProtegido = 0;
+            controle.temArma = false;
+            controle.municao = 0;
+            atualizarVisualEscudo();
+            if (typeof armaElemento !== 'undefined') {
+                armaElemento.style.display = 'none';
+            }
         }
 
         if (e.key === '9' && window.inimigos) {
@@ -505,12 +572,13 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 console.log(`Escudo bloqueou o tiro! ${controle.escudoProtegido}/${tirosProtegidos}`);
                             }
                             atualizarVisualEscudo();
+                            salvarInventario();
                         } else {
                             controle.dano = (controle.dano || 0) + 1;
                             console.log(`Dano: Jogador atingido por projétil! Total: ${controle.dano}/3`);
                             if (controle.dano >= 3) {
                                 alert("Game Over! Você foi derrotado pelos projéteis inimigos.");
-                                location.reload();
+                                if (typeof reiniciarJogo === 'function') reiniciarJogo();
                             }
                         }
 
@@ -547,11 +615,13 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         controle.escudoProtegido = 0;
                         escudoElemento.style.display = 'block';
                         atualizarVisualEscudo();
+                        salvarInventario();
                     } else {
                         console.log("Jogador coletou o revólver!");
                         controle.temArma = true;
                         controle.municao = config.maxMunicao || 5;
                         armaElemento.style.display = 'block';
+                        salvarInventario();
                     }
                     item.elemento.remove();
                     window.itensColetaveis.splice(i, 1);
