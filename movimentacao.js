@@ -40,12 +40,15 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     
     // Elemento da arma
     const armaElemento = document.createElement('img');
+    armaElemento.id = 'player-weapon';
     armaElemento.src = config.spriteArmaPlayer || 'personagem/revolver.png';
     armaElemento.style.position = 'absolute';
     armaElemento.style.width = '32px';
     armaElemento.style.height = '32px';
     armaElemento.style.zIndex = '6';
     armaElemento.style.display = 'none';
+    armaElemento.style.imageRendering = 'pixelated';
+    armaElemento.style.pointerEvents = 'none';
     elemento.parentElement.appendChild(armaElemento);
 
     window.debugInimigoTeclas = {}; // Inicializa o objeto para teclas de debug do inimigo
@@ -64,7 +67,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             for (let i = window.inimigos.length - 1; i >= 0; i--) {
                 const inimigo = window.inimigos[i];
                 const itemImg = document.createElement('img');
-                itemImg.src = 'personagem/revolver_pegavel.png';
+                itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
                 itemImg.style.position = 'absolute';
                 itemImg.style.width = '32px';
                 itemImg.style.height = '32px';
@@ -176,9 +179,14 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.cooldownPulo--;
         }
 
-        // 1. Colisão Horizontal (HITBOX com altura 32)
+        const hitboxX = controle.x + config.HITBOX_OFFSET_X;
+        const hitboxY = controle.y;
+        const hitboxWidth = config.HITBOX_LARGURA;
+        const hitboxHeight = config.HITBOX_ALTURA;
+
+        // 1. Colisão Horizontal com as laterais das plataformas
         if (typeof verificarColisaoComTiles === 'function' && 
-            verificarColisaoComTiles(controle.x + config.HITBOX_OFFSET_X, controle.y, config.HITBOX_LARGURA, config.HITBOX_ALTURA, window.plataformas)) {
+            verificarColisaoComTiles(hitboxX, hitboxY, hitboxWidth, hitboxHeight, window.plataformas)) {
             controle.x = xAnterior;
         }
 
@@ -194,9 +202,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // Resetamos o estado para ser revalidado pelas colisões verticais abaixo
         controle.noChao = false;
 
-        // 2. Colisão Vertical com HITBOX 7x32
+        // 2. Colisão Vertical para cima/baixo contra as plataformas
         if (typeof verificarColisaoComTiles === 'function' && 
-            verificarColisaoComTiles(controle.x + config.HITBOX_OFFSET_X, controle.y, config.HITBOX_LARGURA, config.HITBOX_ALTURA, window.plataformas)) {
+            verificarColisaoComTiles(controle.x + config.HITBOX_OFFSET_X, controle.y, hitboxWidth, hitboxHeight, window.plataformas)) {
             
             if (controle.velocidadeY < 0) { // Caindo: toca o topo da plataforma
                 controle.noChao = true;
@@ -204,8 +212,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 controle.y = Math.floor((controle.y + 0.1) / 32 + 1) * 32;
             } else if (controle.velocidadeY > 0) { // Subindo: bate a cabeça
                 controle.velocidadeY = 0;
-                // Snap vertical inteiro para topo de tile de teto (sem fração de pixel gap)
-                controle.y = Math.floor((controle.y + config.HITBOX_ALTURA) / 32) * 32 - config.HITBOX_ALTURA;
+                controle.y = Math.floor((controle.y + hitboxHeight) / 32) * 32 - hitboxHeight;
             }
         }
 
@@ -250,9 +257,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         };
         if (window.objetivoData && typeof detectarColisaoHitbox === 'function') {
             if (detectarColisaoHitbox(hitboxPlayer, window.objetivoData, 0, 0, 0)) {
-                alert("Parabéns! Você alcançou o objetivo e completou a fase!");
-                location.reload();
-                return; // Para o loop
+                window.objetivoData = null; // Evita disparar a transição múltiplas vezes
+                if (typeof window.proximoNivel === 'function') {
+                    window.proximoNivel();
+                }
             }
         }
 
@@ -299,7 +307,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         if (inimigo.vida >= 3) {
                             console.log("Ataque: Inimigo derrotado!");
                             const itemImg = document.createElement('img');
-                            itemImg.src = 'personagem/revolver_item.png';
+                            itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
                             itemImg.style.position = 'absolute';
                             itemImg.style.width = '32px';
                             itemImg.style.height = '32px';
@@ -360,7 +368,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
                             if (inimigo.vida >= 3) {
                                 const itemImg = document.createElement('img');
-                                itemImg.src = 'personagem/revolver_item.png';
+                                itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
                                 itemImg.style.position = 'absolute';
                                 itemImg.style.width = '32px';
                                 itemImg.style.height = '32px';
@@ -422,9 +430,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 const hitboxItem = { x: item.x, y: item.y, largura: 32, altura: 32 };
                 if (typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(hitboxPlayer, hitboxItem, 0, 0, 0)) {
                     console.log("Jogador coletou o revólver!");
+                    console.log("Arma visível antes:", armaElemento.style.display);
                     controle.temArma = true;
                     controle.municao = config.maxMunicao || 5;
                     armaElemento.style.display = 'block'; // Mostra a arma visualmente
+                    console.log("Arma visível depois:", armaElemento.style.display);
                     
                     item.elemento.remove();
                     window.itensColetaveis.splice(i, 1);
@@ -464,7 +474,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         elemento.style.bottom = controle.y + 'px';
         elemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
 
-        // Sincroniza a posição e o espelhamento da arma com o jogador
+        // Sincroniza a posição da arma com o jogador (mesma lógica do inimigo)
         armaElemento.style.left = controle.x + 'px';
         armaElemento.style.bottom = controle.y + 'px';
         armaElemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';

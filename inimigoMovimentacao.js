@@ -12,6 +12,40 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     const resposta = await fetch('configuracoesGerais.json');
     const config = await resposta.json();
 
+    window.resetarInimigos = (dadosInimigos) => {
+        // Limpa referências antigas e remove armas
+        if (window.inimigos) {
+            window.inimigos.forEach(inim => {
+                if (inim.armaElemento) inim.armaElemento.remove();
+            });
+        }
+        window.inimigos = [];
+        
+        const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
+        if (!palco) return;
+        dadosInimigos.forEach(dado => {
+            const pos = typeof dado === 'string' ? gridParaPixels(dado) : dado;
+            
+            const img = document.createElement('img');
+            img.src = spriteParado;
+            img.style.position = 'absolute';
+            img.style.width = '32px';
+            img.style.height = '32px';
+            img.style.left = pos.x + 'px';
+            img.style.bottom = pos.y + 'px';
+            img.style.zIndex = '4';
+            img.style.imageRendering = 'pixelated';
+            palco.appendChild(img);
+
+            window.inimigos.push({
+                x: pos.x,
+                y: pos.y,
+                elemento: img,
+                perseguindo: false
+            });
+        });
+    };
+
     function atualizarIA() {
         // Se a configuração de debug estiver ativa, pula a lógica de movimento
         if (config.debugInimigosParados) {

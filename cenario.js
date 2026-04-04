@@ -26,6 +26,20 @@ function renderizarChao(idPalco, imagemPath, larguraPalco = 640) {
 }
 
 /**
+ * Remove todos os elementos de cenário e inimigos do container.
+ */
+function limparCenario() {
+    const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
+    if (!palco) return;
+    
+    // Remove todos os filhos exceto o player
+    const elementosParaRemover = palco.querySelectorAll('img:not(#player):not(#player-weapon)');
+    elementosParaRemover.forEach(el => el.remove());
+    
+    window.plataformas = {};
+}
+
+/**
  * Renderiza plataformas baseadas em um objeto de coordenadas.
  * Sistema: 'a1' -> Inferior Esquerdo (0,0). Letra cresce para cima, Número para direita.
  * 
@@ -42,6 +56,9 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         ? plataformaData
         : Object.keys(plataformaData);
 
+    // Inicializa o objeto global de plataformas
+    window.plataformas = {};
+
     coordenadas.forEach(coord => {
         const letra = coord[0].toLowerCase();
         const numero = parseInt(coord.substring(1));
@@ -49,6 +66,9 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         // Converte letra para índice (a=0, b=1, c=2...) e número para índice (1=0, 2=1...)
         const row = letra.charCodeAt(0) - 'a'.charCodeAt(0);
         const col = numero - 1;
+
+        // Registra a coordenada no objeto global para colisão
+        window.plataformas[coord] = true;
 
         const tile = document.createElement('img');
         tile.src = imagemPath;
@@ -60,6 +80,24 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         tile.style.imageRendering = 'pixelated';
         palco.appendChild(tile);
     });
+
+    console.log('Plataformas carregadas:', window.plataformas);
+}
+
+/**
+ * Converte uma coordenada de grade (ex: "b2") para pixels (x, y).
+ * 
+ * @param {string} coord - Coordenada no grid.
+ * @param {number} tileSize - Tamanho do tile (padrão 32).
+ * @returns {Object} Objeto com {x, y}.
+ */
+function gridParaPixels(coord, tileSize = 32) {
+    const coordLimpa = coord.trim().toLowerCase();
+    const letra = coordLimpa[0];
+    const numero = parseInt(coordLimpa.substring(1));
+    const row = letra.charCodeAt(0) - 'a'.charCodeAt(0);
+    const col = numero - 1;
+    return { x: col * tileSize, y: row * tileSize };
 }
 
 /**
@@ -116,6 +154,3 @@ function renderizarObjetivo(idPalco, imagemPath, coord) {
         altura: 13 
     };
 }
-
-// Definição das plataformas usando o sistema de coordenadas designado
-window.plataformas = { "d10": true, "d11": true, "d12": true, "d13": true };

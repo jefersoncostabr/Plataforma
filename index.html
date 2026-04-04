@@ -47,59 +47,14 @@
     <script src="inimigoMovimentacao.js"></script>
     <script src="cenario.js"></script>
     <script src="movimentacao.js"></script>
+    <script src="inicializador.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            const playerElement = document.getElementById('player');
-            const player2Element = document.getElementById('player2');
-            
-            // Carrega a configuração da fase
-            const resposta = await fetch('fase1.json');
-            const fase = await resposta.json();
-            
             // Inicializa a grade de visualização
             configurarGrade('game-stage');
 
-            // Renderiza o chão na base do palco
-            renderizarChao('game-stage', 'personagem/chao.png');
-
-            // Converte plataformas do JSON para objeto
-            const plataformasObj = {};
-            fase.plataformas.forEach(coord => {
-                plataformasObj[coord] = true;
-            });
-
-            // Renderiza as plataformas da fase
-            renderizarPlataformas('game-stage', 'personagem/chao.png', plataformasObj);
-
-            // Renderiza o objetivo na posição da fase
-            renderizarObjetivo('game-stage', 'personagem/objetivo.png', fase.objetivo);
-
-            // Cria inimigos das posições da fase
-            fase.inimigos.forEach(inimigoData => {
-                criarInimigo('game-stage', 'personagem/Personagem_parado.png', coordenadaParaGrid(inimigoData.x, inimigoData.y), 'e');
-            });
-
-            // Inicia a movimentação automática dos inimigos (IA de perseguição)
-            iniciarIAInimigos(1.5);
-
-            if (playerElement) {
-                // Posiciona o jogador na posição inicial da fase
-                configurarPosicaoInicial('player', fase.posicaoInicialJogador.x, fase.posicaoInicialJogador.y, 'd');
-
-                // Ativa os controles e a animação integrada
-                iniciarMovimentacao(
-                    'player', 
-                    5, 
-                    'personagem/Personagem_parado.png', 
-                    'personagem/Personagem_andando.png',
-                    'personagem/personagem_chute2.png'
-                );
-            }
-
-            if (player2Element) {
-                // Posiciona o segundo jogador: x=500, y=100 (numa plataforma alta), virado para a esquerda
-                configurarPosicaoInicial('player2', 500, 100, 'e');
-            }
+            // O inicializador agora cuida de todo o carregamento das fases e personagens
+            iniciarJogo();
         });
     </script>
 </body>

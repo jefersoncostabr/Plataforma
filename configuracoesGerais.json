@@ -16,6 +16,7 @@
     "spriteAndandoPlayer": "personagem/Personagem_andando.png",
     "spriteChutePlayer": "personagem/personagem_chute2.png",
     "spriteArmaPlayer": "personagem/revolver.png",
+    "spriteItemRevolver": "personagem/revolver_pegavel.png",
     "spriteParadoInimigo": "personagem/Personagem_parado.png",
     "spriteAndandoInimigo": "personagem/Personagem_andando.png",
     "spriteChuteInimigo": "personagem/personagem_chute2.png",
@@ -36,5 +37,6 @@
     "distanciaTiroInimigo": 300,
     "cooldownTiro": 45,
     "maxMunicao": 5,
-    "velocidadeHorizontal": 4
+    "velocidadeHorizontal": 4,
+    "faseInicial": 1
 }
