@@ -1,11 +1,25 @@
 /**
  * Gerenciador central de fases e inicialização.
  */
-window.niveis = ["fase1.json", "fase2.json"];
+window.niveis = ["fase1.json", "fase2.json", "fase3.json"];
 window.nivelAtual = 0;
+window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para inimigo aleatório
+window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro inimigo
 
 async function carregarFase(nomeArquivo) {
     console.log(`Carregando nível: ${nomeArquivo}`);
+    
+    // Limpa o intervalo anterior de inimigo aleatório se existir
+    if (window.intervalInimigoAleatorio !== null) {
+        clearInterval(window.intervalInimigoAleatorio);
+        window.intervalInimigoAleatorio = null;
+    }
+    
+    // Limpa o timeout do primeiro inimigo se existir
+    if (window.timeoutPrimeiroInimigoAleatorio !== null) {
+        clearTimeout(window.timeoutPrimeiroInimigoAleatorio);
+        window.timeoutPrimeiroInimigoAleatorio = null;
+    }
     
     const resposta = await fetch(nomeArquivo);
     const fase = await resposta.json();
@@ -46,6 +60,48 @@ async function carregarFase(nomeArquivo) {
     if (typeof resetarItens === 'function') {
         resetarItens(fase.itens || []);
     }
+
+    // 6. Configura o intervalo para inimigo aleatório (se habilitado)
+    if (Array.isArray(fase.inimigoAleatorio) && fase.inimigoAleatorio.length === 2) {
+        const dificuldade = fase.inimigoAleatorio[0]; // 1, 2 ou 3
+        const tipoEquipamento = fase.inimigoAleatorio[1]; // 0, 1 ou 2
+        
+        // Calcula o tempo baseado na dificuldade
+        let tempoEmMs = 60000; // padrão: 1 minuto
+        if (dificuldade === 1) {
+            tempoEmMs = 60000; // 1 minuto
+        } else if (dificuldade === 2) {
+            tempoEmMs = 45000; // 45 segundos
+        } else if (dificuldade === 3) {
+            tempoEmMs = 30000; // 30 segundos
+        }
+        
+        let nomeEquipamento = 'sem equipamento';
+        if (tipoEquipamento === 1) nomeEquipamento = 'revólver';
+        else if (tipoEquipamento === 2) nomeEquipamento = 'escudo';
+        
+        const tempoSegundos = tempoEmMs / 1000;
+        console.log(`Inimigo aleatório habilitado! Equipamento: ${nomeEquipamento}. Aparecerá a cada ${tempoSegundos}s.`);
+        
+        // Define uma função para criar o inimigo repetidamente
+        const criarInimigoRepetido = () => {
+            if (typeof criarInimigoAleatorio === 'function') {
+                criarInimigoAleatorio(fase.plataformas, tipoEquipamento);
+            }
+        };
+        
+        // Cria o primeiro inimigo após o tempo especificado
+        window.timeoutPrimeiroInimigoAleatorio = setTimeout(() => {
+            criarInimigoRepetido();
+            
+            // Depois começa o intervalo repetido
+            window.intervalInimigoAleatorio = setInterval(() => {
+                criarInimigoRepetido();
+            }, tempoEmMs);
+            
+            window.timeoutPrimeiroInimigoAleatorio = null;
+        }, tempoEmMs);
+    }
 }
 
 window.proximoNivel = async function() {
@@ -63,6 +119,18 @@ window.proximoNivel = async function() {
 };
 
 window.reiniciarJogo = async function() {
+    // Limpa o intervalo de inimigo aleatório se existir
+    if (window.intervalInimigoAleatorio !== null) {
+        clearInterval(window.intervalInimigoAleatorio);
+        window.intervalInimigoAleatorio = null;
+    }
+    
+    // Limpa o timeout do primeiro inimigo aleatório se existir
+    if (window.timeoutPrimeiroInimigoAleatorio !== null) {
+        clearTimeout(window.timeoutPrimeiroInimigoAleatorio);
+        window.timeoutPrimeiroInimigoAleatorio = null;
+    }
+    
     // Reseta o dano do jogador e o estado de controle
     if (window.playerControle) {
         window.playerControle.dano = 0;
@@ -77,11 +145,11 @@ window.reiniciarJogo = async function() {
         window.playerControle.noChao = false;
         window.playerControle.direcao = 'd';
         
-        // Reseta itens coletados para o máximo
-        if (window.playerControle.temEscudo) {
-            window.playerControle.escudoVermelho = false;
-            window.playerControle.escudoProtegido = 0;
-            if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
+        // Reseta itens coletados para o máximo e restaura o escudo se estiver quebrado
+        if (window.playerControle.temEscudo || window.playerControle.escudoVermelho) {
+            window.playerControle.temEscudo = true; // Garante que volte a ser funcional
+            window.playerControle.escudoVermelho = false; // Volta para a cor azul
+            window.playerControle.escudoProtegido = 0; // Reseta a vida do escudo
         }
         if (window.playerControle.temArma) {
             window.playerControle.municao = window.config.maxMunicao || 5;
@@ -96,7 +164,7 @@ window.reiniciarJogo = async function() {
     await carregarFase(window.niveis[window.nivelAtual]);
     
     // Atualiza visual dos itens após carregar a fase
-    if (window.playerControle && window.playerControle.temEscudo && typeof window.atualizarVisualEscudo === 'function') {
+    if (window.playerControle && typeof window.atualizarVisualEscudo === 'function') {
         window.atualizarVisualEscudo();
     }
 };
@@ -108,6 +176,14 @@ async function iniciarJogo() {
     const config = await respostaConfig.json();
     window.config = config; // Torna config global
     window.nivelAtual = (config.faseInicial !== undefined) ? config.faseInicial : 0;
+
+    // Aplica a escala ao palco de forma simples via CSS
+    const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
+    if (palco && config.escalaPalco) {
+        palco.style.transform = `scale(${config.escalaPalco})`;
+        palco.style.transformOrigin = 'top left'; // Mantém o alinhamento no canto superior esquerdo
+        palco.style.imageRendering = 'pixelated'; // Garante que os pixels fiquem nítidos ao crescer
+    }
 
     // Inicia os sistemas básicos (apenas uma vez)
     await iniciarMovimentacao('player', config.velocidadePlayer || 4, 'personagem/Personagem_parado.png', 'personagem/Personagem_andando.png', 'personagem/personagem_chute2.png');

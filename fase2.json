@@ -11,5 +11,6 @@
     "inimigos0": ["b19"],
     "itens": [
         { "tipo": "escudo", "pos": "b3" }
-    ]
+    ],
+    "inimigoAleatorio": [3, 0]
 }

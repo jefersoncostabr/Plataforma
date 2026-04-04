@@ -48,8 +48,13 @@
     "inimigoPuloDelayMax": 35,
     "distanciaTiroInimigo": 300,
     "cooldownTiro": 45,
+    "inimigoDistanciaMinimaAtaque": 20,
+    "inimigoTempoAfastamento": 22,
+    "inimigoVelocidadeAfastamento": 3,
+    "inimigoCooldownAfastamento": 60,
     "maxMunicao": 5,
     "velocidadeHorizontal": 2,
     "velocidadePlayer": 5,
-    "faseInicial": 0
+    "faseInicial": 2,
+    "escalaPalco": 1.5
 }

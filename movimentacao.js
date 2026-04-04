@@ -306,6 +306,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 elemento: projElemento,
                 origem: 'player'
             });
+            
+            // Efeito visual de disparo na arma do jogador
+            if (typeof flashRapido === 'function' && armaElemento) {
+                flashRapido(armaElemento);
+            }
+            
             console.log(`Jogador disparou! Munição restante: ${controle.municao}`);
         }
 
@@ -448,6 +454,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         inimigo.foiAtingidoNesteChute = true;
                         inimigo.vida = (inimigo.vida || 0) + 1;
 
+                        // Efeito visual no inimigo ao receber dano por chute
+                        if (typeof piscaLeve === 'function') {
+                            piscaLeve(inimigo.elemento);
+                        }
+
                         // Knockback: Lança o inimigo para trás com base na direção do jogador
                         const direcaoKnockback = (controle.direcao === 'd' ? 1 : -1);
                         inimigo.x += obterKnockback(config, 'playerChute') * direcaoKnockback;
@@ -517,6 +528,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         if (detectarColisaoHitbox(hitboxProjetil, hitboxInimigo, 0, 0, 0)) {
                             inimigo.vida = (inimigo.vida || 0) + 1;
 
+                            // Efeito visual no inimigo ao receber dano
+                            if (typeof flashComVibacao === 'function') {
+                                flashComVibacao(inimigo.elemento);
+                            }
+
                             // Knockback: Lança o inimigo para trás com base na direção do projétil
                             inimigo.x += obterKnockback(config, 'playerProjetil') * proj.direcao;
 
@@ -564,6 +580,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         if (temEscudoAtivo()) {
                             controle.escudoProtegido = (controle.escudoProtegido || 0) + 1;
                             const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
+                            
+                            // Efeito visual no escudo ao receber dano
+                            if (typeof flashElement === 'function' && escudoElemento) {
+                                flashElement(escudoElemento, 150, 6);
+                            }
+                            
                             if (controle.escudoProtegido >= tirosProtegidos) {
                                 controle.temEscudo = false;
                                 controle.escudoVermelho = true;
@@ -576,6 +598,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         } else {
                             controle.dano = (controle.dano || 0) + 1;
                             console.log(`Dano: Jogador atingido por projétil! Total: ${controle.dano}/3`);
+                            
+                            // Efeito visual no jogador ao receber dano
+                            if (typeof flashComVibacao === 'function') {
+                                flashComVibacao(elemento);
+                            }
+                            
                             if (controle.dano >= 3) {
                                 alert("Game Over! Você foi derrotado pelos projéteis inimigos.");
                                 if (typeof reiniciarJogo === 'function') reiniciarJogo();

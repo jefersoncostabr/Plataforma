@@ -99,6 +99,9 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.velocidadeY = 0;
                     inimigo.noChao = false;
                     inimigo.puloTimer = 0;
+                    inimigo.afastando = false;
+                    inimigo.tempoAfastamento = 0;
+                    inimigo.cooldownAfastamento = 0;
 
                     // Cria o elemento da arma (revolver) acoplado ao inimigo
                     const arma = document.createElement('img');
@@ -118,6 +121,40 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inimigo.tempoChute > 0) inimigo.tempoChute--;
                 if (inimigo.cooldownChute > 0) inimigo.cooldownChute--;
                 if (inimigo.cooldownTiro > 0) inimigo.cooldownTiro--;
+                if (inimigo.tempoAfastamento > 0) inimigo.tempoAfastamento--;
+                if (inimigo.cooldownAfastamento > 0) inimigo.cooldownAfastamento--;
+
+                // Lógica de detecção de proximidade excessiva com o jogador
+                const distanciaX = Math.abs(playerX - inimigo.x);
+                const distanciaY = Math.abs((parseInt(player.style.bottom) || 0) - inimigo.y);
+                const distanciaMinima = config.inimigoDistanciaMinimaAtaque || 20;
+
+                if (inimigo.perseguindo && distanciaX <= distanciaMinima && distanciaY <= distanciaMinima && !inimigo.afastando && inimigo.tempoAfastamento === 0 && inimigo.cooldownAfastamento === 0) {
+                    // Inimigo está muito próximo do jogador - inicia afastamento
+                    inimigo.afastando = true;
+                    inimigo.tempoAfastamento = config.inimigoTempoAfastamento || 30;
+                    console.log('Inimigo muito próximo do jogador - iniciando afastamento');
+                }
+
+                // Lógica de afastamento
+                if (inimigo.afastando && inimigo.tempoAfastamento > 0) {
+                    const velocidadeAfastamento = config.inimigoVelocidadeAfastamento || 3;
+                    // Afasta-se na direção oposta ao jogador
+                    if (inimigo.x < playerX) {
+                        inimigo.x -= velocidadeAfastamento;
+                        inimigo.direcao = 'e';
+                        inimigo.elemento.style.transform = 'scaleX(-1)';
+                    } else {
+                        inimigo.x += velocidadeAfastamento;
+                        inimigo.direcao = 'd';
+                        inimigo.elemento.style.transform = 'scaleX(1)';
+                    }
+                } else if (inimigo.afastando && inimigo.tempoAfastamento === 0) {
+                    // Terminou o afastamento - volta ao comportamento normal
+                    inimigo.afastando = false;
+                    inimigo.cooldownAfastamento = config.inimigoCooldownAfastamento || 60;
+                    console.log('Inimigo terminou afastamento - cooldown iniciado');
+                }
 
                 // Lógica de detecção de projétil vindo (radar de ameaça)
                 const projVindo = window.projeteis ? window.projeteis.find(proj => {
@@ -192,8 +229,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.velocidadeY = 0;
                 }
 
-                // Ações que dependem da ativação (movimento e ataque)
-                if (inimigo.perseguindo) {
+                // Ações que dependem da ativação (movimento e ataque) - só se não estiver afastando
+                if (inimigo.perseguindo && !inimigo.afastando) {
                     let movendoDestaVez = false;
 
                     // Lógica para INICIAR o chute
@@ -234,6 +271,12 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             elemento: projElemento,
                             origem: 'inimigo'
                         });
+                        
+                        // Efeito visual de disparo na arma do inimigo
+                        if (typeof flashRapido === 'function' && inimigo.armaElemento) {
+                            flashRapido(inimigo.armaElemento);
+                        }
+                        
                         console.log(`Inimigo disparou! Munição restante: ${inimigo.municao}`);
                     }
 
@@ -310,8 +353,18 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             if (!escudoAtivo) {
                                 window.playerControle.dano = (window.playerControle.dano || 0) + 1;
                                 console.log(`Dano: Jogador atingido! Total: ${window.playerControle.dano}/3`);
+                                
+                                // Efeito visual no jogador ao receber dano
+                                if (typeof flashComVibacao === 'function') {
+                                    flashComVibacao(document.getElementById('player'));
+                                }
                             } else {
                                 console.log('Escudo bloqueou o chute! Apenas knockback aplicado.');
+                                
+                                // Efeito visual no escudo ao bloquear chute
+                                if (typeof piscaLeve === 'function' && window.escudoElemento) {
+                                    piscaLeve(window.escudoElemento);
+                                }
                             }
                             
                             // Knockback no Jogador

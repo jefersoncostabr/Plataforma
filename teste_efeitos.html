@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Efeitos de Flash</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #222;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            max-width: 1200px;
+        }
+        
+        .teste-box {
+            background-color: #333;
+            padding: 20px;
+            border: 2px solid #555;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .teste-box h3 {
+            margin-top: 0;
+            color: #aaa;
+            font-size: 14px;
+        }
+        
+        .elemento-teste {
+            width: 100px;
+            height: 100px;
+            background-color: #4a4a4a;
+            border: 2px solid #888;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #fff;
+            border-radius: 4px;
+            transition: all 0.05s ease;
+        }
+        
+        button {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #0052a3;
+        }
+        
+        button:active {
+            background-color: #003d7a;
+        }
+        
+        .info {
+            font-size: 12px;
+            color: #888;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Efeitos de Flash</h1>
+    <p>Clique nos botões para testar diferentes variações de efeitos</p>
+    
+    <div class="container">
+        <!-- TESTE 1: Flash Original -->
+        <div class="teste-box">
+            <h3>Original (Rápido)</h3>
+            <div id="elemento1" class="elemento-teste">Flash Original</div>
+            <button onclick="testeOriginal()">Testar Flash Original</button>
+            <div class="info">brightness(2) + drop-shadow</div>
+        </div>
+        
+        <!-- TESTE 2: Flash Mais Lento -->
+        <div class="teste-box">
+            <h3>Flash Mais Lento (3 piscadas)</h3>
+            <div id="elemento2" class="elemento-teste">Flash Lento</div>
+            <button onclick="testeFlashLento()">Testar Flash Lento</button>
+            <div class="info">200ms por piscada</div>
+        </div>
+        
+        <!-- TESTE 3: Flash Branco Forte -->
+        <div class="teste-box">
+            <h3>Flash Branco MUITO Forte</h3>
+            <div id="elemento3" class="elemento-teste">Flash Forte</div>
+            <button onclick="testeFlashFort()">Testar Flash Forte</button>
+            <div class="info">brightness(3) + box-shadow</div>
+        </div>
+        
+        <!-- TESTE 4: Flash com Background Branco -->
+        <div class="teste-box">
+            <h3>Flash Background Branco</h3>
+            <div id="elemento4" class="elemento-teste">Flash BG</div>
+            <button onclick="testeFlashBranco()">Testar Flash BG</button>
+            <div class="info">Background branco + border glow</div>
+        </div>
+        
+        <!-- TESTE 5: Flash Longo -->
+        <div class="teste-box">
+            <h3>Flash Longo e Suave</h3>
+            <div id="elemento5" class="elemento-teste">Flash Longo</div>
+            <button onclick="testeFlashLongo()">Testar Flash Longo</button>
+            <div class="info">500ms de duração</div>
+        </div>
+        
+        <!-- TESTE 6: Flash com Invert -->
+        <div class="teste-box">
+            <h3>Flash com Invert</h3>
+            <div id="elemento6" class="elemento-teste">Flash Invert</div>
+            <button onclick="testeFlashInvert()">Testar Flash Invert</button>
+            <div class="info">invert(1) + contraste</div>
+        </div>
+
+        <!-- TESTE 7: Flash com Box-Shadow -->
+        <div class="teste-box">
+            <h3>Flash Box-Shadow Branco</h3>
+            <div id="elemento7" class="elemento-teste">Flash BoxShadow</div>
+            <button onclick="testeFlashBoxShadow()">Testar Box-Shadow</button>
+            <div class="info">Múltiplos box-shadows brancos</div>
+        </div>
+
+        <!-- TESTE 8: Flash com Saturação -->
+        <div class="teste-box">
+            <h3>Flash Saturação + Brightness</h3>
+            <div id="elemento8" class="elemento-teste">Flash Saturado</div>
+            <button onclick="testeFlashSaturado()">Testar Saturado</button>
+            <div class="info">saturate(2) + brightness(2.5)</div>
+        </div>
+
+        <!-- TESTE 9: Flash Puro (Muito Simples) -->
+        <div class="teste-box">
+            <h3>Flash Simples</h3>
+            <div id="elemento9" class="elemento-teste">Flash Simples</div>
+            <button onclick="testeFlashSimples()">Testar Simples</button>
+            <div class="info">Apenas brightness altíssima</div>
+        </div>
+    </div>
+
+    <script src="efeitos.js"></script>
+    <script>
+        function resetaElemento(id) {
+            const el = document.getElementById(id);
+            el.style.filter = 'none';
+            el.style.backgroundColor = '#4a4a4a';
+            el.style.boxShadow = 'none';
+        }
+
+        // TESTE 1: Original
+        function testeOriginal() {
+            resetaElemento('elemento1');
+            flashElement(document.getElementById('elemento1'), 300, 5);
+        }
+
+        // TESTE 2: Flash Lento (200ms por piscada)
+        function testeFlashLento() {
+            resetaElemento('elemento2');
+            const el = document.getElementById('elemento2');
+            const filterOriginal = el.style.filter;
+            let contador = 0;
+            
+            const intervalo = setInterval(() => {
+                contador++;
+                if (contador % 2 === 1) {
+                    el.style.filter = 'brightness(2.5) drop-shadow(0 0 15px rgba(255, 255, 255, 1))';
+                } else {
+                    el.style.filter = filterOriginal || 'none';
+                }
+                
+                if (contador >= 6) { // 3 piscadas completas
+                    clearInterval(intervalo);
+                    el.style.filter = filterOriginal || 'none';
+                }
+            }, 200);
+        }
+
+        // TESTE 3: Flash Branco MUITO Forte
+        function testeFlashFort() {
+            resetaElemento('elemento3');
+            const el = document.getElementById('elemento3');
+            const filterOriginal = el.style.filter;
+            
+            el.style.filter = 'brightness(3) drop-shadow(0 0 20px rgba(255, 255, 255, 1)) drop-shadow(0 0 10px rgba(255, 255, 255, 1))';
+            
+            setTimeout(() => {
+                el.style.filter = filterOriginal || 'none';
+            }, 150);
+        }
+
+        // TESTE 4: Flash com Background Branco
+        function testeFlashBranco() {
+            resetaElemento('elemento4');
+            const el = document.getElementById('elemento4');
+            const bgOriginal = el.style.backgroundColor;
+            const borderOriginal = el.style.borderColor;
+            
+            el.style.backgroundColor = '#ffffff';
+            el.style.color = '#000000';
+            el.style.borderColor = '#ffffff';
+            el.style.boxShadow = '0 0 20px rgba(255, 255, 255, 1), 0 0 40px rgba(255, 255, 255, 0.8)';
+            
+            setTimeout(() => {
+                el.style.backgroundColor = bgOriginal;
+                el.style.color = '#ffffff';
+                el.style.borderColor = '#888888';
+                el.style.boxShadow = 'none';
+            }, 150);
+        }
+
+        // TESTE 5: Flash Longo
+        function testeFlashLongo() {
+            resetaElemento('elemento5');
+            const el = document.getElementById('elemento5');
+            const filterOriginal = el.style.filter;
+            let contador = 0;
+            
+            const intervalo = setInterval(() => {
+                contador++;
+                if (contador % 2 === 1) {
+                    el.style.filter = 'brightness(2) drop-shadow(0 0 15px rgba(255, 255, 255, 0.9))';
+                } else {
+                    el.style.filter = filterOriginal || 'none';
+                }
+                
+                if (contador >= 10) { // 5 piscadas completas
+                    clearInterval(intervalo);
+                    el.style.filter = filterOriginal || 'none';
+                }
+            }, 100);
+        }
+
+        // TESTE 6: Flash com Invert
+        function testeFlashInvert() {
+            resetaElemento('elemento6');
+            const el = document.getElementById('elemento6');
+            const filterOriginal = el.style.filter;
+            let contador = 0;
+            
+            const intervalo = setInterval(() => {
+                contador++;
+                if (contador % 2 === 1) {
+                    el.style.filter = 'invert(1) contrast(1.5) brightness(1.2)';
+                } else {
+                    el.style.filter = filterOriginal || 'none';
+                }
+                
+                if (contador >= 6) {
+                    clearInterval(intervalo);
+                    el.style.filter = filterOriginal || 'none';
+                }
+            }, 150);
+        }
+
+        // TESTE 7: Flash com Box-Shadow
+        function testeFlashBoxShadow() {
+            resetaElemento('elemento7');
+            const el = document.getElementById('elemento7');
+            
+            el.style.boxShadow = `
+                0 0 10px rgba(255, 255, 255, 1),
+                0 0 20px rgba(255, 255, 255, 0.8),
+                0 0 30px rgba(255, 255, 255, 0.6),
+                inset 0 0 20px rgba(255, 255, 255, 0.3)
+            `;
+            el.style.filter = 'brightness(1.3)';
+            
+            setTimeout(() => {
+                el.style.boxShadow = 'none';
+                el.style.filter = 'none';
+            }, 200);
+        }
+
+        // TESTE 8: Flash Saturado
+        function testeFlashSaturado() {
+            resetaElemento('elemento8');
+            const el = document.getElementById('elemento8');
+            const filterOriginal = el.style.filter;
+            let contador = 0;
+            
+            const intervalo = setInterval(() => {
+                contador++;
+                if (contador % 2 === 1) {
+                    el.style.filter = 'saturate(2) brightness(2.5) drop-shadow(0 0 15px rgba(255, 255, 255, 1))';
+                } else {
+                    el.style.filter = filterOriginal || 'none';
+                }
+                
+                if (contador >= 6) {
+                    clearInterval(intervalo);
+                    el.style.filter = filterOriginal || 'none';
+                }
+            }, 120);
+        }
+
+        // TESTE 9: Flash Simples
+        function testeFlashSimples() {
+            resetaElemento('elemento9');
+            const el = document.getElementById('elemento9');
+            let contador = 0;
+            
+            const intervalo = setInterval(() => {
+                contador++;
+                if (contador % 2 === 1) {
+                    el.style.filter = 'brightness(4)';
+                } else {
+                    el.style.filter = 'brightness(1)';
+                }
+                
+                if (contador >= 6) {
+                    clearInterval(intervalo);
+                    el.style.filter = 'brightness(1)';
+                }
+            }, 100);
+        }
+    </script>
+</body>
+</html>
