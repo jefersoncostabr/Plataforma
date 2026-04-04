@@ -1,0 +1,9 @@
+{
+    "esquerda": ["ArrowLeft", "a", "A"],
+    "direita": ["ArrowRight", "d", "D"],
+    "pulo": [" "],
+    "chute": ["p", "P"],
+    "tiro": ["l", "L"],
+    "debugPuloInimigo": ["8"],
+    "debugKillInimigos": ["9"]
+}

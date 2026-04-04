@@ -48,9 +48,13 @@
     <script src="cenario.js"></script>
     <script src="movimentacao.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             const playerElement = document.getElementById('player');
             const player2Element = document.getElementById('player2');
+            
+            // Carrega a configuração da fase
+            const resposta = await fetch('fase1.json');
+            const fase = await resposta.json();
             
             // Inicializa a grade de visualização
             configurarGrade('game-stage');
@@ -58,21 +62,29 @@
             // Renderiza o chão na base do palco
             renderizarChao('game-stage', 'personagem/chao.png');
 
-            // Renderiza as plataformas designadas (definidas em cenario.js)
-            renderizarPlataformas('game-stage', 'personagem/chao.png', plataformas);
+            // Converte plataformas do JSON para objeto
+            const plataformasObj = {};
+            fase.plataformas.forEach(coord => {
+                plataformasObj[coord] = true;
+            });
 
-            // Renderiza o objetivo na posição f19
-            renderizarObjetivo('game-stage', 'personagem/objetivo.png', 'f19');
+            // Renderiza as plataformas da fase
+            renderizarPlataformas('game-stage', 'personagem/chao.png', plataformasObj);
 
-            // Cria inimigos em posições estratégicas
-            criarInimigo('game-stage', 'personagem/Personagem_parado.png', 'b15', 'e');
+            // Renderiza o objetivo na posição da fase
+            renderizarObjetivo('game-stage', 'personagem/objetivo.png', fase.objetivo);
+
+            // Cria inimigos das posições da fase
+            fase.inimigos.forEach(inimigoData => {
+                criarInimigo('game-stage', 'personagem/Personagem_parado.png', coordenadaParaGrid(inimigoData.x, inimigoData.y), 'e');
+            });
 
             // Inicia a movimentação automática dos inimigos (IA de perseguição)
             iniciarIAInimigos(1.5);
 
             if (playerElement) {
-                // Posiciona o primeiro jogador: x=50, y=32 (em cima do chão)
-                configurarPosicaoInicial('player', 50, 32, 'd');
+                // Posiciona o jogador na posição inicial da fase
+                configurarPosicaoInicial('player', fase.posicaoInicialJogador.x, fase.posicaoInicialJogador.y, 'd');
 
                 // Ativa os controles e a animação integrada
                 iniciarMovimentacao(

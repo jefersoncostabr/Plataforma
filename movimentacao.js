@@ -28,13 +28,26 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         cooldownChute: 0,
         cooldownPulo: 0,
         cooldownTiro: 0,
-        municao: config.maxMunicao || 5,
+        municao: 0, // Inicia sem munição
+        temArma: false, // Inicia sem a capacidade de atirar
         dano: 0,
         teclas: {}
     };
 
     window.playerControle = controle;
     window.projeteis = [];
+    window.itensColetaveis = [];
+    
+    // Elemento da arma
+    const armaElemento = document.createElement('img');
+    armaElemento.src = config.spriteArmaPlayer || 'personagem/revolver.png';
+    armaElemento.style.position = 'absolute';
+    armaElemento.style.width = '32px';
+    armaElemento.style.height = '32px';
+    armaElemento.style.zIndex = '6';
+    armaElemento.style.display = 'none';
+    elemento.parentElement.appendChild(armaElemento);
+
     window.debugInimigoTeclas = {}; // Inicializa o objeto para teclas de debug do inimigo
 
     // Detecta teclas pressionadas
@@ -42,9 +55,29 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // Log para confirmar o valor de e.key para a barra de espaço
         if (e.key === ' ') console.log("Movimentação: KeyDown capturado -> Barra de Espaço");
         controle.teclas[e.key] = true;
-        // Adiciona a tecla '8' para debug de pulo do inimigo
+
         if (e.key === '8') {
-            window.debugInimigoTeclas[' '] = true; // Mapeia '8' para 'espaço' para o pulo do inimigo
+            window.debugInimigoTeclas[' '] = true;
+        }
+
+        if (e.key === '9' && window.inimigos) {
+            for (let i = window.inimigos.length - 1; i >= 0; i--) {
+                const inimigo = window.inimigos[i];
+                const itemImg = document.createElement('img');
+                itemImg.src = 'personagem/revolver_pegavel.png';
+                itemImg.style.position = 'absolute';
+                itemImg.style.width = '32px';
+                itemImg.style.height = '32px';
+                itemImg.style.zIndex = '3';
+                elemento.parentElement.appendChild(itemImg);
+                window.itensColetaveis.push({
+                    x: inimigo.x, y: inimigo.y,
+                    elemento: itemImg, velocidadeY: 0
+                });
+                if (inimigo.armaElemento) inimigo.armaElemento.remove();
+                inimigo.elemento.remove();
+                window.inimigos.splice(i, 1);
+            }
         }
     });
 
@@ -90,7 +123,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Lógica de Disparo (tecla I)
-        if ((controle.teclas['i'] || controle.teclas['I']) && controle.cooldownTiro === 0 && controle.municao > 0) {
+        if ((controle.teclas['i'] || controle.teclas['I']) && controle.cooldownTiro === 0 && controle.temArma && controle.municao > 0) {
             controle.cooldownTiro = config.cooldownTiro; 
             controle.municao--;
             const dir = controle.direcao === 'd' ? 1 : -1;
@@ -265,8 +298,20 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         // Se atingir 3 golpes, o inimigo morre e desaparece
                         if (inimigo.vida >= 3) {
                             console.log("Ataque: Inimigo derrotado!");
-                            inimigo.elemento.remove(); // Remove do HTML
-                            window.inimigos.splice(i, 1); // Remove da lista lógica
+                            const itemImg = document.createElement('img');
+                            itemImg.src = 'personagem/revolver_item.png';
+                            itemImg.style.position = 'absolute';
+                            itemImg.style.width = '32px';
+                            itemImg.style.height = '32px';
+                            itemImg.style.zIndex = '3';
+                            elemento.parentElement.appendChild(itemImg);
+                            window.itensColetaveis.push({
+                                x: inimigo.x, y: inimigo.y,
+                                elemento: itemImg, velocidadeY: 0
+                            });
+                            if (inimigo.armaElemento) inimigo.armaElemento.remove();
+                            inimigo.elemento.remove();
+                            window.inimigos.splice(i, 1);
                         }
                     }
                 }
@@ -314,6 +359,18 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             inimigo.elemento.style.left = inimigo.x + 'px';
 
                             if (inimigo.vida >= 3) {
+                                const itemImg = document.createElement('img');
+                                itemImg.src = 'personagem/revolver_item.png';
+                                itemImg.style.position = 'absolute';
+                                itemImg.style.width = '32px';
+                                itemImg.style.height = '32px';
+                                itemImg.style.zIndex = '3';
+                                elemento.parentElement.appendChild(itemImg);
+                                window.itensColetaveis.push({
+                                    x: inimigo.x, y: inimigo.y,
+                                    elemento: itemImg, velocidadeY: 0
+                                });
+                                if (inimigo.armaElemento) inimigo.armaElemento.remove();
                                 inimigo.elemento.remove();
                                 window.inimigos.splice(j, 1);
                             }
@@ -356,10 +413,61 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             }
         }
 
+        // 5. Atualização de Itens Coletáveis (Gravidade e Colisão)
+        if (window.itensColetaveis && Array.isArray(window.itensColetaveis)) {
+            for (let i = window.itensColetaveis.length - 1; i >= 0; i--) {
+                const item = window.itensColetaveis[i];
+
+                // Lógica de Coleta pelo Jogador
+                const hitboxItem = { x: item.x, y: item.y, largura: 32, altura: 32 };
+                if (typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(hitboxPlayer, hitboxItem, 0, 0, 0)) {
+                    console.log("Jogador coletou o revólver!");
+                    controle.temArma = true;
+                    controle.municao = config.maxMunicao || 5;
+                    armaElemento.style.display = 'block'; // Mostra a arma visualmente
+                    
+                    item.elemento.remove();
+                    window.itensColetaveis.splice(i, 1);
+                    continue; // Pula o processamento de física para este item removido
+                }
+
+                // Aplica Gravidade
+                item.velocidadeY -= config.inimigoGravidade || 0.6;
+                item.y += item.velocidadeY;
+
+                // Colisão Vertical (Chão e Plataformas)
+                if (typeof verificarColisaoComTiles === 'function' && 
+                    verificarColisaoComTiles(item.x, item.y, 32, 32, window.plataformas)) {
+                    
+                    if (item.velocidadeY < 0) { // Caindo
+                        item.velocidadeY = 0;
+                        item.y = Math.floor((item.y + 0.1) / 32 + 1) * 32;
+                    }
+                }
+
+                // Limite do Palco
+                if (typeof limitarPosicaoAoPalco === 'function') {
+                    const pos = limitarPosicaoAoPalco(item.x, item.y, 32, 32);
+                    item.x = pos.x;
+                    item.y = pos.y;
+                    if (item.y <= 32) item.velocidadeY = 0;
+                }
+
+                // Atualiza visual do item
+                item.elemento.style.left = item.x + 'px';
+                item.elemento.style.bottom = item.y + 'px';
+            }
+        }
+
         // Aplica os valores ao elemento (reutilizando a lógica de direção)
         elemento.style.left = controle.x + 'px';
         elemento.style.bottom = controle.y + 'px';
         elemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+
+        // Sincroniza a posição e o espelhamento da arma com o jogador
+        armaElemento.style.left = controle.x + 'px';
+        armaElemento.style.bottom = controle.y + 'px';
+        armaElemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
 
         requestAnimationFrame(atualizar);
     }

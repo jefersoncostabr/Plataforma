@@ -33,13 +33,16 @@ function renderizarChao(idPalco, imagemPath, larguraPalco = 640) {
  * @param {string} imagemPath - Caminho para a imagem do tile.
  * @param {Object} plataformaObj - Objeto contendo coordenadas como chaves (ex: {"d10": true}).
  */
-function renderizarPlataformas(idPalco, imagemPath, plataformaObj) {
+function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
     const palco = document.getElementById(idPalco);
-    if (!palco || !plataformaObj) return;
+    if (!palco || !plataformaData) return;
 
     const tamanhoTile = 32;
+    const coordenadas = Array.isArray(plataformaData)
+        ? plataformaData
+        : Object.keys(plataformaData);
 
-    for (const coord in plataformaObj) {
+    coordenadas.forEach(coord => {
         const letra = coord[0].toLowerCase();
         const numero = parseInt(coord.substring(1));
 
@@ -56,7 +59,18 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaObj) {
         tile.style.height = tamanhoTile + 'px';
         tile.style.imageRendering = 'pixelated';
         palco.appendChild(tile);
-    }
+    });
+}
+
+/**
+ * Converte posição em pixels (x, y) para coordenada de grade (ex: "b15").
+ * x e y são posições bottom-left do tile.
+ */
+function coordenadaParaGrid(x, y, tileSize = 32) {
+    const col = Math.floor(x / tileSize) + 1;
+    const row = Math.floor(y / tileSize);
+    const letra = String.fromCharCode('a'.charCodeAt(0) + row);
+    return letra + col;
 }
 
 /**

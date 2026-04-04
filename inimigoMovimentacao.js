@@ -43,6 +43,18 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.velocidadeY = 0;
                     inimigo.noChao = false;
                     inimigo.puloTimer = 0;
+
+                    // Cria o elemento da arma (revolver) acoplado ao inimigo
+                    const arma = document.createElement('img');
+                    arma.src = config.spriteArmaPlayer || 'personagem/revolver.png';
+                    arma.style.position = 'absolute';
+                    arma.style.width = '32px';
+                    arma.style.height = '32px';
+                    arma.style.zIndex = '6'; // Mesma camada da arma do player
+                    arma.style.imageRendering = 'pixelated';
+                    arma.style.pointerEvents = 'none';
+                    inimigo.elemento.parentElement.appendChild(arma);
+                    inimigo.armaElemento = arma;
                 }
 
                 // Atualiza timers de chute
@@ -270,6 +282,13 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 // Atualiza a posição no DOM (Sempre, para refletir gravidade, movimento e knockback)
                 inimigo.elemento.style.left = inimigo.x + 'px';
                 inimigo.elemento.style.bottom = inimigo.y + 'px';
+
+                // Sincroniza a arma com o inimigo
+                if (inimigo.armaElemento) {
+                    inimigo.armaElemento.style.left = inimigo.x + 'px';
+                    inimigo.armaElemento.style.bottom = inimigo.y + 'px';
+                    inimigo.armaElemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+                }
             });
         }
 

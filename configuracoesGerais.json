@@ -15,6 +15,7 @@
     "spriteParadoPlayer": "personagem/Personagem_parado.png",
     "spriteAndandoPlayer": "personagem/Personagem_andando.png",
     "spriteChutePlayer": "personagem/personagem_chute2.png",
+    "spriteArmaPlayer": "personagem/revolver.png",
     "spriteParadoInimigo": "personagem/Personagem_parado.png",
     "spriteAndandoInimigo": "personagem/Personagem_andando.png",
     "spriteChuteInimigo": "personagem/personagem_chute2.png",
