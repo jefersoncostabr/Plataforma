@@ -55,6 +55,6 @@
     "maxMunicao": 5,
     "velocidadeHorizontal": 2,
     "velocidadePlayer": 5,
-    "faseInicial": 2,
+    "faseInicial": 0,
     "escalaPalco": 1.5
 }

@@ -88,6 +88,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             for (let i = window.inimigos.length - 1; i >= 0; i--) {
                 const inimigo = window.inimigos[i];
                 
+                let xAnterior = inimigo.x;
+
                 const distanciaAtual = Math.abs(playerX - inimigo.x);
                 
                 // Inicializa propriedades de combate se não existirem
@@ -130,7 +132,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 // Lógica de detecção de proximidade excessiva com o jogador
                 const distanciaX = Math.abs(playerX - inimigo.x);
-                const distanciaY = Math.abs((parseInt(player.style.bottom) || 0) - inimigo.y);
+                const playerY = parseInt(player.style.bottom) || 0;
+                const distanciaY = Math.abs(playerY - inimigo.y);
                 const distanciaMinima = config.inimigoDistanciaMinimaAtaque || 20;
 
                 if (inimigo.perseguindo && distanciaX <= distanciaMinima && distanciaY <= distanciaMinima && !inimigo.afastando && inimigo.tempoAfastamento === 0 && inimigo.cooldownAfastamento === 0) {
@@ -152,6 +155,12 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         inimigo.x += velocidadeAfastamento;
                         inimigo.direcao = 'd';
                         inimigo.elemento.style.transform = 'scaleX(1)';
+                    }
+
+                    // Impedir que o inimigo entre em plataformas ao se afastar
+                    if (typeof verificarColisaoComTiles === 'function' && 
+                        verificarColisaoComTiles(inimigo.x + config.HITBOX_OFFSET_X, inimigo.y, config.HITBOX_LARGURA, config.HITBOX_ALTURA, window.plataformas)) {
+                        inimigo.x = xAnterior;
                     }
                 } else if (inimigo.afastando && inimigo.tempoAfastamento === 0) {
                     // Terminou o afastamento - volta ao comportamento normal
@@ -304,6 +313,18 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         }
                     }
 
+                    // Lógica de Pulo por Diferença de Altura (Vertical Tracking) - Item 2
+                    if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && playerY > inimigo.y + 31) {
+                        // Se o player estiver acima e o inimigo estiver perto horizontalmente (ex: 64px)
+                        const distXAtual = Math.abs(playerX - inimigo.x);
+                        if (distXAtual < 64) {
+                            inimigo.velocidadeY = config.inimigoForcaPulo;
+                            inimigo.noChao = false;
+                            inimigo.cooldownPulo = config.inimigoPuloCooldown;
+                            console.log('Inimigo detectou jogador em plataforma superior e pulou para escalar!');
+                        }
+                    }
+
                     // Lógica de Salto de Fé (Gap Jumping) - Item 3
                     if (movendoDestaVez && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0) {
                         // Calcula ponto de verificação à frente dos pés (baseado na direção)
@@ -405,6 +426,21 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             }
                         }
                     }
+                }
+
+                // Colisão Horizontal com as laterais das plataformas (após perseguição/dash)
+                if (typeof verificarColisaoComTiles === 'function' && 
+                    verificarColisaoComTiles(inimigo.x + config.HITBOX_OFFSET_X, inimigo.y, config.HITBOX_LARGURA, config.HITBOX_ALTURA, window.plataformas)) {
+                    
+                    // Item 1: Pulo por Obstrução (Wall Detection)
+                    if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0) {
+                        inimigo.velocidadeY = config.inimigoForcaPulo;
+                        inimigo.noChao = false;
+                        inimigo.cooldownPulo = config.inimigoPuloCooldown;
+                        console.log('Inimigo detectou obstrução lateral e pulou para subir!');
+                    }
+
+                    inimigo.x = xAnterior;
                 }
 
 
