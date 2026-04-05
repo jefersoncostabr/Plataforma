@@ -205,6 +205,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         escudoProtegido: 0,
         dano: 0,
         maxVida: 3,
+        vendaEmCurso: false,
+        vendaTimer: 0,
+        vendaTipo: null,
+        vendaVisual: null,
         inventario: [],
         teclas: {}
     };
@@ -218,7 +222,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 elemento.parentElement.style.filter = 'brightness(0.3) grayscale(0.6)';
             }
         } else {
-            console.log("Jogo Retomado");
+            // console.log("Jogo Retomado");
             if (elemento.parentElement) {
                 elemento.parentElement.style.filter = 'none';
             }
@@ -447,8 +451,84 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     });
 
     function atualizar() {
+        // Lógica da Skill "Vender" (Combo: Baixo + I)
+        const segurandoBaixoVenda = controle.teclas['ArrowDown'] || controle.teclas['s'] || controle.teclas['S'];
+        const apertouVenda = controle.teclas['i'] || controle.teclas['I'];
+
+        // Debug de teclas combinadas (Vender)
+        if (segurandoBaixoVenda && apertouVenda) {
+            // console.log("Debug: Tentativa de Venda detectada. Skill Vender ativa?", window.playerSkills?.includes('skilla1'));
+        }
+
+        if (window.playerSkills?.includes('skilla1') && segurandoBaixoVenda && apertouVenda && !controle.vendaEmCurso && controle.inventario.length > 0) {
+            const tipo = controle.inventario.pop();
+            controle.vendaEmCurso = true;
+            controle.vendaTimer = 0;
+            controle.vendaTipo = tipo;
+
+            // Remove visualmente do jogador
+            if (tipo === 'revolver') { controle.temArma = false; armaElemento.style.display = 'none'; }
+            else if (tipo === 'escudo') { controle.temEscudo = false; atualizarVisualEscudo(); }
+            else if (tipo === 'bota') { controle.temBota = false; botaElemento.style.display = 'none'; }
+
+            // Cria o item flutuante
+            const visual = document.createElement('img');
+            visual.style = `position: absolute; width: 32px; height: 32px; z-index: 20; image-rendering: pixelated;`;
+            if (tipo === 'revolver') visual.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
+            else if (tipo === 'escudo') visual.src = config.spriteItemEscudo || 'personagem/escudo_pegavel.png';
+            else if (tipo === 'bota') visual.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
+            
+            elemento.parentElement.appendChild(visual);
+            controle.vendaVisual = visual;
+            salvarInventario();
+        }
+
+        // Processamento da Venda
+        if (controle.vendaEmCurso) {
+            controle.vendaTimer++;
+            
+            // Mantém sobre o jogador
+            controle.vendaVisual.style.left = controle.x + 'px';
+            controle.vendaVisual.style.bottom = (controle.y + 40) + 'px';
+
+            // Fase 2: Fica verde após 1 segundo (60 frames)
+            if (controle.vendaTimer > 60) {
+                controle.vendaVisual.style.filter = 'sepia(1) saturate(10) hue-rotate(90deg)';
+            }
+
+            // Cancelamento por Pulo
+            if (controle.teclas[' ']) {
+                // console.log("Venda cancelada pelo pulo!");
+                controle.inventario.push(controle.vendaTipo);
+                // Devolve os itens logicamente
+                if (controle.vendaTipo === 'revolver') { controle.temArma = true; armaElemento.style.display = 'block'; }
+                else if (controle.vendaTipo === 'escudo') { controle.temEscudo = true; atualizarVisualEscudo(); }
+                else if (controle.vendaTipo === 'bota') { controle.temBota = true; botaElemento.style.display = 'block'; }
+                
+                controle.vendaVisual.remove();
+                controle.vendaEmCurso = false;
+                salvarInventario();
+            } 
+            // Conclusão da Venda (2 segundos = 120 frames)
+            else if (controle.vendaTimer >= 120) {
+                if (typeof window.ganharXP === 'function') window.ganharXP(1);
+                controle.vendaVisual.remove();
+                controle.vendaEmCurso = false;
+                // console.log("Item vendido por 1 XP!");
+            }
+            
+            requestAnimationFrame(atualizar);
+            return; // Bloqueia outras ações enquanto vende
+        }
+
         // Detecta combinação de Drop: S ou Seta Baixo + Pulo
         const segurandoBaixo = controle.teclas['ArrowDown'] || controle.teclas['s'] || controle.teclas['S'];
+        
+        // Debug de teclas combinadas (Dropar)
+        if (segurandoBaixo && controle.teclas[' ']) {
+            console.log("Debug: Tentativa de Drop detectada. No chão?", controle.noChao);
+        }
+
         if (segurandoBaixo && controle.teclas[' '] && controle.noChao) {
             controle.teclas[' '] = false; // Consome o pulo para não pular e dropar ao mesmo tempo
             droparItemJogador();
@@ -553,7 +633,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 flashRapido(armaElemento);
             }
             
-            console.log(`Jogador disparou! Munição restante: ${controle.municao}`);
+            // console.log(`Jogador disparou! Munição restante: ${controle.municao}`);
         }
 
         // Diminui o cooldown global do chute
@@ -731,11 +811,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
                         inimigo.elemento.style.left = inimigo.x + 'px';
 
-                        console.log(`Ataque: Inimigo atingido! Vida restante: ${3 - inimigo.vida}`);
+                        // console.log(`Ataque: Inimigo atingido! Vida restante: ${3 - inimigo.vida}`);
 
                         // Se atingir 3 golpes, o inimigo morre e desaparece
                         if (inimigo.vida >= 3) {
-                            console.log("Ataque: Inimigo derrotado!");
+                            // console.log("Ataque: Inimigo derrotado!");
                             droparItensInimigo(inimigo);
                             if (typeof window.ganharXP === 'function') window.ganharXP(1);
                             if (inimigo.armaElemento) inimigo.armaElemento.remove();
@@ -791,7 +871,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
                                 if (inimigo.escudoProtegido >= tirosProtegidos) {
                                     inimigo.escudoVermelho = true;
-                                    console.log("Escudo do inimigo quebrou!");
+                                    // console.log("Escudo do inimigo quebrou!");
                                 }
                             } else {
                                 inimigo.vida = (inimigo.vida || 0) + 1;
@@ -850,7 +930,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 controle.escudoVermelho = true;
                                 // console.log('Escudo danificado: agora vermelho e sem proteção.');
                             } else {
-                                console.log(`Escudo bloqueou o tiro! ${controle.escudoProtegido}/${tirosProtegidos}`);
+                                // console.log(`Escudo bloqueou o tiro! ${controle.escudoProtegido}/${tirosProtegidos}`);
                             }
                             atualizarVisualEscudo();
                             salvarInventario();
@@ -902,7 +982,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 const hitboxItem = { x: item.x, y: item.y, largura: 32, altura: 32 };
                 if (typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(hitboxPlayer, hitboxItem, 0, 0, 0)) {
                     if (item.tipo === 'escudo') {
-                        console.log("Jogador coletou o escudo!");
+                        // console.log("Jogador coletou o escudo!");
                         controle.temEscudo = true;
                         controle.escudoVermelho = item.escudoVermelho || false;
                         controle.escudoProtegido = item.escudoProtegido || 0;
@@ -917,7 +997,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         botaElemento.style.display = 'block';
                         salvarInventario();
                     } else {
-                        console.log("Jogador coletou o revólver!");
+                        // console.log("Jogador coletou o revólver!");
                         controle.temArma = true;
                         controle.municao = item.municao !== undefined ? item.municao : (config.maxMunicao || 5);
                         if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');

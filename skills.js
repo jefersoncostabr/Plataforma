@@ -18,25 +18,38 @@ window.ganharXP = (quantidade = 1) => {
     
     if (novosPontos > 0) {
         window.skillPoints += novosPontos;
-        console.log(`Sistema: +${novosPontos} Ponto(s) de Skill obtido(s)! Total: ${window.skillPoints}`);
+        // console.log(`Sistema: +${novosPontos} Ponto(s) de Skill obtido(s)! Total: ${window.skillPoints}`);
     }
 
-    console.log(`XP Ganho: +${quantidade}. Total: ${window.playerXP}`);
+    // console.log(`XP Ganho: +${quantidade}. Total: ${window.playerXP}`);
 };
 
-window.resetarProgressoParaJson = async () => {
+/**
+ * Carrega os dados do JSON sem sobrescrever o progresso atual do jogador,
+ * a menos que seja forçado (como no reset por morte).
+ */
+window.carregarDadosSkills = async (forçarReset = false) => {
     try {
         const resposta = await fetch('skillsData.json');
         const dados = await resposta.json();
-        window.playerXP = dados.playerStats.xp;
-        window.skillPoints = dados.playerStats.skillPoints;
-        window.playerSkills = dados.playerStats.acquired || [];
-        console.log(`Progresso resetado: XP(${window.playerXP}), Pontos(${window.skillPoints}), Skills([${window.playerSkills}])`);
+        window.skillsData = dados.skills;
+
+        if (forçarReset || window.playerSkills.length === 0) {
+            window.playerXP = dados.playerStats.xp;
+            window.skillPoints = dados.playerStats.skillPoints;
+            window.playerSkills = dados.playerStats.acquired || [];
+        }
+
+        if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
     } catch (e) {
         window.playerXP = 0;
         window.skillPoints = 0;
         window.playerSkills = [];
     }
+};
+
+window.resetarProgressoParaJson = async () => {
+    await window.carregarDadosSkills(true);
 };
 
 window.toggleSkillMenu = async () => {
@@ -48,19 +61,7 @@ window.toggleSkillMenu = async () => {
 
     // Carrega os dados do JSON se ainda não foram carregados
     if (!window.skillsData) {
-        try {
-            const resposta = await fetch('skillsData.json');
-            const dados = await resposta.json();
-            window.skillsData = dados.skills;
-            window.playerXP = dados.playerStats.xp;
-            window.skillPoints = dados.playerStats.skillPoints;
-            window.playerSkills = dados.playerStats.acquired || [];
-            // Aplica os efeitos iniciais ao carregar os dados
-            if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
-        } catch (e) {
-            console.error("Erro ao carregar skillsData.json", e);
-            return;
-        }
+        await window.carregarDadosSkills(false);
     }
 
     window.isSkillMenuOpen = !window.isSkillMenuOpen;
@@ -74,7 +75,7 @@ window.toggleSkillMenu = async () => {
         // console.log("SkillTree: Abrindo menu de habilidades...");
         abrirMenuSkillsUI();
     } else {
-        console.log("SkillTree: Fechando menu de habilidades...");
+        // console.log("SkillTree: Fechando menu de habilidades...");
         fecharMenuSkillsUI();
     }
 };
@@ -177,7 +178,7 @@ function abrirMenuSkillsUI() {
             btn.onclick = () => {
                 window.skillPoints -= 1;
                 window.playerSkills.push(skillId);
-                console.log(`Skill Adquirida: ${skill.nome}. Pontos restantes: ${window.skillPoints}`);
+                // console.log(`Skill Adquirida: ${skill.nome}. Pontos restantes: ${window.skillPoints}`);
                 
                 // Executa a lógica da skill recém-adquirida
                 if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();

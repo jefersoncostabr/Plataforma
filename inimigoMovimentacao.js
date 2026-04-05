@@ -271,7 +271,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.puloTimer === 0 && inimigo.noChao) {
                         inimigo.velocidadeY = forcaPuloInimigo;
                         inimigo.noChao = false;
-                        // console.log('Inimigo pulou para desviar de projétil!');
+                        // console.log('Inimigo iniciou timer de pulo:', inimigo.puloTimer, 'frames');
                     }
                 }
 

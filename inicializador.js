@@ -97,6 +97,9 @@ async function carregarFase(nomeArquivo) {
         
         // Define uma função para criar o inimigo repetidamente
         const criarInimigoRepetido = () => {
+            // Verifica se o jogo está pausado antes de prosseguir com o spawn
+            if (window.isPaused) return;
+
             if (typeof criarInimigoAleatorio === 'function') {
                 criarInimigoAleatorio(fase.plataformas, tipoEquipamento);
             }

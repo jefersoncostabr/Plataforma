@@ -12,6 +12,7 @@
             "nome": "Dropar",
             "parent": "skill1"
         },
+
         "skillb": {
             "nome": "Visão",
             "parent": "skill1"
@@ -21,7 +22,7 @@
             "parent": "skilla"
         },
         "skilla1": {
-            "nome": "Teste",
+            "nome": "Vender",
             "parent": "skilla"
         },
         "skillb2": {
