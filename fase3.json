@@ -6,10 +6,7 @@
         "b8",
         "d10", "d11", "d12", "d13"
     ],
-    "inimigos2": ["b19"],
     "inimigos3": ["b18"],
-    "itens": [
-        { "tipo": "bota", "pos": "c3" }
-    ],
+
     "inimigoAleatorio": [1, 0]
 }

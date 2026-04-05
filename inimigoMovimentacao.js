@@ -100,6 +100,12 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inimigo.tipo === 3) {
                     velAtiva += Number(config.bonusVelocidadeBota ?? 2);
                 }
+                
+                // Penalidade de velocidade para o escudo ativo (igual ao player)
+                if (inimigo.temEscudo && !inimigo.escudoVermelho) {
+                    const penalidade = Number(config.escudoVelocidadeReduzida ?? 2);
+                    velAtiva = Math.max(0.5, velAtiva - penalidade); // Garante no mínimo 0.5 de velocidade
+                }
 
                 const distanciaAtual = Math.abs(playerX - inimigo.x);
                 
@@ -108,6 +114,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.tempoChute = 0;
                     inimigo.cooldownChute = 0;
                     inimigo.cooldownTiro = 0;
+                    inimigo.escudoProtegido = 0;
+                    inimigo.escudoVermelho = false;
                     inimigo.municao = config.maxMunicao || 5;
                     inimigo.direcao = 'e';
                     inimigo.temArma = (inimigo.tipo === 1);
@@ -533,6 +541,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.escudoElemento.style.left = inimigo.x + 'px';
                     inimigo.escudoElemento.style.bottom = inimigo.y + 'px';
                     inimigo.escudoElemento.style.transform = inimigo.elemento.style.transform;
+                    
+                    inimigo.escudoElemento.src = inimigo.escudoVermelho
+                        ? (config.spriteEscudoVermelho || 'personagem/escudo_vermelho.png')
+                        : (config.spriteEscudoPlayer || 'personagem/escudo.png');
                 }
 
                 // Sincroniza a bota com o inimigo

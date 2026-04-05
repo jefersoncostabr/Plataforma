@@ -31,6 +31,8 @@ Este documento descreve cada campo presente no arquivo de configuração central
 | `escudoKnockbackMultiplicador` | Number | Multiplicador de empuxo recebido quando o escudo está ativo (ex: 0.5 reduz em 50%). |
 | `escudoVelocidadeReduzida` | Number | Valor subtraído da velocidade do player quando ele carrega um escudo funcional. |
 | `escudoTirosProtegidos` | Number | Quantos ataques o escudo aguenta antes de quebrar (ficar vermelho). |
+| `bonusVelocidadeBota` | Number | Velocidade adicional concedida ao personagem (jogador ou inimigo) que estiver usando botas. |
+| `bonusPuloBota` | Number | Força extra adicionada ao pulo quando as botas estão equipadas. |
 
 ## 4. Inteligência Artificial (Inimigos)
 
@@ -41,6 +43,10 @@ Este documento descreve cada campo presente no arquivo de configuração central
 | `inimigoPuloDistanciaAlerta` | Number | Distância de detecção de projéteis vindo na direção do inimigo. |
 | `inimigoPuloDelayMin` / `Max` | Number | Range de frames aleatórios que o inimigo espera antes de pular para desviar de um tiro. |
 | `debugInimigosParados` | Boolean | Se `true`, os inimigos não se movem (útil para testes). |
+| `inimigoDistanciaMinimaAtaque` | Number | Distância mínima permitida entre o inimigo e o jogador antes de forçar um afastamento. |
+| `inimigoTempoAfastamento` | Number | Duração (em frames) do estado de recuo do inimigo. |
+| `inimigoVelocidadeAfastamento` | Number | Velocidade com que o inimigo se afasta do jogador. |
+| `inimigoCooldownAfastamento` | Number | Tempo de espera para o inimigo poder se afastar novamente por proximidade. |
 
 ## 5. Projéteis
 
@@ -76,4 +82,8 @@ Este documento descreve cada campo presente no arquivo de configuração central
 | `spriteArmaVermelha` | Revólver sem munição. |
 | `spriteProjetil` | Imagem da bala no ar. |
 | `spriteItemEscudo` | Item coletável no chão. |
+| `spriteItemBota` | Item de bota coletável no chão. |
 | `spriteItemRevolver` | Item de arma coletável no chão. |
+| `spriteBotaParado` | Visual da bota equipada em estado estático. |
+| `spriteBotaAndando` | Visual da bota equipada durante o movimento. |
+| `spriteBotaChutando` | Visual da bota equipada durante o ataque de chute. |

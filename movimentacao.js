@@ -642,7 +642,22 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         };
 
                         if (detectarColisaoHitbox(hitboxProjetil, hitboxInimigo, 0, 0, 0)) {
-                            inimigo.vida = (inimigo.vida || 0) + 1;
+                            // Lógica de escudo para o inimigo (absorção de dano)
+                            if (inimigo.temEscudo && !inimigo.escudoVermelho) {
+                                inimigo.escudoProtegido = (inimigo.escudoProtegido || 0) + 1;
+                                const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
+                                
+                                if (typeof flashElement === 'function' && inimigo.escudoElemento) {
+                                    flashElement(inimigo.escudoElemento, 150, 6);
+                                }
+
+                                if (inimigo.escudoProtegido >= tirosProtegidos) {
+                                    inimigo.escudoVermelho = true;
+                                    console.log("Escudo do inimigo quebrou!");
+                                }
+                            } else {
+                                inimigo.vida = (inimigo.vida || 0) + 1;
+                            }
 
                             // Efeito visual no inimigo ao receber dano
                             if (typeof flashComVibacao === 'function') {

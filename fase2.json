@@ -8,9 +8,7 @@
         "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8"
     ],
     "inimigos1": ["b20"],
-    "inimigos0": ["b19"],
-    "itens": [
-        { "tipo": "escudo", "pos": "b3" }
-    ],
+    "inimigos2": ["b19"],
+
     "inimigoAleatorio": [3, 0]
 }
