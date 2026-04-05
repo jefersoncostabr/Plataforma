@@ -35,6 +35,46 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         return valor;
     }
 
+    function droparItensInimigo(inimigo) {
+        if (!inimigo.inventario) return;
+        
+        // Lógica LIFO: Inverte a ordem para dropar o último item pego primeiro
+        const itensParaDropar = [...inimigo.inventario].reverse();
+        itensParaDropar.forEach((tipo, index) => {
+            const itemImg = document.createElement('img');
+            if (tipo === 'revolver') itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
+            else if (tipo === 'escudo') itemImg.src = config.spriteItemEscudo || 'personagem/escudo_pegavel.png';
+            else if (tipo === 'bota') itemImg.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
+            
+            itemImg.style.position = 'absolute';
+            itemImg.style.width = '32px';
+            itemImg.style.height = '32px';
+            itemImg.style.zIndex = '3';
+            itemImg.style.imageRendering = 'pixelated';
+            elemento.parentElement.appendChild(itemImg);
+
+            let dropX = inimigo.x;
+            let tentativa = 0;
+            const estaOcupado = (checkX) => window.itensColetaveis.some(it => 
+                Math.abs(it.x - checkX) < 20 && Math.abs(it.y - inimigo.y) < 20
+            );
+
+            // Busca a próxima posição adjacente livre (32px para cada lado)
+            while (estaOcupado(dropX)) {
+                tentativa++;
+                const direcao = tentativa % 2 === 0 ? -1 : 1;
+                const multiplier = Math.ceil(tentativa / 2);
+                dropX = inimigo.x + (32 * multiplier * direcao);
+            }
+
+            window.itensColetaveis.push({
+                x: dropX, y: inimigo.y,
+                elemento: itemImg, velocidadeY: 5,
+                tipo: tipo
+            });
+        });
+    }
+
     function carregarInventarioSalvo() {
         try {
             const raw = localStorage.getItem(INVENTARIO_STORAGE_KEY);
@@ -237,6 +277,22 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             window.togglePause();
         }
 
+        // Atalho para abrir árvore de habilidades
+        if (e.key === '6') {
+            console.log("Comando: Tecla 6 detectada.");
+            if (typeof window.toggleSkillMenu === 'function') {
+                window.toggleSkillMenu();
+            } else {
+                console.error("Erro: A função 'toggleSkillMenu' não foi encontrada. Verifique se o arquivo skills.js foi carregado corretamente.");
+            }
+        }
+
+        if (e.key === '7' && typeof criarInimigoAleatorio === 'function' && window.plataformas) {
+            const coordsArray = Object.keys(window.plataformas);
+            const tipoAleatorio = Math.floor(Math.random() * 3); // Sorteia entre 0, 1 e 2
+            criarInimigoAleatorio(coordsArray, tipoAleatorio);
+        }
+
         if (e.key === '8') {
             window.debugInimigoTeclas[' '] = true;
         }
@@ -262,43 +318,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         if (e.key === '9' && window.inimigos) {
             for (let i = window.inimigos.length - 1; i >= 0; i--) {
                 const inimigo = window.inimigos[i];
-                if (inimigo.tipo === 1) {
-                    const itemImg = document.createElement('img');
-                    itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
-                    itemImg.style.position = 'absolute';
-                    itemImg.style.width = '32px';
-                    itemImg.style.height = '32px';
-                    itemImg.style.zIndex = '3';
-                    elemento.parentElement.appendChild(itemImg);
-                    window.itensColetaveis.push({
-                        x: inimigo.x, y: inimigo.y,
-                        elemento: itemImg, velocidadeY: 0,
-                        tipo: 'revolver'
-                    });
-                }
-                    if (inimigo.temEscudo) {
-                        const itemImg = document.createElement('img');
-                        itemImg.src = config.spriteItemEscudo || 'personagem/escudo_pegavel.png';
-                        itemImg.style.position = 'absolute';
-                        itemImg.style.width = '32px';
-                        itemImg.style.height = '32px';
-                        itemImg.style.zIndex = '3';
-                        elemento.parentElement.appendChild(itemImg);
-                        window.itensColetaveis.push({ x: inimigo.x, y: inimigo.y, elemento: itemImg, velocidadeY: 0, tipo: 'escudo' });
-                    }
-                    if (inimigo.temBota) {
-                        const itemImg = document.createElement('img');
-                        itemImg.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
-                        itemImg.style.position = 'absolute';
-                        itemImg.style.width = '32px';
-                        itemImg.style.height = '32px';
-                        itemImg.style.zIndex = '3';
-                        elemento.parentElement.appendChild(itemImg);
-                        window.itensColetaveis.push({ x: inimigo.x, y: inimigo.y, elemento: itemImg, velocidadeY: 0, tipo: 'bota' });
-                    }
+                droparItensInimigo(inimigo);
                 if (inimigo.armaElemento) inimigo.armaElemento.remove();
-                    if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
-                    if (inimigo.botaElemento) inimigo.botaElemento.remove();
+                if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
+                if (inimigo.botaElemento) inimigo.botaElemento.remove();
                 inimigo.elemento.remove();
                 window.inimigos.splice(i, 1);
             }
@@ -592,48 +615,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         // Se atingir 3 golpes, o inimigo morre e desaparece
                         if (inimigo.vida >= 3) {
                             console.log("Ataque: Inimigo derrotado!");
-                            if (inimigo.temArma) {
-                                const itemImg = document.createElement('img');
-                                itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
-                                itemImg.style.position = 'absolute';
-                                itemImg.style.width = '32px';
-                                itemImg.style.height = '32px';
-                                itemImg.style.zIndex = '3';
-                                elemento.parentElement.appendChild(itemImg);
-                                window.itensColetaveis.push({
-                                    x: inimigo.x, y: inimigo.y,
-                                    elemento: itemImg, velocidadeY: 0,
-                                    tipo: 'revolver'
-                                });
-                            }
-                            if (inimigo.temEscudo) {
-                                const itemImg = document.createElement('img');
-                                itemImg.src = config.spriteItemEscudo || 'personagem/escudo_pegavel.png';
-                                itemImg.style.position = 'absolute';
-                                itemImg.style.width = '32px';
-                                itemImg.style.height = '32px';
-                                itemImg.style.zIndex = '3';
-                                elemento.parentElement.appendChild(itemImg);
-                                window.itensColetaveis.push({
-                                    x: inimigo.x, y: inimigo.y,
-                                    elemento: itemImg, velocidadeY: 0,
-                                    tipo: 'escudo'
-                                });
-                            }
-                            if (inimigo.temBota) {
-                                const itemImg = document.createElement('img');
-                                itemImg.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
-                                itemImg.style.position = 'absolute';
-                                itemImg.style.width = '32px';
-                                itemImg.style.height = '32px';
-                                itemImg.style.zIndex = '3';
-                                elemento.parentElement.appendChild(itemImg);
-                                window.itensColetaveis.push({
-                                    x: inimigo.x, y: inimigo.y,
-                                    elemento: itemImg, velocidadeY: 0,
-                                    tipo: 'bota'
-                                });
-                            }
+                            droparItensInimigo(inimigo);
                             if (inimigo.armaElemento) inimigo.armaElemento.remove();
                             if (inimigo.botaElemento) inimigo.botaElemento.remove();
                             if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
@@ -710,48 +692,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             inimigo.elemento.style.left = inimigo.x + 'px';
 
                             if (inimigo.vida >= 3) {
-                                if (inimigo.temArma) {
-                                    const itemImg = document.createElement('img');
-                                    itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
-                                    itemImg.style.position = 'absolute';
-                                    itemImg.style.width = '32px';
-                                    itemImg.style.height = '32px';
-                                    itemImg.style.zIndex = '3';
-                                    elemento.parentElement.appendChild(itemImg);
-                                    window.itensColetaveis.push({
-                                        x: inimigo.x, y: inimigo.y,
-                                        elemento: itemImg, velocidadeY: 0,
-                                        tipo: 'revolver'
-                                    });
-                                }
-                                if (inimigo.temEscudo) {
-                                    const itemImg = document.createElement('img');
-                                    itemImg.src = config.spriteItemEscudo || 'personagem/escudo_pegavel.png';
-                                    itemImg.style.position = 'absolute';
-                                    itemImg.style.width = '32px';
-                                    itemImg.style.height = '32px';
-                                    itemImg.style.zIndex = '3';
-                                    elemento.parentElement.appendChild(itemImg);
-                                    window.itensColetaveis.push({
-                                        x: inimigo.x, y: inimigo.y,
-                                        elemento: itemImg, velocidadeY: 0,
-                                        tipo: 'escudo'
-                                    });
-                                }
-                            if (inimigo.temBota) {
-                                const itemImg = document.createElement('img');
-                                itemImg.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
-                                itemImg.style.position = 'absolute';
-                                itemImg.style.width = '32px';
-                                itemImg.style.height = '32px';
-                                itemImg.style.zIndex = '3';
-                                elemento.parentElement.appendChild(itemImg);
-                                window.itensColetaveis.push({
-                                    x: inimigo.x, y: inimigo.y,
-                                    elemento: itemImg, velocidadeY: 0,
-                                    tipo: 'bota'
-                                });
-                            }
+                                droparItensInimigo(inimigo);
                                 if (inimigo.armaElemento) inimigo.armaElemento.remove();
                                 if (inimigo.botaElemento) inimigo.botaElemento.remove();
                                 if (inimigo.escudoElemento) inimigo.escudoElemento.remove();

@@ -1,0 +1,37 @@
+{
+    "playerStats": {
+        "xp": 150,
+        "skillPoints": 2,
+        "acquired": ["skill1"]
+    },
+    "skills": {
+        "skill1": {
+            "nome": "Básico",
+            "parent": null
+        },
+        "skilla": {
+            "nome": "Guerreiro",
+            "parent": "skill1"
+        },
+        "skillb": {
+            "nome": "Ágil",
+            "parent": "skill1"
+        },
+        "skilla2": {
+            "nome": "Impacto",
+            "parent": "skilla"
+        },
+        "skilla1": {
+            "nome": "Teste",
+            "parent": "skilla"
+        },
+        "skillb2": {
+            "nome": "Salto",
+            "parent": "skillb"
+        },
+        "skillb1": {
+            "nome": "teste2",
+            "parent": "skillb"
+        }
+    }
+}

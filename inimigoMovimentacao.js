@@ -121,6 +121,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.cooldownTiro = 0;
                     inimigo.escudoProtegido = 0;
                     inimigo.escudoVermelho = false;
+                    inimigo.inventario = [];
                     inimigo.estaColetando = false;
                     inimigo.timerColeta = 0;
                     inimigo.municao = config.maxMunicao || 5;
@@ -130,6 +131,11 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.temBota = (inimigo.tipo === 3);
                     inimigo.framesImpulsoRestante = 0;
                     inimigo.velocidadeDash = 0;
+
+                    // Preenche inventário inicial baseado no tipo
+                    if (inimigo.temArma) inimigo.inventario.push('revolver');
+                    if (inimigo.temEscudo) inimigo.inventario.push('escudo');
+                    if (inimigo.temBota) inimigo.inventario.push('bota');
                     inimigo.cooldownPulo = 0;
                     inimigo.velocidadeY = 0;
                     inimigo.noChao = false;
@@ -345,6 +351,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             else if (item.tipo === 'escudo') { inimigo.temEscudo = true; inimigo.escudoVermelho = false; inimigo.escudoProtegido = 0; if (inimigo.escudoElemento) inimigo.escudoElemento.style.display = 'block'; }
                             else if (item.tipo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
                             
+                            inimigo.inventario.push(item.tipo);
                             item.elemento.remove();
                             window.itensColetaveis.splice(itemIndex, 1);
                         }
