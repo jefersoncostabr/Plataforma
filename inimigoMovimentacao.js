@@ -121,6 +121,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.cooldownTiro = 0;
                     inimigo.escudoProtegido = 0;
                     inimigo.escudoVermelho = false;
+                    inimigo.estaColetando = false;
+                    inimigo.timerColeta = 0;
                     inimigo.municao = config.maxMunicao || 5;
                     inimigo.direcao = 'e';
                     inimigo.temArma = (inimigo.tipo === 1);
@@ -306,9 +308,53 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     continue;
                 }
 
+                // Lógica de Coleta de Itens pelos Inimigos
+                if (!inimigo.estaColetando && !inimigo.afastando && !estaChutando && window.itensColetaveis) {
+                    for (let j = window.itensColetaveis.length - 1; j >= 0; j--) {
+                        const item = window.itensColetaveis[j];
+                        // Verifica colisão simples entre inimigo e item
+                        if (inimigo.x < item.x + 32 && inimigo.x + 32 > item.x &&
+                            inimigo.y < item.y + 32 && inimigo.y + 32 > item.y) {
+                            
+                            // O inimigo só tenta pegar o que ele ainda não tem
+                            if ((item.tipo === 'revolver' && inimigo.temArma) ||
+                                (item.tipo === 'escudo' && inimigo.temEscudo) ||
+                                (item.tipo === 'bota' && inimigo.temBota)) continue;
+
+                            inimigo.estaColetando = true;
+                            inimigo.timerColeta = 180; // 3 segundos a 60fps
+                            inimigo.itemSendoColetado = item;
+                            break;
+                        }
+                    }
+                }
+
+                if (inimigo.estaColetando) {
+                    inimigo.timerColeta--;
+                    // Olha de um lado para o outro a cada 30 frames
+                    if (inimigo.timerColeta % 30 === 0) {
+                        inimigo.direcao = (inimigo.direcao === 'd' ? 'e' : 'd');
+                        inimigo.elemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+                    }
+
+                    if (inimigo.timerColeta <= 0) {
+                        const item = inimigo.itemSendoColetado;
+                        const itemIndex = window.itensColetaveis.indexOf(item);
+                        if (itemIndex !== -1) {
+                            if (item.tipo === 'revolver') { inimigo.temArma = true; inimigo.municao = config.maxMunicao; if (inimigo.armaElemento) inimigo.armaElemento.style.display = 'block'; }
+                            else if (item.tipo === 'escudo') { inimigo.temEscudo = true; inimigo.escudoVermelho = false; inimigo.escudoProtegido = 0; if (inimigo.escudoElemento) inimigo.escudoElemento.style.display = 'block'; }
+                            else if (item.tipo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
+                            
+                            item.elemento.remove();
+                            window.itensColetaveis.splice(itemIndex, 1);
+                        }
+                        inimigo.estaColetando = false;
+                    }
+                }
+
                 let movendoDestaVez = false;
                 // Ações que dependem da ativação (movimento e ataque) - só se não estiver afastando
-                if (inimigo.perseguindo && !inimigo.afastando) {
+                if (inimigo.perseguindo && !inimigo.afastando && !inimigo.estaColetando) {
                     // Lógica para INICIAR o chute
                     if (distanciaAtual <= config.distanciaAtaqueInimigo && inimigo.cooldownChute === 0) {
                         inimigo.tempoChute = config.tempoChute;

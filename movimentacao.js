@@ -563,6 +563,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     // Só aplica o dano se o inimigo ainda não foi atingido por este chute específico
                     if (!inimigo.foiAtingidoNesteChute && detectarColisaoHitbox(hitboxAtaque, hitboxInimigo, 0, 0, 0)) {
                         inimigo.foiAtingidoNesteChute = true;
+                        
+                        // Interrompe a coleta de item se levar um golpe
+                        inimigo.estaColetando = false;
+                        inimigo.timerColeta = 0;
+
                         inimigo.vida = (inimigo.vida || 0) + 1;
 
                         // Efeito visual no inimigo ao receber dano por chute
@@ -668,6 +673,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
                         if (detectarColisaoHitbox(hitboxProjetil, hitboxInimigo, 0, 0, 0)) {
                             // Lógica de escudo para o inimigo (absorção de dano)
+                            // Interrompe a coleta mesmo que o escudo bloqueie o dano
+                            inimigo.estaColetando = false;
+                            inimigo.timerColeta = 0;
+
                             if (inimigo.temEscudo && !inimigo.escudoVermelho) {
                                 inimigo.escudoProtegido = (inimigo.escudoProtegido || 0) + 1;
                                 const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
