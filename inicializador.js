@@ -44,6 +44,16 @@ async function carregarFase(nomeArquivo) {
         window.playerControle.x = pos.x;
         window.playerControle.y = pos.y;
         window.playerControle.velocidadeY = 0;
+        
+        // CORREÇÃO: Reseta o estado de entrada e timers para evitar que o personagem ande/pule sozinho
+        window.playerControle.teclas = {};
+        window.playerControle.movendoHorizontal = false;
+        window.playerControle.chutando = false;
+        window.playerControle.tempoChute = 0;
+        window.playerControle.cooldownChute = 0;
+        window.playerControle.cooldownTiro = 0;
+        window.playerControle.cooldownPulo = 0;
+        
         window.playerControle.noChao = false; // Garante que a física recalcule o chão no novo local
     }
 
@@ -52,6 +62,8 @@ async function carregarFase(nomeArquivo) {
         const inimigosParaReset = [];
         if (fase.inimigos1) fase.inimigos1.forEach(p => inimigosParaReset.push({tipo: 1, pos: p}));
         if (fase.inimigos0) fase.inimigos0.forEach(p => inimigosParaReset.push({tipo: 0, pos: p}));
+        if (fase.inimigos2) fase.inimigos2.forEach(p => inimigosParaReset.push({tipo: 2, pos: p}));
+        if (fase.inimigos3) fase.inimigos3.forEach(p => inimigosParaReset.push({tipo: 3, pos: p}));
         
         resetarInimigos(inimigosParaReset);
     }
@@ -145,6 +157,8 @@ window.reiniciarJogo = async function() {
         window.playerControle.cooldownTiro = 0;
         window.playerControle.cooldownPulo = 0;
         window.playerControle.velocidadeY = 0;
+        window.playerControle.framesKnockbackRestante = 0;
+        window.playerControle.velocidadeKnockback = 0;
         window.playerControle.noChao = false;
         window.playerControle.direcao = 'd';
         
@@ -156,6 +170,10 @@ window.reiniciarJogo = async function() {
         }
         if (window.playerControle.temArma) {
             window.playerControle.municao = window.config.maxMunicao || 5;
+        }
+        // Mantém a bota se ela já foi coletada
+        if (window.playerControle.temBota) {
+            window.playerControle.temBota = true;
         }
         if (typeof window.salvarInventario === 'function') {
             window.salvarInventario();

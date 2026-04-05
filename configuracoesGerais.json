@@ -27,6 +27,10 @@
     "spriteArmaPlayer": "personagem/revolver.png",
     "spriteArmaVermelha": "personagem/revolver_vermelho.png",
     "spriteItemRevolver": "personagem/revolver_pegavel.png",
+    "spriteItemBota": "personagem/bota_pegavel.png",
+    "spriteBotaParado": "personagem/bota_parado.png",
+    "spriteBotaAndando": "personagem/bota_andando.png",
+    "spriteBotaChutando": "personagem/bota_chutando.png",
     "spriteParadoInimigo": "personagem/Personagem_parado.png",
     "spriteAndandoInimigo": "personagem/Personagem_andando.png",
     "spriteChuteInimigo": "personagem/personagem_chute2.png",
@@ -55,6 +59,9 @@
     "maxMunicao": 5,
     "velocidadeHorizontal": 2,
     "velocidadePlayer": 5,
+    "bonusPuloBota": 1.5,
+    "bonusChuteBota": 32,
+    "bonusVelocidadeBota": 2,
     "faseInicial": 0,
     "escalaPalco": 1.5
 }

@@ -53,7 +53,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 escudoVermelho: controle.escudoVermelho,
                 escudoProtegido: controle.escudoProtegido,
                 temArma: controle.temArma,
-                municao: controle.municao
+                municao: controle.municao,
+                temBota: controle.temBota
             };
             localStorage.setItem(INVENTARIO_STORAGE_KEY, JSON.stringify(estado));
         } catch (error) {
@@ -94,12 +95,17 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         direcao: 'd',
         chutando: false,
         tempoChute: 0,
+        framesImpulsoRestante: 0,
+        velocidadeDash: 0,
+        framesKnockbackRestante: 0,
+        velocidadeKnockback: 0,
         cooldownChute: 0,
         cooldownPulo: 0,
         cooldownTiro: 0,
         municao: 0, // Inicia sem munição
         temArma: false, // Inicia sem a capacidade de atirar
         temEscudo: false, // Inicia sem escudo
+        temBota: false, // Inicia sem bota
         escudoVermelho: false,
         escudoProtegido: 0,
         dano: 0,
@@ -117,6 +123,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         controle.escudoProtegido = Number(inventarioSalvo.escudoProtegido ?? 0);
         controle.temArma = Boolean(inventarioSalvo.temArma);
         controle.municao = Number(inventarioSalvo.municao ?? 0);
+        controle.temBota = Boolean(inventarioSalvo.temBota);
     }
 
     // Função para resetar/spawnar itens baseados no JSON da fase
@@ -126,17 +133,23 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         if (!dadosItens) return;
 
         dadosItens.forEach(dado => {
-            if ((dado.tipo === 'escudo' && controle.temEscudo) || (dado.tipo === 'revolver' && controle.temArma)) {
+            if ((dado.tipo === 'escudo' && controle.temEscudo) || 
+                (dado.tipo === 'revolver' && controle.temArma) ||
+                (dado.tipo === 'bota' && controle.temBota)) {
                 return;
             }
 
             const pos = typeof gridParaPixels === 'function' ? gridParaPixels(dado.pos) : {x: 0, y: 0};
             const itemImg = document.createElement('img');
             
-            // Define o sprite baseado no tipo (escudo ou revolver)
-            itemImg.src = dado.tipo === 'escudo' 
-                ? (config.spriteItemEscudo || 'personagem/escudo_pegavel.png')
-                : (config.spriteItemRevolver || 'personagem/revolver_pegavel.png');
+            // Define o sprite baseado no tipo (escudo, bota ou revolver)
+            if (dado.tipo === 'escudo') {
+                itemImg.src = config.spriteItemEscudo || 'personagem/escudo_pegavel.png';
+            } else if (dado.tipo === 'bota') {
+                itemImg.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
+            } else {
+                itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
+            }
 
             itemImg.style.position = 'absolute';
             itemImg.style.width = '32px';
@@ -183,6 +196,19 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     elemento.parentElement.appendChild(escudoElemento);
     atualizarVisualEscudo();
 
+    // Elemento da bota
+    const botaElemento = document.createElement('img');
+    botaElemento.id = 'player-boots';
+    botaElemento.src = config.spriteBotaParado || 'personagem/bota_parado.png';
+    botaElemento.style.position = 'absolute';
+    botaElemento.style.width = '32px';
+    botaElemento.style.height = '32px';
+    botaElemento.style.zIndex = '8'; // Garantir que fique acima do personagem e outros itens
+    botaElemento.style.display = controle.temBota ? 'block' : 'none';
+    botaElemento.style.imageRendering = 'pixelated';
+    botaElemento.style.pointerEvents = 'none';
+    elemento.parentElement.appendChild(botaElemento);
+
     window.debugInimigoTeclas = {}; // Inicializa o objeto para teclas de debug do inimigo
 
     // Detecta teclas pressionadas
@@ -203,6 +229,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.escudoProtegido = 0;
             controle.temArma = false;
             controle.municao = 0;
+            controle.temBota = false;
+            controle.framesKnockbackRestante = 0;
+            controle.velocidadeKnockback = 0;
+            botaElemento.style.display = 'none';
             atualizarVisualEscudo();
             if (typeof armaElemento !== 'undefined') {
                 armaElemento.style.display = 'none';
@@ -248,9 +278,14 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         const yAnterior = controle.y;
 
         const velBase = config.velocidadePlayer || velocidade;
-        const velAtiva = temEscudoAtivo()
+        let velAtiva = temEscudoAtivo()
             ? Math.max(0, velBase - (config.escudoVelocidadeReduzida ?? 2))
             : velBase;
+
+        // Aplica o bônus de velocidade se estiver usando a bota
+        if (controle.temBota) {
+            velAtiva += Number(config.bonusVelocidadeBota || 2);
+        }
 
         // Movimentação Horizontal
         if (controle.teclas['ArrowLeft'] || controle.teclas['a'] || controle.teclas['A']) {
@@ -269,12 +304,16 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.tempoChute = config.tempoChute;
             controle.cooldownChute = config.cooldownChute;
 
+            // Configura o deslocamento suave em vez de teleporte
+            const duracaoDash = 10; // O avanço levará 10 frames para completar
+            const multiplicadorChute = controle.temBota ? 2 : 1;
+            
+            controle.framesImpulsoRestante = duracaoDash;
+            // Calcula quanto o personagem deve andar por frame durante o dash
+            controle.velocidadeDash = (config.impulsoChute * multiplicadorChute) / duracaoDash;
+
             // Reseta o estado de "atingido" de todos os inimigos para este novo chute
             if (window.inimigos) window.inimigos.forEach(inimigo => inimigo.foiAtingidoNesteChute = false);
-
-            // Aplica o impulso (dash) para a frente baseado na direção atual
-            const direcaoMultiplicador = (controle.direcao === 'd' ? 1 : -1);
-            controle.x += config.impulsoChute * direcaoMultiplicador;
         }
 
         // Lógica de Disparo (tecla I)
@@ -315,13 +354,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             console.log(`Jogador disparou! Munição restante: ${controle.municao}`);
         }
 
-        if (controle.tempoChute > 0) {
-            controle.chutando = true;
-            controle.tempoChute--;
-        } else {
-            controle.chutando = false;
-        }
-
         // Diminui o cooldown global do chute
         if (controle.cooldownChute > 0) {
             controle.cooldownChute--;
@@ -348,11 +380,16 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.x = xAnterior;
         }
 
+        // Calcula a força do pulo final: se tiver a bota, soma o bônus definido nas configurações
+        const forcaPuloFinal = controle.temBota 
+            ? (config.inimigoForcaPulo + (config.bonusPuloBota || 1.5)) 
+            : config.inimigoForcaPulo;
+
         // Aplica gravidade e pulo (definido em fisica.js)
         aplicarFisica(
             controle, 
             controle.teclas, 
-            config.inimigoForcaPulo, 
+            forcaPuloFinal, 
             config.inimigoGravidade, 
             config.inimigoPuloCooldown
         );
@@ -501,7 +538,22 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                     tipo: 'revolver'
                                 });
                             }
+                            if (inimigo.tipo === 3) {
+                                const itemImg = document.createElement('img');
+                                itemImg.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
+                                itemImg.style.position = 'absolute';
+                                itemImg.style.width = '32px';
+                                itemImg.style.height = '32px';
+                                itemImg.style.zIndex = '3';
+                                elemento.parentElement.appendChild(itemImg);
+                                window.itensColetaveis.push({
+                                    x: inimigo.x, y: inimigo.y,
+                                    elemento: itemImg, velocidadeY: 0,
+                                    tipo: 'bota'
+                                });
+                            }
                             if (inimigo.armaElemento) inimigo.armaElemento.remove();
+                            if (inimigo.botaElemento) inimigo.botaElemento.remove();
                             inimigo.elemento.remove();
                             window.inimigos.splice(i, 1);
                         }
@@ -570,7 +622,22 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                         tipo: 'revolver'
                                     });
                                 }
+                            if (inimigo.tipo === 3) {
+                                const itemImg = document.createElement('img');
+                                itemImg.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
+                                itemImg.style.position = 'absolute';
+                                itemImg.style.width = '32px';
+                                itemImg.style.height = '32px';
+                                itemImg.style.zIndex = '3';
+                                elemento.parentElement.appendChild(itemImg);
+                                window.itensColetaveis.push({
+                                    x: inimigo.x, y: inimigo.y,
+                                    elemento: itemImg, velocidadeY: 0,
+                                    tipo: 'bota'
+                                });
+                            }
                                 if (inimigo.armaElemento) inimigo.armaElemento.remove();
+                            if (inimigo.botaElemento) inimigo.botaElemento.remove();
                                 inimigo.elemento.remove();
                                 window.inimigos.splice(j, 1);
                             }
@@ -623,7 +690,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         }
 
                         // Knockback no Jogador baseado na direção do tiro
-                        controle.x += obterKnockbackRecebido('inimigoProjetil') * proj.direcao;
+                        const valorKnockback = obterKnockbackRecebido('inimigoProjetil');
+                        const duracaoRecuo = 12; // O recuo durará 12 frames
+                        controle.framesKnockbackRestante = duracaoRecuo;
+                        // A velocidade por frame é o valor total dividido pela duração
+                        controle.velocidadeKnockback = (valorKnockback / duracaoRecuo) * proj.direcao;
                         
                         hitAlvo = true;
                     }
@@ -655,6 +726,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         controle.escudoProtegido = 0;
                         escudoElemento.style.display = 'block';
                         atualizarVisualEscudo();
+                        salvarInventario();
+                    } else if (item.tipo === 'bota') {
+                        console.log("Jogador coletou as botas!");
+                        controle.temBota = true;
+                        botaElemento.style.display = 'block';
                         salvarInventario();
                     } else {
                         console.log("Jogador coletou o revólver!");
@@ -715,6 +791,30 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         escudoElemento.style.left = controle.x + 'px';
         escudoElemento.style.bottom = controle.y + 'px';
         escudoElemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+
+        // Sincroniza a posição e sprite da bota
+        if (controle.temBota) {
+            botaElemento.style.left = controle.x + 'px';
+            botaElemento.style.bottom = controle.y + 'px';
+            // Garante que o espelhamento (lado para o qual olha) seja idêntico ao do personagem
+            botaElemento.style.transform = elemento.style.transform;
+            
+            // Melhoria da lógica de animação: a bota deve seguir o frame exato do personagem
+            if (controle.chutando) {
+                botaElemento.src = config.spriteBotaChutando || 'personagem/bota_chutando.png';
+            } else if (!controle.noChao) {
+                // Se estiver no ar, usa o sprite parado
+                botaElemento.src = config.spriteBotaParado || 'personagem/bota_parado.png';
+            } else if (controle.movendoHorizontal) {
+                // Se estiver andando no chão, sincroniza com o frameAtual (1 é o frame de caminhada)
+                botaElemento.src = (controle.frameAtual === 1)
+                    ? (config.spriteBotaAndando || 'personagem/bota_andando.png')
+                    : (config.spriteBotaParado || 'personagem/bota_parado.png');
+            } else {
+                // Totalmente parado
+                botaElemento.src = config.spriteBotaParado || 'personagem/bota_parado.png';
+            }
+        }
 
         requestAnimationFrame(atualizar);
     }

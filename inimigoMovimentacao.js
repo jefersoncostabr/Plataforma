@@ -35,6 +35,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         if (window.inimigos) {
             window.inimigos.forEach(inim => {
                 if (inim.armaElemento) inim.armaElemento.remove();
+                if (inim.botaElemento) inim.botaElemento.remove();
+                if (inim.escudoElemento) inim.escudoElemento.remove();
             });
         }
         window.inimigos = [];
@@ -79,16 +81,23 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         // Só executa se houver um jogador e inimigos no mapa
         if (player && window.inimigos && window.inimigos.length > 0) {
             const playerX = parseInt(player.style.left) || 0;
-            const alcanceTiro = config.distanciaTiroInimigo || 300;
-            const distanciaAtivacao = Math.max(alcanceTiro, 6 * 32); 
+            // Aumentamos a distância de ativação para que o inimigo "acorde" mesmo em fases longas (como a Fase 3)
+            const alcanceTiro = Number(config.distanciaTiroInimigo ?? 300);
+            const distanciaAtivacao = Math.max(alcanceTiro, 20 * 32); // 20 blocos de distância (aprox. tela cheia)
 
-            const velAtiva = config.velocidadeHorizontal || velocidade;
+            const velAtivaBase = Number(config.velocidadeHorizontal ?? velocidade);
 
             // Usamos um loop for reverso para permitir a remoção segura de inimigos que caem no buraco
             for (let i = window.inimigos.length - 1; i >= 0; i--) {
                 const inimigo = window.inimigos[i];
                 
                 let xAnterior = inimigo.x;
+
+                // Unificação da velocidade: tratamos como número e aplicamos bônus se for tipo 3
+                let velAtiva = velAtivaBase;
+                if (inimigo.tipo === 3) {
+                    velAtiva += Number(config.bonusVelocidadeBota ?? 2);
+                }
 
                 const distanciaAtual = Math.abs(playerX - inimigo.x);
                 
@@ -100,6 +109,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.municao = config.maxMunicao || 5;
                     inimigo.direcao = 'e';
                     inimigo.temArma = (inimigo.tipo === 1);
+                    inimigo.temEscudo = (inimigo.tipo === 2);
+                    inimigo.temBota = (inimigo.tipo === 3);
+                    inimigo.framesImpulsoRestante = 0;
+                    inimigo.velocidadeDash = 0;
                     inimigo.cooldownPulo = 0;
                     inimigo.velocidadeY = 0;
                     inimigo.noChao = false;
@@ -120,6 +133,32 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     arma.style.display = inimigo.temArma ? 'block' : 'none';
                     inimigo.elemento.parentElement.appendChild(arma);
                     inimigo.armaElemento = arma;
+
+                    // Cria o elemento visual da bota para o inimigo
+                    const bota = document.createElement('img');
+                    bota.src = config.spriteBotaParado || 'personagem/bota_parado.png';
+                    bota.style.position = 'absolute';
+                    bota.style.width = '32px';
+                    bota.style.height = '32px';
+                    bota.style.zIndex = '8';
+                    bota.style.imageRendering = 'pixelated';
+                    bota.style.pointerEvents = 'none';
+                    bota.style.display = inimigo.temBota ? 'block' : 'none';
+                    inimigo.elemento.parentElement.appendChild(bota);
+                    inimigo.botaElemento = bota;
+
+                    // Cria o elemento do escudo para o inimigo tipo 2
+                    const escudo = document.createElement('img');
+                    escudo.src = config.spriteEscudoPlayer || 'personagem/escudo.png';
+                    escudo.style.position = 'absolute';
+                    escudo.style.width = '32px';
+                    escudo.style.height = '32px';
+                    escudo.style.zIndex = '7';
+                    escudo.style.imageRendering = 'pixelated';
+                    escudo.style.pointerEvents = 'none';
+                    escudo.style.display = inimigo.temEscudo ? 'block' : 'none';
+                    inimigo.elemento.parentElement.appendChild(escudo);
+                    inimigo.escudoElemento = escudo;
                 }
 
                 // Atualiza timers de chute
@@ -184,6 +223,12 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     return chegaPerto && mesmaAltura && vemNaDirecao;
                 }) : null;
 
+                // Unificação da força de pulo: todos os tipos usam a mesma base numérica
+                let forcaPuloInimigo = Number(config.inimigoForcaPulo ?? 12);
+                if (inimigo.tipo === 3) {
+                    forcaPuloInimigo += Number(config.bonusPuloBota ?? 1.5);
+                }
+
                 // Ativa a perseguição se o jogador estiver perto OU se detectar um tiro vindo no radar
                 if (!inimigo.perseguindo && (distanciaAtual <= distanciaAtivacao || projVindo)) {
                     inimigo.perseguindo = true;
@@ -201,7 +246,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inimigo.puloTimer > 0) {
                     inimigo.puloTimer--;
                     if (inimigo.puloTimer === 0 && inimigo.noChao) {
-                        inimigo.velocidadeY = config.inimigoForcaPulo;
+                        inimigo.velocidadeY = forcaPuloInimigo;
                         inimigo.noChao = false;
                         console.log('Inimigo pulou para desviar de projétil!');
                     }
@@ -215,7 +260,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     aplicarFisica(
                         inimigo, 
                         inimigoTeclasParaFisica, 
-                        config.inimigoForcaPulo, 
+                        forcaPuloInimigo, 
                         config.inimigoGravidade, 
                         config.inimigoPuloCooldown
                     );
@@ -239,25 +284,28 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 // Remove o inimigo se ele cair no buraco (fora da tela)
                 if (inimigo.y < -64) {
                     if (inimigo.armaElemento) inimigo.armaElemento.remove();
+                    if (inimigo.botaElemento) inimigo.botaElemento.remove();
                     if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
                     inimigo.elemento.remove();
                     window.inimigos.splice(i, 1);
                     continue;
                 }
 
+                let movendoDestaVez = false;
                 // Ações que dependem da ativação (movimento e ataque) - só se não estiver afastando
                 if (inimigo.perseguindo && !inimigo.afastando) {
-                    let movendoDestaVez = false;
-
                     // Lógica para INICIAR o chute
                     if (distanciaAtual <= config.distanciaAtaqueInimigo && inimigo.cooldownChute === 0) {
                         inimigo.tempoChute = config.tempoChute;
                         inimigo.cooldownChute = config.cooldownChute;
                         inimigo.jaAtacouNesteChute = false;
 
-                        // Dash do inimigo
-                        const mult = (inimigo.direcao === 'd' ? 1 : -1);
-                        inimigo.x += config.impulsoChute * mult;
+                        // Dash do inimigo (Suave e com bônus de bota)
+                        const duracaoDash = 10;
+                        const multiplicadorChute = inimigo.temBota ? 2 : 1;
+                        
+                        inimigo.framesImpulsoRestante = duracaoDash;
+                        inimigo.velocidadeDash = (config.impulsoChute * multiplicadorChute) / duracaoDash;
                     }
 
                     // Lógica para INICIAR o disparo
@@ -297,14 +345,15 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     }
 
                     // Lógica de perseguição: move-se na direção do Player
-                    if (inimigo.x < playerX - 2) {
+                    // Aumentamos a margem de parada baseada na velocidade para evitar travamentos
+                    if (inimigo.x < playerX - velAtiva) {
                         if (inimigo.tempoChute === 0) {
                             inimigo.x += velAtiva;
                             inimigo.direcao = 'd';
                             inimigo.elemento.style.transform = 'scaleX(1)';
                             movendoDestaVez = true;
                         }
-                    } else if (inimigo.x > playerX + 2) {
+                    } else if (inimigo.x > playerX + velAtiva) {
                         if (inimigo.tempoChute === 0) {
                             inimigo.x -= velAtiva;
                             inimigo.direcao = 'e';
@@ -318,7 +367,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         // Se o player estiver acima e o inimigo estiver perto horizontalmente (ex: 64px)
                         const distXAtual = Math.abs(playerX - inimigo.x);
                         if (distXAtual < 64) {
-                            inimigo.velocidadeY = config.inimigoForcaPulo;
+                            inimigo.velocidadeY = forcaPuloInimigo;
                             inimigo.noChao = false;
                             inimigo.cooldownPulo = config.inimigoPuloCooldown;
                             console.log('Inimigo detectou jogador em plataforma superior e pulou para escalar!');
@@ -337,7 +386,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         // Se não houver plataforma detectada à frente e abaixo, o inimigo pula
                         if (typeof verificarColisaoComTiles === 'function' && 
                             !verificarColisaoComTiles(checkX, checkY, 2, 2, window.plataformas)) {
-                            inimigo.velocidadeY = config.inimigoForcaPulo;
+                            inimigo.velocidadeY = forcaPuloInimigo;
                             inimigo.noChao = false;
                             inimigo.cooldownPulo = config.inimigoPuloCooldown;
                             console.log('Inimigo detectou vácuo e executou Salto de Fé!');
@@ -366,8 +415,15 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     }
 
                     // Sobrescreve o sprite se o inimigo estiver chutando
-                    if (inimigo.tempoChute > 0) {
+                    const estaChutando = inimigo.tempoChute > 0;
+                    if (estaChutando) {
                         inimigo.elemento.src = config.spriteChuteInimigo || spriteChute;
+                        
+                        if (inimigo.framesImpulsoRestante > 0) {
+                            const direcaoDash = (inimigo.direcao === 'd' ? 1 : -1);
+                            inimigo.x += inimigo.velocidadeDash * direcaoDash;
+                            inimigo.framesImpulsoRestante--;
+                        }
                     }
 
                     // Lógica da Attackbox do Inimigo
@@ -416,7 +472,11 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             
                             // Knockback no Jogador
                             const direcaoKnockback = (inimigo.direcao === 'd' ? 1 : -1);
-                            window.playerControle.x += obterKnockbackRecebido(config, 'inimigoChute') * direcaoKnockback;
+                            const valorKnockback = obterKnockbackRecebido(config, 'inimigoChute');
+                            const duracaoRecuo = 15; // O recuo por contato físico é um pouco mais longo
+                            
+                            window.playerControle.framesKnockbackRestante = duracaoRecuo;
+                            window.playerControle.velocidadeKnockback = (valorKnockback / duracaoRecuo) * direcaoKnockback;
 
                             // Condição de Game Over
                             if (window.playerControle.dano >= 3) {
@@ -434,7 +494,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     
                     // Item 1: Pulo por Obstrução (Wall Detection)
                     if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0) {
-                        inimigo.velocidadeY = config.inimigoForcaPulo;
+                        inimigo.velocidadeY = forcaPuloInimigo;
                         inimigo.noChao = false;
                         inimigo.cooldownPulo = config.inimigoPuloCooldown;
                         console.log('Inimigo detectou obstrução lateral e pulou para subir!');
@@ -466,6 +526,32 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.armaElemento.style.left = inimigo.x + 'px';
                     inimigo.armaElemento.style.bottom = inimigo.y + 'px';
                     inimigo.armaElemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+                }
+
+                // Sincroniza o escudo com o inimigo
+                if (inimigo.escudoElemento && inimigo.temEscudo) {
+                    inimigo.escudoElemento.style.left = inimigo.x + 'px';
+                    inimigo.escudoElemento.style.bottom = inimigo.y + 'px';
+                    inimigo.escudoElemento.style.transform = inimigo.elemento.style.transform;
+                }
+
+                // Sincroniza a bota com o inimigo
+                if (inimigo.botaElemento && inimigo.temBota) {
+                    inimigo.botaElemento.style.left = inimigo.x + 'px';
+                    inimigo.botaElemento.style.bottom = inimigo.y + 'px';
+                    inimigo.botaElemento.style.transform = inimigo.elemento.style.transform;
+                    
+                    if (estaChutando) {
+                        inimigo.botaElemento.src = config.spriteBotaChutando || 'personagem/bota_chutando.png';
+                    } else if (!inimigo.noChao) {
+                        inimigo.botaElemento.src = config.spriteBotaParado || 'personagem/bota_parado.png';
+                    } else if (movendoDestaVez) {
+                        inimigo.botaElemento.src = (inimigo.frameAtual === 1)
+                            ? (config.spriteBotaAndando || 'personagem/bota_andando.png')
+                            : (config.spriteBotaParado || 'personagem/bota_parado.png');
+                    } else {
+                        inimigo.botaElemento.src = config.spriteBotaParado || 'personagem/bota_parado.png';
+                    }
                 }
             }
         }
