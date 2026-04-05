@@ -280,11 +280,17 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // Atalho para abrir árvore de habilidades
         if (e.key === '6') {
             console.log("Comando: Tecla 6 detectada.");
-            if (typeof window.toggleSkillMenu === 'function') {
+            if (typeof window.toggleSkillMenu === 'function' && !window.isPaused) {
                 window.toggleSkillMenu();
-            } else {
+            } else if (typeof window.toggleSkillMenu !== 'function') {
                 console.error("Erro: A função 'toggleSkillMenu' não foi encontrada. Verifique se o arquivo skills.js foi carregado corretamente.");
             }
+        }
+
+        // Fecha o menu de habilidades com a tecla Enter
+        if (e.key === 'Enter' && window.isSkillMenuOpen) {
+            e.preventDefault(); // Impede comportamentos padrão do navegador
+            if (typeof window.toggleSkillMenu === 'function') window.toggleSkillMenu();
         }
 
         if (e.key === '7' && typeof criarInimigoAleatorio === 'function' && window.plataformas) {

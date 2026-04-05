@@ -31,7 +31,11 @@ window.toggleSkillMenu = async () => {
     }
 
     window.isSkillMenuOpen = !window.isSkillMenuOpen;
-    window.isPaused = window.isSkillMenuOpen;
+    
+    // Utiliza a lógica de pausa já existente no jogo
+    if (typeof window.togglePause === 'function') {
+        window.togglePause();
+    }
 
     if (window.isSkillMenuOpen) {
         console.log("SkillTree: Abrindo menu de habilidades...");
@@ -56,25 +60,42 @@ function abrirMenuSkillsUI() {
     const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
     if (!palco) return;
 
+    // Obtém as coordenadas e o tamanho real do palco na tela
+    const rect = palco.getBoundingClientRect();
+    const target = document.body;
+
     const overlay = document.createElement('div');
     overlay.id = 'skill-tree-overlay';
     overlay.style = `
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.9); z-index: 2000;
+        position: fixed; 
+        top: ${rect.top}px; left: ${rect.left}px; 
+        width: ${rect.width}px; height: ${rect.height}px;
+        background: rgba(0, 0, 0, 0.9); z-index: 9999;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        color: white; font-family: 'Arial', sans-serif;
+        color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        pointer-events: all; box-sizing: border-box; overflow: hidden;
+        border-radius: 4px;
     `;
 
     const container = document.createElement('div');
-    container.style = "position: relative; width: 500px; height: 350px; background: #1a1a1a; border: 3px solid #444; border-radius: 10px;";
+    // Ajustamos o container para caber dentro do palco caso a escala seja pequena
+    container.style = `
+        position: relative; 
+        width: 90%; max-width: 550px; 
+        height: 90%; max-height: 450px; 
+        background: #1a1a1a; border: 3px solid #444; border-radius: 12px; 
+        box-shadow: 0 0 50px rgba(0,0,0,0.8); margin: auto;
+        overflow: hidden;
+    `;
     
     const header = document.createElement('div');
-    header.style = "text-align: center; margin-bottom: 10px;";
+    header.style = "text-align: center; padding: 20px 0; border-bottom: 1px solid #333; margin-bottom: 20px; background: #222; border-radius: 9px 9px 0 0; width: 100%; box-sizing: border-box;";
     header.innerHTML = `
-        <p style="margin: 5px 0;">XP: <b>${window.playerXP}</b> | Pontos de Skill: <b style="color: #00ff00;">${window.skillPoints}</b></p>
-        <small>(Clique para adquirir | Tecla 6 para Sair)</small>
+        <h2 style="margin: 0 0 10px 0; letter-spacing: 2px; text-transform: uppercase;">Habilidades</h2>
+        <p style="margin: 5px 0; font-size: 18px;">XP: <span style="color: #ffd700;">${window.playerXP}</span> | Pontos: <span style="color: #00ff00;">${window.skillPoints}</span></p>
+        <small style="color: #888; text-transform: uppercase; font-size: 10px;">Pressione [ ENTER ] para voltar ao jogo</small>
     `;
-    overlay.appendChild(header);
+    container.appendChild(header);
 
     // Agrupar skills por profundidade para calcular o X dinamicamente
     const levels = {};
@@ -88,7 +109,7 @@ function abrirMenuSkillsUI() {
     Object.keys(levels).forEach(d => levels[d].sort());
 
     const vGap = 90; // Espaço vertical entre níveis
-    const startY = 40;
+    const startY = 140; // Espaço reservado para o cabeçalho interno
 
     Object.keys(window.skillsData).forEach(skillId => {
         const skill = window.skillsData[skillId];
@@ -101,8 +122,8 @@ function abrirMenuSkillsUI() {
         const siblings = levels[depth];
         const indexInLevel = siblings.indexOf(skillId);
         
-        // Distribui os botões do mesmo nível proporcionalmente à largura (500px)
-        const x = (500 / (siblings.length + 1)) * (indexInLevel + 1);
+        // Distribui os botões do mesmo nível proporcionalmente à largura (550px)
+        const x = (550 / (siblings.length + 1)) * (indexInLevel + 1);
         const y = startY + (depth * vGap);
 
         // Disponível se o pai estiver liberado e o jogador tiver pontos
@@ -136,8 +157,9 @@ function abrirMenuSkillsUI() {
         container.appendChild(btn);
     });
 
+    container.appendChild(header);
     overlay.appendChild(container);
-    palco.appendChild(overlay);
+    target.appendChild(overlay);
 }
 
 function fecharMenuSkillsUI() {
