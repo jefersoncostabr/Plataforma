@@ -112,6 +112,22 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         teclas: {}
     };
 
+    window.isPaused = false;
+    window.togglePause = () => {
+        window.isPaused = !window.isPaused;
+        if (window.isPaused) {
+            console.log("Jogo Pausado");
+            if (elemento.parentElement) {
+                elemento.parentElement.style.filter = 'brightness(0.3) grayscale(0.6)';
+            }
+        } else {
+            console.log("Jogo Retomado");
+            if (elemento.parentElement) {
+                elemento.parentElement.style.filter = 'none';
+            }
+        }
+    };
+
     window.playerControle = controle;
     window.projeteis = [];
     window.itensColetaveis = [];
@@ -217,6 +233,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         if (e.key === ' ') console.log("Movimentação: KeyDown capturado -> Barra de Espaço");
         controle.teclas[e.key] = true;
 
+        if (e.key === 'Pause') {
+            window.togglePause();
+        }
+
         if (e.key === '8') {
             window.debugInimigoTeclas[' '] = true;
         }
@@ -293,6 +313,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     });
 
     function atualizar() {
+        if (window.isPaused) {
+            requestAnimationFrame(atualizar);
+            return;
+        }
+
         // Resetamos o estado horizontal, mas o noChao será validado pelas colisões abaixo
         const noChaoAnterior = controle.noChao;
         

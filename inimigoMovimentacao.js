@@ -70,6 +70,11 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     };
 
     function atualizarIA() {
+        if (window.isPaused) {
+            requestAnimationFrame(atualizarIA);
+            return;
+        }
+
         // Se a configuração de debug estiver ativa, pula a lógica de movimento
         if (config.debugInimigosParados) {
             requestAnimationFrame(atualizarIA);

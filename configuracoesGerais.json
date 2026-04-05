@@ -62,6 +62,6 @@
     "bonusPuloBota": 1.5,
     "bonusChuteBota": 32,
     "bonusVelocidadeBota": 2,
-    "faseInicial": 0,
+    "faseInicial": 3,
     "escalaPalco": 1.5
 }
