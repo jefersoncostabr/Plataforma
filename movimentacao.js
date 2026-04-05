@@ -379,14 +379,25 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         const posicaoAjustada = limitarPosicaoAoPalco(controle.x + config.HITBOX_OFFSET_X, controle.y, config.HITBOX_LARGURA, config.HITBOX_ALTURA);
         
         controle.x = posicaoAjustada.x - config.HITBOX_OFFSET_X;
-        controle.y = posicaoAjustada.y;
+        // Não aplicamos o ajuste automático de Y do limitarPosicaoAoPalco para permitir que o player caia
+        // controle.y = posicaoAjustada.y; 
 
-        // Detecta toque no chão: a colisão empurrou para cima E o personagem não está subindo
-        if ((yHitboxAntes < posicaoAjustada.y || controle.noChao) && controle.velocidadeY <= 0) {
+        // Detecta toque no chão: APENAS se houver colisão real com tiles de plataforma
+        if (controle.noChao && controle.velocidadeY <= 0) {
             if (!noChaoAnterior && controle.noChao) console.log("Movimentação: Personagem tocou o chão.");
-            controle.noChao = true;
             controle.velocidadeY = 0;
-        } else if (yHitboxAntes > posicaoAjustada.y) {
+        }
+
+        // Condição de Game Over por queda (buraco)
+        if (controle.y < -64) {
+            controle.y = 0; // Reset imediato para evitar repetição do alert enquanto a fase carrega
+            alert("Você caiu em um buraco!");
+            if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
+            requestAnimationFrame(atualizar); // Garante que o loop continue após o reset
+            return; 
+        }
+
+        if (yHitboxAntes > posicaoAjustada.y) {
             // Bateu no teto
             controle.velocidadeY = 0;
         }
@@ -605,8 +616,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             }
                             
                             if (controle.dano >= 3) {
+                                controle.dano = 0; // Reset imediato para evitar repetição do alert
                                 alert("Game Over! Você foi derrotado pelos projéteis inimigos.");
-                                if (typeof reiniciarJogo === 'function') reiniciarJogo();
+                                if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
                             }
                         }
 

@@ -108,12 +108,15 @@ window.proximoNivel = async function() {
     const proximoIndice = window.nivelAtual + 1;
 
     if (proximoIndice < window.niveis.length) {
+        alert("Parabéns! Você concluiu esta fase.");
         window.nivelAtual = proximoIndice;
         await carregarFase(window.niveis[window.nivelAtual]);
     } else {
         alert("FIM DE JOGO! Você completou todos os níveis.");
-        if (typeof reiniciarJogo === 'function') {
-            await reiniciarJogo();
+        if (typeof window.reiniciarJogo === 'function') {
+            // Ao zerar o jogo, podemos optar por voltar para a fase 1 (índice 0)
+            window.nivelAtual = 0; 
+            await window.reiniciarJogo();
         }
     }
 };
@@ -159,8 +162,8 @@ window.reiniciarJogo = async function() {
         }
     }
     
-    // Volta para a fase 1
-    window.nivelAtual = 0;
+    // Volta para a fase definida nas configurações (ou 0 por padrão)
+    window.nivelAtual = (window.config && window.config.faseInicial !== undefined) ? window.config.faseInicial : 0;
     await carregarFase(window.niveis[window.nivelAtual]);
     
     // Atualiza visual dos itens após carregar a fase

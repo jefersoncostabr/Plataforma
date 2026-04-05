@@ -84,7 +84,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
             const velAtiva = config.velocidadeHorizontal || velocidade;
 
-            window.inimigos.forEach(inimigo => {
+            // Usamos um loop for reverso para permitir a remoção segura de inimigos que caem no buraco
+            for (let i = window.inimigos.length - 1; i >= 0; i--) {
+                const inimigo = window.inimigos[i];
+                
                 const distanciaAtual = Math.abs(playerX - inimigo.x);
                 
                 // Inicializa propriedades de combate se não existirem
@@ -123,6 +126,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inimigo.cooldownTiro > 0) inimigo.cooldownTiro--;
                 if (inimigo.tempoAfastamento > 0) inimigo.tempoAfastamento--;
                 if (inimigo.cooldownAfastamento > 0) inimigo.cooldownAfastamento--;
+                if (inimigo.cooldownPulo > 0) inimigo.cooldownPulo--;
 
                 // Lógica de detecção de proximidade excessiva com o jogador
                 const distanciaX = Math.abs(playerX - inimigo.x);
@@ -223,10 +227,13 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     }
                 }
 
-                if (inimigo.y <= 32) {
-                    inimigo.y = 32;
-                    inimigo.noChao = true;
-                    inimigo.velocidadeY = 0;
+                // Remove o inimigo se ele cair no buraco (fora da tela)
+                if (inimigo.y < -64) {
+                    if (inimigo.armaElemento) inimigo.armaElemento.remove();
+                    if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
+                    inimigo.elemento.remove();
+                    window.inimigos.splice(i, 1);
+                    continue;
                 }
 
                 // Ações que dependem da ativação (movimento e ataque) - só se não estiver afastando
@@ -294,6 +301,25 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             inimigo.direcao = 'e';
                             inimigo.elemento.style.transform = 'scaleX(-1)';
                             movendoDestaVez = true;
+                        }
+                    }
+
+                    // Lógica de Salto de Fé (Gap Jumping) - Item 3
+                    if (movendoDestaVez && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0) {
+                        // Calcula ponto de verificação à frente dos pés (baseado na direção)
+                        const checkX = (inimigo.direcao === 'd') 
+                            ? inimigo.x + config.HITBOX_OFFSET_X + config.HITBOX_LARGURA + 10 
+                            : inimigo.x + config.HITBOX_OFFSET_X - 10;
+                        
+                        const checkY = inimigo.y - 10; // Verifica o chão logo abaixo do nível atual
+                        
+                        // Se não houver plataforma detectada à frente e abaixo, o inimigo pula
+                        if (typeof verificarColisaoComTiles === 'function' && 
+                            !verificarColisaoComTiles(checkX, checkY, 2, 2, window.plataformas)) {
+                            inimigo.velocidadeY = config.inimigoForcaPulo;
+                            inimigo.noChao = false;
+                            inimigo.cooldownPulo = config.inimigoPuloCooldown;
+                            console.log('Inimigo detectou vácuo e executou Salto de Fé!');
                         }
                     }
 
@@ -373,8 +399,9 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                             // Condição de Game Over
                             if (window.playerControle.dano >= 3) {
+                                window.playerControle.dano = 0; // Reset imediato para evitar repetição do alert
                                 alert("Game Over! Você foi derrotado pelos inimigos.");
-                                if (typeof reiniciarJogo === 'function') reiniciarJogo();
+                                if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
                             }
                         }
                     }
@@ -390,7 +417,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         config.HITBOX_ALTURA
                     );
                     inimigo.x = posAjustada.x - config.HITBOX_OFFSET_X;
-                    inimigo.y = posAjustada.y;
+                    // Removido o ajuste de Y para permitir que o inimigo caia em buracos
+                    // inimigo.y = posAjustada.y;
                 }
 
                 // Atualiza a posição no DOM (Sempre, para refletir gravidade, movimento e knockback)
@@ -403,7 +431,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.armaElemento.style.bottom = inimigo.y + 'px';
                     inimigo.armaElemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
                 }
-            });
+            }
         }
 
         // Mantém o loop de movimentação da IA
