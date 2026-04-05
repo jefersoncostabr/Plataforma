@@ -93,6 +93,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 
                 let xAnterior = inimigo.x;
 
+                const estaChutando = inimigo.tempoChute > 0;
+
                 // Unificação da velocidade: tratamos como número e aplicamos bônus se for tipo 3
                 let velAtiva = velAtivaBase;
                 if (inimigo.tipo === 3) {
@@ -414,11 +416,9 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         inimigo.frameAtual = controleAnimacao.frameAtual;
                     }
 
-                    // Sobrescreve o sprite se o inimigo estiver chutando
-                    const estaChutando = inimigo.tempoChute > 0;
                     if (estaChutando) {
                         inimigo.elemento.src = config.spriteChuteInimigo || spriteChute;
-                        
+
                         if (inimigo.framesImpulsoRestante > 0) {
                             const direcaoDash = (inimigo.direcao === 'd' ? 1 : -1);
                             inimigo.x += inimigo.velocidadeDash * direcaoDash;
