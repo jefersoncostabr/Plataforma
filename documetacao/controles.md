@@ -15,6 +15,7 @@ Este documento lista todas as teclas mapeadas no jogo e suas respectivas funçõ
 | Tecla | Ação |
 | :--- | :--- |
 | **K** | Executa um chute. Ativa a hitbox de ataque e fornece um pequeno impulso (dash) para frente. |
+| **Seta Baixo + Espaço** ou **S + Espaço** | **Soltar Item:** Descarta o item mais recente do inventário (requer habilidade `skilla`). O item mantém seu estado original (munição/durabilidade). |
 | **I** | Dispara o revólver (requer ter coletado a arma e possuir munição). |
 
 ## 3. Comandos de Sistema
@@ -22,13 +23,15 @@ Este documento lista todas as teclas mapeadas no jogo e suas respectivas funçõ
 | Tecla | Ação |
 | :--- | :--- |
 | **Pause / Break** | Alterna o estado de Pausa do jogo. Escurece a tela e interrompe toda a física e IA. |
+| **6** | Abre a **Árvore de Habilidades**. Pausa o jogo automaticamente. |
+| **Enter** | Fecha o menu de habilidades e retoma o jogo. |
 | **G** | Alterna a exibição da Grade Auxiliar (Grid) e as coordenadas de cada bloco (ex: a1, b2). |
 
 ## 4. Comandos de Debug (Desenvolvedor)
 
 | Tecla | Ação |
 | :--- | :--- |
-6  ** abre tela de skills
+| **5** | **Cheat XP:** Adiciona +5 de XP instantaneamente (concede 1 ponto de skill). |
 | **7** | **Spawn Inimigo:** Cria um inimigo aleatório em uma plataforma disponível no mapa com equipamento sorteado. |
 | **0 (Zero)** | **Reset Total:** Limpa o inventário salvo no LocalStorage e remove todos os equipamentos atuais do jogador (arma, bota, escudo). |
 | **8** | **Pulo Forçado da IA:** Enquanto pressionada, simula o comando de pulo para os inimigos (útil para testar física de pulo dos inimigos). |

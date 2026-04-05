@@ -7,7 +7,7 @@ window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para ini
 window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro inimigo
 
 async function carregarFase(nomeArquivo) {
-    console.log(`Carregando nível: ${nomeArquivo}`);
+    // console.log(`Carregando nível: ${nomeArquivo}`);
     
     // Limpa o intervalo anterior de inimigo aleatório se existir
     if (window.intervalInimigoAleatorio !== null) {
@@ -93,7 +93,7 @@ async function carregarFase(nomeArquivo) {
         else if (tipoEquipamento === 2) nomeEquipamento = 'escudo';
         
         const tempoSegundos = tempoEmMs / 1000;
-        console.log(`Inimigo aleatório habilitado! Equipamento: ${nomeEquipamento}. Aparecerá a cada ${tempoSegundos}s.`);
+        // console.log(`Inimigo aleatório habilitado! Equipamento: ${nomeEquipamento}. Aparecerá a cada ${tempoSegundos}s.`);
         
         // Define uma função para criar o inimigo repetidamente
         const criarInimigoRepetido = () => {
@@ -128,12 +128,12 @@ window.proximoNivel = async function() {
         if (typeof window.reiniciarJogo === 'function') {
             // Ao zerar o jogo, podemos optar por voltar para a fase 1 (índice 0)
             window.nivelAtual = 0; 
-            await window.reiniciarJogo();
+            await window.reiniciarJogo(false); // Passa 'false' para indicar que NÃO foi por morte
         }
     }
 };
 
-window.reiniciarJogo = async function() {
+window.reiniciarJogo = async function(porMorte = true) {
     // Limpa o intervalo de inimigo aleatório se existir
     if (window.intervalInimigoAleatorio !== null) {
         clearInterval(window.intervalInimigoAleatorio);
@@ -180,8 +180,8 @@ window.reiniciarJogo = async function() {
         }
     }
     
-    // Reseta o progresso (XP e Skills) para os valores definidos no JSON
-    if (typeof window.resetarProgressoParaJson === 'function') {
+    // Reseta o progresso (XP e Skills) apenas se o reinício for causado por morte
+    if (porMorte && typeof window.resetarProgressoParaJson === 'function') {
         await window.resetarProgressoParaJson();
     }
 

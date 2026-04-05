@@ -143,7 +143,6 @@ function renderizarObjetivo(idPalco, imagemPath, coord) {
     palco.appendChild(objImg);
 
     // Log de ajuda para verificar se a função rodou
-    console.log(`Objetivo criado em ${coord}: x=${col * tamanhoTile}, y=${row * tamanhoTile}`);
     objImg.onerror = () => console.error(`Erro: Não foi possível carregar a imagem em: ${imagemPath}`);
 
     // Salva a hitbox do objetivo para verificação global

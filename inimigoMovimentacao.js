@@ -202,7 +202,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     // Inimigo está muito próximo do jogador - inicia afastamento
                     inimigo.afastando = true;
                     inimigo.tempoAfastamento = config.inimigoTempoAfastamento || 30;
-                    console.log('Inimigo muito próximo do jogador - iniciando afastamento');
+                    // console.log('Inimigo muito próximo do jogador - iniciando afastamento');
                 }
 
                 // Lógica de afastamento
@@ -228,7 +228,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     // Terminou o afastamento - volta ao comportamento normal
                     inimigo.afastando = false;
                     inimigo.cooldownAfastamento = config.inimigoCooldownAfastamento || 60;
-                    console.log('Inimigo terminou afastamento - cooldown iniciado');
+                    // console.log('Inimigo terminou afastamento - cooldown iniciado');
                 }
 
                 // Lógica de detecção de projétil vindo (radar de ameaça)
@@ -241,7 +241,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     const vemNaDirecao = (proj.direcao === 1 && proj.x < inimigo.x) || (proj.direcao === -1 && proj.x > inimigo.x);
                     
                     if (chegaPerto && mesmaAltura && vemNaDirecao) {
-                        console.log('Inimigo detectou projétil vindo em sua direção!');
+                        // console.log('Inimigo detectou projétil vindo em sua direção!');
                     }
                     return chegaPerto && mesmaAltura && vemNaDirecao;
                 }) : null;
@@ -255,7 +255,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 // Ativa a perseguição se o jogador estiver perto OU se detectar um tiro vindo no radar
                 if (!inimigo.perseguindo && (distanciaAtual <= distanciaAtivacao || projVindo)) {
                     inimigo.perseguindo = true;
-                    console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
+                    // console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
                 }
 
                 // Lógica de pulo de desvio (usa o projVindo detectado acima)
@@ -271,7 +271,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.puloTimer === 0 && inimigo.noChao) {
                         inimigo.velocidadeY = forcaPuloInimigo;
                         inimigo.noChao = false;
-                        console.log('Inimigo pulou para desviar de projétil!');
+                        // console.log('Inimigo pulou para desviar de projétil!');
                     }
                 }
 
@@ -409,7 +409,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             flashRapido(inimigo.armaElemento);
                         }
                         
-                        console.log(`Inimigo disparou! Munição restante: ${inimigo.municao}`);
+                        // console.log(`Inimigo disparou! Munição restante: ${inimigo.municao}`);
                     }
 
                     // Lógica de perseguição: move-se na direção do Player
@@ -438,7 +438,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             inimigo.velocidadeY = forcaPuloInimigo;
                             inimigo.noChao = false;
                             inimigo.cooldownPulo = config.inimigoPuloCooldown;
-                            console.log('Inimigo detectou jogador em plataforma superior e pulou para escalar!');
+                            // console.log('Inimigo detectou jogador em plataforma superior e pulou para escalar!');
                         }
                     }
 
@@ -521,7 +521,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             const escudoAtivo = temEscudoAtivo();
                             if (!escudoAtivo) {
                                 window.playerControle.dano = (window.playerControle.dano || 0) + 1;
-                                console.log(`Dano: Jogador atingido! Total: ${window.playerControle.dano}/3`);
+                                // console.log(`Dano: Jogador atingido! Total: ${window.playerControle.dano}/3`);
                                 
                                 // Efeito visual no jogador ao receber dano
                                 if (typeof flashComVibacao === 'function') {

@@ -21,7 +21,7 @@ function aplicarFisica(controle, teclas, forcaPulo = 12, gravidade = 0.6, cooldo
 
     // Só permite iniciar o pulo se estiver no chão, não estiver chutando e o cooldown acabou
     if (querPular && controle.noChao && !controle.chutando && (controle.cooldownPulo || 0) === 0) {
-        console.log("Fisica: Pulo executado! Força aplicada:", forcaPulo);
+        // console.log("Fisica: Pulo executado! Força aplicada:", forcaPulo);
         controle.velocidadeY = forcaPulo;
         controle.noChao = false;
         

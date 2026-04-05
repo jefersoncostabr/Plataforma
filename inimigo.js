@@ -153,7 +153,7 @@ function gerarPosicaoAleatoria(plataformas) {
             
             // Verifica se essa posição está vazia
             if (!posicaoOcupada(posicao)) {
-                console.log(`Posição válida encontrada aleatoriamente: (${x}px, ${y}px) acima de ${coordAleatoria}`);
+                // console.log(`Posição válida encontrada aleatoriamente: (${x}px, ${y}px) acima de ${coordAleatoria}`);
                 return posicao;
             }
         }

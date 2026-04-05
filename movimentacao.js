@@ -35,6 +35,60 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         return valor;
     }
 
+    function droparItemJogador() {
+        if (!window.playerSkills || !window.playerSkills.includes('skilla')) {
+            console.log("Habilidade 'Dropar' não adquirida.");
+            return;
+        }
+
+        if (!controle.inventario || controle.inventario.length === 0) return;
+
+        const tipo = controle.inventario.pop();
+        const itemImg = document.createElement('img');
+        let dadosItem = { tipo: tipo, x: 0, y: controle.y, velocidadeY: 5 };
+
+        // Define o sprite e captura o estado atual do jogador para o item
+        if (tipo === 'revolver') {
+            itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
+            dadosItem.municao = controle.municao;
+            controle.temArma = false;
+            armaElemento.style.display = 'none';
+        } else if (tipo === 'escudo') {
+            itemImg.src = controle.escudoVermelho ? (config.spriteEscudoVermelho || 'personagem/escudo_vermelho.png') : (config.spriteItemEscudo || 'personagem/escudo_pegavel.png');
+            dadosItem.escudoProtegido = controle.escudoProtegido;
+            dadosItem.escudoVermelho = controle.escudoVermelho;
+            controle.temEscudo = false;
+            controle.escudoVermelho = false;
+            atualizarVisualEscudo();
+        } else if (tipo === 'bota') {
+            itemImg.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
+            controle.temBota = false;
+            botaElemento.style.display = 'none';
+        }
+
+        itemImg.style.position = 'absolute';
+        itemImg.style.width = '32px';
+        itemImg.style.height = '32px';
+        itemImg.style.zIndex = '3';
+        itemImg.style.imageRendering = 'pixelated';
+        elemento.parentElement.appendChild(itemImg);
+
+        // Posicionamento: 2 blocos (64px) à frente
+        const direcaoFace = controle.direcao === 'd' ? 1 : -1;
+        let dropX = controle.x + (64 * direcaoFace);
+        
+        // Garante que o item não saia do palco
+        if (typeof limitarPosicaoAoPalco === 'function') {
+            const posFina = limitarPosicaoAoPalco(dropX, controle.y, 32, 32);
+            dropX = posFina.x;
+        }
+
+        dadosItem.x = dropX;
+        dadosItem.elemento = itemImg;
+        window.itensColetaveis.push(dadosItem);
+        salvarInventario();
+    }
+
     function droparItensInimigo(inimigo) {
         if (!inimigo.inventario) return;
         
@@ -94,7 +148,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 escudoProtegido: controle.escudoProtegido,
                 temArma: controle.temArma,
                 municao: controle.municao,
-                temBota: controle.temBota
+                temBota: controle.temBota,
+                inventario: controle.inventario
             };
             localStorage.setItem(INVENTARIO_STORAGE_KEY, JSON.stringify(estado));
         } catch (error) {
@@ -150,6 +205,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         escudoProtegido: 0,
         dano: 0,
         maxVida: 3,
+        inventario: [],
         teclas: {}
     };
 
@@ -157,7 +213,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     window.togglePause = () => {
         window.isPaused = !window.isPaused;
         if (window.isPaused) {
-            console.log("Jogo Pausado");
+            // console.log("Jogo Pausado");
             if (elemento.parentElement) {
                 elemento.parentElement.style.filter = 'brightness(0.3) grayscale(0.6)';
             }
@@ -181,6 +237,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         controle.temArma = Boolean(inventarioSalvo.temArma);
         controle.municao = Number(inventarioSalvo.municao ?? 0);
         controle.temBota = Boolean(inventarioSalvo.temBota);
+        controle.inventario = Array.isArray(inventarioSalvo.inventario) ? inventarioSalvo.inventario : [];
     }
 
     // Função para resetar/spawnar itens baseados no JSON da fase
@@ -266,12 +323,52 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     botaElemento.style.pointerEvents = 'none';
     elemento.parentElement.appendChild(botaElemento);
 
+    // Elemento do HUD (Skill Visão)
+    const hudElemento = document.createElement('div');
+    hudElemento.id = 'player-hud';
+    hudElemento.style.position = 'absolute';
+    hudElemento.style.top = '10px';
+    hudElemento.style.left = '10px';
+    hudElemento.style.display = 'none';
+    hudElemento.style.gap = '5px';
+    hudElemento.style.alignItems = 'center';
+    hudElemento.style.zIndex = '100';
+    elemento.parentElement.appendChild(hudElemento);
+
+    function atualizarHUD() {
+        if (!window.playerSkills || !window.playerSkills.includes('skillb')) {
+            hudElemento.style.display = 'none';
+            return;
+        }
+        hudElemento.style.display = 'flex';
+        hudElemento.innerHTML = ''; // Limpa para redesenhar
+
+        // Círculos de Vida
+        const vidaAtual = (controle.maxVida || 3) - (controle.dano || 0);
+        for (let i = 0; i < (controle.maxVida || 3); i++) {
+            const circulo = document.createElement('div');
+            circulo.className = 'hud-circle';
+            circulo.style.backgroundColor = (i < vidaAtual) ? 'red' : 'white';
+            hudElemento.appendChild(circulo);
+        }
+
+        // Quadrados de Escudo
+        if (controle.temEscudo && !controle.escudoVermelho) {
+            const slotsRestantes = (config.escudoTirosProtegidos || 3) - (controle.escudoProtegido || 0);
+            for (let i = 0; i < slotsRestantes; i++) {
+                const quadrado = document.createElement('div');
+                quadrado.className = 'hud-square';
+                hudElemento.appendChild(quadrado);
+            }
+        }
+    }
+
     window.debugInimigoTeclas = {}; // Inicializa o objeto para teclas de debug do inimigo
 
     // Detecta teclas pressionadas
     window.addEventListener('keydown', (e) => {
         // Log para confirmar o valor de e.key para a barra de espaço
-        if (e.key === ' ') console.log("Movimentação: KeyDown capturado -> Barra de Espaço");
+        // if (e.key === ' ') console.log("Movimentação: KeyDown capturado -> Barra de Espaço");
         controle.teclas[e.key] = true;
 
         if (e.key === 'Pause') {
@@ -285,7 +382,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Atalho para abrir árvore de habilidades
         if (e.key === '6') {
-            console.log("Comando: Tecla 6 detectada.");
+            // console.log("Comando: Tecla 6 detectada.");
             if (typeof window.toggleSkillMenu === 'function' && !window.isPaused) {
                 window.toggleSkillMenu();
             } else if (typeof window.toggleSkillMenu !== 'function') {
@@ -321,6 +418,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.framesKnockbackRestante = 0;
             controle.velocidadeKnockback = 0;
             botaElemento.style.display = 'none';
+            controle.inventario = [];
             atualizarVisualEscudo();
             if (typeof armaElemento !== 'undefined') {
                 armaElemento.style.display = 'none';
@@ -349,6 +447,16 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     });
 
     function atualizar() {
+        // Detecta combinação de Drop: S ou Seta Baixo + Pulo
+        const segurandoBaixo = controle.teclas['ArrowDown'] || controle.teclas['s'] || controle.teclas['S'];
+        if (segurandoBaixo && controle.teclas[' '] && controle.noChao) {
+            controle.teclas[' '] = false; // Consome o pulo para não pular e dropar ao mesmo tempo
+            droparItemJogador();
+        }
+
+        // Atualiza a interface de visão
+        atualizarHUD();
+
         if (window.isPaused) {
             requestAnimationFrame(atualizar);
             return;
@@ -520,7 +628,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Detecta toque no chão: APENAS se houver colisão real com tiles de plataforma
         if (controle.noChao && controle.velocidadeY <= 0) {
-            if (!noChaoAnterior && controle.noChao) console.log("Movimentação: Personagem tocou o chão.");
+            // if (!noChaoAnterior && controle.noChao) console.log("Movimentação: Personagem tocou o chão.");
             controle.velocidadeY = 0;
         }
 
@@ -740,7 +848,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             if (controle.escudoProtegido >= tirosProtegidos) {
                                 controle.temEscudo = false;
                                 controle.escudoVermelho = true;
-                                console.log('Escudo danificado: agora vermelho e sem proteção.');
+                                // console.log('Escudo danificado: agora vermelho e sem proteção.');
                             } else {
                                 console.log(`Escudo bloqueou o tiro! ${controle.escudoProtegido}/${tirosProtegidos}`);
                             }
@@ -748,7 +856,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             salvarInventario();
                         } else {
                             controle.dano = (controle.dano || 0) + 1;
-                            console.log(`Dano: Jogador atingido por projétil! Total: ${controle.dano}/3`);
+                            // console.log(`Dano: Jogador atingido por projétil! Total: ${controle.dano}/3`);
                             
                             // Efeito visual no jogador ao receber dano
                             if (typeof flashComVibacao === 'function') {
@@ -796,20 +904,23 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     if (item.tipo === 'escudo') {
                         console.log("Jogador coletou o escudo!");
                         controle.temEscudo = true;
-                        controle.escudoVermelho = false;
-                        controle.escudoProtegido = 0;
+                        controle.escudoVermelho = item.escudoVermelho || false;
+                        controle.escudoProtegido = item.escudoProtegido || 0;
+                        if (!controle.inventario.includes('escudo')) controle.inventario.push('escudo');
                         escudoElemento.style.display = 'block';
                         atualizarVisualEscudo();
                         salvarInventario();
                     } else if (item.tipo === 'bota') {
                         console.log("Jogador coletou as botas!");
                         controle.temBota = true;
+                        if (!controle.inventario.includes('bota')) controle.inventario.push('bota');
                         botaElemento.style.display = 'block';
                         salvarInventario();
                     } else {
                         console.log("Jogador coletou o revólver!");
                         controle.temArma = true;
-                        controle.municao = config.maxMunicao || 5;
+                        controle.municao = item.municao !== undefined ? item.municao : (config.maxMunicao || 5);
+                        if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
                         armaElemento.style.display = 'block';
                         salvarInventario();
                     }

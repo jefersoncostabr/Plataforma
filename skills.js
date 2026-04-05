@@ -71,7 +71,7 @@ window.toggleSkillMenu = async () => {
     }
 
     if (window.isSkillMenuOpen) {
-        console.log("SkillTree: Abrindo menu de habilidades...");
+        // console.log("SkillTree: Abrindo menu de habilidades...");
         abrirMenuSkillsUI();
     } else {
         console.log("SkillTree: Fechando menu de habilidades...");
