@@ -28,6 +28,7 @@ Este documento lista todas as teclas mapeadas no jogo e suas respectivas funçõ
 
 | Tecla | Ação |
 | :--- | :--- |
+6  ** abre tela de skills
 | **7** | **Spawn Inimigo:** Cria um inimigo aleatório em uma plataforma disponível no mapa com equipamento sorteado. |
 | **0 (Zero)** | **Reset Total:** Limpa o inventário salvo no LocalStorage e remove todos os equipamentos atuais do jogador (arma, bota, escudo). |
 | **8** | **Pulo Forçado da IA:** Enquanto pressionada, simula o comando de pulo para os inimigos (útil para testar física de pulo dos inimigos). |

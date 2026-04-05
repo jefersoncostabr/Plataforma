@@ -149,6 +149,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         escudoVermelho: false,
         escudoProtegido: 0,
         dano: 0,
+        maxVida: 3,
         teclas: {}
     };
 
@@ -277,6 +278,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             window.togglePause();
         }
 
+        // Atalho de Debug: Ganhar 5 de XP
+        if (e.key === '5') {
+            if (typeof window.ganharXP === 'function') window.ganharXP(5);
+        }
+
         // Atalho para abrir árvore de habilidades
         if (e.key === '6') {
             console.log("Comando: Tecla 6 detectada.");
@@ -325,6 +331,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             for (let i = window.inimigos.length - 1; i >= 0; i--) {
                 const inimigo = window.inimigos[i];
                 droparItensInimigo(inimigo);
+                if (typeof window.ganharXP === 'function') window.ganharXP(1);
                 if (inimigo.armaElemento) inimigo.armaElemento.remove();
                 if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
                 if (inimigo.botaElemento) inimigo.botaElemento.remove();
@@ -622,6 +629,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         if (inimigo.vida >= 3) {
                             console.log("Ataque: Inimigo derrotado!");
                             droparItensInimigo(inimigo);
+                            if (typeof window.ganharXP === 'function') window.ganharXP(1);
                             if (inimigo.armaElemento) inimigo.armaElemento.remove();
                             if (inimigo.botaElemento) inimigo.botaElemento.remove();
                             if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
@@ -699,6 +707,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
                             if (inimigo.vida >= 3) {
                                 droparItensInimigo(inimigo);
+                                if (typeof window.ganharXP === 'function') window.ganharXP(1);
                                 if (inimigo.armaElemento) inimigo.armaElemento.remove();
                                 if (inimigo.botaElemento) inimigo.botaElemento.remove();
                                 if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
@@ -745,8 +754,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             if (typeof flashComVibacao === 'function') {
                                 flashComVibacao(elemento);
                             }
-                            
-                            if (controle.dano >= 3) {
+
+                            const limiteVida = controle.maxVida || 3;
+                            if (controle.dano >= limiteVida) {
                                 controle.dano = 0; // Reset imediato para evitar repetição do alert
                                 alert("Game Over! Você foi derrotado pelos projéteis inimigos.");
                                 if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();

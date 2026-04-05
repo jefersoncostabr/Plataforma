@@ -545,7 +545,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             window.playerControle.velocidadeKnockback = (valorKnockback / duracaoRecuo) * direcaoKnockback;
 
                             // Condição de Game Over
-                            if (window.playerControle.dano >= 3) {
+                            const limiteVida = window.playerControle.maxVida || 3;
+                            if (window.playerControle.dano >= limiteVida) {
                                 window.playerControle.dano = 0; // Reset imediato para evitar repetição do alert
                                 alert("Game Over! Você foi derrotado pelos inimigos.");
                                 if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();

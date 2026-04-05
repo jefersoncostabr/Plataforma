@@ -8,6 +8,37 @@ window.playerXP = 0;
 window.skillPoints = 0;
 window.skillsData = null;
 
+// Funções globais de gerenciamento
+window.ganharXP = (quantidade = 1) => {
+    const xpAnterior = window.playerXP;
+    window.playerXP += quantidade;
+
+    // Calcula se o jogador atingiu um novo patamar de 5 XP
+    const novosPontos = Math.floor(window.playerXP / 5) - Math.floor(xpAnterior / 5);
+    
+    if (novosPontos > 0) {
+        window.skillPoints += novosPontos;
+        console.log(`Sistema: +${novosPontos} Ponto(s) de Skill obtido(s)! Total: ${window.skillPoints}`);
+    }
+
+    console.log(`XP Ganho: +${quantidade}. Total: ${window.playerXP}`);
+};
+
+window.resetarProgressoParaJson = async () => {
+    try {
+        const resposta = await fetch('skillsData.json');
+        const dados = await resposta.json();
+        window.playerXP = dados.playerStats.xp;
+        window.skillPoints = dados.playerStats.skillPoints;
+        window.playerSkills = dados.playerStats.acquired || [];
+        console.log(`Progresso resetado: XP(${window.playerXP}), Pontos(${window.skillPoints}), Skills([${window.playerSkills}])`);
+    } catch (e) {
+        window.playerXP = 0;
+        window.skillPoints = 0;
+        window.playerSkills = [];
+    }
+};
+
 window.toggleSkillMenu = async () => {
     // Se o jogo já estiver pausado por outro motivo, não abre as skills
     if (window.isPaused && !window.isSkillMenuOpen) {
@@ -24,6 +55,8 @@ window.toggleSkillMenu = async () => {
             window.playerXP = dados.playerStats.xp;
             window.skillPoints = dados.playerStats.skillPoints;
             window.playerSkills = dados.playerStats.acquired || [];
+            // Aplica os efeitos iniciais ao carregar os dados
+            if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
         } catch (e) {
             console.error("Erro ao carregar skillsData.json", e);
             return;
@@ -146,6 +179,9 @@ function abrirMenuSkillsUI() {
                 window.playerSkills.push(skillId);
                 console.log(`Skill Adquirida: ${skill.nome}. Pontos restantes: ${window.skillPoints}`);
                 
+                // Executa a lógica da skill recém-adquirida
+                if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
+
                 // Atualiza a UI imediatamente
                 fecharMenuSkillsUI();
                 abrirMenuSkillsUI();

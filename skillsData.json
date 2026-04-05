@@ -1,20 +1,19 @@
 {
     "playerStats": {
-        "xp": 150,
-        "skillPoints": 2,
-        "acquired": ["skill1"]
+        "xp": 5,
+        "skillPoints": 1
     },
     "skills": {
         "skill1": {
-            "nome": "Básico",
+            "nome": "Vida",
             "parent": null
         },
         "skilla": {
-            "nome": "Guerreiro",
+            "nome": "Dropar",
             "parent": "skill1"
         },
         "skillb": {
-            "nome": "Ágil",
+            "nome": "Visão",
             "parent": "skill1"
         },
         "skilla2": {

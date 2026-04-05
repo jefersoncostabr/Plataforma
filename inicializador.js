@@ -180,6 +180,11 @@ window.reiniciarJogo = async function() {
         }
     }
     
+    // Reseta o progresso (XP e Skills) para os valores definidos no JSON
+    if (typeof window.resetarProgressoParaJson === 'function') {
+        await window.resetarProgressoParaJson();
+    }
+
     // Volta para a fase definida nas configurações (ou 0 por padrão)
     window.nivelAtual = (window.config && window.config.faseInicial !== undefined) ? window.config.faseInicial : 0;
     await carregarFase(window.niveis[window.nivelAtual]);
