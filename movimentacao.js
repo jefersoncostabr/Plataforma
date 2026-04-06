@@ -290,6 +290,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         framesKnockbackRestante: 0,
         velocidadeKnockback: 0,
         usandoParaquedas: false,
+        pulosRealizados: 0,
+        timerPuloDuplo: 0,
+        doubleJumpUsedInAir: false, // Nova flag para controlar o cooldown do pulo duplo
+        cooldownPuloDuplo: 0, // Novo cooldown para o pulo duplo
+        espacoPressionado: false,
         cooldownChute: 0,
         cooldownPulo: 0,
         cooldownTiro: 0,
@@ -805,6 +810,39 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         const forcaPuloFinal = controle.temBota 
             ? (config.inimigoForcaPulo + (config.bonusPuloBota || 1.5)) 
             : config.inimigoForcaPulo;
+
+        // Decrementa o timer da janela de clique duplo (timing para a skill Salto)
+        if (controle.timerPuloDuplo > 0) controle.timerPuloDuplo--;
+
+        // Decrementa o cooldown do pulo duplo
+        if (controle.cooldownPuloDuplo > 0) controle.cooldownPuloDuplo--;
+
+        // Lógica da Skill Passiva "Salto" (skillb2) - Pulo Duplo
+        const teclaPuloAtiva = controle.teclas[' '];
+        const puloAcabouDeSerPressionado = teclaPuloAtiva && !controle.espacoPressionado;
+        controle.espacoPressionado = !!teclaPuloAtiva;
+
+        if (controle.noChao) {
+            // Se o pulo duplo foi usado no ar, inicia o cooldown agora que o jogador tocou o chão
+            if (controle.doubleJumpUsedInAir) {
+                controle.cooldownPuloDuplo = 30; // Inicia o cooldown de 0.5 segundos
+                controle.doubleJumpUsedInAir = false; // Reseta a flag
+            }
+
+            if (puloAcabouDeSerPressionado) {
+                controle.pulosRealizados = 1;
+                controle.timerPuloDuplo = 12; // Janela de tempo mais rigorosa: 10 frames (aprox. 0.16s)
+            } else {
+                controle.pulosRealizados = 0;
+                // O cooldown do pulo duplo não é resetado aqui, ele deve contar até o fim.
+            }
+        } else if (puloAcabouDeSerPressionado && window.playerSkills?.includes('skillb2') && controle.pulosRealizados === 1 && controle.timerPuloDuplo > 0 && controle.cooldownPuloDuplo === 0) {
+            // Segundo salto: agora com 1.25x da força (um quarto a mais) e com timing mais exigente
+            controle.velocidadeY = forcaPuloFinal * 1.25;
+            controle.pulosRealizados = 2; // Consome o segundo salto até tocar o chão novamente
+            controle.doubleJumpUsedInAir = true; // Marca que o pulo duplo foi usado no ar
+            console.log("Habilidade Salto: Pulo duplo rápido executado!");
+        }
 
         // Aplica gravidade e pulo (definido em fisica.js)
         aplicarFisica(
