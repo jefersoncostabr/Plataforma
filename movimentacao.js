@@ -35,6 +35,70 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         return valor;
     }
 
+    function dispararSinalizador() {
+        const xPartida = controle.x + 12; // Centralizado no personagem
+        const yPartida = controle.y + 32;
+        const alturaSubida = 150; // Definimos a altura como constante para sincronia
+
+        // 1. Cria o projétil do sinalizador
+        const sinalizador = document.createElement('img');
+        sinalizador.src = config.spriteProjetil;
+        sinalizador.style.cssText = `
+            position: absolute;
+            width: ${config.PROJETIL_LARGURA}px;
+            height: ${config.PROJETIL_ALTURA}px;
+            left: ${xPartida}px;
+            bottom: ${yPartida}px;
+            z-index: 15;
+            image-rendering: pixelated;
+            transform: translateY(0) rotate(-90deg);
+            transition: transform 1.0s linear;
+        `;
+        
+        elemento.parentElement.appendChild(sinalizador);
+
+        // Inicia a subida usando transform para fluidez via GPU
+        requestAnimationFrame(() => {
+            sinalizador.style.transform = `translateY(-${alturaSubida}px) rotate(-90deg)`;
+        });
+
+        // 2. Lógica da Explosão
+        setTimeout(() => {
+            const posX = xPartida;
+            const posY = yPartida + alturaSubida; // Calculamos a posição final real
+            sinalizador.remove();
+
+            const explosao = document.createElement('img');
+            explosao.src = 'personagem/explosao.png';
+            explosao.style.position = 'absolute';
+            explosao.style.width = '32px';
+            explosao.style.height = '32px';
+            explosao.style.left = (posX - 12) + 'px';
+            explosao.style.bottom = (posY - 12) + 'px';
+            explosao.style.zIndex = '16';
+            explosao.style.imageRendering = 'pixelated';
+            explosao.style.pointerEvents = 'none';
+            explosao.style.transform = 'scale(0.1)';
+            explosao.style.transition = 'transform 0.8s ease-out, opacity 0.8s ease-out';
+            
+            elemento.parentElement.appendChild(explosao);
+
+            // Double requestAnimationFrame garante que o navegador processe o scale(0.1) antes de aplicar o scale(4)
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    explosao.style.transform = 'scale(4)'; // Estica a explosão
+                    explosao.style.opacity = '0';
+                });
+            });
+
+            // Remove o elemento após a animação
+            setTimeout(() => {
+                explosao.remove();
+            }, 800);
+
+        }, 1050); // Aguarda o fim da transição de subida (sincronizado com 1.0s)
+    }
+
     function droparItemJogador() {
         if (!window.playerSkills || !window.playerSkills.includes('skilla')) {
             console.log("Habilidade 'Dropar' não adquirida.");
@@ -377,6 +441,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         if (e.key === 'Pause') {
             window.togglePause();
+        }
+
+        // Atalho de Teste: Sinalizador
+        if (e.key === '4') {
+            dispararSinalizador();
         }
 
         // Atalho de Debug: Ganhar 5 de XP
