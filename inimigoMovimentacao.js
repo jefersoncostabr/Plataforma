@@ -12,6 +12,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     const resposta = await fetch('configuracoesGerais.json');
     const config = await resposta.json();
 
+    // Default values for jump delay
+    config.inimigoPuloDelayMin = config.inimigoPuloDelayMin ?? 5; // Default 5 frames
+    config.inimigoPuloDelayMax = config.inimigoPuloDelayMax ?? 20; // Default 20 frames
+
     function obterKnockback(config, fonte = 'default') {
         const base = Number(config.knockbackBase ?? config.knockbackInimigo ?? 150);
         const ajuste = Number(config.knockbackAjustes?.[fonte] ?? 0);
@@ -65,6 +69,9 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 elemento: img,
                 perseguindo: false,
                 tipo: dado.tipo !== undefined ? dado.tipo : 1
+                , // Adicionada vírgula aqui
+                puloTimer: 0, // Inicializa o timer de pulo
+                jumpQueued: false // Inicializa a flag de pulo agendado
             });
         });
     };
@@ -152,6 +159,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.cooldownPulo = 0;
                     inimigo.velocidadeY = 0;
                     inimigo.noChao = false;
+                    inimigo.jumpQueued = false; // Inicializa a flag de pulo agendado
                     inimigo.puloTimer = 0;
                     inimigo.afastando = false;
                     inimigo.tempoAfastamento = 0;
@@ -201,6 +209,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inimigo.tempoChute > 0) inimigo.tempoChute--;
                 if (inimigo.cooldownChute > 0) inimigo.cooldownChute--;
                 if (inimigo.cooldownTiro > 0) inimigo.cooldownTiro--;
+                if (inimigo.puloTimer > 0) inimigo.puloTimer--; // Decrementa o timer de pulo
                 if (inimigo.tempoAfastamento > 0) inimigo.tempoAfastamento--;
                 if (inimigo.cooldownAfastamento > 0) inimigo.cooldownAfastamento--;
                 if (inimigo.cooldownPulo > 0) inimigo.cooldownPulo--;
@@ -218,7 +227,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             inimigo.direcao = (inimigo.direcao === 'd' ? 'e' : 'd');
                             inimigo.elemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
                         }
-                        return; // Pula o restante da lógica de IA para este inimigo
+                        continue; // Pula o restante da lógica de IA para este inimigo
                     }
                 }
 
@@ -288,19 +297,20 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 }
 
                 // Lógica de pulo de desvio (usa o projVindo detectado acima)
-                if (projVindo && inimigo.noChao && inimigo.puloTimer === 0) {
+                if (projVindo && inimigo.noChao && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
                     // Define um delay randômico antes de pular
                     inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
-                    console.log('Inimigo iniciou timer de pulo:', inimigo.puloTimer, 'frames');
+                    inimigo.jumpQueued = true; // Marca que um pulo foi agendado
+                    console.log('Inimigo iniciou timer de pulo por projétil:', inimigo.puloTimer, 'frames');
                 }
 
-                // Decrementa o timer de pulo
-                if (inimigo.puloTimer > 0) {
-                    inimigo.puloTimer--;
-                    if (inimigo.puloTimer === 0 && inimigo.noChao) {
+                // Executa o pulo se o timer chegou a zero e foi agendado
+                if (inimigo.puloTimer === 0 && inimigo.jumpQueued) {
+                    if (inimigo.noChao) { // Só pula se ainda estiver no chão
                         inimigo.velocidadeY = forcaPuloInimigo;
                         inimigo.noChao = false;
-                        // console.log('Inimigo iniciou timer de pulo:', inimigo.puloTimer, 'frames');
+                        inimigo.cooldownPulo = config.inimigoPuloCooldown; // Aplica cooldown
+                        console.log('Inimigo executou pulo após timer.');
                     }
                 }
 
@@ -326,6 +336,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             inimigo.noChao = true;
                             inimigo.velocidadeY = 0;
                             inimigo.y = Math.floor((inimigo.y + 0.1) / 32 + 1) * 32;
+                            inimigo.puloTimer = 0; // Reseta o timer ao tocar o chão
+                            inimigo.jumpQueued = false; // Reseta a flag
                         } else if (inimigo.velocidadeY > 0) { // Subindo: bate a cabeça
                             inimigo.velocidadeY = 0;
                             inimigo.y = Math.floor((inimigo.y + config.HITBOX_ALTURA) / 32) * 32 - config.HITBOX_ALTURA;
@@ -495,11 +507,11 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && yAlvo > inimigo.y + 31) {
                         // Se o player estiver acima e o inimigo estiver perto horizontalmente (ex: 64px)
                         const distXAlvo = Math.abs(xAlvo - inimigo.x);
-                        if (distXAlvo < 64) {
-                            inimigo.velocidadeY = forcaPuloInimigo;
-                            inimigo.noChao = false;
-                            inimigo.cooldownPulo = config.inimigoPuloCooldown;
-                            // console.log('Inimigo detectou jogador em plataforma superior e pulou para escalar!');
+                        if (distXAlvo < 64 && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
+                            // Agenda o pulo com um delay aleatório
+                            inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
+                            inimigo.jumpQueued = true;
+                            console.log('Inimigo iniciou timer de pulo por altura:', inimigo.puloTimer, 'frames');
                         }
                     }
 
@@ -513,12 +525,12 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         const checkY = inimigo.y - 10; // Verifica o chão logo abaixo do nível atual
                         
                         // Se não houver plataforma detectada à frente e abaixo, o inimigo pula
-                        if (typeof verificarColisaoComTiles === 'function' && 
-                            !verificarColisaoComTiles(checkX, checkY, 2, 2, window.plataformas)) {
-                            inimigo.velocidadeY = forcaPuloInimigo;
-                            inimigo.noChao = false;
-                            inimigo.cooldownPulo = config.inimigoPuloCooldown;
-                            console.log('Inimigo detectou vácuo e executou Salto de Fé!');
+                        if (typeof verificarColisaoComTiles === 'function' &&
+                            !verificarColisaoComTiles(checkX, checkY, 2, 2, window.plataformas) && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
+                            // Agenda o pulo com um delay aleatório
+                            inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
+                            inimigo.jumpQueued = true;
+                            console.log('Inimigo iniciou timer de pulo por vácuo:', inimigo.puloTimer, 'frames');
                         }
                     }
 
@@ -621,11 +633,11 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     verificarColisaoComTiles(inimigo.x + config.HITBOX_OFFSET_X, inimigo.y, config.HITBOX_LARGURA, config.HITBOX_ALTURA, window.plataformas)) {
                     
                     // Item 1: Pulo por Obstrução (Wall Detection)
-                    if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0) {
-                        inimigo.velocidadeY = forcaPuloInimigo;
-                        inimigo.noChao = false;
-                        inimigo.cooldownPulo = config.inimigoPuloCooldown;
-                        console.log('Inimigo detectou obstrução lateral e pulou para subir!');
+                    if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
+                        // Agenda o pulo com um delay aleatório
+                        inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
+                        inimigo.jumpQueued = true;
+                        console.log('Inimigo iniciou timer de pulo por obstrução:', inimigo.puloTimer, 'frames');
                     }
 
                     inimigo.x = xAnterior;
