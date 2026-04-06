@@ -100,6 +100,15 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 
                 let xAnterior = inimigo.x;
 
+                // Detecta se há um AirDrop em um raio de 6 blocos (192px)
+                const airdropPerto = window.itensColetaveis?.find(it => 
+                    it.tipo === 'airdrop' && 
+                    Math.abs(it.x - inimigo.x) <= 192 && 
+                    Math.abs(it.y - inimigo.y) <= 128
+                );
+                const xAlvo = airdropPerto ? airdropPerto.x : playerX;
+                const yAlvo = airdropPerto ? airdropPerto.y : playerY;
+
                 const estaChutando = inimigo.tempoChute > 0;
 
                 // Unificação da velocidade: tratamos como número e aplicamos bônus se for tipo 3
@@ -254,7 +263,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 }
 
                 // Ativa a perseguição se o jogador estiver perto OU se detectar um tiro vindo no radar
-                if (!inimigo.perseguindo && (distanciaAtual <= distanciaAtivacao || projVindo)) {
+                if (!inimigo.perseguindo && (distanciaAtual <= distanciaAtivacao || projVindo || airdropPerto)) {
                     inimigo.perseguindo = true;
                     // console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
                 }
@@ -445,16 +454,16 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         // console.log(`Inimigo disparou! Munição restante: ${inimigo.municao}`);
                     }
 
-                    // Lógica de perseguição: move-se na direção do Player
+                    // Lógica de perseguição: move-se na direção do Alvo (AirDrop ou Player)
                     // Aumentamos a margem de parada baseada na velocidade para evitar travamentos
-                    if (inimigo.x < playerX - velAtiva) {
+                    if (inimigo.x < xAlvo - velAtiva) {
                         if (inimigo.tempoChute === 0) {
                             inimigo.x += velAtiva;
                             inimigo.direcao = 'd';
                             inimigo.elemento.style.transform = 'scaleX(1)';
                             movendoDestaVez = true;
                         }
-                    } else if (inimigo.x > playerX + velAtiva) {
+                    } else if (inimigo.x > xAlvo + velAtiva) {
                         if (inimigo.tempoChute === 0) {
                             inimigo.x -= velAtiva;
                             inimigo.direcao = 'e';
@@ -464,10 +473,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     }
 
                     // Lógica de Pulo por Diferença de Altura (Vertical Tracking) - Item 2
-                    if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && playerY > inimigo.y + 31) {
+                    if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && yAlvo > inimigo.y + 31) {
                         // Se o player estiver acima e o inimigo estiver perto horizontalmente (ex: 64px)
-                        const distXAtual = Math.abs(playerX - inimigo.x);
-                        if (distXAtual < 64) {
+                        const distXAlvo = Math.abs(xAlvo - inimigo.x);
+                        if (distXAlvo < 64) {
                             inimigo.velocidadeY = forcaPuloInimigo;
                             inimigo.noChao = false;
                             inimigo.cooldownPulo = config.inimigoPuloCooldown;
