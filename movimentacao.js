@@ -289,6 +289,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         velocidadeDash: 0,
         framesKnockbackRestante: 0,
         velocidadeKnockback: 0,
+        usandoParaquedas: false,
         cooldownChute: 0,
         cooldownPulo: 0,
         cooldownTiro: 0,
@@ -422,6 +423,24 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     botaElemento.style.imageRendering = 'pixelated';
     botaElemento.style.pointerEvents = 'none';
     elemento.parentElement.appendChild(botaElemento);
+
+    // Elemento do Paraquedas
+    const paraquedasElemento = document.createElement('img');
+    paraquedasElemento.id = 'player-parachute';
+    paraquedasElemento.src = 'personagem/paraquedas.png';
+    paraquedasElemento.style.position = 'absolute';
+    paraquedasElemento.style.width = '32px';
+    paraquedasElemento.style.height = '32px';
+    paraquedasElemento.style.zIndex = '9'; // Fica acima do personagem e das botas
+    paraquedasElemento.style.display = 'none';
+    paraquedasElemento.style.imageRendering = 'pixelated';
+    paraquedasElemento.style.pointerEvents = 'none';
+    elemento.parentElement.appendChild(paraquedasElemento);
+    console.log("Sistema: Sprite do paraquedas inicializado. Parent element ID:", elemento.parentElement.id);
+
+    paraquedasElemento.onerror = () => {
+        console.error("ERRO: Não foi possível carregar a imagem do paraquedas em 'personagem/paraquedas.png'. Verifique o caminho e o arquivo.");
+    };
 
     // Elemento do HUD (Skill Visão)
     const hudElemento = document.createElement('div');
@@ -796,6 +815,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             config.inimigoPuloCooldown
         );
 
+    // Mecânica de Paraquedas: Limita a velocidade de queda para criar o efeito de flutuação
+    if (controle.usandoParaquedas && controle.velocidadeY < -1.5) {
+        controle.velocidadeY = -1.5; // Impede que o player caia mais rápido que 1.5 pixels por frame
+    }
+
         // Resetamos o estado para ser revalidado pelas colisões verticais abaixo
         controle.noChao = false;
 
@@ -829,11 +853,30 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Condição de Game Over por queda (buraco)
         if (controle.y < -64) {
-            controle.y = 0; // Reset imediato para evitar repetição do alert enquanto a fase carrega
-            alert("Você caiu em um buraco!");
-            if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
-            requestAnimationFrame(atualizar); // Garante que o loop continue após o reset
-            return; 
+            // Transforma em Skill Passiva: Verifica se o player possui a skill 'skillb1' (Resgate)
+            if (window.playerSkills?.includes('skillb1')) {
+                console.log("Habilidade Passiva: Resgate Ativado!");
+                const larguraPalco = 640;
+                const alturaPalco = 480;
+                const larguraPlayer = 32;
+
+                controle.x = Math.random() * (larguraPalco - larguraPlayer);
+                controle.y = alturaPalco - 64; 
+                controle.velocidadeY = 0; 
+                controle.usandoParaquedas = true; 
+                console.log(`Teleporte concluído para X: ${controle.x.toFixed(0)}, Y: ${controle.y}. Paraquedas ativado.`);
+
+                // Lógica de dano ao cair (Mantida comentada conforme solicitado):
+                // controle.dano = (controle.dano || 0) + 1;
+                // console.log("Resgate: Dano de queda aplicado.");
+            } else {
+                // Se não tiver a skill, o player morre como no comportamento original
+                controle.y = 0; 
+                alert("Você caiu em um buraco!");
+                if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
+                requestAnimationFrame(atualizar); 
+                return; 
+            }
         }
 
         if (yHitboxAntes > posicaoAjustada.y) {
@@ -1250,6 +1293,34 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             } else {
                 // Totalmente parado
                 botaElemento.src = config.spriteBotaParado || 'personagem/bota_parado.png';
+            }
+        }
+
+        // Sincroniza a posição e visibilidade do Paraquedas
+        if (controle.usandoParaquedas) {
+            // Segurança: Re-anexa ao palco caso o limpador de cenário o tenha removido
+            if (!document.getElementById('player-parachute') && elemento.parentElement) {
+                elemento.parentElement.appendChild(paraquedasElemento);
+            }
+
+            paraquedasElemento.style.display = 'block';
+            paraquedasElemento.style.left = controle.x + 'px';
+            paraquedasElemento.style.bottom = (controle.y + 32) + 'px';
+            console.log(`Paraquedas: Active. Player Y: ${controle.y}, Parachute Bottom: ${controle.y + 32}, Parachute Left: ${controle.x}. Display: ${paraquedasElemento.style.display}`);
+            
+            // Segue o espelhamento (direção) do personagem
+            paraquedasElemento.style.transform = elemento.style.transform;
+
+            // O paraquedas some assim que o jogador toca o chão (plataforma)
+            if (controle.noChao) {
+                console.log("Mecânica: Player pousou. Removendo paraquedas.");
+                controle.usandoParaquedas = false;
+                paraquedasElemento.style.display = 'none';
+            }
+        } else {
+            if (paraquedasElemento.style.display !== 'none') {
+                paraquedasElemento.style.display = 'none';
+                console.log("Paraquedas: Inactive. Display set to none.");
             }
         }
 

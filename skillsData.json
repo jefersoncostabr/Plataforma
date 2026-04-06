@@ -30,7 +30,7 @@
             "parent": "skillb"
         },
         "skillb1": {
-            "nome": "teste2",
+            "nome": "Resgate",
             "parent": "skillb"
         }
     }
