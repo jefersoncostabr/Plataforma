@@ -305,6 +305,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         vendaTipo: null,
         vendaVisual: null,
         inventario: [],
+        airdropUsadoNoNivel: false,
         teclas: {}
     };
 
@@ -474,11 +475,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             window.togglePause();
         }
 
-        // Atalho de Teste: Sinalizador
-        if (e.key === '4') {
-            dispararSinalizador();
-        }
-
         // Atalho de Debug: Ganhar 5 de XP
         if (e.key === '5') {
             if (typeof window.ganharXP === 'function') window.ganharXP(5);
@@ -551,6 +547,26 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     });
 
     function atualizar() {
+        // Lógica da Skill "AirDrop" (Combo: Cima + I)
+        const segurandoCima = controle.teclas['ArrowUp'] || controle.teclas['w'] || controle.teclas['W'];
+        const apertouI = controle.teclas['i'] || controle.teclas['I'];
+
+        // Log de teste para debug (remova ou comente após testar)
+        if (apertouI) {
+            console.log("Teclas detectadas: Cima:", segurandoCima, "| I:", apertouI, "| Skill 'skilla2' possui?", window.playerSkills?.includes('skilla2'), "| Já usado?", controle.airdropUsadoNoNivel);
+        }
+
+        // Alterado de 'airdrop' para 'skilla2' para coincidir com o ID no skillsData.json
+        if (segurandoCima && apertouI && window.playerSkills?.includes('skilla2') && !controle.airdropUsadoNoNivel) {
+            dispararSinalizador();
+            controle.airdropUsadoNoNivel = true;
+            console.log("Skill AirDrop: Suporte aéreo solicitado!");
+            
+            // Consome a tecla para evitar que o personagem atire no mesmo frame
+            controle.teclas['i'] = false;
+            controle.teclas['I'] = false;
+        }
+
         // Lógica da Skill "Vender" (Combo: Baixo + I)
         const segurandoBaixoVenda = controle.teclas['ArrowDown'] || controle.teclas['s'] || controle.teclas['S'];
         const apertouVenda = controle.teclas['i'] || controle.teclas['I'];

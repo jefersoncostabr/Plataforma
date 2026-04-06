@@ -17,6 +17,7 @@ Este documento lista todas as teclas mapeadas no jogo e suas respectivas funçõ
 | **K** | Executa um chute. Ativa a hitbox de ataque e fornece um pequeno impulso (dash) para frente. |
 | **Seta Baixo + Espaço** ou **S + Espaço** | **Soltar Item:** Descarta o item mais recente do inventário (requer habilidade `skilla`). O item mantém seu estado original (munição/durabilidade). |
 | **I** | Dispara o revólver (requer ter coletado a arma e possuir munição). |
+| **Seta Cima + I** ou **W + I** | **AirDrop:** Solicita suprimentos via sinalizador (requer habilidade `airdrop`, limitado a 1x por fase). |
 
 ## 3. Comandos de Sistema
 

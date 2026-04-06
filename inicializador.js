@@ -54,6 +54,7 @@ async function carregarFase(nomeArquivo) {
         window.playerControle.cooldownTiro = 0;
         window.playerControle.cooldownPulo = 0;
         
+        window.playerControle.airdropUsadoNoNivel = false;
         window.playerControle.noChao = false; // Garante que a física recalcule o chão no novo local
     }
 
@@ -162,6 +163,7 @@ window.reiniciarJogo = async function(porMorte = true) {
         window.playerControle.velocidadeY = 0;
         window.playerControle.framesKnockbackRestante = 0;
         window.playerControle.velocidadeKnockback = 0;
+        window.playerControle.airdropUsadoNoNivel = false;
         window.playerControle.noChao = false;
         window.playerControle.direcao = 'd';
         
