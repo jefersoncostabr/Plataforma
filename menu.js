@@ -9,7 +9,17 @@ let menuSelectedIndex = 0;
 const menuOptions = [
     { label: "RETORNAR", action: () => window.togglePauseMenu() },
     { label: "SKILLS", action: () => { window.togglePauseMenu(); window.toggleSkillMenu(); } },
-    { label: "REINICIAR", action: () => { window.togglePauseMenu(); if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo(); } }
+    { label: "REINICIAR", action: () => { window.togglePauseMenu(); if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo(); } },
+    { label: "SAIR", action: () => { 
+        if (confirm("Deseja realmente sair do jogo?")) {
+            window.close();
+            
+            // Fallback: Se window.close() for bloqueado pelo navegador
+            setTimeout(() => {
+                alert("O navegador impediu o fechamento automático. Por favor, feche a aba manualmente.");
+            }, 300);
+        }
+    } }
 ];
 
 window.togglePauseMenu = () => {

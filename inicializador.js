@@ -9,6 +9,12 @@ window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro
 async function carregarFase(nomeArquivo) {
     // console.log(`Carregando nível: ${nomeArquivo}`);
     
+    // Força a limpeza de qualquer animação ou transição residual no palco
+    const palcoElemento = document.getElementById('game-stage') || document.getElementById('jogo-container');
+    if (palcoElemento) {
+        palcoElemento.style.display = 'none'; // "Esconde" brevemente para forçar o browser a renderizar do zero
+    }
+
     // Limpa o intervalo anterior de inimigo aleatório se existir
     if (window.intervalInimigoAleatorio !== null) {
         clearInterval(window.intervalInimigoAleatorio);
@@ -34,6 +40,11 @@ async function carregarFase(nomeArquivo) {
     }
     if (typeof renderizarObjetivo === 'function') {
         renderizarObjetivo(idPalco, 'personagem/objetivo.png', fase.objetivo);
+    }
+
+    // Exibe o palco novamente após a montagem
+    if (palcoElemento) {
+        palcoElemento.style.display = 'block';
     }
 
     // 3. Posiciona o jogador

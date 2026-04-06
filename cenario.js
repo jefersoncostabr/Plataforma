@@ -32,11 +32,21 @@ function limparCenario() {
     const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
     if (!palco) return;
     
-    // Remove todos os filhos exceto o player, sua arma e seu escudo
+    // 1. Remove fisicamente todos os elementos exceto o personagem e seus acessórios
     const elementosParaRemover = palco.querySelectorAll('img:not(#player):not(#player-weapon):not(#player-shield):not(#player-boots)');
     elementosParaRemover.forEach(el => el.remove());
     
+    // 2. Limpa as referências lógicas (FUNDAMENTAL PARA PERFORMANCE)
+    // Se não limparmos esses arrays, o loop 'atualizar' continua processando objetos fantasmas
     window.plataformas = {};
+    window.projeteis = []; 
+    window.itensColetaveis = [];
+    window.objetivoData = null;
+
+    // 3. Reseta filtros de CSS que podem estar pesando na GPU (como blur ou grayscale)
+    palco.style.filter = 'none';
+
+    console.log("Sistema: Limpeza de cache de fase concluída.");
 }
 
 /**
