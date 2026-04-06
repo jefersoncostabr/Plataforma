@@ -63,5 +63,9 @@
     "bonusChuteBota": 32,
     "bonusVelocidadeBota": 2,
     "faseInicial": 0,
-    "escalaPalco": 1.5
+    "escalaPalco": 1.5,
+    "airdrop1": {
+        "espera": 10,
+        "conteudos": ["skillpoint", "xp", "item", "restauracao", "skill"]
+    }
 }

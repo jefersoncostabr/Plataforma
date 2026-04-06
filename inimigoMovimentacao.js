@@ -86,9 +86,11 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         // Só executa se houver um jogador e inimigos no mapa
         if (player && window.inimigos && window.inimigos.length > 0) {
             const playerX = parseInt(player.style.left) || 0;
-            // Aumentamos a distância de ativação para que o inimigo "acorde" mesmo em fases longas (como a Fase 3)
+            const playerY = parseInt(player.style.bottom) || 0;
             const alcanceTiro = Number(config.distanciaTiroInimigo ?? 300);
-            const distanciaAtivacao = Math.max(alcanceTiro, 20 * 32); // 20 blocos de distância (aprox. tela cheia)
+            
+            // Distância para o inimigo começar a perseguir o jogador
+            const distanciaAtivacao = 300;
 
             const velAtivaBase = Number(config.velocidadeHorizontal ?? velocidade);
 
@@ -194,7 +196,6 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 // Lógica de detecção de proximidade excessiva com o jogador
                 const distanciaX = Math.abs(playerX - inimigo.x);
-                const playerY = parseInt(player.style.bottom) || 0;
                 const distanciaY = Math.abs(playerY - inimigo.y);
                 const distanciaMinima = config.inimigoDistanciaMinimaAtaque || 20;
 
@@ -323,9 +324,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             inimigo.y < item.y + 32 && inimigo.y + 32 > item.y) {
                             
                             // O inimigo só tenta pegar o que ele ainda não tem
-                            if ((item.tipo === 'revolver' && inimigo.temArma) ||
-                                (item.tipo === 'escudo' && inimigo.temEscudo) ||
-                                (item.tipo === 'bota' && inimigo.temBota)) continue;
+                            if (item.tipo !== 'airdrop' && 
+                                ((item.tipo === 'revolver' && inimigo.temArma) ||
+                                 (item.tipo === 'escudo' && inimigo.temEscudo) ||
+                                 (item.tipo === 'bota' && inimigo.temBota))) continue;
 
                             inimigo.estaColetando = true;
                             inimigo.timerColeta = 180; // 3 segundos a 60fps
@@ -350,8 +352,39 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             if (item.tipo === 'revolver') { inimigo.temArma = true; inimigo.municao = config.maxMunicao; if (inimigo.armaElemento) inimigo.armaElemento.style.display = 'block'; }
                             else if (item.tipo === 'escudo') { inimigo.temEscudo = true; inimigo.escudoVermelho = false; inimigo.escudoProtegido = 0; if (inimigo.escudoElemento) inimigo.escudoElemento.style.display = 'block'; }
                             else if (item.tipo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
+                            else if (item.tipo === 'airdrop') {
+                                // Lógica restrita para o inimigo: apenas 'item' ou 'restauracao'
+                                const conteudos = config.airdrop1?.conteudos || ['item'];
+                                const validosParaIA = conteudos.filter(c => c === 'item' || c === 'restauracao');
+                                
+                                // Se não houver nada válido na config, assume 'item' como padrão
+                                const sorteio = validosParaIA.length > 0 
+                                    ? validosParaIA[Math.floor(Math.random() * validosParaIA.length)] 
+                                    : 'item';
+
+                                if (sorteio === 'restauracao') {
+                                    inimigo.municao = config.maxMunicao || 5;
+                                    inimigo.escudoProtegido = 0;
+                                    inimigo.escudoVermelho = false;
+                                    console.log("IA: Inimigo restaurou equipamentos via AirDrop!");
+                                } else {
+                                    // Sorteia um equipamento que o inimigo ainda não possua
+                                    const pendentes = [];
+                                    if (!inimigo.temArma) pendentes.push('revolver');
+                                    if (!inimigo.temEscudo) pendentes.push('escudo');
+                                    if (!inimigo.temBota) pendentes.push('bota');
+
+                                    if (pendentes.length > 0) {
+                                        const novo = pendentes[Math.floor(Math.random() * pendentes.length)];
+                                        if (novo === 'revolver') { inimigo.temArma = true; inimigo.municao = config.maxMunicao; if (inimigo.armaElemento) inimigo.armaElemento.style.display = 'block'; }
+                                        else if (novo === 'escudo') { inimigo.temEscudo = true; inimigo.escudoVermelho = false; inimigo.escudoProtegido = 0; if (inimigo.escudoElemento) inimigo.escudoElemento.style.display = 'block'; }
+                                        else if (novo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
+                                        inimigo.inventario.push(novo);
+                                    }
+                                }
+                            }
                             
-                            inimigo.inventario.push(item.tipo);
+                            if (item.tipo !== 'airdrop') inimigo.inventario.push(item.tipo);
                             item.elemento.remove();
                             window.itensColetaveis.splice(itemIndex, 1);
                         }

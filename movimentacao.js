@@ -93,11 +93,42 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
             // Remove o elemento após a animação
             setTimeout(() => {
-                explosao.remove();
-            }, 800);
+            explosao.remove();
+        }, 800);
 
-        }, 1050); // Aguarda o fim da transição de subida (sincronizado com 1.0s)
-    }
+    }, 1050); 
+
+    // Lógica do AirDrop: Após o tempo configurado, o suprimento cai do céu
+    const tempoEspera = (config.airdrop1?.espera || 10) * 1000;
+    setTimeout(() => {
+        // Escolhe uma coluna aleatória entre 0 e 19 (total de 20 colunas no palco de 640px)
+        const colAleatoria = Math.floor(Math.random() * 20);
+        const xFinal = colAleatoria * 32;
+        const yFinal = 448; // Linha "o" no sistema de grid (14 * 32px)
+
+        const airdropImg = document.createElement('img');
+        airdropImg.src = 'personagem/airdrop.png';
+        airdropImg.style.position = 'absolute';
+        airdropImg.style.width = '32px';
+        airdropImg.style.height = '32px';
+        airdropImg.style.left = xFinal + 'px';
+        airdropImg.style.bottom = yFinal + 'px';
+        airdropImg.style.zIndex = '5';
+        airdropImg.style.imageRendering = 'pixelated';
+        
+        if (elemento.parentElement) {
+            elemento.parentElement.appendChild(airdropImg);
+            window.itensColetaveis.push({
+                x: xFinal,
+                y: yFinal,
+                elemento: airdropImg,
+                velocidadeY: 0, // Começa parado e a gravidade configurada assume
+                tipo: 'airdrop'
+            });
+            console.log(`AirDrop: Suprimentos detectados na coluna ${colAleatoria + 1}!`);
+        }
+    }, tempoEspera);
+}
 
     function droparItemJogador() {
         if (!window.playerSkills || !window.playerSkills.includes('skilla')) {
@@ -1065,7 +1096,64 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         if (!controle.inventario.includes('bota')) controle.inventario.push('bota');
                         botaElemento.style.display = 'block';
                         salvarInventario();
-                    } else {
+                    } else if (item.tipo === 'airdrop') {
+                        // Lógica de Recompensa Aleatória baseada no JSON
+                        const conteudos = config.airdrop1?.conteudos || ['xp'];
+                        const sorteio = conteudos[Math.floor(Math.random() * conteudos.length)];
+                        console.log("AirDrop resgatado! Conteúdo: " + sorteio);
+                        
+                        if (sorteio === 'skillpoint') {
+                            window.skillPoints += 1;
+                        } else if (sorteio === 'xp') {
+                            if (typeof window.ganharXP === 'function') window.ganharXP(6);
+                        } else if (sorteio === 'restauracao') {
+                            // Restaura todos os equipamentos do jogador
+                            controle.municao = config.maxMunicao || 5; 
+                            controle.escudoProtegido = 0;
+                            controle.escudoVermelho = false;
+                            if (controle.inventario.includes('escudo')) {
+                                controle.temEscudo = true;
+                            }
+                            atualizarVisualEscudo();
+                        } else if (sorteio === 'skill') {
+                            // Sorteia uma skill que o jogador ainda não tenha
+                            if (window.skillsData) {
+                                const disponiveis = Object.keys(window.skillsData).filter(s => !window.playerSkills.includes(s));
+                                if (disponiveis.length > 0) {
+                                    const skillSorteada = disponiveis[Math.floor(Math.random() * disponiveis.length)];
+                                    window.playerSkills.push(skillSorteada);
+                                    if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
+                                    console.log(`Nova Skill Desbloqueada: ${window.skillsData[skillSorteada].nome}`);
+                                } else {
+                                    if (typeof window.ganharXP === 'function') window.ganharXP(5); // Fallback se já tiver todas
+                                }
+                            }
+                        } else if (sorteio === 'item') {
+                            // Sorteio de item físico
+                            const itensDisponiveis = ['revolver', 'escudo', 'bota'];
+                            const itemSorteado = itensDisponiveis[Math.floor(Math.random() * itensDisponiveis.length)];
+                            
+                            if (itemSorteado === 'escudo') { 
+                                controle.temEscudo = true; 
+                                controle.escudoVermelho = false; 
+                                controle.escudoProtegido = 0; 
+                                if (!controle.inventario.includes('escudo')) controle.inventario.push('escudo');
+                                atualizarVisualEscudo(); 
+                            }
+                            else if (itemSorteado === 'bota') { 
+                                controle.temBota = true; 
+                                if (!controle.inventario.includes('bota')) controle.inventario.push('bota');
+                                botaElemento.style.display = 'block';
+                            }
+                            else { 
+                                controle.temArma = true; 
+                                controle.municao = config.maxMunicao || 5; 
+                                if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
+                                armaElemento.style.display = 'block';
+                            }
+                        }
+                        salvarInventario();
+                    } else if (item.tipo === 'revolver') {
                         // console.log("Jogador coletou o revólver!");
                         controle.temArma = true;
                         controle.municao = item.municao !== undefined ? item.municao : (config.maxMunicao || 5);
