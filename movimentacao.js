@@ -471,8 +471,13 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // if (e.key === ' ') console.log("Movimentação: KeyDown capturado -> Barra de Espaço");
         controle.teclas[e.key] = true;
 
-        if (e.key === 'Pause') {
-            window.togglePause();
+        // Atalho para Menu de Pause (ESC ou Pause/Break)
+        if (e.key === 'Pause' || e.key === 'Break' || e.key === 'Escape' || e.key === 'Esc') {
+            if (typeof window.togglePauseMenu === 'function') {
+                window.togglePauseMenu();
+            } else {
+                console.error("Menu: Erro! A função window.togglePauseMenu não foi encontrada.");
+            }
         }
 
         // Atalho de Debug: Ganhar 5 de XP
@@ -488,12 +493,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             } else if (typeof window.toggleSkillMenu !== 'function') {
                 console.error("Erro: A função 'toggleSkillMenu' não foi encontrada. Verifique se o arquivo skills.js foi carregado corretamente.");
             }
-        }
-
-        // Fecha o menu de habilidades com a tecla Enter
-        if (e.key === 'Enter' && window.isSkillMenuOpen) {
-            e.preventDefault(); // Impede comportamentos padrão do navegador
-            if (typeof window.toggleSkillMenu === 'function') window.toggleSkillMenu();
         }
 
         if (e.key === '7' && typeof criarInimigoAleatorio === 'function' && window.plataformas) {

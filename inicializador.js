@@ -208,6 +208,11 @@ async function iniciarJogo() {
     window.config = config; // Torna config global
     window.nivelAtual = (config.faseInicial !== undefined) ? config.faseInicial : 0;
 
+    // Carrega o progresso de habilidades e XP antes de iniciar o jogo
+    if (typeof window.carregarDadosSkills === 'function') {
+        await window.carregarDadosSkills();
+    }
+
     // Aplica a escala ao palco de forma simples via CSS
     const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
     if (palco && config.escalaPalco) {

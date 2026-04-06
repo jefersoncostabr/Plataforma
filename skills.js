@@ -7,6 +7,9 @@ window.isSkillMenuOpen = false;
 window.playerXP = 0;
 window.skillPoints = 0;
 window.skillsData = null;
+let selectedSkillId = null;
+let skillsLevelMap = {}; 
+let skillButtonsMap = {};
 
 // Funções globais de gerenciamento
 window.ganharXP = (quantidade = 1) => {
@@ -53,12 +56,6 @@ window.resetarProgressoParaJson = async () => {
 };
 
 window.toggleSkillMenu = async () => {
-    // Se o jogo já estiver pausado por outro motivo, não abre as skills
-    if (window.isPaused && !window.isSkillMenuOpen) {
-        console.warn("SkillTree: Não é possível abrir o menu enquanto o jogo está pausado pelo sistema.");
-        return;
-    }
-
     // Carrega os dados do JSON se ainda não foram carregados
     if (!window.skillsData) {
         await window.carregarDadosSkills(false);
@@ -73,12 +70,67 @@ window.toggleSkillMenu = async () => {
 
     if (window.isSkillMenuOpen) {
         // console.log("SkillTree: Abrindo menu de habilidades...");
+        window.addEventListener('keydown', handleSkillMenuInput);
         abrirMenuSkillsUI();
     } else {
         // console.log("SkillTree: Fechando menu de habilidades...");
+        window.removeEventListener('keydown', handleSkillMenuInput);
         fecharMenuSkillsUI();
     }
 };
+
+function handleSkillMenuInput(e) {
+    if (!window.isSkillMenuOpen || !window.skillsData) return;
+
+    const key = e.key.toLowerCase();
+    let depth = getSkillDepth(selectedSkillId, window.skillsData);
+    let index = skillsLevelMap[depth].indexOf(selectedSkillId);
+
+    // Navegação Horizontal (A/D ou Setas)
+    if (key === 'arrowleft' || key === 'a') {
+        index = (index - 1 + skillsLevelMap[depth].length) % skillsLevelMap[depth].length;
+    } else if (key === 'arrowright' || key === 'd') {
+        index = (index + 1) % skillsLevelMap[depth].length;
+    } 
+    // Navegação Vertical (W/S ou Setas)
+    else if (key === 'arrowup' || key === 'w') {
+        const prevDepth = depth - 1;
+        if (skillsLevelMap[prevDepth]) {
+            depth = prevDepth;
+            index = Math.min(index, skillsLevelMap[depth].length - 1);
+        }
+    } else if (key === 'arrowdown' || key === 's') {
+        const nextDepth = depth + 1;
+        if (skillsLevelMap[nextDepth]) {
+            depth = nextDepth;
+            index = Math.min(index, skillsLevelMap[depth].length - 1);
+        }
+    }
+    // Ação de Compra (Espaço ou Enter)
+    else if (key === ' ' || key === 'enter') {
+        e.preventDefault();
+        const btn = skillButtonsMap[selectedSkillId];
+        if (btn && btn.onclick) {
+            btn.onclick();
+        }
+        return;
+    } else {
+        return; // Ignora outras teclas
+    }
+
+    selectedSkillId = skillsLevelMap[depth][index];
+    atualizarVisualSelecaoSkills();
+}
+
+function atualizarVisualSelecaoSkills() {
+    Object.keys(skillButtonsMap).forEach(id => {
+        const btn = skillButtonsMap[id];
+        const isSelected = (id === selectedSkillId);
+        btn.style.boxShadow = isSelected ? "0 0 15px #fff, inset 0 0 10px #fff" : "none";
+        btn.style.transform = isSelected ? "translateX(-50%) scale(1.15)" : "translateX(-50%) scale(1.0)";
+        btn.style.zIndex = isSelected ? "10" : "1";
+    });
+}
 
 function getSkillDepth(skillId, data) {
     let depth = 0;
@@ -97,6 +149,9 @@ function abrirMenuSkillsUI() {
     // Obtém as coordenadas e o tamanho real do palco na tela
     const rect = palco.getBoundingClientRect();
     const target = document.body;
+
+    skillsLevelMap = {};
+    skillButtonsMap = {};
 
     const overlay = document.createElement('div');
     overlay.id = 'skill-tree-overlay';
@@ -127,7 +182,7 @@ function abrirMenuSkillsUI() {
     header.innerHTML = `
         <h2 style="margin: 0 0 10px 0; letter-spacing: 2px; text-transform: uppercase;">Habilidades</h2>
         <p style="margin: 5px 0; font-size: 18px;">XP: <span style="color: #ffd700;">${window.playerXP}</span> | Pontos: <span style="color: #00ff00;">${window.skillPoints}</span></p>
-        <small style="color: #888; text-transform: uppercase; font-size: 10px;">Pressione [ ENTER ] para voltar ao jogo</small>
+        <small style="color: #888; text-transform: uppercase; font-size: 10px;">WASD: Navegar • ENTER/ESPAÇO: Comprar • ESC: Menu</small>
     `;
     container.appendChild(header);
 
@@ -141,6 +196,12 @@ function abrirMenuSkillsUI() {
 
     // Ordenar IDs em cada nível para manter a ordem consistente (a antes de b, 1 antes de 2)
     Object.keys(levels).forEach(d => levels[d].sort());
+    skillsLevelMap = levels;
+
+    // Seleciona a primeira skill (raiz) se nada estiver selecionado
+    if (!selectedSkillId || !window.skillsData[selectedSkillId]) {
+        selectedSkillId = levels[0][0];
+    }
 
     const vGap = 90; // Espaço vertical entre níveis
     const startY = 140; // Espaço reservado para o cabeçalho interno
@@ -191,12 +252,14 @@ function abrirMenuSkillsUI() {
             btn.onmouseout = () => btn.style.background = '#333';
         }
 
+        skillButtonsMap[skillId] = btn;
         container.appendChild(btn);
     });
 
     container.appendChild(header);
     overlay.appendChild(container);
     target.appendChild(overlay);
+    atualizarVisualSelecaoSkills();
 }
 
 function fecharMenuSkillsUI() {
