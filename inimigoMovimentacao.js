@@ -69,7 +69,9 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 elemento: img,
                 perseguindo: false,
                 tipo: dado.tipo !== undefined ? dado.tipo : 1
-                , // Adicionada vírgula aqui
+                ,
+                framesKnockbackRestante: 0, // Inicializa frames de knockback
+                velocidadeKnockback: 0, // Inicializa velocidade de knockback
                 puloTimer: 0, // Inicializa o timer de pulo
                 jumpQueued: false // Inicializa a flag de pulo agendado
             });
@@ -159,6 +161,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.cooldownPulo = 0;
                     inimigo.velocidadeY = 0;
                     inimigo.noChao = false;
+                    inimigo.framesKnockbackRestante = 0; // Inicializa frames de knockback
+                    inimigo.velocidadeKnockback = 0; // Inicializa velocidade de knockback
                     inimigo.jumpQueued = false; // Inicializa a flag de pulo agendado
                     inimigo.puloTimer = 0;
                     inimigo.afastando = false;
@@ -213,6 +217,12 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inimigo.tempoAfastamento > 0) inimigo.tempoAfastamento--;
                 if (inimigo.cooldownAfastamento > 0) inimigo.cooldownAfastamento--;
                 if (inimigo.cooldownPulo > 0) inimigo.cooldownPulo--;
+
+                // Aplica knockback se estiver ativo
+                if (inimigo.framesKnockbackRestante > 0) {
+                    inimigo.x += inimigo.velocidadeKnockback;
+                    inimigo.framesKnockbackRestante--;
+                }
                 // Decrementa o timer de stun
                 if (inimigo.stunTimer > 0) inimigo.stunTimer--;
 

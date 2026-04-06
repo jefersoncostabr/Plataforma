@@ -1044,7 +1044,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         inimigo.estaColetando = false;
                         inimigo.timerColeta = 0;
 
-                        inimigo.vida = (inimigo.vida || 0) + 1;
+                        inimigo.vida = (inimigo.vida || 0) + 1; // Incrementa a vida do inimigo (dano)
 
                         // Efeito visual no inimigo ao receber dano por chute
                         if (typeof piscaLeve === 'function') {
@@ -1053,15 +1053,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
                         // Knockback: Lança o inimigo para trás com base na direção do jogador
                         const direcaoKnockback = (controle.direcao === 'd' ? 1 : -1);
-                        inimigo.x += obterKnockback(config, 'playerChute') * direcaoKnockback;
-
-                        // Limita a posição para o inimigo não sair do palco no momento do impacto
-                        if (typeof limitarPosicaoAoPalco === 'function') {
-                            const posAjustada = limitarPosicaoAoPalco(inimigo.x + config.HITBOX_OFFSET_X, inimigo.y, config.HITBOX_LARGURA, config.HITBOX_ALTURA);
-                            inimigo.x = posAjustada.x - config.HITBOX_OFFSET_X;
-                        }
-
-                        inimigo.elemento.style.left = inimigo.x + 'px';
+                        const valorKnockbackInimigo = obterKnockback(config, 'playerChute');
+                        const duracaoRecuoInimigo = 15; // Duração do recuo em frames
+                        inimigo.framesKnockbackRestante = duracaoRecuoInimigo;
+                        inimigo.velocidadeKnockback = (valorKnockbackInimigo / duracaoRecuoInimigo) * direcaoKnockback;
 
                         // console.log(`Ataque: Inimigo atingido! Vida restante: ${3 - inimigo.vida}`);
 
