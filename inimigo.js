@@ -245,7 +245,9 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         temArma: temArma,
         temEscudo: temEscudo,
         escudoVermelho: false,
-        escudoProtegido: 0
+        escudoProtegido: 0,
+        stunned: false, // Adiciona propriedade de stun
+        stunTimer: 0,  // Adiciona timer de stun
     };
     
     window.inimigos.push(novoInimigo);

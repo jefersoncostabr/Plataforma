@@ -143,6 +143,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.framesImpulsoRestante = 0;
                     inimigo.velocidadeDash = 0;
 
+                    inimigo.stunned = false; // Inicializa estado de stun
+                    inimigo.stunTimer = 0;  // Inicializa timer de stun
                     // Preenche inventário inicial baseado no tipo
                     if (inimigo.temArma) inimigo.inventario.push('revolver');
                     if (inimigo.temEscudo) inimigo.inventario.push('escudo');
@@ -202,6 +204,23 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inimigo.tempoAfastamento > 0) inimigo.tempoAfastamento--;
                 if (inimigo.cooldownAfastamento > 0) inimigo.cooldownAfastamento--;
                 if (inimigo.cooldownPulo > 0) inimigo.cooldownPulo--;
+                // Decrementa o timer de stun
+                if (inimigo.stunTimer > 0) inimigo.stunTimer--;
+
+                // Lógica de Stun: Se o inimigo estiver atordoado, ele não faz mais nada
+                if (inimigo.stunned) {
+                    if (inimigo.stunTimer <= 0) {
+                        inimigo.stunned = false; // Fim do stun
+                        console.log(`Inimigo em x:${inimigo.x} não está mais atordoado.`);
+                    } else {
+                        // Faz o inimigo olhar de um lado para o outro
+                        if (inimigo.stunTimer % 15 === 0) { // Troca de direção a cada 15 frames (aprox. 0.25s)
+                            inimigo.direcao = (inimigo.direcao === 'd' ? 'e' : 'd');
+                            inimigo.elemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+                        }
+                        return; // Pula o restante da lógica de IA para este inimigo
+                    }
+                }
 
                 // Lógica de detecção de proximidade excessiva com o jogador
                 const distanciaX = Math.abs(playerX - inimigo.x);

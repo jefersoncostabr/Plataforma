@@ -294,6 +294,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         timerPuloDuplo: 0,
         doubleJumpUsedInAir: false, // Nova flag para controlar o cooldown do pulo duplo
         cooldownPuloDuplo: 0, // Novo cooldown para o pulo duplo
+        cooldownPosSuperDescida: 0, // Cooldown de 1s após a Super Descida
+        superDescidaAtiva: false, // Rastreador de uso da Super Descida
         espacoPressionado: false,
         cooldownChute: 0,
         cooldownPulo: 0,
@@ -817,8 +819,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // Decrementa o cooldown do pulo duplo
         if (controle.cooldownPuloDuplo > 0) controle.cooldownPuloDuplo--;
 
+        // Decrementa o cooldown pós Super Descida
+        if (controle.cooldownPosSuperDescida > 0) controle.cooldownPosSuperDescida--;
+
         // Lógica da Skill Passiva "Salto" (skillb2) - Pulo Duplo
-        const teclaPuloAtiva = controle.teclas[' '];
+        const teclaPuloAtiva = controle.teclas[' '] && controle.cooldownPosSuperDescida === 0;
         const puloAcabouDeSerPressionado = teclaPuloAtiva && !controle.espacoPressionado;
         controle.espacoPressionado = !!teclaPuloAtiva;
 
@@ -847,11 +852,18 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // Aplica gravidade e pulo (definido em fisica.js)
         aplicarFisica(
             controle, 
-            controle.teclas, 
+            { ...controle.teclas, ' ': teclaPuloAtiva }, // Passa o estado de tecla filtrado pelo cooldown
             forcaPuloFinal, 
             config.inimigoGravidade, 
             config.inimigoPuloCooldown
         );
+
+        // Mecânica de Queda Rápida: Agora restrita apenas após a execução do Pulo Duplo (pulosRealizados === 2)
+        if (!controle.noChao && controle.velocidadeY < 0 && controle.teclas[' '] && !controle.usandoParaquedas && controle.pulosRealizados === 2) {
+            console.log("Física: Super Descida ativa | VelY:", controle.velocidadeY.toFixed(2));
+            controle.velocidadeY = -20; // Regule aqui a velocidade fixa de descida
+            controle.superDescidaAtiva = true;
+        }
 
     // Mecânica de Paraquedas: Limita a velocidade de queda para criar o efeito de flutuação
     if (controle.usandoParaquedas && controle.velocidadeY < -1.5) {
@@ -867,6 +879,50 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             
             if (controle.velocidadeY < 0) { // Caindo: toca o topo da plataforma
                 controle.noChao = true;
+                
+                // Se o player pousou usando a Super Descida, aplica o cooldown de 1s (60 frames)
+                if (controle.superDescidaAtiva) {
+                    controle.cooldownPosSuperDescida = 60;
+                    controle.superDescidaAtiva = false;
+
+                    // Aplica stun aos inimigos próximos
+                    if (window.inimigos && Array.isArray(window.inimigos)) {
+                        window.inimigos.forEach(inimigo => {
+                            // Verifica se o inimigo está a 32px do player (considerando o centro do player)
+                            // Player largura 32px, inimigo largura 32px.
+                            // Distância entre os centros: abs((controle.x + 16) - (inimigo.x + 16))
+                            // Se a distância for <= 32, significa que eles estão bem próximos.
+                            const distanciaX = Math.abs((controle.x + 16) - (inimigo.x + 16));
+                            if (distanciaX <= 32 && inimigo.noChao) {
+                                inimigo.stunned = true;
+                                inimigo.stunTimer = 120; // 2 segundos de stun (120 frames)
+                                console.log(`Inimigo em x:${inimigo.x} atordoado pela Super Descida!`);
+                            }
+                        });
+                    }
+                    // Criação do efeito visual de impacto
+                    const impacto = document.createElement('img');
+                    impacto.src = 'personagem/impacto.png';
+                    impacto.style.position = 'absolute';
+                    impacto.style.width = '64px'; // Um pouco maior para destaque
+                    impacto.style.height = '32px'; // Ajustado para o tamanho real do sprite
+                    impacto.style.left = (controle.x - 16) + 'px'; // Centraliza nos pés
+                    impacto.style.bottom = controle.y + 'px'; // Alinha com a base do personagem (base do player)
+                    impacto.style.zIndex = '11'; // Garante que apareça acima de todos os outros elementos do player
+                    impacto.style.imageRendering = 'pixelated';
+                    impacto.style.pointerEvents = 'none';
+                    impacto.style.transition = 'transform 0.4s ease-out, opacity 0.4s ease-out';
+                    elemento.parentElement.appendChild(impacto);
+
+                    requestAnimationFrame(() => {
+                        impacto.style.transform = 'scale(.2)';
+                        impacto.style.opacity = '0';
+                    });
+
+                    setTimeout(() => impacto.remove(), 400);
+                    console.log("Mecânica: Pouso pesado! Pulo bloqueado por 1s.");
+                }
+
                 controle.velocidadeY = 0;
                 controle.y = Math.floor((controle.y + 0.1) / 32 + 1) * 32;
             } else if (controle.velocidadeY > 0) { // Subindo: bate a cabeça
