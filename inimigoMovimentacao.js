@@ -151,7 +151,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.temArma = (inimigo.tipo === 1);
                     inimigo.temEscudo = (inimigo.tipo === 2);
                     inimigo.temBota = (inimigo.tipo === 3);
-                    inimigo.temJetpack = false;
+                    inimigo.temJetpack = (inimigo.tipo === 4);
                     inimigo.jetpackAtivo = false;
                     inimigo.timerVooRestante = 0;
                     inimigo.framesVoando = 0;
@@ -165,6 +165,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.temArma) inimigo.inventario.push('revolver');
                     if (inimigo.temEscudo) inimigo.inventario.push('escudo');
                     if (inimigo.temBota) inimigo.inventario.push('bota');
+                    if (inimigo.temJetpack) inimigo.inventario.push('jetpack');
                     inimigo.cooldownPulo = 0;
                     inimigo.velocidadeY = 0;
                     inimigo.cooldownVooJetpack = 0;
@@ -225,7 +226,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     jetpack.style.zIndex = '3'; // Atrás do inimigo (4)
                     jetpack.style.imageRendering = 'pixelated';
                     jetpack.style.pointerEvents = 'none';
-                    jetpack.style.display = 'none';
+                    jetpack.style.display = inimigo.temJetpack ? 'block' : 'none';
                     inimigo.elemento.parentElement.appendChild(jetpack);
                     inimigo.jetpackElemento = jetpack;
 

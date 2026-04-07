@@ -595,6 +595,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.velocidadeKnockback = 0;
             botaElemento.style.display = 'none';
             controle.inventario = [];
+            // Novas linhas para remover o Jetpack
+            controle.temJetpack = false;
+            controle.jetpackAtivo = false;
+            controle.timerAtivacaoJetpack = 0;
+            controle.timerVooRestante = 0;
+            controle.cooldownVooJetpack = 0;
             atualizarVisualEscudo();
             if (typeof armaElemento !== 'undefined') {
                 armaElemento.style.display = 'none';
