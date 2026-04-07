@@ -2,7 +2,7 @@
  * Atualiza o frame de animação baseado no estado de movimento.
  * Deve ser chamada dentro do loop principal (requestAnimationFrame).
  */
-function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando) {
+function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spriteNoAr) {
     // Se o personagem estiver chutando, não altera o sprite aqui para evitar conflitos
     if (controle.chutando || (controle.tempoChute > 0)) return;
 
@@ -22,8 +22,13 @@ function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando) {
             elemento.src = controle.frameAtual === 0 ? spriteParado : spriteAndando;
             controle.contadorAnimacao = 0;
         }
+    } else if (!controle.noChao && spriteNoAr) {
+        // Se estiver no ar, usa o sprite específico para pulo/queda
+        elemento.src = spriteNoAr;
+        controle.contadorAnimacao = 0;
+        controle.frameAtual = 0;
     } else {
-        // Se estiver parado ou no ar, reseta para o sprite parado
+        // Se estiver parado no chão, reseta para o sprite parado
         elemento.src = spriteParado;
         controle.contadorAnimacao = 0;
         controle.frameAtual = 0;

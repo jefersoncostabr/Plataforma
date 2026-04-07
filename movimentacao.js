@@ -6,8 +6,9 @@
  * @param {string} spriteParado - Caminho da imagem parado.
  * @param {string} spriteAndando - Caminho da imagem andando.
  * @param {string} spriteChute - Caminho da imagem chutando.
+ * @param {string} spriteNoAr - Caminho da imagem no ar.
  */
-async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndando, spriteChute) {
+async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndando, spriteChute, spriteNoAr) {
     const elemento = document.getElementById(id);
     if (!elemento) return;
 
@@ -1120,7 +1121,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 controle, 
                 elemento, 
                 config.spriteParadoPlayer || spriteParado, 
-                config.spriteAndandoPlayer || spriteAndando
+                config.spriteAndandoPlayer || spriteAndando,
+                config.spriteNoArPlayer || spriteNoAr
             );
         }
 

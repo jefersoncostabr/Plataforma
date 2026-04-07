@@ -243,7 +243,14 @@ async function iniciarJogo() {
     }
 
     // Inicia os sistemas básicos (apenas uma vez)
-    await iniciarMovimentacao('player', config.velocidadePlayer || 4, 'personagem/Personagem_parado.png', 'personagem/Personagem_andando.png', 'personagem/personagem_chute2.png');
+    await iniciarMovimentacao(
+        'player', 
+        config.velocidadePlayer || 4, 
+        'personagem/Personagem_parado.png', 
+        'personagem/Personagem_andando.png', 
+        'personagem/personagem_chute2.png',
+        'personagem/personagem_no_ar.png'
+    );
     await iniciarIAInimigos(1, 'personagem/Personagem_parado.png', 'personagem/Personagem_andando.png', 'personagem/personagem_chute2.png');
     
     // Carrega a primeira fase
