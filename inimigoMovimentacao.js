@@ -16,6 +16,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     config.inimigoPuloDelayMin = config.inimigoPuloDelayMin ?? 5; // Default 5 frames
     config.inimigoPuloDelayMax = config.inimigoPuloDelayMax ?? 20; // Default 20 frames
 
+    const EPSILON = 0.01;
+
     function obterKnockback(config, fonte = 'default') {
         const base = Number(config.knockbackBase ?? config.knockbackInimigo ?? 150);
         const ajuste = Number(config.knockbackAjustes?.[fonte] ?? 0);
@@ -68,6 +70,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 y: pos.y,
                 largura: config.HITBOX_LARGURA,
                 altura: config.HITBOX_ALTURA,
+                offsetX: config.HITBOX_OFFSET_X,
                 elemento: img,
                 perseguindo: false,
                 tipo: dado.tipo !== undefined ? dado.tipo : 1
@@ -315,11 +318,11 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         inimigo.elemento.style.transform = 'scaleX(1)';
                     }
 
-                    // Impedir que o inimigo entre em plataformas ao se afastar
-                    if (typeof verificarColisaoComTiles === 'function' && 
-                        verificarColisaoComTiles(inimigo.x + config.HITBOX_OFFSET_X, inimigo.y, config.HITBOX_LARGURA, config.HITBOX_ALTURA, window.plataformas)) {
-                        inimigo.x = xAnterior;
-                    }
+                    // Aplicar snap e colisão horizontal durante o afastamento (com sub-stepping implícito)
+                    const limiteX = limitarPosicaoAoPalco(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura);
+                    inimigo.x = limiteX.x - (inimigo.offsetX || 0);
+                    
+                    verificarSnapInimigo(inimigo, xAnterior);
                 } else if (inimigo.afastando && inimigo.tempoAfastamento === 0) {
                     // Terminou o afastamento - volta ao comportamento normal
                     inimigo.afastando = false;
@@ -414,18 +417,18 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 // Colisão Vertical constante para garantir que o inimigo pule e caia corretamente
                 inimigo.noChao = false;
-                if (typeof verificarColisaoComTiles === 'function') {
-                    if (verificarColisaoComTiles(inimigo.x + config.HITBOX_OFFSET_X, inimigo.y, config.HITBOX_LARGURA, config.HITBOX_ALTURA, window.plataformas)) {
-                        if (inimigo.velocidadeY < 0) { // Caindo
-                            inimigo.noChao = true;
-                            inimigo.velocidadeY = 0;
-                            inimigo.y = Math.floor((inimigo.y + 0.1) / 32 + 1) * 32;
-                            inimigo.puloTimer = 0; // Reseta o timer ao tocar o chão
-                            inimigo.jumpQueued = false; // Reseta a flag
-                        } else if (inimigo.velocidadeY > 0) { // Subindo: bate a cabeça
-                            inimigo.velocidadeY = 0;
-                            inimigo.y = Math.floor((inimigo.y + config.HITBOX_ALTURA) / 32) * 32 - config.HITBOX_ALTURA;
-                        }
+                if (typeof verificarColisaoComTiles === 'function' && 
+                    verificarColisaoComTiles(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura, window.plataformas)) {
+                    
+                    if (inimigo.velocidadeY < 0) {
+                        inimigo.noChao = true;
+                        inimigo.velocidadeY = 0;
+                        inimigo.y = Math.floor((inimigo.y + EPSILON) / 32 + 1) * 32;
+                        inimigo.puloTimer = 0;
+                        inimigo.jumpQueued = false;
+                    } else if (inimigo.velocidadeY > 0) {
+                        inimigo.velocidadeY = 0;
+                        inimigo.y = Math.floor((inimigo.y + inimigo.altura) / 32) * 32 - inimigo.altura;
                     }
                 }
 
@@ -608,8 +611,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (movendoDestaVez && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0) {
                         // Calcula ponto de verificação à frente dos pés (baseado na direção)
                         const checkX = (inimigo.direcao === 'd') 
-                            ? inimigo.x + config.HITBOX_OFFSET_X + config.HITBOX_LARGURA + 10 
-                            : inimigo.x + config.HITBOX_OFFSET_X - 10;
+                            ? inimigo.x + (inimigo.offsetX || 0) + inimigo.largura + 10 
+                            : inimigo.x + (inimigo.offsetX || 0) - 10;
                         
                         const checkY = inimigo.y - 10; // Verifica o chão logo abaixo do nível atual
                         
@@ -670,10 +673,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         };
 
                         const hurtboxPlayer = { 
-                            x: window.playerControle.x + config.HITBOX_OFFSET_X, 
+                            x: window.playerControle.x + (window.playerControle.offsetX || 0), 
                             y: window.playerControle.y, 
-                            largura: config.HITBOX_LARGURA, 
-                            altura: config.HITBOX_ALTURA 
+                            largura: window.playerControle.largura, 
+                            altura: window.playerControle.altura 
                         };
 
                         // Verifica colisão precisa (0 padding pois as caixas já estão ajustadas)
@@ -721,7 +724,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 // Colisão Horizontal com as laterais das plataformas (após perseguição/dash)
                 if (typeof verificarColisaoComTiles === 'function' && 
-                    verificarColisaoComTiles(inimigo.x + config.HITBOX_OFFSET_X, inimigo.y, config.HITBOX_LARGURA, config.HITBOX_ALTURA, window.plataformas)) {
+                    verificarColisaoComTiles(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura, window.plataformas)) {
                     
                     // Item 1: Pulo por Obstrução (Wall Detection)
                     if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
@@ -730,20 +733,33 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         inimigo.jumpQueued = true;
                         // console.log('Inimigo iniciou timer de pulo por obstrução:', inimigo.puloTimer, 'frames'); // Comentado conforme solicitado
                     }
+                    verificarSnapInimigo(inimigo, xAnterior);
+                }
 
-                    inimigo.x = xAnterior;
+                function verificarSnapInimigo(ent, xAnt) {
+                    if (typeof verificarColisaoComTiles === 'function' && 
+                        verificarColisaoComTiles(ent.x + (ent.offsetX || 0), ent.y, ent.largura, ent.altura, window.plataformas)) {
+                        
+                        if (ent.x > xAnt) { // Direita
+                            ent.x = Math.floor((ent.x + (ent.offsetX || 0) + ent.largura) / 32) * 32 - ent.largura - (ent.offsetX || 0) - EPSILON;
+                        } else if (ent.x < xAnt) { // Esquerda
+                            ent.x = (Math.floor((ent.x + (ent.offsetX || 0)) / 32) + 1) * 32 - (ent.offsetX || 0) + EPSILON;
+                        }
+                        return true;
+                    }
+                    return false;
                 }
 
 
                 // Garante que o inimigo permaneça dentro dos limites do palco (Clamping)
                 if (typeof limitarPosicaoAoPalco === 'function') {
                     const posAjustada = limitarPosicaoAoPalco(
-                        inimigo.x + config.HITBOX_OFFSET_X, 
+                        inimigo.x + (inimigo.offsetX || 0), 
                         inimigo.y, 
-                        config.HITBOX_LARGURA, 
-                        config.HITBOX_ALTURA
+                        inimigo.largura, 
+                        inimigo.altura
                     );
-                    inimigo.x = posAjustada.x - config.HITBOX_OFFSET_X;
+                    inimigo.x = posAjustada.x - (inimigo.offsetX || 0);
                     // Removido o ajuste de Y para permitir que o inimigo caia em buracos
                     // inimigo.y = posAjustada.y;
                 }

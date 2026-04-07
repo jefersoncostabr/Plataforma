@@ -1,4 +1,9 @@
 /**
+ * Margem de segurança mínima para evitar erros de precisão em ponto flutuante.
+ */
+const EPSILON = 0.01;
+
+/**
  * Garante que um objeto permaneça dentro dos limites do palco.
  * 
  * @param {number} x - Posição X atual.
@@ -26,9 +31,9 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
 
     // Calcula quais colunas e linhas do grid o personagem está ocupando
     const colInicio = Math.floor(x / 32);
-    const colFim = Math.floor((x + largura - 0.1) / 32);
+    const colFim = Math.floor((x + largura - EPSILON) / 32);
     const rowInicio = Math.floor(y / 32);
-    const rowFim = Math.floor((y + altura - 0.1) / 32);
+    const rowFim = Math.floor((y + altura - EPSILON) / 32);
 
     for (let r = rowInicio; r <= rowFim; r++) {
         for (let c = colInicio; c <= colFim; c++) {

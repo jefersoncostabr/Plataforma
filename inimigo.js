@@ -43,8 +43,9 @@ function criarInimigo(idPalco, imagemPath, coord, direcao = 'e', tipo = 1) {
     window.inimigos.push({
         x,
         y,
-        largura: tamanhoTile,
-        altura: tamanhoTile,
+        largura: window.config?.HITBOX_LARGURA || 20,
+        altura: window.config?.HITBOX_ALTURA || 30,
+        offsetX: window.config?.HITBOX_OFFSET_X || 6,
         elemento: inimigoImg,
         velocidadeY: 0,
         noChao: true,
@@ -245,8 +246,9 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     const novoInimigo = {
         x: posicao.x,
         y: posicao.y,
-        largura: window.config?.HITBOX_LARGURA || 7,
-        altura: window.config?.HITBOX_ALTURA || 25,
+        largura: window.config?.HITBOX_LARGURA || 20,
+        altura: window.config?.HITBOX_ALTURA || 30,
+        offsetX: window.config?.HITBOX_OFFSET_X || 6,
         elemento: inimigoImg,
         velocidadeY: 0,
         noChao: false, // Force a física a recalcular a colisão no próximo frame

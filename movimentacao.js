@@ -286,10 +286,15 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     // Expose for restart
     window.atualizarVisualEscudo = atualizarVisualEscudo;
 
+    const EPSILON = 0.01;
+
     // Estado interno para rastrear posição e teclas pressionadas
     const controle = {
         x: parseInt(elemento.style.left) || 0,
         y: parseInt(elemento.style.bottom) || 0,
+        largura: config.HITBOX_LARGURA || 20,
+        altura: config.HITBOX_ALTURA || 30,
+        offsetX: config.HITBOX_OFFSET_X || 6,
         velocidadeY: 0,
         noChao: false,
         movendoHorizontal: false,
@@ -865,15 +870,41 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.cooldownVooJetpack--;
         }
 
-        const hitboxX = controle.x + config.HITBOX_OFFSET_X;
-        const hitboxY = controle.y;
-        const hitboxWidth = config.HITBOX_LARGURA;
-        const hitboxHeight = config.HITBOX_ALTURA;
+        // ITEM 6: Limites do Palco (Horizontal) - Aplicar antes da colisão com tiles
+        const limitePalcoX = limitarPosicaoAoPalco(controle.x + controle.offsetX, controle.y, controle.largura, controle.altura);
+        controle.x = limitePalcoX.x - controle.offsetX;
 
-        // 1. Colisão Horizontal com as laterais das plataformas
-        if (typeof verificarColisaoComTiles === 'function' && 
-            verificarColisaoComTiles(hitboxX, hitboxY, hitboxWidth, hitboxHeight, window.plataformas)) {
+        // ITEM 4: Sub-stepping Horizontal (Detecta colisões intermediárias em alta velocidade)
+        const distTotalX = controle.x - xAnterior;
+        if (Math.abs(distTotalX) > 16) { // Se mover mais de meio bloco (16px) em um frame
+            const passos = Math.ceil(Math.abs(distTotalX) / 16);
+            const incrementoX = distTotalX / passos;
             controle.x = xAnterior;
+            
+            for (let i = 0; i < passos; i++) {
+                controle.x += incrementoX;
+                if (typeof verificarColisaoComTiles === 'function' && 
+                    verificarColisaoComTiles(controle.x + controle.offsetX, controle.y, controle.largura, controle.altura, window.plataformas)) {
+                    
+                    if (incrementoX > 0) { // Indo para Direita
+                        controle.x = Math.floor((controle.x + controle.offsetX + controle.largura) / 32) * 32 - controle.largura - controle.offsetX - EPSILON;
+                    } else { // Indo para Esquerda
+                        controle.x = (Math.floor((controle.x + controle.offsetX) / 32) + 1) * 32 - controle.offsetX + EPSILON;
+                    }
+                    break; // Parar o movimento horizontal após o snap
+                }
+            }
+        } else {
+            // Lógica normal para velocidades baixas
+            if (typeof verificarColisaoComTiles === 'function' && 
+                verificarColisaoComTiles(controle.x + controle.offsetX, controle.y, controle.largura, controle.altura, window.plataformas)) {
+                
+                if (controle.x > xAnterior) { // Indo para Direita
+                    controle.x = Math.floor((controle.x + controle.offsetX + controle.largura) / 32) * 32 - controle.largura - controle.offsetX - EPSILON;
+                } else if (controle.x < xAnterior) { // Indo para Esquerda
+                    controle.x = (Math.floor((controle.x + controle.offsetX) / 32) + 1) * 32 - controle.offsetX + EPSILON;
+                }
+            }
         }
 
         // Calcula a força do pulo final: se tiver a bota, soma o bônus definido nas configurações
@@ -977,86 +1008,75 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             );
         }
 
-        // Mecânica de Queda Rápida: Agora restrita apenas após a execução do Pulo Duplo (pulosRealizados === 2)
+        // Mecânica de Super Descida e Paraquedas
         if (!controle.noChao && controle.velocidadeY < 0 && controle.teclas[' '] && !controle.usandoParaquedas && controle.pulosRealizados === 2) {
-            console.log("Física: Super Descida ativa | VelY:", controle.velocidadeY.toFixed(2));
-            controle.velocidadeY = -20; // Regule aqui a velocidade fixa de descida
+            controle.velocidadeY = -20; 
             controle.superDescidaAtiva = true;
         }
-
-    // Mecânica de Paraquedas: Limita a velocidade de queda para criar o efeito de flutuação
-    if (controle.usandoParaquedas && controle.velocidadeY < -1.5) {
-        controle.velocidadeY = -1.5; // Impede que o player caia mais rápido que 1.5 pixels por frame
-    }
-
-        // Resetamos o estado para ser revalidado pelas colisões verticais abaixo
-        controle.noChao = false;
-
-        // 2. Colisão Vertical para cima/baixo contra as plataformas
-        if (typeof verificarColisaoComTiles === 'function' && 
-            verificarColisaoComTiles(controle.x + config.HITBOX_OFFSET_X, controle.y, hitboxWidth, hitboxHeight, window.plataformas)) {
-            
-            if (controle.velocidadeY < 0) { // Caindo: toca o topo da plataforma
-                controle.noChao = true;
-                
-                // Se o player pousou usando a Super Descida, aplica o cooldown de 1s (60 frames)
-                if (controle.superDescidaAtiva) {
-                    controle.cooldownPosSuperDescida = 60;
-                    controle.superDescidaAtiva = false;
-
-                    // Aplica stun aos inimigos próximos
-                    if (window.inimigos && Array.isArray(window.inimigos)) {
-                        window.inimigos.forEach(inimigo => {
-                            // Verifica se o inimigo está a 32px do player (considerando o centro do player)
-                            // Player largura 32px, inimigo largura 32px.
-                            // Distância entre os centros: abs((controle.x + 16) - (inimigo.x + 16))
-                            // Se a distância for <= 32, significa que eles estão bem próximos.
-                            const distanciaX = Math.abs((controle.x + 16) - (inimigo.x + 16));
-                            if (distanciaX <= 32 && inimigo.noChao) {
-                                inimigo.stunned = true;
-                                inimigo.stunTimer = 120; // 2 segundos de stun (120 frames)
-                                console.log(`Inimigo em x:${inimigo.x} atordoado pela Super Descida!`);
-                            }
-                        });
-                    }
-                    // Criação do efeito visual de impacto
-                    const impacto = document.createElement('img');
-                    impacto.src = 'personagem/impacto.png';
-                    impacto.style.position = 'absolute';
-                    impacto.style.width = '64px'; // Um pouco maior para destaque
-                    impacto.style.height = '32px'; // Ajustado para o tamanho real do sprite
-                    impacto.style.left = (controle.x - 16) + 'px'; // Centraliza nos pés
-                    impacto.style.bottom = controle.y + 'px'; // Alinha com a base do personagem (base do player)
-                    impacto.style.zIndex = '11'; // Garante que apareça acima de todos os outros elementos do player
-                    impacto.style.imageRendering = 'pixelated';
-                    impacto.style.pointerEvents = 'none';
-                    impacto.style.transition = 'transform 0.4s ease-out, opacity 0.4s ease-out';
-                    elemento.parentElement.appendChild(impacto);
-
-                    requestAnimationFrame(() => {
-                        impacto.style.transform = 'scale(.2)';
-                        impacto.style.opacity = '0';
-                    });
-
-                    setTimeout(() => impacto.remove(), 400);
-                    console.log("Mecânica: Pouso pesado! Pulo bloqueado por 1s.");
-                }
-
-                controle.velocidadeY = 0;
-                controle.y = Math.floor((controle.y + 0.1) / 32 + 1) * 32;
-            } else if (controle.velocidadeY > 0) { // Subindo: bate a cabeça
-                controle.velocidadeY = 0;
-                controle.y = Math.floor((controle.y + hitboxHeight) / 32) * 32 - hitboxHeight;
-            }
+        if (controle.usandoParaquedas && controle.velocidadeY < -1.5) {
+            controle.velocidadeY = -1.5; 
         }
 
-        // Aplica a lógica de colisão com os limites do palco
-        const yHitboxAntes = controle.y;
-        const posicaoAjustada = limitarPosicaoAoPalco(controle.x + config.HITBOX_OFFSET_X, controle.y, config.HITBOX_LARGURA, config.HITBOX_ALTURA);
+        // ITEM 5: Resolução Diagonal (Verifica colisão vertical usando a posição X JÁ CORRIGIDA)
+        controle.noChao = false;
+        const distTotalY = controle.y - yAnterior;
         
-        controle.x = posicaoAjustada.x - config.HITBOX_OFFSET_X;
-        // Não aplicamos o ajuste automático de Y do limitarPosicaoAoPalco para permitir que o player caia
-        // controle.y = posicaoAjustada.y; 
+        // Sub-stepping Vertical para Super Descida
+        const passosY = Math.ceil(Math.abs(distTotalY) / 16);
+        const incrementoY = distTotalY / passosY;
+        
+        if (passosY > 1) {
+            controle.y = yAnterior;
+            for (let j = 0; j < passosY; j++) {
+                controle.y += incrementoY;
+                if (verificarColisaoVertical(controle, yAnterior, incrementoY)) break;
+            }
+        } else {
+            verificarColisaoVertical(controle, yAnterior, distTotalY);
+        }
+
+        function verificarColisaoVertical(ctrl, yAnt, incY) {
+            if (typeof verificarColisaoComTiles === 'function' && 
+                verificarColisaoComTiles(ctrl.x + ctrl.offsetX, ctrl.y, ctrl.largura, ctrl.altura, window.plataformas)) {
+                
+                if (incY < 0) { // Caindo
+                    ctrl.noChao = true;
+                    if (ctrl.superDescidaAtiva) {
+                        aplicarImpactoSuperDescida(ctrl);
+                        ctrl.superDescidaAtiva = false;
+                        ctrl.cooldownPosSuperDescida = 60;
+                    }
+                    ctrl.velocidadeY = 0;
+                    ctrl.y = Math.floor((ctrl.y + EPSILON) / 32 + 1) * 32;
+                } else if (incY > 0) { // Subindo
+                    ctrl.velocidadeY = 0;
+                    ctrl.y = Math.floor((ctrl.y + ctrl.altura) / 32) * 32 - ctrl.altura;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        function aplicarImpactoSuperDescida(ctrl) {
+            if (window.inimigos) {
+                window.inimigos.forEach(inimigo => {
+                    const distanciaX = Math.abs((ctrl.x + 16) - (inimigo.x + 16));
+                    if (distanciaX <= 32 && inimigo.noChao) {
+                        inimigo.stunned = true;
+                        inimigo.stunTimer = 120;
+                    }
+                });
+            }
+            const impacto = document.createElement('img');
+            impacto.src = 'personagem/impacto.png';
+            impacto.style.position = 'absolute';
+            impacto.style.width = '64px'; impacto.style.height = '32px';
+            impacto.style.left = (ctrl.x - 16) + 'px'; impacto.style.bottom = ctrl.y + 'px';
+            impacto.style.zIndex = '11'; impacto.style.imageRendering = 'pixelated';
+            elemento.parentElement.appendChild(impacto);
+            requestAnimationFrame(() => { impacto.style.transform = 'scale(.2)'; impacto.style.opacity = '0'; });
+            setTimeout(() => impacto.remove(), 400);
+        }
 
         // Detecta toque no chão: APENAS se houver colisão real com tiles de plataforma
         if (controle.noChao && controle.velocidadeY <= 0) {
@@ -1092,10 +1112,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             }
         }
 
-        if (yHitboxAntes > posicaoAjustada.y) {
-            // Bateu no teto
-            controle.velocidadeY = 0;
-        }
+        // Removido verificação de teto duplicada aqui, já tratada na colisão vertical
 
         // Gerencia a animação baseada no estado atual
         if (typeof atualizarAnimacao === 'function') {
@@ -1114,10 +1131,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Verifica colisão com o objetivo final
         const hitboxPlayer = { 
-            x: controle.x + config.HITBOX_OFFSET_X, 
+            x: controle.x + controle.offsetX, 
             y: controle.y, 
-            largura: config.HITBOX_LARGURA, 
-            altura: config.HITBOX_ALTURA 
+            largura: controle.largura, 
+            altura: controle.altura 
         };
         if (window.objetivoData && typeof detectarColisaoHitbox === 'function') {
             if (detectarColisaoHitbox(hitboxPlayer, window.objetivoData, 0, 0, 0)) {
@@ -1149,10 +1166,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     };
 
                     const hitboxInimigo = {
-                        x: inimigo.x + config.HITBOX_OFFSET_X,
+                        x: inimigo.x + (inimigo.offsetX || 0),
                         y: inimigo.y,
-                        largura: config.HITBOX_LARGURA,
-                        altura: config.HITBOX_ALTURA
+                        largura: inimigo.largura,
+                        altura: inimigo.altura
                     };
 
                     // Só aplica o dano se o inimigo ainda não foi atingido por este chute específico
@@ -1210,10 +1227,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     for (let j = window.inimigos.length - 1; j >= 0; j--) {
                         const inimigo = window.inimigos[j];
                         const hitboxInimigo = {
-                            x: inimigo.x + config.HITBOX_OFFSET_X,
+                            x: inimigo.x + (inimigo.offsetX || 0),
                             y: inimigo.y,
-                            largura: config.HITBOX_LARGURA,
-                            altura: config.HITBOX_ALTURA
+                            largura: inimigo.largura,
+                            altura: inimigo.altura
                         };
 
                         const hitboxProjetil = {
@@ -1255,8 +1272,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
                             // Limita a posição para o inimigo não sair do palco no momento do impacto
                             if (typeof limitarPosicaoAoPalco === 'function') {
-                                const posAjustada = limitarPosicaoAoPalco(inimigo.x + config.HITBOX_OFFSET_X, inimigo.y, config.HITBOX_LARGURA, config.HITBOX_ALTURA);
-                                inimigo.x = posAjustada.x - config.HITBOX_OFFSET_X;
+                                const posAjustada = limitarPosicaoAoPalco(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura);
+                                inimigo.x = posAjustada.x - (inimigo.offsetX || 0);
                             }
 
                             inimigo.elemento.style.left = inimigo.x + 'px';
@@ -1278,10 +1295,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     }
                 } else if (proj.origem === 'inimigo' && window.playerControle) {
                     const hitboxPlayer = { 
-                        x: window.playerControle.x + config.HITBOX_OFFSET_X, 
+                        x: window.playerControle.x + (window.playerControle.offsetX || 0), 
                         y: window.playerControle.y, 
-                        largura: config.HITBOX_LARGURA, 
-                        altura: config.HITBOX_ALTURA 
+                        largura: window.playerControle.largura, 
+                        altura: window.playerControle.altura 
                     };
                     const hitboxProjetil = { x: proj.x, y: proj.y, largura: config.PROJETIL_LARGURA, altura: config.PROJETIL_ALTURA };
 
