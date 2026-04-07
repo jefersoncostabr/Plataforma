@@ -154,6 +154,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.temJetpack = false;
                     inimigo.jetpackAtivo = false;
                     inimigo.timerVooRestante = 0;
+                    inimigo.framesVoando = 0;
                     inimigo.cooldownVooJetpack = 0;
                     inimigo.framesImpulsoRestante = 0;
                     inimigo.velocidadeDash = 0;
@@ -352,7 +353,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inimigo.puloTimer === 0 && inimigo.jumpQueued) {
                     if (inimigo.temJetpack && !inimigo.jetpackAtivo && inimigo.cooldownVooJetpack === 0) {
                         inimigo.jetpackAtivo = true;
-                        inimigo.timerVooRestante = config.jetpackDuracaoVoo || 360;
+                        if (inimigo.timerVooRestante <= 0) {
+                            inimigo.timerVooRestante = config.jetpackDuracaoVoo || 360;
+                        }
+                        inimigo.framesVoando = 0;
                         inimigo.jumpQueued = false;
                     } else if (inimigo.noChao) {
                         if (inimigo.noChao) { // Só pula se ainda estiver no chão
@@ -366,6 +370,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 // Lógica de Física ou Voo do Jetpack
                 if (inimigo.jetpackAtivo) {
                     inimigo.timerVooRestante--;
+                    inimigo.framesVoando++;
                     
                     // Decisão da IA: voar para cima se o alvo estiver acima
                     const subir = yAlvo > inimigo.y + 10;
@@ -376,10 +381,18 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     }
                     inimigo.y += inimigo.velocidadeY;
 
-                    if (inimigo.timerVooRestante <= 0 || (inimigo.noChao && inimigo.timerVooRestante < (config.jetpackDuracaoVoo - 10))) {
+                    // Lógica de Desativação 1: Tanque vazio. 
+                    // O inimigo perde a sustentação e o equipamento entra em cooldown.
+                    if (inimigo.timerVooRestante <= 0) {
                         inimigo.jetpackAtivo = false;
                         inimigo.velocidadeY = 0;
                         inimigo.cooldownVooJetpack = config.jetpackCooldown || 180;
+                    } 
+                    // Lógica de Desativação 2: Contato com o solo.
+                    // O inimigo interrompe o voo ao pousar em uma plataforma, preservando o combustível restante.
+                    else if (inimigo.noChao && inimigo.framesVoando > 10) {
+                        inimigo.jetpackAtivo = false;
+                        inimigo.velocidadeY = 0;
                     }
                 } else if (typeof aplicarFisica === 'function') {
                     const inimigoTeclasParaFisica = { ' ': window.debugInimigoTeclas && window.debugInimigoTeclas[' '] };
@@ -767,7 +780,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.jetpackElemento.style.bottom = inimigo.y + 'px';
                     inimigo.jetpackElemento.style.transform = inimigo.elemento.style.transform;
 
-                    // Feedback de Cooldown para o Inimigo: Jetpack Vermelho
+                    // Indicação visual de recarga para o inimigo: Aplica um filtro de cor vermelha no sprite durante o tempo de espera (cooldown).
                     if (inimigo.cooldownVooJetpack > 0) {
                         inimigo.jetpackElemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
                     } else {

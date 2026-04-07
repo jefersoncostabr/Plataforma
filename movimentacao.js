@@ -318,6 +318,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         temJetpack: false,
         jetpackAtivo: false,
         timerAtivacaoJetpack: 0,
+        framesVoando: 0,
         timerVooRestante: 0,
         cooldownVooJetpack: 0,
         escudoVermelho: false,
@@ -911,7 +912,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             // Ativação Instantânea: Cima + Pulo (Apenas se não houver cooldown)
             if (segurandoCimaAtivacao && puloAcabouDeSerPressionado && !controle.jetpackAtivo && controle.cooldownVooJetpack === 0) {
                 controle.jetpackAtivo = true;
-                controle.timerVooRestante = config.jetpackDuracaoVoo || 360;
+                // Só reseta o combustível se ele estiver zerado (início de um novo ciclo)
+                if (controle.timerVooRestante <= 0) {
+                    controle.timerVooRestante = config.jetpackDuracaoVoo || 360;
+                }
+                controle.framesVoando = 0; // Reseta o tempo de decolagem
                 controle.timerAtivacaoJetpack = 0;
             } 
             // Ativação por tempo (Segurar Espaço por 2 segundos) (Apenas se não houver cooldown)
@@ -919,7 +924,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 controle.timerAtivacaoJetpack++;
                 if (controle.timerAtivacaoJetpack >= (config.jetpackTempoAtivacao || 120) && !controle.jetpackAtivo) {
                     controle.jetpackAtivo = true;
-                    controle.timerVooRestante = config.jetpackDuracaoVoo || 360;
+                    if (controle.timerVooRestante <= 0) {
+                        controle.timerVooRestante = config.jetpackDuracaoVoo || 360;
+                    }
+                    controle.framesVoando = 0;
                 }
             } else {
                 controle.timerAtivacaoJetpack = 0;
@@ -929,7 +937,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // Gerenciamento de Física e Voo
         if (controle.jetpackAtivo) {
             controle.timerVooRestante--;
-            
+            controle.framesVoando++;
+
             if (controle.teclas['ArrowUp'] || controle.teclas['w'] || controle.teclas['W']) {
                 controle.velocidadeY = config.jetpackForcaVoo || 2; // Sobe lentamente
             } else {
@@ -937,12 +946,14 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             }
             controle.y += controle.velocidadeY;
 
-            // Desliga se acabar o tempo ou se tocar o chão (com margem de 10 frames para decolagem)
-            if (controle.timerVooRestante <= 0 || (controle.noChao && controle.timerVooRestante < (config.jetpackDuracaoVoo - 10))) {
+            // Lógica de Desativação 1: Esgotamento de Combustível.
+            // Quando o timer zera, o motor desliga forçadamente e entra em estado de recarga (cooldown), ativando o filtro visual vermelho.
+            if (controle.timerVooRestante <= 0) {
                 controle.jetpackAtivo = false;
                 controle.velocidadeY = 0;
-                controle.cooldownVooJetpack = config.jetpackCooldown || 180; // Inicia o cooldown ao terminar o voo
+                controle.cooldownVooJetpack = config.jetpackCooldown || 180;// Inicia o cooldown ao terminar o voo
             }
+
         } else {
             // Aplica gravidade e pulo normal (definido em fisica.js)
             aplicarFisica(
@@ -1510,7 +1521,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             jetpackElemento.style.bottom = controle.y + 'px';
             jetpackElemento.style.transform = elemento.style.transform;
 
-            // Feedback de Cooldown: O Jetpack fica vermelho enquanto recarrega
+            // Indicação visual de recarga: Aplica um filtro CSS de cor vermelha para sinalizar que o Jetpack está em tempo de espera (cooldown) e indisponível para uso.
             if (controle.cooldownVooJetpack > 0) {
                 jetpackElemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
             } else {

@@ -1,0 +1,12 @@
+{
+    "posicaoInicialJogador": "b2",
+    "objetivo": "f19",
+    "plataformas": [
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", 
+        "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20",
+        "c10", "d9", "f7", "g6","e8",
+        "h1", "h2", "h3", "h4", "h5"
+    ],
+    "inimigos0": ["b19", "b20"],
+    "inimigoAleatorio": [1, 0]
+}

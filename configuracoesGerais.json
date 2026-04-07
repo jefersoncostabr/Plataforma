@@ -71,7 +71,7 @@
     "jetpackTempoAtivacao": 120,
     "jetpackDuracaoVoo": 360,
     "jetpackCooldown": 180,
-    "faseInicial": 0,
+    "faseInicial": 4,
     "escalaPalco": 1.5,
     "airdrop1": {
         "espera": 10,
