@@ -4,11 +4,18 @@
     "plataformas": [
         "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", 
         "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20",
-        "c10", "d9", "f7", "g6","e8",
+        "c10", "d9", "f7", "g6", "g19", "g20", "e8",
         "j5", "k6", "k7", "k8", "k9", "k11", "k12", "k13", "k14", "k15", "k16", "k17", "k18", "k19",
         "h1", "h2", "h3", "h4", "h5"
     ],
-    "inimigos4": ["b19", "b20"],
-    "inimigos0": ["l6", "l19"],
+    "inimigos4": ["b19", "b20", "o19"],
+    "inimigos0": ["l6", "h6", "f8", "e9"],
+    "itens": [
+        { "tipo": "escudo", "pos": "l13" },
+        { "tipo": "revolver", "pos": "l17" },
+        { "tipo": "revolver", "pos": "g7" },
+        { "tipo": "bota", "pos": "l15" }
+    ],
+    
     "inimigoAleatorio": [1, 0]
 }

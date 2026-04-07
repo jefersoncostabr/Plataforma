@@ -60,12 +60,13 @@ function criarInimigo(idPalco, imagemPath, coord, direcao = 'e', tipo = 1) {
 }
 
 /**
- * Converte uma coordenada do grid (ex: "b10") para coordenadas em pixels.
+ * Converte uma coordenada do grid (ex: "b10") para coordenadas em pixels. 
+ * Nomeada como gridParaPixels para manter consistência com o restante do motor.
  * 
  * @param {string} coord - Coordenada no grid.
  * @returns {object} Objeto com x e y em pixels.
  */
-function coordenadaParaPosicao(coord) {
+window.gridParaPixels = function(coord) {
     const coordLimpa = coord.trim().toLowerCase();
     const letra = coordLimpa[0];
     const numero = parseInt(coordLimpa.substring(1));

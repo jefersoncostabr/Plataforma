@@ -53,25 +53,27 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         if (!palco) return;
         dadosInimigos.forEach(dado => {
             const posStr = typeof dado === 'object' ? dado.pos : dado;
-            const pos = gridParaPixels(posStr);
-            const img = document.createElement('img');
-            img.src = spriteParado;
-            img.style.position = 'absolute';
-            img.style.width = '32px';
-            img.style.height = '32px';
-            img.style.left = pos.x + 'px';
-            img.style.bottom = pos.y + 'px';
-            img.style.zIndex = '4';
-            img.style.imageRendering = 'pixelated';
-            palco.appendChild(img);
+            // Obtém as coordenadas X e Y usando a função global gridParaPixels
+            const pos = typeof window.gridParaPixels === 'function' ? window.gridParaPixels(posStr) : {x: 0, y: 0};
+            
+            const inimigoImg = document.createElement('img'); // Variável correta para o elemento imagem do inimigo
+            inimigoImg.src = spriteParado;
+            inimigoImg.style.position = 'absolute';
+            inimigoImg.style.width = '32px';
+            inimigoImg.style.height = '32px';
+            inimigoImg.style.left = pos.x + 'px';
+            inimigoImg.style.bottom = pos.y + 'px';
+            inimigoImg.style.zIndex = '4';
+            inimigoImg.style.imageRendering = 'pixelated';
+            palco.appendChild(inimigoImg);
 
             window.inimigos.push({
                 x: pos.x,
                 y: pos.y,
-                largura: config.HITBOX_LARGURA,
-                altura: config.HITBOX_ALTURA,
-                offsetX: config.HITBOX_OFFSET_X,
-                elemento: img,
+                largura: config.HITBOX_LARGURA, // Atribuir largura aqui
+                altura: config.HITBOX_ALTURA,   // Atribuir altura aqui
+                offsetX: config.HITBOX_OFFSET_X, // Atribuir offsetX aqui
+                elemento: inimigoImg, // Usar a variável correta
                 perseguindo: false,
                 tipo: dado.tipo !== undefined ? dado.tipo : 1
                 ,
@@ -460,7 +462,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                  (item.tipo === 'jetpack' && inimigo.temJetpack))) continue;
 
                             inimigo.estaColetando = true;
-                            inimigo.timerColeta = 180; // 3 segundos a 60fps
+                            inimigo.timerColeta = 100; // Reduzido em 1/4 (aprox. 2.25 segundos)
                             inimigo.itemSendoColetado = item;
                             break;
                         }

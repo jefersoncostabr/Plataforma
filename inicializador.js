@@ -50,7 +50,7 @@ async function carregarFase(nomeArquivo) {
     // 3. Posiciona o jogador
     if (window.playerControle) {
         const pos = typeof fase.posicaoInicialJogador === 'string' 
-            ? gridParaPixels(fase.posicaoInicialJogador) 
+            ? (typeof window.gridParaPixels === 'function' ? window.gridParaPixels(fase.posicaoInicialJogador) : {x: 0, y: 0})
             : fase.posicaoInicialJogador;
         window.playerControle.x = pos.x;
         window.playerControle.y = pos.y;
@@ -82,8 +82,8 @@ async function carregarFase(nomeArquivo) {
     }
 
     // 5. Cria os itens iniciais da fase (como o escudo)
-    if (typeof resetarItens === 'function') {
-        resetarItens(fase.itens || []);
+    if (typeof window.resetarItens === 'function') {
+        window.resetarItens(fase.itens || []);
     }
 
     // 6. Configura o intervalo para inimigo aleatório (se habilitado)

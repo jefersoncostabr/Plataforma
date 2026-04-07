@@ -381,15 +381,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         console.log("resetarItens: Dados de itens recebidos:", dadosItens);
 
         dadosItens.forEach(dado => {
-            if ((dado.tipo === 'escudo' && controle.temEscudo) || 
-                (dado.tipo === 'revolver' && controle.temArma) ||
-                (dado.tipo === 'bota' && controle.temBota) ||
-                (dado.tipo === 'jetpack' && controle.temJetpack)) {
-                console.log(`resetarItens: Item ${dado.tipo} não gerado porque o jogador já o possui.`);
-                return;
-            }
+            // Tenta obter o container do palco de forma segura
+            const palco = document.getElementById('game-stage') || elemento.parentElement;
+            if (!palco) return;
 
-            const pos = typeof gridParaPixels === 'function' ? gridParaPixels(dado.pos) : {x: 0, y: 0};
+            const pos = typeof window.gridParaPixels === 'function' ? window.gridParaPixels(dado.pos) : {x: 0, y: 0};
             const itemImg = document.createElement('img');
             
             // Define o sprite baseado no tipo (escudo, bota ou revolver)
@@ -411,7 +407,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             console.log(`resetarItens: Tentando adicionar item ${dado.tipo} em x:${pos.x}, y:${pos.y} com src:${itemImg.src}`);
             itemImg.style.zIndex = '3';
             itemImg.style.imageRendering = 'pixelated';
-            elemento.parentElement.appendChild(itemImg);
+            palco.appendChild(itemImg);
 
             window.itensColetaveis.push({
                 x: pos.x, y: pos.y,
@@ -1191,7 +1187,13 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
                         // Knockback: Lança o inimigo para trás com base na direção do jogador
                         const direcaoKnockback = (controle.direcao === 'd' ? 1 : -1);
-                        const valorKnockbackInimigo = obterKnockback(config, 'playerChute');
+                        let valorKnockbackInimigo = obterKnockback(config, 'playerChute');
+                        
+                        // Reduz knockback do inimigo se ele estiver com escudo ativo
+                        if (inimigo.temEscudo && !inimigo.escudoVermelho) {
+                            valorKnockbackInimigo *= Number(config.escudoKnockbackMultiplicador ?? 0.5);
+                        }
+
                         const duracaoRecuoInimigo = 15; // Duração do recuo em frames
                         inimigo.framesKnockbackRestante = duracaoRecuoInimigo;
                         inimigo.velocidadeKnockback = (valorKnockbackInimigo / duracaoRecuoInimigo) * direcaoKnockback;
@@ -1468,8 +1470,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         salvarInventario();
                     } else if (item.tipo === 'revolver') { // Este bloco é para coleta de revólver *não* via airdrop
                         // console.log("Jogador coletou o revólver!");
+                        
+                        // Se já tem a arma, apenas soma a munição (até o limite)
+                        const novaMunicao = item.municao !== undefined ? item.municao : (config.maxMunicao || 5);
+                        controle.municao = Math.min((controle.municao || 0) + novaMunicao, (config.maxMunicao || 5) * 2);
+                        
                         controle.temArma = true;
-                        controle.municao = item.municao !== undefined ? item.municao : (config.maxMunicao || 5);
                         if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
                         armaElemento.style.display = 'block';
                         salvarInventario();
