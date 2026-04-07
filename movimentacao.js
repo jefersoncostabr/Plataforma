@@ -796,6 +796,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.framesImpulsoRestante--;
         }
 
+        // Aplica knockback se o jogador foi atingido (executa o movimento calculado)
+        if (controle.framesKnockbackRestante > 0) {
+            controle.x += controle.velocidadeKnockback;
+            controle.framesKnockbackRestante--;
+        }
+
         // Lógica de Disparo (tecla I)
         if ((controle.teclas['i'] || controle.teclas['I']) && controle.cooldownTiro === 0 && controle.temArma && controle.municao > 0) {
             controle.cooldownTiro = config.cooldownTiro; 
