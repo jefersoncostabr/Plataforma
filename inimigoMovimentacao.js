@@ -111,14 +111,16 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 
                 let xAnterior = inimigo.x;
 
-                // Detecta se há um AirDrop em um raio de 6 blocos (192px)
-                const airdropPerto = window.itensColetaveis?.find(it => 
-                    it.tipo === 'airdrop' && 
+                // Refinamento IA: Detecta itens de interesse (AirDrop ou Jetpack se não possuir um)
+                const itemInteresse = window.itensColetaveis?.find(it => 
+                    (it.tipo === 'airdrop' || (it.tipo === 'jetpack' && !inimigo.temJetpack)) && 
                     Math.abs(it.x - inimigo.x) <= 192 && 
                     Math.abs(it.y - inimigo.y) <= 128
                 );
-                const xAlvo = airdropPerto ? airdropPerto.x : playerX;
-                const yAlvo = airdropPerto ? airdropPerto.y : playerY;
+                
+                // Se houver um item de interesse por perto, ele vira o alvo prioritário da IA
+                const xAlvo = itemInteresse ? itemInteresse.x : playerX;
+                const yAlvo = itemInteresse ? itemInteresse.y : playerY;
 
                 const estaChutando = inimigo.tempoChute > 0;
 
@@ -179,69 +181,79 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.cooldownAfastamento = 0;
 
                     // Cria o elemento da arma (revolver) acoplado ao inimigo
-                    const arma = document.createElement('img');
-                    arma.src = config.spriteArmaPlayer || 'personagem/revolver.png';
-                    arma.style.position = 'absolute';
-                    arma.style.width = '32px';
-                    arma.style.height = '32px';
-                    arma.style.zIndex = '6'; // Mesma camada da arma do player
-                    arma.style.imageRendering = 'pixelated';
-                    arma.style.pointerEvents = 'none';
-                    arma.style.display = inimigo.temArma ? 'block' : 'none';
-                    inimigo.elemento.parentElement.appendChild(arma);
-                    inimigo.armaElemento = arma;
+                    if (!inimigo.armaElemento) {
+                        const arma = document.createElement('img');
+                        arma.src = config.spriteArmaPlayer || 'personagem/revolver.png';
+                        arma.style.position = 'absolute';
+                        arma.style.width = '32px';
+                        arma.style.height = '32px';
+                        arma.style.zIndex = '6'; // Mesma camada da arma do player
+                        arma.style.imageRendering = 'pixelated';
+                        arma.style.pointerEvents = 'none';
+                        arma.style.display = inimigo.temArma ? 'block' : 'none';
+                        inimigo.elemento.parentElement.appendChild(arma);
+                        inimigo.armaElemento = arma;
+                    }
 
                     // Cria o elemento visual da bota para o inimigo
-                    const bota = document.createElement('img');
-                    bota.src = config.spriteBotaParado || 'personagem/bota_parado.png';
-                    bota.style.position = 'absolute';
-                    bota.style.width = '32px';
-                    bota.style.height = '32px';
-                    bota.style.zIndex = '8';
-                    bota.style.imageRendering = 'pixelated';
-                    bota.style.pointerEvents = 'none';
-                    bota.style.display = inimigo.temBota ? 'block' : 'none';
-                    inimigo.elemento.parentElement.appendChild(bota);
-                    inimigo.botaElemento = bota;
+                    if (!inimigo.botaElemento) {
+                        const bota = document.createElement('img');
+                        bota.src = config.spriteBotaParado || 'personagem/bota_parado.png';
+                        bota.style.position = 'absolute';
+                        bota.style.width = '32px';
+                        bota.style.height = '32px';
+                        bota.style.zIndex = '8';
+                        bota.style.imageRendering = 'pixelated';
+                        bota.style.pointerEvents = 'none';
+                        bota.style.display = inimigo.temBota ? 'block' : 'none';
+                        inimigo.elemento.parentElement.appendChild(bota);
+                        inimigo.botaElemento = bota;
+                    }
 
                     // Cria o elemento do escudo para o inimigo tipo 2
-                    const escudo = document.createElement('img');
-                    escudo.src = config.spriteEscudoPlayer || 'personagem/escudo.png';
-                    escudo.style.position = 'absolute';
-                    escudo.style.width = '32px';
-                    escudo.style.height = '32px';
-                    escudo.style.zIndex = '7';
-                    escudo.style.imageRendering = 'pixelated';
-                    escudo.style.pointerEvents = 'none';
-                    escudo.style.display = inimigo.temEscudo ? 'block' : 'none';
-                    inimigo.elemento.parentElement.appendChild(escudo);
-                    inimigo.escudoElemento = escudo;
+                    if (!inimigo.escudoElemento) {
+                        const escudo = document.createElement('img');
+                        escudo.src = config.spriteEscudoPlayer || 'personagem/escudo.png';
+                        escudo.style.position = 'absolute';
+                        escudo.style.width = '32px';
+                        escudo.style.height = '32px';
+                        escudo.style.zIndex = '7';
+                        escudo.style.imageRendering = 'pixelated';
+                        escudo.style.pointerEvents = 'none';
+                        escudo.style.display = inimigo.temEscudo ? 'block' : 'none';
+                        inimigo.elemento.parentElement.appendChild(escudo);
+                        inimigo.escudoElemento = escudo;
+                    }
 
                     // Cria o elemento do jetpack para o inimigo
-                    const jetpack = document.createElement('img');
-                    jetpack.src = config.spriteJetpackPlayer || 'personagem/jetpack.png';
-                    jetpack.style.position = 'absolute';
-                    jetpack.style.width = '32px';
-                    jetpack.style.height = '32px';
-                    jetpack.style.zIndex = '3'; // Atrás do inimigo (4)
-                    jetpack.style.imageRendering = 'pixelated';
-                    jetpack.style.pointerEvents = 'none';
-                    jetpack.style.display = inimigo.temJetpack ? 'block' : 'none';
-                    inimigo.elemento.parentElement.appendChild(jetpack);
-                    inimigo.jetpackElemento = jetpack;
+                    if (!inimigo.jetpackElemento) {
+                        const jetpack = document.createElement('img');
+                        jetpack.src = config.spriteJetpackPlayer || 'personagem/jetpack.png';
+                        jetpack.style.position = 'absolute';
+                        jetpack.style.width = '32px';
+                        jetpack.style.height = '32px';
+                        jetpack.style.zIndex = '3'; // Atrás do inimigo (4)
+                        jetpack.style.imageRendering = 'pixelated';
+                        jetpack.style.pointerEvents = 'none';
+                        jetpack.style.display = inimigo.temJetpack ? 'block' : 'none';
+                        inimigo.elemento.parentElement.appendChild(jetpack);
+                        inimigo.jetpackElemento = jetpack;
+                    }
 
                     // Cria o elemento do fogo do jetpack para o inimigo
-                    const jetFogo = document.createElement('img');
-                    jetFogo.src = config.spriteJetFogo || 'personagem/jet.png';
-                    jetFogo.style.position = 'absolute';
-                    jetFogo.style.width = '32px';
-                    jetFogo.style.height = '32px';
-                    jetFogo.style.zIndex = '3'; // Atrás do jetpack
-                    jetFogo.style.imageRendering = 'pixelated';
-                    jetFogo.style.pointerEvents = 'none';
-                    jetFogo.style.display = 'none';
-                    inimigo.elemento.parentElement.appendChild(jetFogo);
-                    inimigo.jetFogoElemento = jetFogo;
+                    if (!inimigo.jetFogoElemento) {
+                        const jetFogo = document.createElement('img');
+                        jetFogo.src = config.spriteJetFogo || 'personagem/jet.png';
+                        jetFogo.style.position = 'absolute';
+                        jetFogo.style.width = '32px';
+                        jetFogo.style.height = '32px';
+                        jetFogo.style.zIndex = '3'; // Atrás do jetpack
+                        jetFogo.style.imageRendering = 'pixelated';
+                        jetFogo.style.pointerEvents = 'none';
+                        jetFogo.style.display = 'none';
+                        inimigo.elemento.parentElement.appendChild(jetFogo);
+                        inimigo.jetFogoElemento = jetFogo;
+                    }
                 }
 
                 // Atualiza timers de chute
@@ -337,7 +349,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 }
 
                 // Ativa a perseguição se o jogador estiver perto OU se detectar um tiro vindo no radar
-                if (!inimigo.perseguindo && (distanciaAtual <= distanciaAtivacao || projVindo || airdropPerto)) {
+                if (!inimigo.perseguindo && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse)) {
                     inimigo.perseguindo = true;
                     // console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
                 }
@@ -422,6 +434,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.armaElemento) inimigo.armaElemento.remove();
                     if (inimigo.botaElemento) inimigo.botaElemento.remove();
                     if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
+                    if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
+                    if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
                     inimigo.elemento.remove();
                     window.inimigos.splice(i, 1);
                     continue;

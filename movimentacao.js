@@ -1181,6 +1181,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             if (inimigo.armaElemento) inimigo.armaElemento.remove();
                             if (inimigo.botaElemento) inimigo.botaElemento.remove();
                             if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
+                            if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
+                            if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
                             inimigo.elemento.remove();
                             window.inimigos.splice(i, 1);
                         }
@@ -1259,6 +1261,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 if (inimigo.armaElemento) inimigo.armaElemento.remove();
                                 if (inimigo.botaElemento) inimigo.botaElemento.remove();
                                 if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
+                                if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
+                                if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
                                 inimigo.elemento.remove();
                                 window.inimigos.splice(j, 1);
                             }
@@ -1372,6 +1376,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         controle.temJetpack = true;
                         console.log("Jogador coletou o jetpack!"); // Adicionado console.log
                         if (!controle.inventario.includes('jetpack')) controle.inventario.push('jetpack');
+                        // Refinamento: Garante que o item coletado venha com carga e pronto para uso
+                        controle.timerVooRestante = config.jetpackDuracaoVoo || 360;
+                        controle.cooldownVooJetpack = 0;
                         jetpackElemento.style.display = 'block';
                         salvarInventario();
                     } else if (item.tipo === 'airdrop') {
@@ -1462,12 +1469,18 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     }
                 }
 
-                // Limite do Palco
+                // Passo 5: Física de Limite do Palco e Remoção por Queda
                 if (typeof limitarPosicaoAoPalco === 'function') {
-                    const pos = limitarPosicaoAoPalco(item.x, item.y, 32, 32);
-                    item.x = pos.x;
-                    item.y = pos.y;
-                    if (item.y <= 32) item.velocidadeY = 0;
+                    // Ajustamos apenas o X para manter o item dentro das paredes laterais
+                    const posAjustada = limitarPosicaoAoPalco(item.x, item.y, 32, 32);
+                    item.x = posAjustada.x;
+
+                    // Se o item cair em um buraco (abaixo de -64px), removemos o elemento para otimização
+                    if (item.y < -64) {
+                        item.elemento.remove();
+                        window.itensColetaveis.splice(i, 1);
+                        continue;
+                    }
                 }
 
                 // Atualiza visual do item

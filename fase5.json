@@ -10,6 +10,5 @@
     ],
     "inimigos4": ["b19", "b20"],
     "inimigos0": ["l6", "l19"],
-    "itens": [{"tipo": "jetpack", "pos": "b4"}],
     "inimigoAleatorio": [1, 0]
 }

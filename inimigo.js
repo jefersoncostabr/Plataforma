@@ -224,16 +224,21 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     inimigoImg.style.transform = 'scaleX(1)'; // Virado para esquerda inicialmente
     palco.appendChild(inimigoImg);
     
-    // Determina tipo e equipamento baseado no parâmetro
-    let tipoInimigo = 0; // 0 = melee, 1 = revolver
+    // Determina tipo e equipamento baseado no parâmetro (0=melee, 1=revolver, 2=escudo, 3=bota, 4=jetpack)
+    let tipoInimigo = tipoEquipamento; 
     let temArma = false;
     let temEscudo = false;
+    let temBota = false;
+    let temJetpack = false;
     
-    if (tipoEquipamento === 1) {
-        tipoInimigo = 1; // Revolver
+    if (tipoInimigo === 1) {
         temArma = true;
-    } else if (tipoEquipamento === 2) {
+    } else if (tipoInimigo === 2) {
         temEscudo = true;
+    } else if (tipoInimigo === 3) {
+        temBota = true;
+    } else if (tipoInimigo === 4) {
+        temJetpack = true;
     }
     
     // Registra o inimigo na lista global
@@ -249,6 +254,8 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         aleatorio: true, // Marca como inimigo aleatório
         temArma: temArma,
         temEscudo: temEscudo,
+        temBota: temBota,
+        temJetpack: temJetpack,
         escudoVermelho: false,
         escudoProtegido: 0,
         stunned: false, // Adiciona propriedade de stun
@@ -290,7 +297,35 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         palco.appendChild(escudoImg);
         novoInimigo.escudoElemento = escudoImg;
     }
+
+    // Cria elemento de bota se necessário
+    if (temBota) {
+        const botaImg = document.createElement('img');
+        botaImg.src = window.config?.spriteBotaParado || 'personagem/bota_parado.png';
+        botaImg.style.position = 'absolute';
+        botaImg.style.width = tamanhoTile + 'px';
+        botaImg.style.height = tamanhoTile + 'px';
+        botaImg.style.zIndex = '8';
+        botaImg.style.imageRendering = 'pixelated';
+        botaImg.style.pointerEvents = 'none';
+        palco.appendChild(botaImg);
+        novoInimigo.botaElemento = botaImg;
+    }
+
+    // Cria elemento de jetpack se necessário
+    if (temJetpack) {
+        const jetpackImg = document.createElement('img');
+        jetpackImg.src = window.config?.spriteJetpackPlayer || 'personagem/jetpack.png';
+        jetpackImg.style.position = 'absolute';
+        jetpackImg.style.width = tamanhoTile + 'px';
+        jetpackImg.style.height = tamanhoTile + 'px';
+        jetpackImg.style.zIndex = '3';
+        jetpackImg.style.imageRendering = 'pixelated';
+        jetpackImg.style.pointerEvents = 'none';
+        palco.appendChild(jetpackImg);
+        novoInimigo.jetpackElemento = jetpackImg;
+    }
     
-    const equipamento = temArma ? 'revólver' : (temEscudo ? 'escudo' : 'sem equipamento');
+    const equipamento = temArma ? 'revólver' : (temEscudo ? 'escudo' : (temBota ? 'botas' : (temJetpack ? 'jetpack' : 'sem equipamento')));
     console.log(`✓ Inimigo aleatório criado em (${posicao.x}px, ${posicao.y}px) - Equipamento: ${equipamento}`);
 }
