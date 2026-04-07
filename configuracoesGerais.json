@@ -30,6 +30,7 @@
     "spriteItemBota": "personagem/bota_pegavel.png",
     "spriteJetpackPlayer": "personagem/jetpack.png",
     "spriteItemJetpack": "personagem/jetpack_pegavel.png",
+    "spriteJetFogo": "personagem/jet.png",
     "spriteBotaParado": "personagem/bota_parado.png",
     "spriteBotaAndando": "personagem/bota_andando.png",
     "spriteBotaChutando": "personagem/bota_chutando.png",

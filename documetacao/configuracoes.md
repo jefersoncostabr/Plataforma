@@ -33,6 +33,9 @@ Este documento descreve cada campo presente no arquivo de configuração central
 | `escudoTirosProtegidos` | Number | Quantos ataques o escudo aguenta antes de quebrar (ficar vermelho). |
 | `bonusVelocidadeBota` | Number | Velocidade adicional concedida ao personagem (jogador ou inimigo) que estiver usando botas. |
 | `bonusPuloBota` | Number | Força extra adicionada ao pulo quando as botas estão equipadas. |
+| `jetpackForcaVoo` | Number | Força de subida do Jetpack enquanto pressiona para cima. |
+| `jetpackTempoAtivacao` | Number | Tempo necessário segurando o pulo (em frames) para ligar o motor (120 = 2s). |
+| `jetpackDuracaoVoo` | Number | Tempo total de voo (em frames) antes do combustível acabar (360 = 6s). |
 
 ## 4. Inteligência Artificial (Inimigos)
 
@@ -84,6 +87,9 @@ Este documento descreve cada campo presente no arquivo de configuração central
 | `spriteItemEscudo` | Item coletável no chão. |
 | `spriteItemBota` | Item de bota coletável no chão. |
 | `spriteItemRevolver` | Item de arma coletável no chão. |
+| `spriteItemJetpack` | Item de Jetpack coletável no chão. |
+| `spriteJetpackPlayer` | Visual do Jetpack equipado nas costas. |
+| `spriteJetFogo` | Sprite da chama/fogo expelido pelo Jetpack. |
 | `spriteBotaParado` | Visual da bota equipada em estado estático. |
 | `spriteBotaAndando` | Visual da bota equipada durante o movimento. |
 | `spriteBotaChutando` | Visual da bota equipada durante o ataque de chute. |

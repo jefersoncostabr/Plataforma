@@ -167,6 +167,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.jetpackAtivo = false;
             controle.timerAtivacaoJetpack = 0;
             jetpackElemento.style.display = 'none'; // Oculta o visual do jetpack
+            jetFogoElemento.style.display = 'none'; // Oculta o fogo ao dropar
         }
 
         itemImg.style.position = 'absolute';
@@ -465,6 +466,19 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     jetpackElemento.style.imageRendering = 'pixelated';
     jetpackElemento.style.pointerEvents = 'none';
     elemento.parentElement.appendChild(jetpackElemento);
+
+    // Elemento do Fogo do Jetpack
+    const jetFogoElemento = document.createElement('img');
+    jetFogoElemento.id = 'player-jet-fire';
+    jetFogoElemento.src = config.spriteJetFogo || 'personagem/jet.png';
+    jetFogoElemento.style.position = 'absolute';
+    jetFogoElemento.style.width = '32px';
+    jetFogoElemento.style.height = '32px';
+    jetFogoElemento.style.zIndex = '3'; // Atrás do jetpack (4) e jogador (5)
+    jetFogoElemento.style.display = 'none';
+    jetFogoElemento.style.imageRendering = 'pixelated';
+    jetFogoElemento.style.pointerEvents = 'none';
+    elemento.parentElement.appendChild(jetFogoElemento);
 
     // Elemento do Paraquedas
     const paraquedasElemento = document.createElement('img');
@@ -898,9 +912,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // Gerenciamento de Física e Voo
         if (controle.jetpackAtivo) {
             controle.timerVooRestante--;
-            controle.velocidadeY = 0; // Neutraliza gravidade
+            
             if (controle.teclas['ArrowUp'] || controle.teclas['w'] || controle.teclas['W']) {
                 controle.velocidadeY = config.jetpackForcaVoo || 2; // Sobe lentamente
+            } else {
+                controle.velocidadeY = -1; // Desce lentamente ao soltar as teclas
             }
             controle.y += controle.velocidadeY;
 
@@ -1469,14 +1485,29 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             }
         }
 
-        // Sincroniza a posição e visibilidade do Jetpack
+        // Sincroniza a posição e visibilidade do Jetpack e do Fogo
         if (controle.temJetpack) {
             jetpackElemento.style.display = 'block';
             jetpackElemento.style.left = controle.x + 'px';
             jetpackElemento.style.bottom = controle.y + 'px';
             jetpackElemento.style.transform = elemento.style.transform;
+
+            // Lógica do Fogo: aparece apenas quando voando e subindo com efeito de cintilação (piscar)
+            const subindo = (controle.teclas['ArrowUp'] || controle.teclas['w'] || controle.teclas['W']);
+            const efeitoPisca = (controle.timerVooRestante % 4 < 2); // Alterna visibilidade a cada 2 frames (rápido)
+            const tremorFogo = (Math.random() * 3) - 1.5; // Pequeno tremor vertical para as chamas
+
+            if (controle.jetpackAtivo && subindo && efeitoPisca) {
+                jetFogoElemento.style.display = 'block';
+                jetFogoElemento.style.left = controle.x + 'px';
+                jetFogoElemento.style.bottom = (controle.y - 4 + tremorFogo) + 'px'; // Ajuste com tremor
+                jetFogoElemento.style.transform = elemento.style.transform;
+            } else {
+                jetFogoElemento.style.display = 'none';
+            }
         } else {
             jetpackElemento.style.display = 'none';
+            jetFogoElemento.style.display = 'none';
         }
 
         // Sincroniza a posição e visibilidade do Paraquedas

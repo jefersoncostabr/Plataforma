@@ -31,7 +31,7 @@ Crie um novo arquivo (ex: `fase4.json`) com a seguinte estrutura:
   "inimigos2": ["c8"],
   "inimigos3": ["b17"],
   "itens": [
-    { "tipo": "escudo", "pos": "d5" }
+    { "tipo": "jetpack", "pos": "d5" }
   ],
   "inimigoAleatorio": [2, 1]
 }
@@ -48,7 +48,7 @@ Crie um novo arquivo (ex: `fase4.json`) com a seguinte estrutura:
 | `inimigos1` | Inimigos com Revólver (Atiram à distância). |
 | `inimigos2` | Inimigos com Escudo (Mais resistentes e dropam proteção). |
 | `inimigos3` | Inimigos com Botas (mais rápidos e pulam mais). |
-| `itens` | Itens espalhados no mapa. Tipos: `"escudo"`, `"bota"`, `"revolver"`. |
+| `itens` | Itens espalhados no mapa. Tipos: `"escudo"`, `"bota"`, `"revolver"`, `"jetpack"`. |
 | `inimigoAleatorio` | Configuração: `[Dificuldade (1-3), Equipamento (0=nenhum, 1=arma, 2=escudo)]`. |
 
 ---
