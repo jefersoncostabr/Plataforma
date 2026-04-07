@@ -773,6 +773,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.armaElemento.style.left = inimigo.x + 'px';
                     inimigo.armaElemento.style.bottom = inimigo.y + 'px';
                     inimigo.armaElemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+                    // Aplica filtro vermelho se o inimigo estiver sem munição
+                    inimigo.armaElemento.style.filter = (inimigo.municao <= 0) ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
                 }
 
                 // Sincroniza o escudo com o inimigo
@@ -780,10 +782,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.escudoElemento.style.left = inimigo.x + 'px';
                     inimigo.escudoElemento.style.bottom = inimigo.y + 'px';
                     inimigo.escudoElemento.style.transform = inimigo.elemento.style.transform;
-                    
-                    inimigo.escudoElemento.src = inimigo.escudoVermelho
-                        ? (config.spriteEscudoVermelho || 'personagem/escudo_vermelho.png')
-                        : (config.spriteEscudoPlayer || 'personagem/escudo.png');
+
+                    inimigo.escudoElemento.src = config.spriteEscudoPlayer || 'personagem/escudo.png';
+                    // Aplica filtro vermelho se o escudo do inimigo quebrar
+                    inimigo.escudoElemento.style.filter = inimigo.escudoVermelho ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
                 }
 
                 // Sincroniza a bota com o inimigo
@@ -795,7 +797,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (estaChutando) {
                         inimigo.botaElemento.src = config.spriteBotaChutando || 'personagem/bota_chutando.png';
                     } else if (!inimigo.noChao) {
-                        inimigo.botaElemento.src = config.spriteBotaParado || 'personagem/bota_parado.png';
+                        // Se estiver no ar, usa o sprite específico para o ar
+                        inimigo.botaElemento.src = config.spriteBotaNoAr || 'personagem/bota_no_ar.png';
                     } else if (movendoDestaVez) {
                         inimigo.botaElemento.src = (inimigo.frameAtual === 1)
                             ? (config.spriteBotaAndando || 'personagem/bota_andando.png')

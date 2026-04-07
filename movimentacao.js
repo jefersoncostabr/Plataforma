@@ -152,7 +152,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.temArma = false;
             armaElemento.style.display = 'none';
         } else if (tipo === 'escudo') {
-            itemImg.src = controle.escudoVermelho ? (config.spriteEscudoVermelho || 'personagem/escudo_vermelho.png') : (config.spriteItemEscudo || 'personagem/escudo_pegavel.png');
+            itemImg.src = config.spriteItemEscudo || 'personagem/escudo_pegavel.png';
+            if (controle.escudoVermelho) itemImg.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
             dadosItem.escudoProtegido = controle.escudoProtegido;
             dadosItem.escudoVermelho = controle.escudoVermelho;
             controle.temEscudo = false;
@@ -279,9 +280,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             escudoElemento.style.display = 'none';
         }
 
-        escudoElemento.src = controle.escudoVermelho
-            ? (config.spriteEscudoVermelho || 'personagem/escudo_vermelho.png')
-            : (config.spriteEscudoPlayer || 'personagem/escudo.png');
+        escudoElemento.src = config.spriteEscudoPlayer || 'personagem/escudo.png';
+        escudoElemento.style.filter = controle.escudoVermelho ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
     }
 
     // Expose for restart
@@ -1315,7 +1315,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             }
                             
                             if (controle.escudoProtegido >= tirosProtegidos) {
-                                controle.temEscudo = false;
                                 controle.escudoVermelho = true;
                                 // console.log('Escudo danificado: agora vermelho e sem proteção.');
                             } else {
@@ -1525,9 +1524,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         armaElemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
 
         // Atualiza o sprite da arma baseado na munição
-        armaElemento.src = (controle.municao <= 0)
-            ? (config.spriteArmaVermelha || 'personagem/revolver_vermelho.png')
-            : (config.spriteArmaPlayer || 'personagem/revolver.png');
+        armaElemento.src = config.spriteArmaPlayer || 'personagem/revolver.png';
+        // Aplica filtro vermelho se estiver sem munição
+        armaElemento.style.filter = (controle.municao <= 0) ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
 
         // Sincroniza a posição do escudo com o jogador
         escudoElemento.style.left = controle.x + 'px';
@@ -1545,8 +1544,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             if (controle.chutando) {
                 botaElemento.src = config.spriteBotaChutando || 'personagem/bota_chutando.png';
             } else if (!controle.noChao) {
-                // Se estiver no ar, usa o sprite parado
-                botaElemento.src = config.spriteBotaParado || 'personagem/bota_parado.png';
+                // Se estiver no ar, usa o sprite específico para o ar
+                botaElemento.src = config.spriteBotaNoAr || 'personagem/bota_no_ar.png';
             } else if (controle.movendoHorizontal) {
                 // Se estiver andando no chão, sincroniza com o frameAtual (1 é o frame de caminhada)
                 botaElemento.src = (controle.frameAtual === 1)
