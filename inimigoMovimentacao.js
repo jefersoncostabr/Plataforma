@@ -41,6 +41,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inim.armaElemento) inim.armaElemento.remove();
                 if (inim.botaElemento) inim.botaElemento.remove();
                 if (inim.escudoElemento) inim.escudoElemento.remove();
+                if (inim.jetpackElemento) inim.jetpackElemento.remove();
             });
         }
         window.inimigos = [];
@@ -149,6 +150,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.temArma = (inimigo.tipo === 1);
                     inimigo.temEscudo = (inimigo.tipo === 2);
                     inimigo.temBota = (inimigo.tipo === 3);
+                    inimigo.temJetpack = false;
                     inimigo.framesImpulsoRestante = 0;
                     inimigo.velocidadeDash = 0;
 
@@ -207,6 +209,19 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     escudo.style.display = inimigo.temEscudo ? 'block' : 'none';
                     inimigo.elemento.parentElement.appendChild(escudo);
                     inimigo.escudoElemento = escudo;
+
+                    // Cria o elemento do jetpack para o inimigo
+                    const jetpack = document.createElement('img');
+                    jetpack.src = config.spriteJetpackPlayer || 'personagem/jetpack.png';
+                    jetpack.style.position = 'absolute';
+                    jetpack.style.width = '32px';
+                    jetpack.style.height = '32px';
+                    jetpack.style.zIndex = '3'; // Atrás do inimigo (4)
+                    jetpack.style.imageRendering = 'pixelated';
+                    jetpack.style.pointerEvents = 'none';
+                    jetpack.style.display = 'none';
+                    inimigo.elemento.parentElement.appendChild(jetpack);
+                    inimigo.jetpackElemento = jetpack;
                 }
 
                 // Atualiza timers de chute
@@ -319,8 +334,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.noChao) { // Só pula se ainda estiver no chão
                         inimigo.velocidadeY = forcaPuloInimigo;
                         inimigo.noChao = false;
-                        inimigo.cooldownPulo = config.inimigoPuloCooldown; // Aplica cooldown
-                        console.log('Inimigo executou pulo após timer.');
+                        inimigo.cooldownPulo = config.inimigoPuloCooldown; // Aplica cooldown // Comentado conforme solicitado
+                        // console.log('Inimigo executou pulo após timer.'); // Comentado conforme solicitado
                     }
                 }
 
@@ -377,7 +392,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             if (item.tipo !== 'airdrop' && 
                                 ((item.tipo === 'revolver' && inimigo.temArma) ||
                                  (item.tipo === 'escudo' && inimigo.temEscudo) ||
-                                 (item.tipo === 'bota' && inimigo.temBota))) continue;
+                                 (item.tipo === 'bota' && inimigo.temBota) ||
+                                 (item.tipo === 'jetpack' && inimigo.temJetpack))) continue;
 
                             inimigo.estaColetando = true;
                             inimigo.timerColeta = 180; // 3 segundos a 60fps
@@ -402,6 +418,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             if (item.tipo === 'revolver') { inimigo.temArma = true; inimigo.municao = config.maxMunicao; if (inimigo.armaElemento) inimigo.armaElemento.style.display = 'block'; }
                             else if (item.tipo === 'escudo') { inimigo.temEscudo = true; inimigo.escudoVermelho = false; inimigo.escudoProtegido = 0; if (inimigo.escudoElemento) inimigo.escudoElemento.style.display = 'block'; }
                             else if (item.tipo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
+                            else if (item.tipo === 'jetpack') { inimigo.temJetpack = true; if (inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block'; }
                             else if (item.tipo === 'airdrop') {
                                 // Lógica restrita para o inimigo: apenas 'item' ou 'restauracao'
                                 const conteudos = config.airdrop1?.conteudos || ['item'];
@@ -423,12 +440,14 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                     if (!inimigo.temArma) pendentes.push('revolver');
                                     if (!inimigo.temEscudo) pendentes.push('escudo');
                                     if (!inimigo.temBota) pendentes.push('bota');
+                                    if (!inimigo.temJetpack) pendentes.push('jetpack');
 
                                     if (pendentes.length > 0) {
                                         const novo = pendentes[Math.floor(Math.random() * pendentes.length)];
                                         if (novo === 'revolver') { inimigo.temArma = true; inimigo.municao = config.maxMunicao; if (inimigo.armaElemento) inimigo.armaElemento.style.display = 'block'; }
                                         else if (novo === 'escudo') { inimigo.temEscudo = true; inimigo.escudoVermelho = false; inimigo.escudoProtegido = 0; if (inimigo.escudoElemento) inimigo.escudoElemento.style.display = 'block'; }
                                         else if (novo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
+                                        else if (novo === 'jetpack') { inimigo.temJetpack = true; if (inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block'; }
                                         inimigo.inventario.push(novo);
                                     }
                                 }
@@ -521,7 +540,6 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             // Agenda o pulo com um delay aleatório
                             inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
                             inimigo.jumpQueued = true;
-                            console.log('Inimigo iniciou timer de pulo por altura:', inimigo.puloTimer, 'frames');
                         }
                     }
 
@@ -537,10 +555,12 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         // Se não houver plataforma detectada à frente e abaixo, o inimigo pula
                         if (typeof verificarColisaoComTiles === 'function' &&
                             !verificarColisaoComTiles(checkX, checkY, 2, 2, window.plataformas) && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
-                            // Agenda o pulo com um delay aleatório
-                            inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
-                            inimigo.jumpQueued = true;
-                            console.log('Inimigo iniciou timer de pulo por vácuo:', inimigo.puloTimer, 'frames');
+                            // Agenda o pulo com um delay aleatório, usando os valores específicos para buracos
+                            const minDelay = config.inimigoPuloDelayMinGap ?? 0;
+                            const maxDelay = config.inimigoPuloDelayMaxGap ?? 10;
+                            inimigo.puloTimer = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+                            inimigo.jumpQueued = true; // Comentado conforme solicitado
+                            // console.log('Inimigo iniciou timer de pulo por vácuo:', inimigo.puloTimer, 'frames'); // Comentado conforme solicitado
                         }
                     }
 
@@ -647,7 +667,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         // Agenda o pulo com um delay aleatório
                         inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
                         inimigo.jumpQueued = true;
-                        console.log('Inimigo iniciou timer de pulo por obstrução:', inimigo.puloTimer, 'frames');
+                        // console.log('Inimigo iniciou timer de pulo por obstrução:', inimigo.puloTimer, 'frames'); // Comentado conforme solicitado
                     }
 
                     inimigo.x = xAnterior;
@@ -706,6 +726,13 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     } else {
                         inimigo.botaElemento.src = config.spriteBotaParado || 'personagem/bota_parado.png';
                     }
+                }
+
+                // Sincroniza o jetpack com o inimigo
+                if (inimigo.jetpackElemento && inimigo.temJetpack) {
+                    inimigo.jetpackElemento.style.left = inimigo.x + 'px';
+                    inimigo.jetpackElemento.style.bottom = inimigo.y + 'px';
+                    inimigo.jetpackElemento.style.transform = inimigo.elemento.style.transform;
                 }
             }
         }

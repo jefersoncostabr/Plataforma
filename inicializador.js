@@ -178,6 +178,10 @@ window.reiniciarJogo = async function(porMorte = true) {
         window.playerControle.noChao = false;
         window.playerControle.direcao = 'd';
         
+        window.playerControle.jetpackAtivo = false;
+        window.playerControle.timerAtivacaoJetpack = 0;
+        window.playerControle.timerVooRestante = 0;
+
         // Reseta itens coletados para o máximo e restaura o escudo se estiver quebrado
         if (window.playerControle.temEscudo || window.playerControle.escudoVermelho) {
             window.playerControle.temEscudo = true; // Garante que volte a ser funcional
@@ -190,6 +194,10 @@ window.reiniciarJogo = async function(porMorte = true) {
         // Mantém a bota se ela já foi coletada
         if (window.playerControle.temBota) {
             window.playerControle.temBota = true;
+        }
+        // Mantém o jetpack se ele já foi coletado
+        if (window.playerControle.temJetpack) {
+            window.playerControle.temJetpack = true;
         }
         if (typeof window.salvarInventario === 'function') {
             window.salvarInventario();

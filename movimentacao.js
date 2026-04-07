@@ -11,6 +11,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     const elemento = document.getElementById(id);
     if (!elemento) return;
 
+    elemento.style.zIndex = '5'; // Define o jogador na camada 5
+
     // Busca as configurações do arquivo JSON
     const resposta = await fetch('configuracoesGerais.json');
     const config = await resposta.json();
@@ -158,7 +160,13 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         } else if (tipo === 'bota') {
             itemImg.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
             controle.temBota = false;
-            botaElemento.style.display = 'none';
+            botaElemento.style.display = 'none'; // Oculta o visual da bota
+        } else if (tipo === 'jetpack') {
+            itemImg.src = config.spriteItemJetpack || 'personagem/jetpack_pegavel.png';
+            controle.temJetpack = false;
+            controle.jetpackAtivo = false;
+            controle.timerAtivacaoJetpack = 0;
+            jetpackElemento.style.display = 'none'; // Oculta o visual do jetpack
         }
 
         itemImg.style.position = 'absolute';
@@ -194,6 +202,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             if (tipo === 'revolver') itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
             else if (tipo === 'escudo') itemImg.src = config.spriteItemEscudo || 'personagem/escudo_pegavel.png';
             else if (tipo === 'bota') itemImg.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
+            else if (tipo === 'jetpack') itemImg.src = config.spriteItemJetpack || 'personagem/jetpack_pegavel.png';
             
             itemImg.style.position = 'absolute';
             itemImg.style.width = '32px';
@@ -244,6 +253,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 temArma: controle.temArma,
                 municao: controle.municao,
                 temBota: controle.temBota,
+                temJetpack: controle.temJetpack,
                 inventario: controle.inventario
             };
             localStorage.setItem(INVENTARIO_STORAGE_KEY, JSON.stringify(estado));
@@ -304,6 +314,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         temArma: false, // Inicia sem a capacidade de atirar
         temEscudo: false, // Inicia sem escudo
         temBota: false, // Inicia sem bota
+        temJetpack: false,
+        jetpackAtivo: false,
+        timerAtivacaoJetpack: 0,
+        timerVooRestante: 0,
         escudoVermelho: false,
         escudoProtegido: 0,
         dano: 0,
@@ -345,6 +359,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         controle.temArma = Boolean(inventarioSalvo.temArma);
         controle.municao = Number(inventarioSalvo.municao ?? 0);
         controle.temBota = Boolean(inventarioSalvo.temBota);
+        controle.temJetpack = Boolean(inventarioSalvo.temJetpack);
         controle.inventario = Array.isArray(inventarioSalvo.inventario) ? inventarioSalvo.inventario : [];
     }
 
@@ -354,10 +369,14 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         window.itensColetaveis = [];
         if (!dadosItens) return;
 
+        console.log("resetarItens: Dados de itens recebidos:", dadosItens);
+
         dadosItens.forEach(dado => {
             if ((dado.tipo === 'escudo' && controle.temEscudo) || 
                 (dado.tipo === 'revolver' && controle.temArma) ||
-                (dado.tipo === 'bota' && controle.temBota)) {
+                (dado.tipo === 'bota' && controle.temBota) ||
+                (dado.tipo === 'jetpack' && controle.temJetpack)) {
+                console.log(`resetarItens: Item ${dado.tipo} não gerado porque o jogador já o possui.`);
                 return;
             }
 
@@ -369,6 +388,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 itemImg.src = config.spriteItemEscudo || 'personagem/escudo_pegavel.png';
             } else if (dado.tipo === 'bota') {
                 itemImg.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
+            } else if (dado.tipo === 'jetpack') {
+                itemImg.src = config.spriteItemJetpack || 'personagem/jetpack_pegavel.png';
             } else {
                 itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
             }
@@ -378,6 +399,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             itemImg.style.height = '32px';
             itemImg.style.left = pos.x + 'px';
             itemImg.style.bottom = pos.y + 'px';
+            console.log(`resetarItens: Tentando adicionar item ${dado.tipo} em x:${pos.x}, y:${pos.y} com src:${itemImg.src}`);
             itemImg.style.zIndex = '3';
             itemImg.style.imageRendering = 'pixelated';
             elemento.parentElement.appendChild(itemImg);
@@ -430,6 +452,19 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     botaElemento.style.imageRendering = 'pixelated';
     botaElemento.style.pointerEvents = 'none';
     elemento.parentElement.appendChild(botaElemento);
+
+    // Elemento do Jetpack (Equipado)
+    const jetpackElemento = document.createElement('img');
+    jetpackElemento.id = 'player-jetpack';
+    jetpackElemento.src = config.spriteJetpackPlayer || 'personagem/jetpack.png';
+    jetpackElemento.style.position = 'absolute';
+    jetpackElemento.style.width = '32px';
+    jetpackElemento.style.height = '32px';
+    jetpackElemento.style.zIndex = '4'; // Camada 4: Atrás do jogador (5), mas à frente do cenário (1-2)
+    jetpackElemento.style.display = controle.temJetpack ? 'block' : 'none';
+    jetpackElemento.style.imageRendering = 'pixelated';
+    jetpackElemento.style.pointerEvents = 'none';
+    elemento.parentElement.appendChild(jetpackElemento);
 
     // Elemento do Paraquedas
     const paraquedasElemento = document.createElement('img');
@@ -849,14 +884,41 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             console.log("Habilidade Salto: Pulo duplo rápido executado!");
         }
 
-        // Aplica gravidade e pulo (definido em fisica.js)
-        aplicarFisica(
-            controle, 
-            { ...controle.teclas, ' ': teclaPuloAtiva }, // Passa o estado de tecla filtrado pelo cooldown
-            forcaPuloFinal, 
-            config.inimigoGravidade, 
-            config.inimigoPuloCooldown
-        );
+        // Lógica de Ativação do Jetpack (Segurar Espaço por 2 segundos)
+        if (controle.temJetpack && controle.teclas[' ']) {
+            controle.timerAtivacaoJetpack++;
+            if (controle.timerAtivacaoJetpack >= (config.jetpackTempoAtivacao || 120) && !controle.jetpackAtivo) {
+                controle.jetpackAtivo = true;
+                controle.timerVooRestante = config.jetpackDuracaoVoo || 360;
+            }
+        } else {
+            controle.timerAtivacaoJetpack = 0;
+        }
+
+        // Gerenciamento de Física e Voo
+        if (controle.jetpackAtivo) {
+            controle.timerVooRestante--;
+            controle.velocidadeY = 0; // Neutraliza gravidade
+            if (controle.teclas['ArrowUp'] || controle.teclas['w'] || controle.teclas['W']) {
+                controle.velocidadeY = config.jetpackForcaVoo || 2; // Sobe lentamente
+            }
+            controle.y += controle.velocidadeY;
+
+            // Desliga se acabar o tempo ou se tocar o chão (com margem de 10 frames para decolagem)
+            if (controle.timerVooRestante <= 0 || (controle.noChao && controle.timerVooRestante < (config.jetpackDuracaoVoo - 10))) {
+                controle.jetpackAtivo = false;
+                controle.velocidadeY = 0;
+            }
+        } else {
+            // Aplica gravidade e pulo normal (definido em fisica.js)
+            aplicarFisica(
+                controle, 
+                { ...controle.teclas, ' ': teclaPuloAtiva }, 
+                forcaPuloFinal, 
+                config.inimigoGravidade, 
+                config.inimigoPuloCooldown
+            );
+        }
 
         // Mecânica de Queda Rápida: Agora restrita apenas após a execução do Pulo Duplo (pulosRealizados === 2)
         if (!controle.noChao && controle.velocidadeY < 0 && controle.teclas[' '] && !controle.usandoParaquedas && controle.pulosRealizados === 2) {
@@ -1224,10 +1286,22 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         if (window.itensColetaveis && Array.isArray(window.itensColetaveis)) {
             for (let i = window.itensColetaveis.length - 1; i >= 0; i--) {
                 const item = window.itensColetaveis[i];
-
+                
+                // Para coleta de itens, usamos uma hitbox do jogador que abrange todo o sprite visual (32x32)
+                const hitboxPlayerParaItem = {
+                    x: controle.x,
+                    y: controle.y,
+                    largura: 32,
+                    altura: 32
+                };
                 // Lógica de Coleta pelo Jogador
                 const hitboxItem = { x: item.x, y: item.y, largura: 32, altura: 32 };
-                if (typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(hitboxPlayer, hitboxItem, 0, 0, 0)) {
+                // console.log(`[DEBUG ITEM] Player (x:${hitboxPlayerParaItem.x}, y:${hitboxPlayerParaItem.y}, w:${hitboxPlayerParaItem.largura}, h:${hitboxPlayerParaItem.altura})`);
+                // console.log(`[DEBUG ITEM] Item ${item.tipo} (x:${hitboxItem.x}, y:${hitboxItem.y}, w:${hitboxItem.largura}, h:${hitboxItem.altura})`);
+                const collisionDetected = detectarColisaoHitbox(hitboxPlayerParaItem, hitboxItem, 0, 0, 0); // Mantém a detecção, apenas remove o log
+                // console.log(`[DEBUG ITEM] Collision with ${item.tipo}: ${collisionDetected}`);
+
+                if (typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(hitboxPlayerParaItem, hitboxItem, 0, 0, 0)) {
                     if (item.tipo === 'escudo') {
                         // console.log("Jogador coletou o escudo!");
                         controle.temEscudo = true;
@@ -1242,6 +1316,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         controle.temBota = true;
                         if (!controle.inventario.includes('bota')) controle.inventario.push('bota');
                         botaElemento.style.display = 'block';
+                        salvarInventario();
+                    } else if (item.tipo === 'jetpack') {
+                        controle.temJetpack = true;
+                        console.log("Jogador coletou o jetpack!"); // Adicionado console.log
+                        if (!controle.inventario.includes('jetpack')) controle.inventario.push('jetpack');
+                        jetpackElemento.style.display = 'block';
                         salvarInventario();
                     } else if (item.tipo === 'airdrop') {
                         // Lógica de Recompensa Aleatória baseada no JSON
@@ -1264,8 +1344,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             atualizarVisualEscudo();
                         } else if (sorteio === 'skill') {
                             // Sorteia uma skill que o jogador ainda não tenha
-                            if (window.skillsData) {
-                                const disponiveis = Object.keys(window.skillsData).filter(s => !window.playerSkills.includes(s));
+                            if (window.skillsData && Object.keys(window.skillsData).length > 0) {
+                                const disponiveis = Object.keys(window.skillsData).filter(s => !window.playerSkills.includes(s) && window.skillsData[s].parent === null); // Apenas skills raiz para simplificar
                                 if (disponiveis.length > 0) {
                                     const skillSorteada = disponiveis[Math.floor(Math.random() * disponiveis.length)];
                                     window.playerSkills.push(skillSorteada);
@@ -1277,30 +1357,34 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             }
                         } else if (sorteio === 'item') {
                             // Sorteio de item físico
-                            const itensDisponiveis = ['revolver', 'escudo', 'bota'];
+                            const itensDisponiveis = ['revolver', 'escudo', 'bota', 'jetpack']; // Inclui jetpack
                             const itemSorteado = itensDisponiveis[Math.floor(Math.random() * itensDisponiveis.length)];
                             
                             if (itemSorteado === 'escudo') { 
                                 controle.temEscudo = true; 
                                 controle.escudoVermelho = false; 
                                 controle.escudoProtegido = 0; 
-                                if (!controle.inventario.includes('escudo')) controle.inventario.push('escudo');
+                                if (!controle.inventario.includes('escudo')) controle.inventario.push('escudo'); // Garante que o item seja adicionado ao inventário
                                 atualizarVisualEscudo(); 
                             }
                             else if (itemSorteado === 'bota') { 
                                 controle.temBota = true; 
-                                if (!controle.inventario.includes('bota')) controle.inventario.push('bota');
+                                if (!controle.inventario.includes('bota')) controle.inventario.push('bota'); // Garante que o item seja adicionado ao inventário
                                 botaElemento.style.display = 'block';
                             }
-                            else { 
+                            else if (itemSorteado === 'jetpack') { // Adiciona tratamento explícito para jetpack
+                                controle.temJetpack = true;
+                                if (!controle.inventario.includes('jetpack')) controle.inventario.push('jetpack'); // Garante que o item seja adicionado ao inventário
+                                jetpackElemento.style.display = 'block';
+                            } else if (itemSorteado === 'revolver') { // Tratamento explícito para revolver
                                 controle.temArma = true; 
                                 controle.municao = config.maxMunicao || 5; 
-                                if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
+                                if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver'); // Garante que o item seja adicionado ao inventário
                                 armaElemento.style.display = 'block';
                             }
                         }
                         salvarInventario();
-                    } else if (item.tipo === 'revolver') {
+                    } else if (item.tipo === 'revolver') { // Este bloco é para coleta de revólver *não* via airdrop
                         // console.log("Jogador coletou o revólver!");
                         controle.temArma = true;
                         controle.municao = item.municao !== undefined ? item.municao : (config.maxMunicao || 5);
@@ -1383,6 +1467,16 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 // Totalmente parado
                 botaElemento.src = config.spriteBotaParado || 'personagem/bota_parado.png';
             }
+        }
+
+        // Sincroniza a posição e visibilidade do Jetpack
+        if (controle.temJetpack) {
+            jetpackElemento.style.display = 'block';
+            jetpackElemento.style.left = controle.x + 'px';
+            jetpackElemento.style.bottom = controle.y + 'px';
+            jetpackElemento.style.transform = elemento.style.transform;
+        } else {
+            jetpackElemento.style.display = 'none';
         }
 
         // Sincroniza a posição e visibilidade do Paraquedas

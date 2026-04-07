@@ -7,5 +7,6 @@
         "d10", "d11", "d12", "d13"
     ],
     "inimigos1": ["b13"],
+    "itens": [{"tipo": "jetpack", "pos": "b4"}],
     "inimigoAleatorio": [1, 0]
 }
