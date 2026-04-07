@@ -18,7 +18,9 @@ Este documento lista todas as teclas mapeadas no jogo e suas respectivas funçõ
 | **Seta Baixo + Espaço** ou **S + Espaço** | **Soltar Item:** Descarta o item mais recente do inventário (requer habilidade `skilla`). O item mantém seu estado original (munição/durabilidade). |
 | **I** | Dispara o revólver (requer ter coletado a arma e possuir munição). |
 | **Segurar Espaço (2s)** | **Ativar Jetpack:** Liga o motor de voo por 6 segundos (requer ter coletado o Jetpack). |
+| **W + Espaço** ou **Seta Cima + Espaço** | **Jetpack Instantâneo:** Ativa o voo imediatamente sem tempo de espera. |
 | **W** ou **Seta Cima** (no ar) | **Propulsão:** Sobe lentamente enquanto o Jetpack estiver ativo. Ao soltar, o personagem desce suavemente. |
+| **S + I** ou **Seta Baixo + I** | **Vender Item:** Converte o último item do inventário em 1 XP (requer habilidade `skilla1`). O processo leva 2 segundos. |
 | **Seta Cima + I** ou **W + I** | **AirDrop:** Solicita suprimentos via sinalizador (requer habilidade `airdrop`, limitado a 1x por fase). |
 
 ## 3. Comandos de Sistema

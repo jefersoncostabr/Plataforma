@@ -319,6 +319,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         jetpackAtivo: false,
         timerAtivacaoJetpack: 0,
         timerVooRestante: 0,
+        cooldownVooJetpack: 0,
         escudoVermelho: false,
         escudoProtegido: 0,
         dano: 0,
@@ -846,6 +847,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.cooldownPulo--;
         }
 
+        // Diminui o cooldown do Jetpack
+        if (controle.cooldownVooJetpack > 0) {
+            controle.cooldownVooJetpack--;
+        }
+
         const hitboxX = controle.x + config.HITBOX_OFFSET_X;
         const hitboxY = controle.y;
         const hitboxWidth = config.HITBOX_LARGURA;
@@ -898,15 +904,26 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             console.log("Habilidade Salto: Pulo duplo rápido executado!");
         }
 
-        // Lógica de Ativação do Jetpack (Segurar Espaço por 2 segundos)
-        if (controle.temJetpack && controle.teclas[' ']) {
-            controle.timerAtivacaoJetpack++;
-            if (controle.timerAtivacaoJetpack >= (config.jetpackTempoAtivacao || 120) && !controle.jetpackAtivo) {
+        // Lógica de Ativação do Jetpack
+        if (controle.temJetpack) {
+            const segurandoCimaAtivacao = controle.teclas['ArrowUp'] || controle.teclas['w'] || controle.teclas['W'];
+            
+            // Ativação Instantânea: Cima + Pulo (Apenas se não houver cooldown)
+            if (segurandoCimaAtivacao && puloAcabouDeSerPressionado && !controle.jetpackAtivo && controle.cooldownVooJetpack === 0) {
                 controle.jetpackAtivo = true;
                 controle.timerVooRestante = config.jetpackDuracaoVoo || 360;
+                controle.timerAtivacaoJetpack = 0;
+            } 
+            // Ativação por tempo (Segurar Espaço por 2 segundos) (Apenas se não houver cooldown)
+            else if (controle.teclas[' '] && controle.cooldownVooJetpack === 0) {
+                controle.timerAtivacaoJetpack++;
+                if (controle.timerAtivacaoJetpack >= (config.jetpackTempoAtivacao || 120) && !controle.jetpackAtivo) {
+                    controle.jetpackAtivo = true;
+                    controle.timerVooRestante = config.jetpackDuracaoVoo || 360;
+                }
+            } else {
+                controle.timerAtivacaoJetpack = 0;
             }
-        } else {
-            controle.timerAtivacaoJetpack = 0;
         }
 
         // Gerenciamento de Física e Voo
@@ -924,6 +941,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             if (controle.timerVooRestante <= 0 || (controle.noChao && controle.timerVooRestante < (config.jetpackDuracaoVoo - 10))) {
                 controle.jetpackAtivo = false;
                 controle.velocidadeY = 0;
+                controle.cooldownVooJetpack = config.jetpackCooldown || 180; // Inicia o cooldown ao terminar o voo
             }
         } else {
             // Aplica gravidade e pulo normal (definido em fisica.js)
@@ -1491,6 +1509,13 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             jetpackElemento.style.left = controle.x + 'px';
             jetpackElemento.style.bottom = controle.y + 'px';
             jetpackElemento.style.transform = elemento.style.transform;
+
+            // Feedback de Cooldown: O Jetpack fica vermelho enquanto recarrega
+            if (controle.cooldownVooJetpack > 0) {
+                jetpackElemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
+            } else {
+                jetpackElemento.style.filter = 'none';
+            }
 
             // Lógica do Fogo: aparece apenas quando voando e subindo com efeito de cintilação (piscar)
             const subindo = (controle.teclas['ArrowUp'] || controle.teclas['w'] || controle.teclas['W']);

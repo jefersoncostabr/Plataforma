@@ -42,6 +42,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inim.botaElemento) inim.botaElemento.remove();
                 if (inim.escudoElemento) inim.escudoElemento.remove();
                 if (inim.jetpackElemento) inim.jetpackElemento.remove();
+                if (inim.jetFogoElemento) inim.jetFogoElemento.remove();
             });
         }
         window.inimigos = [];
@@ -151,6 +152,9 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.temEscudo = (inimigo.tipo === 2);
                     inimigo.temBota = (inimigo.tipo === 3);
                     inimigo.temJetpack = false;
+                    inimigo.jetpackAtivo = false;
+                    inimigo.timerVooRestante = 0;
+                    inimigo.cooldownVooJetpack = 0;
                     inimigo.framesImpulsoRestante = 0;
                     inimigo.velocidadeDash = 0;
 
@@ -162,6 +166,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.temBota) inimigo.inventario.push('bota');
                     inimigo.cooldownPulo = 0;
                     inimigo.velocidadeY = 0;
+                    inimigo.cooldownVooJetpack = 0;
                     inimigo.noChao = false;
                     inimigo.framesKnockbackRestante = 0; // Inicializa frames de knockback
                     inimigo.velocidadeKnockback = 0; // Inicializa velocidade de knockback
@@ -222,6 +227,19 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     jetpack.style.display = 'none';
                     inimigo.elemento.parentElement.appendChild(jetpack);
                     inimigo.jetpackElemento = jetpack;
+
+                    // Cria o elemento do fogo do jetpack para o inimigo
+                    const jetFogo = document.createElement('img');
+                    jetFogo.src = config.spriteJetFogo || 'personagem/jet.png';
+                    jetFogo.style.position = 'absolute';
+                    jetFogo.style.width = '32px';
+                    jetFogo.style.height = '32px';
+                    jetFogo.style.zIndex = '3'; // Atrás do jetpack
+                    jetFogo.style.imageRendering = 'pixelated';
+                    jetFogo.style.pointerEvents = 'none';
+                    jetFogo.style.display = 'none';
+                    inimigo.elemento.parentElement.appendChild(jetFogo);
+                    inimigo.jetFogoElemento = jetFogo;
                 }
 
                 // Atualiza timers de chute
@@ -232,6 +250,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inimigo.tempoAfastamento > 0) inimigo.tempoAfastamento--;
                 if (inimigo.cooldownAfastamento > 0) inimigo.cooldownAfastamento--;
                 if (inimigo.cooldownPulo > 0) inimigo.cooldownPulo--;
+                if (inimigo.cooldownVooJetpack > 0) inimigo.cooldownVooJetpack--;
 
                 // Aplica knockback se estiver ativo
                 if (inimigo.framesKnockbackRestante > 0) {
@@ -329,28 +348,42 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     console.log('Inimigo iniciou timer de pulo por projétil:', inimigo.puloTimer, 'frames');
                 }
 
-                // Executa o pulo se o timer chegou a zero e foi agendado
+                // Executa o pulo ou VOO se o timer chegou a zero e foi agendado
                 if (inimigo.puloTimer === 0 && inimigo.jumpQueued) {
-                    if (inimigo.noChao) { // Só pula se ainda estiver no chão
-                        inimigo.velocidadeY = forcaPuloInimigo;
-                        inimigo.noChao = false;
-                        inimigo.cooldownPulo = config.inimigoPuloCooldown; // Aplica cooldown // Comentado conforme solicitado
-                        // console.log('Inimigo executou pulo após timer.'); // Comentado conforme solicitado
+                    if (inimigo.temJetpack && !inimigo.jetpackAtivo && inimigo.cooldownVooJetpack === 0) {
+                        inimigo.jetpackAtivo = true;
+                        inimigo.timerVooRestante = config.jetpackDuracaoVoo || 360;
+                        inimigo.jumpQueued = false;
+                    } else if (inimigo.noChao) {
+                        if (inimigo.noChao) { // Só pula se ainda estiver no chão
+                            inimigo.velocidadeY = forcaPuloInimigo;
+                            inimigo.noChao = false;
+                            inimigo.jumpQueued = false;
+                        }
                     }
                 }
 
-                // A física (gravidade e pulo) deve rodar sempre para o inimigo reagir ao ambiente
-                if (typeof aplicarFisica === 'function') {
-                    const inimigoTeclasParaFisica = {
-                        ' ': window.debugInimigoTeclas && window.debugInimigoTeclas[' ']
-                    };
-                    aplicarFisica(
-                        inimigo, 
-                        inimigoTeclasParaFisica, 
-                        forcaPuloInimigo, 
-                        config.inimigoGravidade, 
-                        config.inimigoPuloCooldown
-                    );
+                // Lógica de Física ou Voo do Jetpack
+                if (inimigo.jetpackAtivo) {
+                    inimigo.timerVooRestante--;
+                    
+                    // Decisão da IA: voar para cima se o alvo estiver acima
+                    const subir = yAlvo > inimigo.y + 10;
+                    if (subir) {
+                        inimigo.velocidadeY = config.jetpackForcaVoo || 2;
+                    } else {
+                        inimigo.velocidadeY = -1;
+                    }
+                    inimigo.y += inimigo.velocidadeY;
+
+                    if (inimigo.timerVooRestante <= 0 || (inimigo.noChao && inimigo.timerVooRestante < (config.jetpackDuracaoVoo - 10))) {
+                        inimigo.jetpackAtivo = false;
+                        inimigo.velocidadeY = 0;
+                        inimigo.cooldownVooJetpack = config.jetpackCooldown || 180;
+                    }
+                } else if (typeof aplicarFisica === 'function') {
+                    const inimigoTeclasParaFisica = { ' ': window.debugInimigoTeclas && window.debugInimigoTeclas[' '] };
+                    aplicarFisica(inimigo, inimigoTeclasParaFisica, forcaPuloInimigo, config.inimigoGravidade, config.inimigoPuloCooldown);
                 }
 
                 // Colisão Vertical constante para garantir que o inimigo pule e caia corretamente
@@ -733,6 +766,27 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.jetpackElemento.style.left = inimigo.x + 'px';
                     inimigo.jetpackElemento.style.bottom = inimigo.y + 'px';
                     inimigo.jetpackElemento.style.transform = inimigo.elemento.style.transform;
+
+                    // Feedback de Cooldown para o Inimigo: Jetpack Vermelho
+                    if (inimigo.cooldownVooJetpack > 0) {
+                        inimigo.jetpackElemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
+                    } else {
+                        inimigo.jetpackElemento.style.filter = 'none';
+                    }
+
+                    // Lógica do Fogo para o Inimigo
+                    const subir = yAlvo > inimigo.y + 10;
+                    const efeitoPisca = (inimigo.timerVooRestante % 4 < 2);
+                    const tremorFogo = (Math.random() * 3) - 1.5;
+
+                    if (inimigo.jetpackAtivo && subir && efeitoPisca) {
+                        inimigo.jetFogoElemento.style.display = 'block';
+                        inimigo.jetFogoElemento.style.left = inimigo.x + 'px';
+                        inimigo.jetFogoElemento.style.bottom = (inimigo.y - 4 + tremorFogo) + 'px';
+                        inimigo.jetFogoElemento.style.transform = inimigo.elemento.style.transform;
+                    } else {
+                        inimigo.jetFogoElemento.style.display = 'none';
+                    }
                 }
             }
         }

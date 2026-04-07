@@ -181,6 +181,7 @@ window.reiniciarJogo = async function(porMorte = true) {
         window.playerControle.jetpackAtivo = false;
         window.playerControle.timerAtivacaoJetpack = 0;
         window.playerControle.timerVooRestante = 0;
+        window.playerControle.cooldownVooJetpack = 0;
 
         // Reseta itens coletados para o máximo e restaura o escudo se estiver quebrado
         if (window.playerControle.temEscudo || window.playerControle.escudoVermelho) {
