@@ -670,6 +670,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             if (tipo === 'revolver') { controle.temArma = false; armaElemento.style.display = 'none'; }
             else if (tipo === 'escudo') { controle.temEscudo = false; atualizarVisualEscudo(); }
             else if (tipo === 'bota') { controle.temBota = false; botaElemento.style.display = 'none'; }
+            else if (tipo === 'jetpack') { 
+                controle.temJetpack = false; 
+                controle.jetpackAtivo = false;
+                jetpackElemento.style.display = 'none'; 
+                jetFogoElemento.style.display = 'none';
+            }
 
             // Cria o item flutuante
             const visual = document.createElement('img');
@@ -677,6 +683,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             if (tipo === 'revolver') visual.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
             else if (tipo === 'escudo') visual.src = config.spriteItemEscudo || 'personagem/escudo_pegavel.png';
             else if (tipo === 'bota') visual.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
+            else if (tipo === 'jetpack') visual.src = config.spriteItemJetpack || 'personagem/jetpack_pegavel.png';
             
             elemento.parentElement.appendChild(visual);
             controle.vendaVisual = visual;
@@ -704,6 +711,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 if (controle.vendaTipo === 'revolver') { controle.temArma = true; armaElemento.style.display = 'block'; }
                 else if (controle.vendaTipo === 'escudo') { controle.temEscudo = true; atualizarVisualEscudo(); }
                 else if (controle.vendaTipo === 'bota') { controle.temBota = true; botaElemento.style.display = 'block'; }
+                else if (controle.vendaTipo === 'jetpack') { 
+                    controle.temJetpack = true; 
+                    jetpackElemento.style.display = 'block'; 
+                }
                 
                 controle.vendaVisual.remove();
                 controle.vendaEmCurso = false;

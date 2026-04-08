@@ -2,7 +2,7 @@
     "playerStats": {
         "xp": 0,
         "skillPoints": 0,
-        "acquired": []
+        "acquired": ["skilla1"]
     },
     "skills": {
         "skill1": {
