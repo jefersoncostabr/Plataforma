@@ -8,12 +8,14 @@
         "j5", "k6", "k7", "k8", "k9", "k11", "k12", "k13", "k14", "k15", "k16", "k17", "k18", "k19",
         "h1", "h2", "h3", "h4", "h5"
     ],
-    "inimigos1": ["b19", "b20", "o19", "l6", "h6", "f8", "e9"],
+    "inimigos1": ["b19", "b20", "o19", "l6", "h6", "f8", "e9", "i19", "i20"],
     "itens": [
         { "tipo": "escudo", "pos": "l13" },
         { "tipo": "revolver", "pos": "l17" },
         { "tipo": "revolver", "pos": "g7" },
         { "tipo": "restauracao", "pos": "b8" },
+        { "tipo": "jetpack", "pos": "h19" },
+        { "tipo": "jetpack", "pos": "h20" },
         { "tipo": "bota", "pos": "l15" }
     ],
     

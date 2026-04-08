@@ -29,6 +29,10 @@ const btnExport = document.getElementById('btn-export');
 const btnClear = document.getElementById('btn-clear');
 const output = document.getElementById('json-output');
 
+// Referências para os novos elementos que serão criados via JS
+let fillBottomCheckbox;
+let blockTypeSelect;
+
 // Elementos de Configuração
 const spawnRandomCheck = document.getElementById('spawn-random');
 const randomDiffSelect = document.getElementById('random-diff');
@@ -41,7 +45,8 @@ window.onload = () => {
     configurarGrade();
     configurarPaleta();
     configurarStage();
-    
+    configurarFerramentasAutomaticas();
+
     btnExport.onclick = exportarJSON;
     btnClear.onclick = () => {
         if(confirm("Deseja limpar todo o palco?")) {
@@ -136,6 +141,38 @@ function configurarGrade() {
     stage.appendChild(grade);
 }
 
+function configurarFerramentasAutomaticas() {
+    const palette = document.getElementById('palette');
+    if (!palette) return;
+
+    const toolsContainer = document.createElement('div');
+    toolsContainer.className = 'editor-tools';
+    toolsContainer.innerHTML = `
+        <strong>Automação</strong>
+        <label>
+            <input type="checkbox" id="fill-bottom-checkbox"> Preencher Chão (Linha A)
+        </label>
+        <label>
+            Bloco:
+            <select id="block-type-select">
+                <option value="padrao">Padrão (Gramda)</option>
+            </select>
+        </label>
+    `;
+    palette.appendChild(toolsContainer);
+
+    fillBottomCheckbox = document.getElementById('fill-bottom-checkbox');
+    blockTypeSelect = document.getElementById('block-type-select');
+
+    // Sincroniza estado inicial
+    fillBottomCheckbox.checked = faseData.plataformas.some(c => c.startsWith('a'));
+
+    fillBottomCheckbox.onchange = (e) => {
+        fillBottomLayer(e.target.checked);
+        atualizarVisual();
+    };
+}
+
 function configurarPaleta() {
     paletteItems.forEach(item => {
         item.onclick = () => {
@@ -186,6 +223,7 @@ function removerElemento(coord) {
     faseData.inimigos3 = (faseData.inimigos3 || []).filter(c => c !== coord);
     faseData.inimigos4 = (faseData.inimigos4 || []).filter(c => c !== coord);
     faseData.itens = faseData.itens.filter(i => i.pos !== coord);
+    if (faseData.posicaoInicialJogador === coord) faseData.posicaoInicialJogador = ''; // Limpa se for o jogador
 }
 
 function atualizarVisual() {
@@ -206,8 +244,10 @@ function atualizarVisual() {
         else if (item.tipo === 'jetpack') src = '../personagem/jetpack_pegavel.png';
         criarIcone(item.pos, src, '');
     });
-
-    criarIcone(faseData.posicaoInicialJogador, '../personagem/Personagem_parado.png', 'player-filter');
+    
+    if (faseData.posicaoInicialJogador) {
+        criarIcone(faseData.posicaoInicialJogador, '../personagem/Personagem_parado.png', 'player-filter');
+    }
     criarIcone(faseData.objetivo, '../personagem/objetivo.png');
 }
 
@@ -216,9 +256,39 @@ function criarIcone(coord, src, classe = '') {
     const col = parseInt(coord.substring(1)) - 1;
     const img = document.createElement('img');
     img.src = src;
+    if (classe) img.classList.add(classe);
     img.style = `position:absolute; left:${col*32}px; bottom:${row*32}px; width:32px; height:32px; image-rendering:pixelated; pointer-events:none;`;
     if (classe === 'player-filter') img.style.filter = 'hue-rotate(90deg)';
     stage.appendChild(img);
+}
+
+/**
+ * Adiciona ou remove blocos da linha inferior (chão).
+ * @param {boolean} fill - Se true, preenche; se false, remove.
+ */
+function fillBottomLayer(fill) {
+    const bottomRowCoords = [];
+    for (let c = 1; c <= COLS; c++) {
+        bottomRowCoords.push('a' + c);
+    }
+
+    if (fill) {
+        addBlocks(bottomRowCoords);
+    } else {
+        removeBlocks(bottomRowCoords);
+    }
+}
+
+function addBlocks(coordsArray) {
+    coordsArray.forEach(coord => {
+        if (!faseData.plataformas.includes(coord)) {
+            faseData.plataformas.push(coord);
+        }
+    });
+}
+
+function removeBlocks(coordsArray) {
+    faseData.plataformas = faseData.plataformas.filter(coord => !coordsArray.includes(coord));
 }
 
 function exportarJSON() {

@@ -1,0 +1,109 @@
+{
+    "posicaoInicialJogador": "b2",
+    "objetivo": "f19",
+    "plataformas": [
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8",
+        "a10",
+        "a11",
+        "a13",
+        "a14",
+        "a16",
+        "a17",
+        "a18",
+        "a19",
+        "a20",
+        "m19",
+        "m16",
+        "m13",
+        "m10",
+        "m7",
+        "m4",
+        "m1",
+        "g14",
+        "g13",
+        "g11",
+        "g10"
+    ],
+    "inimigos0": [
+        "h14",
+        "h13",
+        "h11",
+        "h10",
+        "b7",
+        "b6",
+        "b5",
+        "b4",
+        "b11",
+        "b13",
+        "b20"
+    ],
+    "inimigos1": [],
+    "inimigos2": [],
+    "inimigos3": [],
+    "inimigos4": [],
+    "itens": [
+        {
+            "tipo": "revolver",
+            "pos": "n1"
+        },
+        {
+            "tipo": "revolver",
+            "pos": "n7"
+        },
+        {
+            "tipo": "revolver",
+            "pos": "n16"
+        },
+        {
+            "tipo": "revolver",
+            "pos": "b16"
+        },
+        {
+            "tipo": "revolver",
+            "pos": "b18"
+        },
+        {
+            "tipo": "restauracao",
+            "pos": "n19"
+        },
+        {
+            "tipo": "restauracao",
+            "pos": "n13"
+        },
+        {
+            "tipo": "restauracao",
+            "pos": "n4"
+        },
+        {
+            "tipo": "restauracao",
+            "pos": "n10"
+        },
+        {
+            "tipo": "jetpack",
+            "pos": "b17"
+        },
+        {
+            "tipo": "jetpack",
+            "pos": "b14"
+        },
+        {
+            "tipo": "jetpack",
+            "pos": "b11"
+        },
+        {
+            "tipo": "restauracao",
+            "pos": "b8"
+        }
+    ],
+    "inimigoAleatorio": [
+        1,
+        0
+    ]
+}
