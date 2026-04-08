@@ -617,6 +617,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 if (inimigo.armaElemento) inimigo.armaElemento.remove();
                 if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
                 if (inimigo.botaElemento) inimigo.botaElemento.remove();
+                if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
+                if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
                 inimigo.elemento.remove();
                 window.inimigos.splice(i, 1);
             }
@@ -1390,10 +1392,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 const hitboxItem = { x: item.x, y: item.y, largura: 32, altura: 32 };
                 // console.log(`[DEBUG ITEM] Player (x:${hitboxPlayerParaItem.x}, y:${hitboxPlayerParaItem.y}, w:${hitboxPlayerParaItem.largura}, h:${hitboxPlayerParaItem.altura})`);
                 // console.log(`[DEBUG ITEM] Item ${item.tipo} (x:${hitboxItem.x}, y:${hitboxItem.y}, w:${hitboxItem.largura}, h:${hitboxItem.altura})`);
-                const collisionDetected = detectarColisaoHitbox(hitboxPlayerParaItem, hitboxItem, 0, 0, 0); // Mantém a detecção, apenas remove o log
-                // console.log(`[DEBUG ITEM] Collision with ${item.tipo}: ${collisionDetected}`);
-
                 if (typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(hitboxPlayerParaItem, hitboxItem, 0, 0, 0)) {
+                    // Remove o item do jogo IMEDIATAMENTE ao tocar
+                    item.elemento.remove();
+                    window.itensColetaveis.splice(i, 1);
+
+                    // Processa o efeito do item baseado no tipo
                     if (item.tipo === 'escudo') {
                         // console.log("Jogador coletou o escudo!");
                         controle.temEscudo = true;
@@ -1411,11 +1415,14 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         salvarInventario();
                     } else if (item.tipo === 'jetpack') {
                         controle.temJetpack = true;
-                        console.log("Jogador coletou o jetpack!"); // Adicionado console.log
                         if (!controle.inventario.includes('jetpack')) controle.inventario.push('jetpack');
                         // Refinamento: Garante que o item coletado venha com carga e pronto para uso
                         controle.timerVooRestante = config.jetpackDuracaoVoo || 360;
                         controle.cooldownVooJetpack = 0;
+                        
+                        // Sincroniza a posição IMEDIATAMENTE para evitar o "fantasma" no chão
+                        jetpackElemento.style.left = controle.x + 'px';
+                        jetpackElemento.style.bottom = controle.y + 'px';
                         jetpackElemento.style.display = 'block';
                         salvarInventario();
                     } else if (item.tipo === 'airdrop') {
@@ -1491,9 +1498,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         armaElemento.style.display = 'block';
                         salvarInventario();
                     }
-                    item.elemento.remove();
-                    window.itensColetaveis.splice(i, 1);
-                    continue; // Pula o processamento de física para este item removido
+                    continue; // Pula para o próximo item, já que este foi coletado
                 }
 
                 // Aplica Gravidade
