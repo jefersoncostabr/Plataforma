@@ -162,6 +162,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.jetpackAtivo = false;
                     inimigo.timerVooRestante = 0;
                     inimigo.framesVoando = 0;
+                    
+                    inimigo.patrulhaTimer = 60; // 1 segundo (60 frames)
+                    inimigo.estadoPatrulha = 'parado'; // 'parado' ou 'caminhando'
+                    inimigo.direcaoPatrulha = Math.random() < 0.5 ? 'e' : 'd';
                     inimigo.cooldownVooJetpack = 0;
                     inimigo.framesImpulsoRestante = 0;
                     inimigo.velocidadeDash = 0;
@@ -586,51 +590,82 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         if (inimigo.tempoChute === 0) {
                             inimigo.x += velAtiva;
                             inimigo.direcao = 'd';
-                            inimigo.elemento.style.transform = 'scaleX(1)';
                             movendoDestaVez = true;
                         }
                     } else if (inimigo.x > xAlvo + velAtiva) {
                         if (inimigo.tempoChute === 0) {
                             inimigo.x -= velAtiva;
                             inimigo.direcao = 'e';
-                            inimigo.elemento.style.transform = 'scaleX(-1)';
                             movendoDestaVez = true;
                         }
                     }
-
-                    // Lógica de Pulo por Diferença de Altura (Vertical Tracking) - Item 2
-                    if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && yAlvo > inimigo.y + 31) {
-                        // Se o player estiver acima e o inimigo estiver perto horizontalmente (ex: 64px)
-                        const distXAlvo = Math.abs(xAlvo - inimigo.x);
-                        if (distXAlvo < 64 && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
-                            // Agenda o pulo com um delay aleatório
-                            inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
-                            inimigo.jumpQueued = true;
+                } else if (!inimigo.perseguindo && !inimigo.stunned && !inimigo.estaColetando) {
+                    // Lógica de Patrulha Aleatória: 1s parado, 1s andando devagar
+                    inimigo.patrulhaTimer--;
+                    
+                    if (inimigo.patrulhaTimer <= 0) {
+                        // Alterna estado
+                        inimigo.estadoPatrulha = (inimigo.estadoPatrulha === 'parado') ? 'caminhando' : 'parado';
+                        inimigo.patrulhaTimer = 60; // Reset para 1 segundo
+                        
+                        if (inimigo.estadoPatrulha === 'caminhando') {
+                            inimigo.direcaoPatrulha = Math.random() < 0.5 ? 'e' : 'd';
                         }
                     }
 
-                    // Lógica de Salto de Fé (Gap Jumping) - Item 3
-                    if (movendoDestaVez && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0) {
-                        // Calcula ponto de verificação à frente dos pés (baseado na direção)
-                        const checkX = (inimigo.direcao === 'd') 
-                            ? inimigo.x + (inimigo.offsetX || 0) + inimigo.largura + 10 
-                            : inimigo.x + (inimigo.offsetX || 0) - 10;
+                    if (inimigo.estadoPatrulha === 'caminhando') {
+                        const velPatrulha = velAtiva * 0.3; // Caminha bem devagar
+                        const dirSign = inimigo.direcaoPatrulha === 'd' ? 1 : -1;
                         
-                        const checkY = inimigo.y - 10; // Verifica o chão logo abaixo do nível atual
+                        // Verificação de segurança (parede ou buraco à frente)
+                        const margemCheck = (inimigo.direcaoPatrulha === 'd' ? 20 : -20);
+                        const checkX = inimigo.x + (inimigo.offsetX || 0) + (inimigo.largura / 2) + margemCheck;
                         
-                        // Se não houver plataforma detectada à frente e abaixo, o inimigo pula
-                        if (typeof verificarColisaoComTiles === 'function' &&
-                            !verificarColisaoComTiles(checkX, checkY, 2, 2, window.plataformas) && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
-                            // Agenda o pulo com um delay aleatório, usando os valores específicos para buracos
-                            const minDelay = config.inimigoPuloDelayMinGap ?? 0;
-                            const maxDelay = config.inimigoPuloDelayMaxGap ?? 10;
-                            inimigo.puloTimer = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
-                            inimigo.jumpQueued = true; // Comentado conforme solicitado
-                            // console.log('Inimigo iniciou timer de pulo por vácuo:', inimigo.puloTimer, 'frames'); // Comentado conforme solicitado
+                        const temChao = typeof verificarColisaoComTiles === 'function' && 
+                                        verificarColisaoComTiles(checkX, inimigo.y - 10, 2, 2, window.plataformas);
+                        const temParede = typeof verificarColisaoComTiles === 'function' && 
+                                          verificarColisaoComTiles(checkX, inimigo.y + 10, 2, 2, window.plataformas);
+
+                        if (temChao && !temParede) {
+                            inimigo.x += velPatrulha * dirSign;
+                            inimigo.direcao = inimigo.direcaoPatrulha;
+                            movendoDestaVez = true;
+                        } else {
+                            // Se encontrar obstáculo, para imediatamente
+                            inimigo.estadoPatrulha = 'parado';
+                            inimigo.patrulhaTimer = 60;
                         }
                     }
+                }
 
-                    // Lógica de Animação (Igual ao Personagem)
+                // Lógica de Pulo por Diferença de Altura (Apenas se estiver perseguindo)
+                if (inimigo.perseguindo && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && yAlvo > inimigo.y + 31) {
+                    const distXAlvo = Math.abs(xAlvo - inimigo.x);
+                    if (distXAlvo < 64 && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
+                        inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
+                        inimigo.jumpQueued = true;
+                    }
+                }
+
+                // Lógica de Salto de Fé (Gap Jumping - Apenas se estiver perseguindo)
+                if (inimigo.perseguindo && movendoDestaVez && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0) {
+                    const checkX = (inimigo.direcao === 'd') 
+                        ? inimigo.x + (inimigo.offsetX || 0) + inimigo.largura + 10 
+                        : inimigo.x + (inimigo.offsetX || 0) - 10;
+                    
+                    const checkY = inimigo.y - 10;
+                    
+                    if (typeof verificarColisaoComTiles === 'function' &&
+                        !verificarColisaoComTiles(checkX, checkY, 2, 2, window.plataformas) && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
+                        const minDelay = config.inimigoPuloDelayMinGap ?? 0;
+                        const maxDelay = config.inimigoPuloDelayMaxGap ?? 10;
+                        inimigo.puloTimer = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+                        inimigo.jumpQueued = true;
+                    }
+                }
+
+                // Gerenciamento de Animação e Estados Visuais
+                if (!inimigo.stunned && !inimigo.estaColetando) {
                     const controleAnimacao = {
                         movendoHorizontal: movendoDestaVez,
                         noChao: inimigo.noChao,
@@ -660,66 +695,59 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             inimigo.framesImpulsoRestante--;
                         }
                     }
+                }
 
-                    // Lógica da Attackbox do Inimigo
-                    if (inimigo.tempoChute > 0 && !inimigo.jaAtacouNesteChute && window.playerControle) {
-                        let ataqueX = (inimigo.direcao === 'd') 
-                            ? inimigo.x + config.ATAQUE_OFFSET_X 
-                            : inimigo.x + (32 - config.ATAQUE_OFFSET_X - config.ATAQUE_LARGURA);
+                // Lógica da Attackbox do Inimigo (Apenas se estiver perseguindo/atacando)
+                if (inimigo.perseguindo && inimigo.tempoChute > 0 && !inimigo.jaAtacouNesteChute && window.playerControle) {
+                    let ataqueX = (inimigo.direcao === 'd') 
+                        ? inimigo.x + config.ATAQUE_OFFSET_X 
+                        : inimigo.x + (32 - config.ATAQUE_OFFSET_X - config.ATAQUE_LARGURA);
 
-                        const hitboxAtaqueInimigo = {
-                            x: ataqueX,
-                            y: inimigo.y + config.ATAQUE_OFFSET_Y,
-                            largura: config.ATAQUE_LARGURA,
-                            altura: config.ATAQUE_ALTURA
-                        };
+                    const hitboxAtaqueInimigo = {
+                        x: ataqueX,
+                        y: inimigo.y + config.ATAQUE_OFFSET_Y,
+                        largura: config.ATAQUE_LARGURA,
+                        altura: config.ATAQUE_ALTURA
+                    };
 
-                        const hurtboxPlayer = { 
-                            x: window.playerControle.x + (window.playerControle.offsetX || 0), 
-                            y: window.playerControle.y, 
-                            largura: window.playerControle.largura, 
-                            altura: window.playerControle.altura 
-                        };
+                    const hurtboxPlayer = { 
+                        x: window.playerControle.x + (window.playerControle.offsetX || 0), 
+                        y: window.playerControle.y, 
+                        largura: window.playerControle.largura, 
+                        altura: window.playerControle.altura 
+                    };
 
-                        // Verifica colisão precisa (0 padding pois as caixas já estão ajustadas)
-                        if (typeof detectarColisaoHitbox === 'function' && 
-                            detectarColisaoHitbox(hitboxAtaqueInimigo, hurtboxPlayer, 0, 0, 0)) {
+                    if (typeof detectarColisaoHitbox === 'function' && 
+                        detectarColisaoHitbox(hitboxAtaqueInimigo, hurtboxPlayer, 0, 0, 0)) {
+                        
+                        inimigo.jaAtacouNesteChute = true;
+                        
+                        const escudoAtivo = temEscudoAtivo();
+                        if (!escudoAtivo) {
+                            window.playerControle.dano = (window.playerControle.dano || 0) + 1;
                             
-                            inimigo.jaAtacouNesteChute = true;
-                            
-                            const escudoAtivo = temEscudoAtivo();
-                            if (!escudoAtivo) {
-                                window.playerControle.dano = (window.playerControle.dano || 0) + 1;
-                                // console.log(`Dano: Jogador atingido! Total: ${window.playerControle.dano}/3`);
-                                
-                                // Efeito visual no jogador ao receber dano
-                                if (typeof flashComVibacao === 'function') {
-                                    flashComVibacao(document.getElementById('player'));
-                                }
-                            } else {
-                                console.log('Escudo bloqueou o chute! Apenas knockback aplicado.');
-                                
-                                // Efeito visual no escudo ao bloquear chute
-                                if (typeof piscaLeve === 'function' && window.escudoElemento) {
-                                    piscaLeve(window.escudoElemento);
-                                }
+                            if (typeof flashComVibacao === 'function') {
+                                flashComVibacao(document.getElementById('player'));
                             }
-                            
-                            // Knockback no Jogador
-                            const direcaoKnockback = (inimigo.direcao === 'd' ? 1 : -1);
-                            const valorKnockback = obterKnockbackRecebido(config, 'inimigoChute');
-                            const duracaoRecuo = 15; // O recuo por contato físico é um pouco mais longo
-                            
-                            window.playerControle.framesKnockbackRestante = duracaoRecuo;
-                            window.playerControle.velocidadeKnockback = (valorKnockback / duracaoRecuo) * direcaoKnockback;
-
-                            // Condição de Game Over
-                            const limiteVida = window.playerControle.maxVida || 3;
-                            if (window.playerControle.dano >= limiteVida) {
-                                window.playerControle.dano = 0; // Reset imediato para evitar repetição do alert
-                                alert("Game Over! Você foi derrotado pelos inimigos.");
-                                if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
+                        } else {
+                            console.log('Escudo bloqueou o chute! Apenas knockback aplicado.');
+                            if (typeof piscaLeve === 'function' && window.escudoElemento) {
+                                piscaLeve(window.escudoElemento);
                             }
+                        }
+                        
+                        const direcaoKnockback = (inimigo.direcao === 'd' ? 1 : -1);
+                        const valorKnockback = obterKnockbackRecebido(config, 'inimigoChute');
+                        const duracaoRecuo = 15;
+                        
+                        window.playerControle.framesKnockbackRestante = duracaoRecuo;
+                        window.playerControle.velocidadeKnockback = (valorKnockback / duracaoRecuo) * direcaoKnockback;
+
+                        const limiteVida = window.playerControle.maxVida || 3;
+                        if (window.playerControle.dano >= limiteVida) {
+                            window.playerControle.dano = 0;
+                            alert("Game Over! Você foi derrotado pelos inimigos.");
+                            if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
                         }
                     }
                 }
@@ -769,6 +797,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 // Atualiza a posição no DOM (Sempre, para refletir gravidade, movimento e knockback)
                 inimigo.elemento.style.left = inimigo.x + 'px';
                 inimigo.elemento.style.bottom = inimigo.y + 'px';
+                inimigo.elemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
 
                 // Sincroniza a arma com o inimigo
                 if (inimigo.armaElemento) {
