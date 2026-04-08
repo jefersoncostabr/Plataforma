@@ -9,17 +9,17 @@
             "nome": "Vida",
             "parent": null
         },
+        "skill2": {
+            "nome": "Atirador",
+            "parent": null
+        },
+
         "skilla": {
             "nome": "Dropar",
             "parent": "skill1"
         },
-
         "skillb": {
             "nome": "Visão",
-            "parent": "skill1"
-        },
-        "skillc": {
-            "nome": "Atirador",
             "parent": "skill1"
         },
 
@@ -31,6 +31,7 @@
             "nome": "Vender",
             "parent": "skilla"
         },
+
         "skillb2": {
             "nome": "Salto",
             "parent": "skillb"
