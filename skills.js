@@ -152,6 +152,7 @@ function abrirMenuSkillsUI() {
 
     skillsLevelMap = {};
     skillButtonsMap = {};
+    const buttonPositions = {};
 
     const overlay = document.createElement('div');
     overlay.id = 'skill-tree-overlay';
@@ -207,6 +208,7 @@ function abrirMenuSkillsUI() {
     const startY = 140; // Espaço reservado para o cabeçalho interno
 
     Object.keys(window.skillsData).forEach(skillId => {
+        // Store button positions during creation
         const skill = window.skillsData[skillId];
         const btn = document.createElement('button');
         const jaPossui = window.playerSkills.includes(skillId);
@@ -220,6 +222,7 @@ function abrirMenuSkillsUI() {
         // Distribui os botões do mesmo nível proporcionalmente à largura (550px)
         const x = (550 / (siblings.length + 1)) * (indexInLevel + 1);
         const y = startY + (depth * vGap);
+        buttonPositions[skillId] = { x: x, y: y, width: 90, height: 50 };
 
         // Disponível se o pai estiver liberado e o jogador tiver pontos
         const disponivel = paiPossui && window.skillPoints > 0;
@@ -254,6 +257,40 @@ function abrirMenuSkillsUI() {
 
         skillButtonsMap[skillId] = btn;
         container.appendChild(btn);
+    });
+
+    // Draw connection lines after all buttons are created and their positions are known
+    Object.keys(window.skillsData).forEach(skillId => {
+        const skill = window.skillsData[skillId];
+        if (skill.parent) {
+            const parentPos = buttonPositions[skill.parent];
+            const childPos = buttonPositions[skillId];
+
+            if (parentPos && childPos) {
+                const parentCenterX = parentPos.x;
+                const parentCenterY = parentPos.y + parentPos.height / 2;
+
+                const childCenterX = childPos.x;
+                const childCenterY = childPos.y + childPos.height / 2;
+
+                const dx = childCenterX - parentCenterX;
+                const dy = childCenterY - parentCenterY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+                const line = document.createElement('div');
+                line.style.position = 'absolute';
+                line.style.backgroundColor = '#444'; // Darker grey line for better contrast
+                line.style.height = '2px'; // Thin line
+                line.style.width = `${distance}px`;
+                line.style.left = `${parentCenterX}px`;
+                line.style.top = `${parentCenterY}px`;
+                line.style.transformOrigin = '0 50%'; // Rotate around the parent's center
+                line.style.transform = `rotate(${angle}deg)`;
+                line.style.zIndex = '0'; // Behind the buttons
+                container.appendChild(line);
+            }
+        }
     });
 
     container.appendChild(header);
