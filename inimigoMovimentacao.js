@@ -460,13 +460,16 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             
                             // O inimigo só tenta pegar o que ele ainda não tem
                             if (item.tipo !== 'airdrop' && 
-                                ((item.tipo === 'revolver' && inimigo.temArma) ||
+                                ((item.tipo === 'revolver' && inimigo.temArma && inimigo.municao > 0) ||
                                  (item.tipo === 'escudo' && inimigo.temEscudo) ||
                                  (item.tipo === 'bota' && inimigo.temBota) ||
                                  (item.tipo === 'jetpack' && inimigo.temJetpack))) continue;
 
                             inimigo.estaColetando = true;
-                            inimigo.timerColeta = 100; // Reduzido em 1/4 (aprox. 2.25 segundos)
+                            // Usa valores do config ou fallback para 100 frames
+                            inimigo.timerColeta = (item.tipo === 'airdrop') 
+                                ? (config.tempoColetaAirdrop || 150) 
+                                : (config.tempoColetaItem || 100);
                             inimigo.itemSendoColetado = item;
                             break;
                         }
@@ -485,7 +488,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         const item = inimigo.itemSendoColetado;
                         const itemIndex = window.itensColetaveis.indexOf(item);
                         if (itemIndex !== -1) {
-                            if (item.tipo === 'revolver') { inimigo.temArma = true; inimigo.municao = config.maxMunicao; if (inimigo.armaElemento) inimigo.armaElemento.style.display = 'block'; }
+                            if (item.tipo === 'revolver') { inimigo.temArma = true; inimigo.municao = config.maxMunicao || 5; if (inimigo.armaElemento) inimigo.armaElemento.style.display = 'block'; }
                             else if (item.tipo === 'escudo') { inimigo.temEscudo = true; inimigo.escudoVermelho = false; inimigo.escudoProtegido = 0; if (inimigo.escudoElemento) inimigo.escudoElemento.style.display = 'block'; }
                             else if (item.tipo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
                             else if (item.tipo === 'jetpack') { inimigo.temJetpack = true; if (inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block'; }

@@ -1,6 +1,17 @@
-Guia de Configuração de Habilidades (`skillsData.json`)
+# Guia de Configuração de Habilidades (`skillsData.json`)
 
-Este arquivo controla o progresso do jogador e a estrutura visual da árvore de habilidades. O posicionamento dos botões na tela é **automático** baseado na hierarquia definida.
+Este documento explica como configurar o arquivo `skillsData.json`, que controla o progresso do jogador e a estrutura visual da árvore de habilidades. O posicionamento dos botões no menu de habilidades é **automático**, baseado na hierarquia definida.
+
+## Sumário
+
+1.  Estrutura de Atributos (`playerStats`)
+2.  Definição de Habilidades (`skills`)
+    *   Campos por Skill
+3.  Lógica de Posicionamento Automático
+4.  Exemplo Prático
+5.  Vinculando Efeitos
+
+---
 
 ## 1. Estrutura de Atributos (`playerStats`)
 
@@ -9,7 +20,7 @@ Este arquivo controla o progresso do jogador e a estrutura visual da árvore de 
 | `xp` | Experiência inicial do jogador. |
 | `skillPoints` | Quantidade de pontos disponíveis para gastar ao iniciar. |
 | `acquired` | Lista de IDs de habilidades que o jogador já possui ao começar. |
-
+ 
 ## 2. Definição de Habilidades (`skills`)
 
 Cada entrada dentro do objeto `skills` representa um nó na árvore.
@@ -19,7 +30,7 @@ Cada entrada dentro do objeto `skills` representa um nó na árvore.
 *   **`nome`:** O texto que aparecerá dentro do botão no menu.
 *   **`parent`:** O ID da habilidade anterior necessária. Use `null` para a habilidade raiz (base).
 
-## 3. Lógica de Posicionamento Automático
+---
 
 Você não precisa definir coordenadas X e Y. O motor de jogo calcula a posição da seguinte forma:
 
@@ -28,7 +39,7 @@ Você não precisa definir coordenadas X e Y. O motor de jogo calcula a posiçã
 3.  **Ordem:** A ordem da esquerda para a direita é definida pela ordem alfabética dos IDs.
     *   Exemplo: `skilla` ficará à esquerda de `skillb`.
 
-## 4. Exemplo Prático
+---
 
 ```json
 {

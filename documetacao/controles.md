@@ -1,6 +1,18 @@
 # Guia de Controles do Teclado
 
-Este documento lista todas as teclas mapeadas no jogo e suas respectivas funções.
+Este documento detalha todas as teclas mapeadas no jogo e suas respectivas funções, incluindo comandos de movimentação, combate, sistema e debug.
+
+## Sumário
+
+1.  Movimentação do Jogador
+2.  Combate e Ações
+3.  Comandos de Sistema
+4.  Comandos de Debug (Desenvolvedor)
+5.  Dicas Técnicas
+
+---
+
+
 
 ## 1. Movimentação do Jogador
 
@@ -17,14 +29,14 @@ Este documento lista todas as teclas mapeadas no jogo e suas respectivas funçõ
 | **K** | Executa um chute. Ativa a hitbox de ataque e fornece um pequeno impulso (dash) para frente. |
 | **Seta Baixo + Espaço** ou **S + Espaço** | **Soltar Item:** Descarta o item mais recente do inventário (requer habilidade `skilla`). O item mantém seu estado original (munição/durabilidade). |
 | **I** | Dispara o revólver (requer ter coletado a arma e possuir munição). |
-| **Segurar Espaço (2s)** | **Ativar Jetpack:** Liga o motor de voo por 6 segundos (requer ter coletado o Jetpack). |
-| **W + Espaço** ou **Seta Cima + Espaço** | **Jetpack Instantâneo:** Ativa o voo imediatamente sem tempo de espera. |
-| **W** ou **Seta Cima** (no ar) | **Propulsão:** Sobe lentamente enquanto o Jetpack estiver ativo. Ao soltar, o personagem desce suavemente. |
+| **Segurar Espaço (aprox. 2s)** | **Ativar Jetpack:** Liga o motor de voo por 6 segundos (requer ter coletado o Jetpack). |
+| **W + Espaço** ou **Seta Cima + Espaço** | **Jetpack Instantâneo:** Ativa o voo imediatamente, sem o tempo de espera. |
+| **W** ou **Seta Cima** (no ar, com Jetpack ativo) | **Propulsão:** Mantém ou ganha altura enquanto o Jetpack estiver ativo. |
 | **S + I** ou **Seta Baixo + I** | **Vender Item:** Converte o último item do inventário em 1 XP (requer habilidade `skilla1`). O processo leva 2 segundos. |
-| **Seta Cima + I** ou **W + I** | **AirDrop:** Solicita suprimentos via sinalizador (requer habilidade `airdrop`, limitado a 1x por fase). |
+| **Seta Cima + I** ou **W + I** | **AirDrop:** Solicita suprimentos via sinalizador (requer habilidade `skilla2`, limitado a 1x por fase). |
 
+---
 ## 3. Comandos de Sistema
-
 | Tecla | Ação |
 | :--- | :--- |
 | **Pause / Break** | Alterna o estado de Pausa do jogo. Escurece a tela e interrompe toda a física e IA. |
@@ -46,9 +58,9 @@ Este documento lista todas as teclas mapeadas no jogo e suas respectivas funçõ
 
 ## Dicas Técnicas
 
-*   **Sincronização de Itens:** Ao usar o chute (**K**) enquanto estiver com a bota equipada, a força do impulso é multiplicada, permitindo atravessar vãos maiores.
-*   **Uso do Escudo:** O escudo é passivo. Enquanto estiver equipado e não estiver "vermelho" (quebrado), ele reduzirá automaticamente o knockback recebido e absorverá até 3 tiros antes de falhar.
-*   **Munição:** Se a arma ficar vermelha, você está sem munição. É necessário encontrar um novo item de revólver no mapa ou derrotar um inimigo armado para coletar o drop.
+*   **Chute com Botas:** Ao usar o chute (**K**) com as botas equipadas, a força do impulso é multiplicada, permitindo atravessar vãos maiores ou empurrar inimigos com mais eficácia.
+*   **Escudo:** O escudo é um item passivo. Enquanto equipado e não "quebrado" (indicado pela cor vermelha), ele reduz automaticamente o knockback recebido e absorve até 3 tiros antes de falhar.
+*   **Munição:** Uma arma vermelha indica falta de munição. Inimigos também podem ficar sem munição e, nesse estado, buscarão ativamente revólveres no chão para recarregar.
 
 ---
 *Última atualização: Abril de 2024*

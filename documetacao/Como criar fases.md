@@ -1,6 +1,16 @@
 # Guia de Criação de Fases
 
-As fases do jogo são armazenadas em arquivos `.json` na pasta raiz do projeto. Este documento explica como estruturar esses arquivos para criar novos desafios.
+Este documento detalha a estrutura dos arquivos `.json` utilizados para criar as fases do jogo, permitindo a criação de novos desafios e cenários.
+
+## Sumário
+
+1.  O Sistema de Coordenadas (Grid)
+2.  Estrutura do Arquivo JSON
+    *   Detalhes das Chaves
+3.  Como Adicionar a Fase ao Jogo
+4.  Dicas de Design
+5.  Limites do Palco
+
 
 ## 1. O Sistema de Coordenadas (Grid)
 
@@ -10,7 +20,7 @@ O jogo utiliza um sistema de coordenadas baseado em letras (linhas) e números (
 *   **Números (Eixo X):** 1 é o canto esquerdo, 2 é o próximo bloco à direita, etc.
 
 **Exemplos:**
-*   `a1`: Canto inferior esquerdo.
+*   `a1`: Canto inferior esquerdo do palco.
 *   `c10`: Terceira linha de altura, décima coluna de largura.
 
 ---
@@ -24,7 +34,7 @@ Crie um novo arquivo (ex: `fase4.json`) com a seguinte estrutura:
   "posicaoInicialJogador": "b2",
   "objetivo": "c18",
   "plataformas": [
-    "a1", "a2", "a3", "b5", "b6", "c8", "a15", "a16", "a17", "a18"
+    "a1", "a2", "a3", "b5", "b6", "c8", "a15", "a16", "a17", "a18", "a19", "a20"
   ],
   "inimigos0": ["b6"],
   "inimigos1": ["b15"],
@@ -41,15 +51,16 @@ Crie um novo arquivo (ex: `fase4.json`) com a seguinte estrutura:
 
 | Chave | Descrição |
 | :--- | :--- |
-| `posicaoInicialJogador` | Onde o personagem aparece ao iniciar ou resetar a fase. |
-| `objetivo` | A coordenada do item de vitória (bandeira/portal). |
-| `plataformas` | Lista de todas as coordenadas que terão blocos sólidos. |
-| `inimigos0` | Inimigos básicos (melee/sem arma). |
-| `inimigos1` | Inimigos com Revólver (Atiram à distância). |
-| `inimigos2` | Inimigos com Escudo (Mais resistentes e dropam proteção). |
-| `inimigos3` | Inimigos com Botas (mais rápidos e pulam mais). |
-| `itens` | Itens espalhados no mapa. Tipos: `"escudo"`, `"bota"`, `"revolver"`, `"jetpack"`. |
-| `inimigoAleatorio` | Configuração: `[Dificuldade (1-3), Equipamento (0=nenhum, 1=arma, 2=escudo)]`. |
+| `posicaoInicialJogador` | Coordenada onde o jogador será posicionado ao iniciar ou reiniciar a fase. |
+| `objetivo` | Coordenada do item de vitória (bandeira ou portal) que finaliza a fase. |
+| `plataformas` | Lista de coordenadas que representam blocos sólidos no cenário. |
+| `inimigos0` | Lista de coordenadas para inimigos básicos (ataque corpo a corpo, sem armas). |
+| `inimigos1` | Lista de coordenadas para inimigos equipados com revólver (atiram à distância). |
+| `inimigos2` | Lista de coordenadas para inimigos com escudo (mais resistentes, dropam proteção ao serem derrotados). |
+| `inimigos3` | Lista de coordenadas para inimigos com botas (mais rápidos e com pulo aprimorado). |
+| `inimigos4` | Lista de coordenadas para inimigos com jetpack (capazes de voar para perseguir o jogador). |
+| `itens` | Lista de objetos `{ "tipo": "...", "pos": "..." }` para itens fixos no mapa. Tipos disponíveis: `"escudo"`, `"bota"`, `"revolver"`, `"jetpack"`. |
+| `inimigoAleatorio` | Array `[Dificuldade, Equipamento]` para configurar o spawn de inimigos aleatórios. `Dificuldade` (1-3) afeta a frequência de spawn. `Equipamento` (0=nenhum, 1=arma, 2=escudo, 3=bota, 4=jetpack) define o item inicial do inimigo. |
 
 ---
 
@@ -69,18 +80,18 @@ window.niveis = ["fase1.json", "fase2.json", "fase3.json", "fase4.json"];
 
 ## 4. Dicas de Design
 
-1.  **Buracos:** Para criar um buraco onde o jogador pode cair, basta deixar um espaço vazio na lista de `plataformas` (ex: pular de `a5` direto para `a8`).
-2.  **Altura dos Inimigos:** Tente sempre colocar os inimigos pelo menos uma letra acima da plataforma onde eles devem ficar (ex: se a plataforma está em `a10`, coloque o inimigo em `b10`).
-3.  **Progressão:** Comece as fases com `inimigos0` e vá introduzindo os tipos `1`, `2` e `3` conforme o jogador aprende as mecânicas.
-4.  **Itens Estratégicos:** Se você colocar um `inimigo2` (escudo), considere colocar um item de `bota` antes para ajudar o jogador a dar o dash e contornar o escudo.
+1.  **Buracos:** Para criar um buraco no cenário, simplesmente omita as coordenadas correspondentes na lista de `plataformas` (ex: pular de `a5` para `a8` cria um buraco entre `a6` e `a7`).
+2.  **Posicionamento de Inimigos:** Inimigos devem ser posicionados pelo menos uma linha (letra) acima da plataforma onde se encontram (ex: inimigo em `b10` para plataforma em `a10`).
+3.  **Curva de Dificuldade:** Inicie as fases com `inimigos0` e introduza gradualmente os tipos `1`, `2`, `3` e `4` à medida que o jogador se familiariza com as mecânicas.
+4.  **Estratégia de Itens:** Posicione itens de forma estratégica. Por exemplo, um item de `bota` pode ser útil antes de um `inimigo2` (com escudo) para permitir que o jogador o flanqueie com um dash.
 
 ---
 
 ## 5. Limites do Palco
 
 Por padrão, o palco configurado é de **640x480 pixels**.
-*   Isso significa que você tem aproximadamente **20 colunas** (1 a 20) e **15 linhas** (a a o) para trabalhar por tela. 
-*   Se o jogador passar do limite da tela, ele ainda poderá andar, mas você não verá o cenário a menos que implemente uma câmera (atualmente o jogo é de tela estática por fase).
+*   Isso corresponde a aproximadamente **20 colunas** (de 1 a 20) e **15 linhas** (de 'a' a 'o') de tiles de 32x32 pixels.
+*   O jogo atualmente utiliza uma câmera estática por fase. Se o jogador se mover além dos limites visíveis, o cenário não será renderizado.
 ```
 
 ### Conferência rápida:
