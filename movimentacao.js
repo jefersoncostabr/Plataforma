@@ -358,6 +358,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     };
 
     window.playerControle = controle;
+
+    // Aplica os efeitos das skills agora que o objeto de controle foi criado
+    if (typeof window.aplicarEfeitosSkills === 'function') {
+        window.aplicarEfeitosSkills();
+    }
+
     window.projeteis = [];
     window.itensColetaveis = [];
 
@@ -379,7 +385,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         window.itensColetaveis = [];
         if (!dadosItens) return;
 
-        console.log("resetarItens: Dados de itens recebidos:", dadosItens);
+        // console.log("resetarItens: Dados de itens recebidos:", dadosItens);
 
         dadosItens.forEach(dado => {
             // Tenta obter o container do palco de forma segura
@@ -407,7 +413,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             itemImg.style.height = '32px';
             itemImg.style.left = pos.x + 'px';
             itemImg.style.bottom = pos.y + 'px';
-            console.log(`resetarItens: Tentando adicionar item ${dado.tipo} em x:${pos.x}, y:${pos.y} com src:${itemImg.src}`);
+            // console.log(`resetarItens: Tentando adicionar item ${dado.tipo} em x:${pos.x}, y:${pos.y} com src:${itemImg.src}`);
             itemImg.style.zIndex = '3';
             itemImg.style.imageRendering = 'pixelated';
             palco.appendChild(itemImg);
@@ -642,7 +648,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Log de teste para debug (remova ou comente após testar)
         if (apertouI) {
-            console.log("Teclas detectadas: Cima:", segurandoCima, "| I:", apertouI, "| Skill 'skilla2' possui?", window.playerSkills?.includes('skilla2'), "| Já usado?", controle.airdropUsadoNoNivel);
+            // console.log("Teclas detectadas: Cima:", segurandoCima, "| I:", apertouI, "| Skill 'skilla2' possui?", window.playerSkills?.includes('skilla2'), "| Já usado?", controle.airdropUsadoNoNivel);
         }
 
         // Alterado de 'airdrop' para 'skilla2' para coincidir com o ID no skillsData.json
@@ -1198,6 +1204,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         inimigo.timerColeta = 0;
                         
                         inimigo.vida = (inimigo.vida || 0) + 1;
+                        if (inimigo.tipo === 5) console.log(`[FENO] Recebeu 1 de dano (Chute). Vida acumulada: ${inimigo.vida}/3`);
 
                         // Knockback: Lança o inimigo para trás com base na direção do jogador
                         const direcaoKnockback = (controle.direcao === 'd' ? 1 : -1);
@@ -1258,6 +1265,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             }
         }
 
+
         // 4. Atualização de Projéteis
         if (window.projeteis) {
             for (let i = window.projeteis.length - 1; i >= 0; i--) {
@@ -1306,7 +1314,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                     // console.log("Escudo do inimigo quebrou!");
                                 }
                             } else {
-                                inimigo.vida = (inimigo.vida || 0) + (controle.danoProjetil || 1);
+                                const danoTomado = (controle.danoProjetil || 1);
+                                inimigo.vida = (inimigo.vida || 0) + danoTomado;
+                                if (inimigo.tipo === 5) console.log(`[FENO] Recebeu ${danoTomado} de dano (Tiro). Vida acumulada: ${inimigo.vida}/3`);
                             }
                             
                             // Knockback: Lança o inimigo para trás com base na direção do projétil
@@ -1549,7 +1559,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         salvarInventario();
                     }
                     else if (item.tipo === 'restauracao') { // NEW: Direct collection of restoration item
-                        console.log("Jogador coletou o item de restauração!");
+                        // console.log("Jogador coletou o item de restauração!");
                         controle.municao = config.maxMunicao || 5; 
                         controle.escudoProtegido = 0;
                         controle.escudoVermelho = false;

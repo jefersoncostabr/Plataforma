@@ -1,8 +1,35 @@
+skillsEfeitos.js
+
+    window.playerSkills.forEach(skillId => {
+        switch (skillId) {
+            case 'skill1':
+                // Habilidade Vida: aumenta a resistência máxima em +1
+                controle.maxVida += 1;
+                break;
+            
+            case 'skill2':
+                // Habilidade Atirador: aumenta o dano do tiro em +1
+                controle.danoProjetil += 1;
+                break;
+            
+            case 'skilla':
+                // Exemplo futuro: aumentar dano ou knockback
+                break;
+
+            case 'skillb':
+                // Exemplo futuro: bônus de agilidade
+                break;
+        }
+    });
+
+
+skillsData.json
+
 {
     "playerStats": {
         "xp": 0,
         "skillPoints": 0,
-        "acquired": []
+        "acquired": ["skilla1"]
     },
     "skills": {
         "skill1": {

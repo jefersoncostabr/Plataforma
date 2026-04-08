@@ -1,7 +1,7 @@
 /**
  * Gerenciador central de fases e inicialização.
  */
-window.niveis = ["fase1.json", "fase2.json", "fase3.json", "fase4.json", "fase5.json", "fase6.json", "fase7.json"];
+window.niveis = ["fase1.json", "fase2.json", "fase3.json", "fase4.json", "fase5.json", "fase6.json", "fase7.json", "fase8.json"];
 window.nivelAtual = 0;
 window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para inimigo aleatório
 window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro inimigo
@@ -195,6 +195,12 @@ window.reiniciarJogo = async function(porMorte = true) {
         if (window.playerControle.temArma) {
             window.playerControle.municao = window.config.maxMunicao || 5;
         }
+
+        // Re-aplica os bônus das habilidades adquiridas após resetar os valores base
+        if (typeof window.aplicarEfeitosSkills === 'function') {
+            window.aplicarEfeitosSkills();
+        }
+
         // Mantém a bota se ela já foi coletada
         if (window.playerControle.temBota) {
             window.playerControle.temBota = true;

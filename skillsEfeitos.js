@@ -17,9 +17,9 @@ window.aplicarEfeitosSkills = () => {
                 controle.maxVida += 1;
                 break;
             
-            case 'skillc':
-                // Habilidade Atirador: aumenta o dano do tiro para 2
-                controle.danoProjetil = 2;
+            case 'skill2':
+                // Habilidade Atirador: aumenta o dano do tiro em +1 (Total 2)
+                controle.danoProjetil += 1;
                 break;
             
             case 'skilla':
