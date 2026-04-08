@@ -14,6 +14,7 @@
         { "tipo": "escudo", "pos": "l13" },
         { "tipo": "revolver", "pos": "l17" },
         { "tipo": "revolver", "pos": "g7" },
+        { "tipo": "restauracao", "pos": "b8" },
         { "tipo": "bota", "pos": "l15" }
     ],
     

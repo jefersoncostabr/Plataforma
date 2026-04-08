@@ -465,6 +465,16 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                  (item.tipo === 'bota' && inimigo.temBota) ||
                                  (item.tipo === 'jetpack' && inimigo.temJetpack))) continue;
 
+                            // Se for um item de restauração, o inimigo só coleta se precisar
+                            if (item.tipo === 'restauracao') {
+                                const precisaRestaurarMunicao = inimigo.temArma && inimigo.municao < (config.maxMunicao || 5);
+                                const precisaRestaurarEscudo = inimigo.temEscudo && inimigo.escudoVermelho;
+                                if (!precisaRestaurarMunicao && !precisaRestaurarEscudo) {
+                                    continue; // Não precisa do item de restauração
+                                }
+                            }
+
+
                             inimigo.estaColetando = true;
                             // Usa valores do config ou fallback para 100 frames
                             inimigo.timerColeta = (item.tipo === 'airdrop') 
@@ -492,6 +502,16 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             else if (item.tipo === 'escudo') { inimigo.temEscudo = true; inimigo.escudoVermelho = false; inimigo.escudoProtegido = 0; if (inimigo.escudoElemento) inimigo.escudoElemento.style.display = 'block'; }
                             else if (item.tipo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
                             else if (item.tipo === 'jetpack') { inimigo.temJetpack = true; if (inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block'; }
+                            else if (item.tipo === 'restauracao') { // NEW: Enemy collects restoration item
+                                inimigo.municao = config.maxMunicao || 5;
+                                inimigo.escudoProtegido = 0;
+                                inimigo.escudoVermelho = false;
+                                if (inimigo.inventario.includes('escudo')) { // Only restore if they had one
+                                    inimigo.temEscudo = true;
+                                }
+                                console.log("IA: Inimigo coletou item de restauração!");
+                            }
+
                             else if (item.tipo === 'airdrop') {
                                 // Lógica restrita para o inimigo: apenas 'item' ou 'restauracao'
                                 const conteudos = config.airdrop1?.conteudos || ['item'];
@@ -506,6 +526,9 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                     inimigo.municao = config.maxMunicao || 5;
                                     inimigo.escudoProtegido = 0;
                                     inimigo.escudoVermelho = false;
+                                    if (inimigo.inventario.includes('escudo')) { // Only restore if they had one
+                                        inimigo.temEscudo = true;
+                                    }
                                     console.log("IA: Inimigo restaurou equipamentos via AirDrop!");
                                 } else {
                                     // Sorteia um equipamento que o inimigo ainda não possua
@@ -526,7 +549,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                 }
                             }
                             
-                            if (item.tipo !== 'airdrop') inimigo.inventario.push(item.tipo);
+                            if (item.tipo !== 'airdrop' && item.tipo !== 'restauracao') inimigo.inventario.push(item.tipo); // 'restauracao' is consumed, not inventoried
                             item.elemento.remove();
                             window.itensColetaveis.splice(itemIndex, 1);
                         }

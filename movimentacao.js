@@ -395,6 +395,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 itemImg.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
             } else if (dado.tipo === 'jetpack') {
                 itemImg.src = config.spriteItemJetpack || 'personagem/jetpack_pegavel.png';
+            } else if (dado.tipo === 'restauracao') {
+                itemImg.src = config.spriteItemRestauracao || 'personagem/restaurar.png';
             } else {
                 itemImg.src = config.spriteItemRevolver || 'personagem/revolver_pegavel.png';
             }
@@ -1498,6 +1500,18 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         armaElemento.style.display = 'block';
                         salvarInventario();
                     }
+                    else if (item.tipo === 'restauracao') { // NEW: Direct collection of restoration item
+                        console.log("Jogador coletou o item de restauração!");
+                        controle.municao = config.maxMunicao || 5; 
+                        controle.escudoProtegido = 0;
+                        controle.escudoVermelho = false;
+                        if (controle.inventario.includes('escudo')) {
+                            controle.temEscudo = true;
+                        }
+                        atualizarVisualEscudo();
+                        salvarInventario();
+                    }
+
                     continue; // Pula para o próximo item, já que este foi coletado
                 }
 

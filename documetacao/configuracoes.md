@@ -87,6 +87,7 @@ Este documento descreve cada campo presente no arquivo de configuração central
 | `spriteItemEscudo` | Item coletável no chão. |
 | `spriteItemBota` | Item de bota coletável no chão. |
 | `spriteItemRevolver` | Item de arma coletável no chão. |
+| `spriteItemRestauracao` | Item de restauração coletável no chão. |
 | `spriteItemJetpack` | Item de Jetpack coletável no chão. |
 | `spriteJetpackPlayer` | Visual do Jetpack equipado nas costas. |
 | `spriteJetFogo` | Sprite da chama/fogo expelido pelo Jetpack. |
