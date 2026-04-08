@@ -13,9 +13,9 @@ let faseData = {
     plataformas: [],
     inimigos0: [],
     inimigos1: [],
-    inimigos2: [], // Adicionado para inimigos com escudo
-    inimigos3: [], // Adicionado para inimigos com botas
-    inimigos4: [], // Adicionado para inimigos com jetpack
+    inimigos2: [],
+    inimigos3: [],
+    inimigos4: [],
     itens: [],
     inimigoAleatorio: [1, 0]
 };
@@ -63,13 +63,11 @@ window.onload = () => {
         }
     });
 
-    // Listeners para configurações
     spawnRandomCheck.onchange = (e) => {
         document.getElementById('random-config-fields').style.opacity = e.target.checked ? "1" : "0.3";
         document.getElementById('random-config-fields').style.pointerEvents = e.target.checked ? "auto" : "none";
     };
 
-    // Criar elemento de tooltip
     tooltipElement = document.createElement('div');
     tooltipElement.id = 'editor-tooltip';
     document.body.appendChild(tooltipElement);
@@ -152,36 +150,27 @@ function configurarStage() {
     stage.addEventListener('mousedown', (e) => {
         const rect = stage.getBoundingClientRect();
         const x = e.clientX - rect.left;
-        const y = rect.bottom - e.clientY; // Inverte Y para o sistema 'bottom'
+        const y = rect.bottom - e.clientY;
 
         const col = Math.floor(x / TILE_SIZE) + 1;
         const row = Math.floor(y / TILE_SIZE);
         const coord = String.fromCharCode(97 + row) + col;
 
-        if (e.button === 0) { // Clique esquerdo: Adicionar
-            adicionarElemento(coord);
-        } else if (e.button === 2) { // Clique direito: Remover
-            removerElemento(coord);
-        }
+        if (e.button === 0) adicionarElemento(coord);
+        else if (e.button === 2) removerElemento(coord);
         atualizarVisual();
     });
-
-    // Previne menu de contexto
     stage.oncontextmenu = (e) => e.preventDefault();
 }
 
 function adicionarElemento(coord) {
-    removerElemento(coord); // Limpa o que tinha antes na mesma célula
-
-    if (itemSelecionado === 'plataforma') {
-        faseData.plataformas.push(coord);
-    } else if (itemSelecionado === 'player') {
-        faseData.posicaoInicialJogador = coord;
-    } else if (itemSelecionado === 'objetivo') {
-        faseData.objetivo = coord;
-    } else if (itemSelecionado.startsWith('inimigos')) { // Corrigido para plural
+    removerElemento(coord);
+    if (itemSelecionado === 'plataforma') faseData.plataformas.push(coord);
+    else if (itemSelecionado === 'player') faseData.posicaoInicialJogador = coord;
+    else if (itemSelecionado === 'objetivo') faseData.objetivo = coord;
+    else if (itemSelecionado.startsWith('inimigos')) {
         const tipo = itemSelecionado;
-        if (!faseData[tipo]) faseData[tipo] = []; // Garante que o array exista
+        if (!faseData[tipo]) faseData[tipo] = [];
         faseData[tipo].push(coord);
     } else if (itemSelecionado.startsWith('item_')) {
         const tipoReal = itemSelecionado.replace('item_', '');
@@ -195,91 +184,48 @@ function removerElemento(coord) {
     faseData.inimigos1 = (faseData.inimigos1 || []).filter(c => c !== coord);
     faseData.inimigos2 = (faseData.inimigos2 || []).filter(c => c !== coord);
     faseData.inimigos3 = (faseData.inimigos3 || []).filter(c => c !== coord);
-    faseData.inimigos4 = (faseData.inimigos4 || []).filter(c => c !== coord); // Adicionado
+    faseData.inimigos4 = (faseData.inimigos4 || []).filter(c => c !== coord);
     faseData.itens = faseData.itens.filter(i => i.pos !== coord);
 }
 
 function atualizarVisual() {
-    // Remove todos os elementos visuais antigos (exceto a grade)
     const elementos = stage.querySelectorAll('img');
     elementos.forEach(el => el.remove());
 
-    // Renderiza Plataformas
-    faseData.plataformas.forEach(coord => criarIcone(coord, '../personagem/chao.png', '', 'Plataforma'));
+    faseData.plataformas.forEach(coord => criarIcone(coord, '../personagem/chao.png', ''));
+    (faseData.inimigos0 || []).forEach(coord => criarIcone(coord, '../personagem/Personagem_parado.png', 'enemy-marker'));
+    (faseData.inimigos1 || []).forEach(coord => criarIcone(coord, '../personagem/revolver_pegavel.png', 'enemy-marker'));
+    (faseData.inimigos2 || []).forEach(coord => criarIcone(coord, '../personagem/escudo_pegavel.png', 'enemy-marker'));
+    (faseData.inimigos3 || []).forEach(coord => criarIcone(coord, '../personagem/bota_pegavel.png', 'enemy-marker'));
+    (faseData.inimigos4 || []).forEach(coord => criarIcone(coord, '../personagem/jetpack_pegavel.png', 'enemy-marker'));
 
-    // Renderiza Inimigos
-    (faseData.inimigos0 || []).forEach(coord => criarIcone(coord, '../personagem/Personagem_parado.png'));
-    (faseData.inimigos1 || []).forEach(coord => criarIcone(coord, '../personagem/revolver_pegavel.png'));
-    (faseData.inimigos2 || []).forEach(coord => criarIcone(coord, '../personagem/escudo_pegavel.png'));
-    (faseData.inimigos3 || []).forEach(coord => criarIcone(coord, '../personagem/bota_pegavel.png'));
-    (faseData.inimigos4 || []).forEach(coord => criarIcone(coord, '../personagem/jetpack_pegavel.png'));
-
-    // Renderiza Itens
     faseData.itens.forEach(item => {
         let src = '../personagem/revolver_pegavel.png';
-        let nome = item.tipo.charAt(0).toUpperCase() + item.tipo.slice(1);
         if (item.tipo === 'escudo') src = '../personagem/escudo_pegavel.png';
         else if (item.tipo === 'bota') src = '../personagem/bota_pegavel.png';
         else if (item.tipo === 'jetpack') src = '../personagem/jetpack_pegavel.png';
-        else if (item.tipo === 'restauracao') src = '../personagem/restauracao.png';
-        criarIcone(item.pos, src, '', `Item: ${nome}`);
+        criarIcone(item.pos, src, '');
     });
 
-    // Player e Objetivo
-    criarIcone(faseData.posicaoInicialJogador, '../personagem/Personagem_parado.png', 'player-filter', 'Ponto Inicial do Jogador');
-    criarIcone(faseData.objetivo, '../personagem/objetivo.png', '', 'Objetivo da Fase');
+    criarIcone(faseData.posicaoInicialJogador, '../personagem/Personagem_parado.png', 'player-filter');
+    criarIcone(faseData.objetivo, '../personagem/objetivo.png');
 }
 
-function criarIcone(coord, src, classe = '', title = '') {
-    const letra = coord[0];
-    const numero = parseInt(coord.substring(1));
-    const row = letra.charCodeAt(0) - 'a'.charCodeAt(0);
-    const col = numero - 1;
-
+function criarIcone(coord, src, classe = '') {
+    const row = coord[0].charCodeAt(0) - 'a'.charCodeAt(0);
+    const col = parseInt(coord.substring(1)) - 1;
     const img = document.createElement('img');
     img.src = src;
-    img.style.position = 'absolute';
-    img.style.left = (col * TILE_SIZE) + 'px';
-    img.style.bottom = (row * TILE_SIZE) + 'px';
-    img.style.width = '32px';
-    img.style.height = '32px';
-    img.style.imageRendering = 'pixelated';
-    img.style.pointerEvents = 'none';
-    if (title) img.dataset.title = title;
-    
+    img.style = `position:absolute; left:${col*32}px; bottom:${row*32}px; width:32px; height:32px; image-rendering:pixelated; pointer-events:none;`;
     if (classe === 'player-filter') img.style.filter = 'hue-rotate(90deg)';
-
     stage.appendChild(img);
 }
 
 function exportarJSON() {
-    // Limpa chaves vazias para manter o JSON limpo
     const finalData = { ...faseData };
-    if (finalData.inimigos0 && finalData.inimigos0.length === 0) delete finalData.inimigos0;
-    if (finalData.inimigos1 && finalData.inimigos1.length === 0) delete finalData.inimigos1;
-    if (finalData.inimigos2 && finalData.inimigos2.length === 0) delete finalData.inimigos2; // Adicionado
-    if (finalData.inimigos3 && finalData.inimigos3.length === 0) delete finalData.inimigos3;
-    if (finalData.inimigos4 && finalData.inimigos4.length === 0) delete finalData.inimigos4; // Adicionado
-    
-    // Configuração do Inimigo Aleatório
-    if (spawnRandomCheck.checked) {
-        finalData.inimigoAleatorio = [
-            parseInt(randomDiffSelect.value),
-            parseInt(randomTypeSelect.value)
-        ];
-    } else {
-        delete finalData.inimigoAleatorio;
-    }
-
     const jsonStr = JSON.stringify(finalData, null, 4);
     output.value = jsonStr;
-    
-    // Copia para o clipboard automaticamente
     output.select();
-    try {
-        document.execCommand('copy');
-        alert("JSON copiado para a área de transferência!");
-    } catch (err) {
-        console.log('Erro ao copiar JSON');
-    }
+    document.execCommand('copy');
+    alert("JSON copiado!");
 }
