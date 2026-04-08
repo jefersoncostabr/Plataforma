@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Plataforma - Editor de Fases</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="editor-container">
+        <div id="palette">
+            <h3>Elementos</h3>
+            <div class="category">
+                <h4>Blocos</h4>
+                <img src="../personagem/chao.png" class="palette-item selected" data-type="plataforma" title="Plataforma">
+            </div>
+            <div class="category">
+                <h4>Inimigos</h4>
+                                <img src="../personagem/Personagem_parado.png" class="palette-item" data-type="inimigos0" title="Inimigo Melee">
+                <img src="../personagem/revolver_pegavel.png" class="palette-item" data-type="inimigos1" title="Inimigo Atirador">
+                <img src="../personagem/escudo_pegavel.png" class="palette-item" data-type="inimigos2" title="Inimigo Escudado">
+                <img src="../personagem/bota_pegavel.png" class="palette-item" data-type="inimigos3" title="Inimigo Rápido (Botas)">
+                <img src="../personagem/jetpack_pegavel.png" class="palette-item" data-type="inimigos4" title="Inimigo Voador (Jetpack)">
+            </div>
+            <div class="category">
+                <h4>Itens</h4>
+                <img src="../personagem/escudo_pegavel.png" class="palette-item" data-type="item_escudo" title="Escudo">
+                <img src="../personagem/bota_pegavel.png" class="palette-item" data-type="item_bota" title="Botas">
+                <img src="../personagem/revolver_pegavel.png" class="palette-item" data-type="item_revolver" title="Revólver">
+                <img src="../personagem/jetpack_pegavel.png" class="palette-item" data-type="item_jetpack" title="Jetpack">
+                <img src="../personagem/restauracao.png" class="palette-item" data-type="item_restauracao" title="Restauração">
+            </div>
+            <div class="category">
+                <h4>Sistema</h4>
+                <img src="../personagem/Personagem_parado.png" style="filter: hue-rotate(90deg);" class="palette-item" data-type="player" title="Início Jogador">
+                <img src="../personagem/objetivo.png" class="palette-item" data-type="objetivo" title="Objetivo">
+            </div>
+            <hr>
+            <div class="category">
+                <h4>Inimigo Aleatório</h4>
+                <div class="config-group">
+                    <label><input type="checkbox" id="spawn-random" checked> Habilitar</label>
+                </div>
+                <div id="random-config-fields">
+                    <div class="config-group">
+                        <label>Frequência:</label>
+                        <select id="random-diff">
+                            <option value="1">Fácil (60s)</option>
+                            <option value="2">Médio (45s)</option>
+                            <option value="3">Difícil (30s)</option>
+                        </select>
+                    </div>
+                    <div class="config-group">
+                        <label>Equipamento:</label>
+                        <select id="random-type">
+                            <option value="0">Nenhum (Melee)</option>
+                            <option value="1">Revólver</option>
+                            <option value="2">Escudo</option>
+                            <option value="3">Botas</option>
+                            <option value="4">Jetpack</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <button id="btn-export">Exportar JSON</button>
+            <button id="btn-clear" style="background: #600;">Limpar Tudo</button>
+            <div class="info">
+                <p><strong>G</strong>: Alternar Grade</p>
+                <p><strong>Clique</strong>: Adicionar</p>
+                <p><strong>Botão Dir.</strong>: Remover</p>
+            </div>
+        </div>
+
+        <div id="stage-area">
+            <div id="game-stage">
+                <!-- A grade e os elementos serão inseridos aqui -->
+            </div>
+            <div id="output-container">
+                <textarea id="json-output" readonly placeholder="O JSON da fase aparecerá aqui após exportar..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts auxiliares simulando o motor do jogo -->
+    <script src="editor.js"></script>
+</body>
+</html>
