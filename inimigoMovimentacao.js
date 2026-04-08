@@ -57,7 +57,12 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             const pos = typeof window.gridParaPixels === 'function' ? window.gridParaPixels(posStr) : {x: 0, y: 0};
             
             const inimigoImg = document.createElement('img'); // Variável correta para o elemento imagem do inimigo
-            inimigoImg.src = spriteParado;
+            const tipo = dado.tipo !== undefined ? dado.tipo : 1;
+            if (tipo === 5) {
+                inimigoImg.src = config.spriteAlvoFeno || 'personagem/alvoFeno.png';
+            } else {
+                inimigoImg.src = spriteParado;
+            }
             inimigoImg.style.position = 'absolute';
             inimigoImg.style.width = '32px';
             inimigoImg.style.height = '32px';
@@ -70,13 +75,14 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             window.inimigos.push({
                 x: pos.x,
                 y: pos.y,
+                startX: pos.x,
+                startY: pos.y,
                 largura: config.HITBOX_LARGURA, // Atribuir largura aqui
                 altura: config.HITBOX_ALTURA,   // Atribuir altura aqui
                 offsetX: config.HITBOX_OFFSET_X, // Atribuir offsetX aqui
                 elemento: inimigoImg, // Usar a variável correta
                 perseguindo: false,
-                tipo: dado.tipo !== undefined ? dado.tipo : 1
-                ,
+                tipo: tipo,
                 framesKnockbackRestante: 0, // Inicializa frames de knockback
                 velocidadeKnockback: 0, // Inicializa velocidade de knockback
                 puloTimer: 0, // Inicializa o timer de pulo
@@ -114,6 +120,62 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             for (let i = window.inimigos.length - 1; i >= 0; i--) {
                 const inimigo = window.inimigos[i];
                 
+                // Lógica especial para o Alvo de Feno (Tipo 5)
+                if (inimigo.tipo === 5) {
+                    // Se estiver no processo de reset (vermelho), não processa física
+                    if (inimigo.estaMorto) {
+                        continue;
+                    }
+
+                    const xAnteriorFeno = inimigo.x;
+
+                    // Aplica knockback se estiver ativo
+                    if (inimigo.framesKnockbackRestante > 0) {
+                        inimigo.x += inimigo.velocidadeKnockback;
+                        inimigo.framesKnockbackRestante--;
+                    }
+
+                    // Colisão Horizontal com as laterais das plataformas (Snap) para o feno
+                    if (typeof verificarColisaoComTiles === 'function' && 
+                        verificarColisaoComTiles(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura, window.plataformas)) {
+                        
+                        if (inimigo.x > xAnteriorFeno) { // Empurrado para Direita
+                            inimigo.x = Math.floor((inimigo.x + (inimigo.offsetX || 0) + inimigo.largura) / 32) * 32 - inimigo.largura - (inimigo.offsetX || 0) - EPSILON;
+                        } else if (inimigo.x < xAnteriorFeno) { // Empurrado para Esquerda
+                            inimigo.x = (Math.floor((inimigo.x + (inimigo.offsetX || 0)) / 32) + 1) * 32 - (inimigo.offsetX || 0) + EPSILON;
+                        }
+                    }
+
+                    // Garante que o alvo de feno não saia das bordas horizontais do palco (Clamping)
+                    if (typeof limitarPosicaoAoPalco === 'function') {
+                        const posAjustada = limitarPosicaoAoPalco(
+                            inimigo.x + (inimigo.offsetX || 0), 
+                            inimigo.y, 
+                            inimigo.largura, 
+                            inimigo.altura
+                        );
+                        inimigo.x = posAjustada.x - (inimigo.offsetX || 0);
+                        // Nota: Não ajustamos o Y aqui para permitir que ele caia em buracos se empurrado
+                    }
+
+                    // Aplica gravidade básica
+                    if (typeof aplicarFisica === 'function' && !inimigo.noChao) {
+                        aplicarFisica(inimigo, {}, 0, config.inimigoGravidade, 0);
+                    }
+                    // Sincroniza posição visual e pula toda a IA
+                    inimigo.elemento.style.left = inimigo.x + 'px';
+                    inimigo.elemento.style.bottom = inimigo.y + 'px';
+                    
+                    // Verifica colisão com solo para o alvo não atravessar o chão no knockback
+                    if (typeof verificarColisaoComTiles === 'function' && 
+                        verificarColisaoComTiles(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura, window.plataformas)) {
+                        inimigo.noChao = true;
+                        inimigo.velocidadeY = 0;
+                        inimigo.y = Math.floor((inimigo.y + EPSILON) / 32 + 1) * 32;
+                    }
+                    continue; 
+                }
+
                 let xAnterior = inimigo.x;
 
                 // Refinamento IA: Detecta itens de interesse (AirDrop ou Jetpack se não possuir um)

@@ -18,6 +18,11 @@
             "nome": "Visão",
             "parent": "skill1"
         },
+        "skillc": {
+            "nome": "Atirador",
+            "parent": "skill1"
+        },
+
         "skilla2": {
             "nome": "Airdrop",
             "parent": "skilla"

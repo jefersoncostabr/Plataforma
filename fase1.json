@@ -7,6 +7,7 @@
         "d10", "d11", "d12", "d13"
     ],
     "inimigos1": ["b13"],
+    "inimigos5": ["b4"],
     
     "inimigoAleatorio": [1, 0]
 }

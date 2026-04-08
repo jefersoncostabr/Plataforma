@@ -77,6 +77,7 @@ async function carregarFase(nomeArquivo) {
         if (fase.inimigos2) fase.inimigos2.forEach(p => inimigosParaReset.push({tipo: 2, pos: p}));
         if (fase.inimigos3) fase.inimigos3.forEach(p => inimigosParaReset.push({tipo: 3, pos: p}));
         if (fase.inimigos4) fase.inimigos4.forEach(p => inimigosParaReset.push({tipo: 4, pos: p}));
+        if (fase.inimigos5) fase.inimigos5.forEach(p => inimigosParaReset.push({tipo: 5, pos: p}));
         
         resetarInimigos(inimigosParaReset);
     }
@@ -172,6 +173,7 @@ window.reiniciarJogo = async function(porMorte = true) {
         window.playerControle.cooldownChute = 0;
         window.playerControle.cooldownTiro = 0;
         window.playerControle.cooldownPulo = 0;
+        window.playerControle.danoProjetil = 1; // Reset projectile damage
         window.playerControle.velocidadeY = 0;
         window.playerControle.framesKnockbackRestante = 0;
         window.playerControle.velocidadeKnockback = 0;

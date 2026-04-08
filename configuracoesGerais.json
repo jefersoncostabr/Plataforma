@@ -37,6 +37,7 @@
     "spriteParadoInimigo": "personagem/Personagem_parado.png",
     "spriteAndandoInimigo": "personagem/Personagem_andando.png",
     "spriteChuteInimigo": "personagem/personagem_chute2.png",
+    "spriteAlvoFeno": "personagem/alvoFeno.png",
     "spriteEscudoPlayer": "personagem/escudo.png",
     "spriteProjetil": "personagem/projetil.png",
     "spriteItemRestauracao": "personagem/restauracao.png",

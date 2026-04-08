@@ -331,6 +331,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         escudoProtegido: 0,
         dano: 0,
         maxVida: 3,
+        danoProjetil: 1, // Default projectile damage
         vendaEmCurso: false,
         vendaTimer: 0,
         vendaTipo: null,
@@ -1164,6 +1165,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             for (let i = window.inimigos.length - 1; i >= 0; i--) {
                 const inimigo = window.inimigos[i];
 
+                // Ignora inimigos que estão no processo de reset (Alvo de Feno morto)
+                if (inimigo.estaMorto) continue;
+
                 // 2. Attackbox (Ativa apenas durante o chute)
                 if (controle.chutando) {
                     // Calcula o X da attackbox baseado na direção (espelhamento)
@@ -1192,13 +1196,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         // Interrompe a coleta de item se levar um golpe
                         inimigo.estaColetando = false;
                         inimigo.timerColeta = 0;
-
-                        inimigo.vida = (inimigo.vida || 0) + 1; // Incrementa a vida do inimigo (dano)
-
-                        // Efeito visual no inimigo ao receber dano por chute
-                        if (typeof piscaLeve === 'function') {
-                            piscaLeve(inimigo.elemento);
-                        }
+                        
+                        inimigo.vida = (inimigo.vida || 0) + 1;
 
                         // Knockback: Lança o inimigo para trás com base na direção do jogador
                         const direcaoKnockback = (controle.direcao === 'd' ? 1 : -1);
@@ -1217,16 +1216,42 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
                         // Se atingir 3 golpes, o inimigo morre e desaparece
                         if (inimigo.vida >= 3) {
-                            // console.log("Ataque: Inimigo derrotado!");
-                            droparItensInimigo(inimigo);
-                            if (typeof window.ganharXP === 'function') window.ganharXP(1);
-                            if (inimigo.armaElemento) inimigo.armaElemento.remove();
-                            if (inimigo.botaElemento) inimigo.botaElemento.remove();
-                            if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
-                            if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
-                            if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
-                            inimigo.elemento.remove();
-                            window.inimigos.splice(i, 1);
+                            if (inimigo.tipo === 5) {
+                                // Lógica de Reset para o Alvo de Feno
+                                inimigo.estaMorto = true;
+                                
+                                // Zera a física imediatamente para evitar recuo residual após o respawn
+                                inimigo.framesKnockbackRestante = 0;
+                                inimigo.velocidadeKnockback = 0;
+                                inimigo.velocidadeY = 0;
+
+                                inimigo.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
+                                setTimeout(() => {
+                                    inimigo.vida = 0;
+                                    inimigo.x = inimigo.startX;
+                                    inimigo.y = inimigo.startY;
+                                    inimigo.estaMorto = false;
+                                    inimigo.elemento.style.filter = 'none';
+                                    inimigo.elemento.style.left = inimigo.x + 'px';
+                                    inimigo.elemento.style.bottom = inimigo.y + 'px';
+                                }, 2000);
+                            } else {
+                                // Efeito visual apenas se NÃO for o golpe final (evita sobrescrever o vermelho)
+                                if (typeof piscaLeve === 'function') {
+                                    piscaLeve(inimigo.elemento);
+                                }
+
+                                // Morte normal para outros inimigos
+                                droparItensInimigo(inimigo);
+                                if (typeof window.ganharXP === 'function') window.ganharXP(1);
+                                if (inimigo.armaElemento) inimigo.armaElemento.remove();
+                                if (inimigo.botaElemento) inimigo.botaElemento.remove();
+                                if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
+                                if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
+                                if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
+                                inimigo.elemento.remove();
+                                window.inimigos.splice(i, 1);
+                            }
                         }
                     }
                 }
@@ -1245,6 +1270,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 if (proj.origem === 'player' && window.inimigos) {
                     for (let j = window.inimigos.length - 1; j >= 0; j--) {
                         const inimigo = window.inimigos[j];
+                        
+                        if (inimigo.estaMorto) continue;
+
                         const hitboxInimigo = {
                             x: inimigo.x + (inimigo.offsetX || 0),
                             y: inimigo.y,
@@ -1278,14 +1306,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                     // console.log("Escudo do inimigo quebrou!");
                                 }
                             } else {
-                                inimigo.vida = (inimigo.vida || 0) + 1;
+                                inimigo.vida = (inimigo.vida || 0) + (controle.danoProjetil || 1);
                             }
-
-                            // Efeito visual no inimigo ao receber dano
-                            if (typeof flashComVibacao === 'function') {
-                                flashComVibacao(inimigo.elemento);
-                            }
-
+                            
                             // Knockback: Lança o inimigo para trás com base na direção do projétil
                             inimigo.x += obterKnockback(config, 'playerProjetil') * proj.direcao;
 
@@ -1298,15 +1321,40 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             inimigo.elemento.style.left = inimigo.x + 'px';
 
                             if (inimigo.vida >= 3) {
-                                droparItensInimigo(inimigo);
-                                if (typeof window.ganharXP === 'function') window.ganharXP(1);
-                                if (inimigo.armaElemento) inimigo.armaElemento.remove();
-                                if (inimigo.botaElemento) inimigo.botaElemento.remove();
-                                if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
-                                if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
-                                if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
-                                inimigo.elemento.remove();
-                                window.inimigos.splice(j, 1);
+                                if (inimigo.tipo === 5) {
+                                    inimigo.estaMorto = true;
+
+                                    // Zera a física imediatamente para o dano por projétil também
+                                    inimigo.framesKnockbackRestante = 0;
+                                    inimigo.velocidadeKnockback = 0;
+                                    inimigo.velocidadeY = 0;
+
+                                    inimigo.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
+                                    setTimeout(() => {
+                                        inimigo.vida = 0;
+                                        inimigo.x = inimigo.startX;
+                                        inimigo.y = inimigo.startY;
+                                        inimigo.estaMorto = false;
+                                        inimigo.elemento.style.filter = 'none';
+                                        inimigo.elemento.style.left = inimigo.x + 'px';
+                                        inimigo.elemento.style.bottom = inimigo.y + 'px';
+                                    }, 2000);
+                                } else {
+                                    // Efeito visual apenas se NÃO for o golpe final
+                                    if (typeof flashComVibacao === 'function') {
+                                        flashComVibacao(inimigo.elemento);
+                                    }
+
+                                    droparItensInimigo(inimigo);
+                                    if (typeof window.ganharXP === 'function') window.ganharXP(1);
+                                    if (inimigo.armaElemento) inimigo.armaElemento.remove();
+                                    if (inimigo.botaElemento) inimigo.botaElemento.remove();
+                                    if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
+                                    if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
+                                    if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
+                                    inimigo.elemento.remove();
+                                    window.inimigos.splice(j, 1);
+                                }
                             }
                             hitAlvo = true;
                             break;
