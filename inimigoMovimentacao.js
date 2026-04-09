@@ -88,7 +88,13 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 velocidadeKnockback: 0, // Inicializa velocidade de knockback
                 puloTimer: 0, // Inicializa o timer de pulo
                 jumpQueued: false // Inicializa a flag de pulo agendado
-                ,isEnemy: true // NEW: Flag to identify as an enemy
+                ,isEnemy: true // Flag to identify as an enemy
+                // Propriedades da Garra para o inimigo
+                ,garraAnimEstado: 'idle' // idle, prep, esticando, catching, voltando
+                ,garraTimer: 0
+                ,garraDist: 0
+                ,garraBracos: []
+                ,garraItemCarregado: null
             });
         });
     };
@@ -208,7 +214,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 const distanciaAtual = Math.abs(playerX - inimigo.x);
                 
                 // Inicializa propriedades de combate se não existirem
-                if (inimigo.tempoChute === undefined) {
+                if (inimigo.tempoChute === undefined) { // This block runs only once per enemy creation
                     inimigo.tempoChute = 0;
                     inimigo.cooldownChute = 0;
                     inimigo.cooldownTiro = 0;
@@ -234,6 +240,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.cooldownVooJetpack = 0;
                     inimigo.framesImpulsoRestante = 0;
                     inimigo.velocidadeDash = 0;
+                    inimigo.garraDirecaoAnim = 'e'; // Direção inicial da garra
 
                     inimigo.stunned = false; // Inicializa estado de stun
                     inimigo.stunTimer = 0;  // Inicializa timer de stun
@@ -345,6 +352,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         inimigo.garraElemento = garra;
                     }
                 }
+                // End of one-time initialization block
 
                 // Atualiza timers de chute
                 if (inimigo.tempoChute > 0) inimigo.tempoChute--;
@@ -355,6 +363,186 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inimigo.cooldownAfastamento > 0) inimigo.cooldownAfastamento--;
                 if (inimigo.cooldownPulo > 0) inimigo.cooldownPulo--;
                 if (inimigo.cooldownVooJetpack > 0) inimigo.cooldownVooJetpack--;
+
+                // Lógica da Animação da Garra (Estilo Cartoon) para o inimigo
+                if (inimigo.temGarra && inimigo.garraAnimEstado !== 'idle' && !inimigo.stunned) {
+                    const velGarra = 8; // Velocidade do esticamento
+                    const distMax = 32 * 5; // 5 blocos limite de esticamento (160px)
+                    const dirX = inimigo.garraDirecaoAnim === 'd' ? 1 : -1;
+
+                    // Sincroniza todos os segmentos do braço com a posição atual do inimigo
+                    inimigo.garraBracos.forEach((braco, index) => {
+                        const offset = index * 32;
+                        braco.style.left = (inimigo.x + (offset * dirX)) + 'px';
+                        braco.style.bottom = inimigo.y + 'px';
+                    });
+
+                    // Sincroniza a posição da "mão" (a garra na ponta) com o inimigo e a distância atual
+                    inimigo.garraElemento.style.left = (inimigo.x + (inimigo.garraDist * dirX)) + 'px';
+                    inimigo.garraElemento.style.bottom = inimigo.y + 'px';
+                    inimigo.garraElemento.style.transform = (inimigo.garraDirecaoAnim === 'e' ? 'scaleX(-1)' : 'scaleX(1)');
+
+                    if (inimigo.garraAnimEstado === 'prep') {
+                        inimigo.garraElemento.src = 'personagem/garra_using1.png';
+                        inimigo.garraTimer--;
+                        if (inimigo.garraTimer <= 0) {
+                            inimigo.garraAnimEstado = 'esticando';
+                        }
+                    } else if (inimigo.garraAnimEstado === 'esticando') {
+                        inimigo.garraDist += velGarra;
+                        inimigo.garraElemento.src = 'personagem/garra_using1.png';
+                        if (inimigo.garraDist > distMax) {
+                            inimigo.garraDist = distMax;
+                        }
+
+                        let grabbedSomething = false;
+                        // Check for PLAYER collision
+                        const hitboxGarra = {
+                            x: parseInt(inimigo.garraElemento.style.left),
+                            y: parseInt(inimigo.garraElemento.style.bottom),
+                            largura: 32,
+                            altura: 32
+                        };
+                        const hitboxPlayer = {
+                            x: window.playerControle.x + (window.playerControle.offsetX || 0),
+                            y: window.playerControle.y,
+                            largura: window.playerControle.largura,
+                            altura: window.playerControle.altura
+                        };
+
+                        if (detectarColisaoHitbox(hitboxGarra, hitboxPlayer, 0, 0, 0)) {
+                            inimigo.garraItemCarregado = window.playerControle;
+                            window.playerControle.stunned = true;
+                            window.playerControle.stunTimer = config.garraStunDurationPlayer || 120; // Default 2 seconds
+                            window.playerControle.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
+                            inimigo.garraAnimEstado = 'voltando';
+                            inimigo.garraElemento.src = 'personagem/garra_catching.png';
+                            grabbedSomething = true;
+                        }
+
+                        // Check for ITEMS collision (only if player not grabbed)
+                        if (!grabbedSomething) {
+                            for (let k = window.itensColetaveis.length - 1; k >= 0; k--) {
+                                const item = window.itensColetaveis[k];
+                                const hitboxItem = { x: item.x, y: item.y, largura: 32, altura: 32 };
+                                if (detectarColisaoHitbox(hitboxGarra, hitboxItem, 0, 0, 0)) {
+                                    inimigo.garraItemCarregado = item;
+                                    window.itensColetaveis.splice(k, 1);
+                                    inimigo.garraAnimEstado = 'voltando';
+                                    inimigo.garraElemento.src = 'personagem/garra_catching.png';
+                                    grabbedSomething = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Cria segmentos do braço
+                        if (inimigo.garraDist > 0 && inimigo.garraDist % 32 < velGarra && inimigo.garraDist <= distMax) {
+                            const braco = document.createElement('img');
+                            braco.src = (inimigo.garraBracos.length === 0) ? 'personagem/garra_using2.png' : 'personagem/garra_braco.png';
+                            braco.className = 'enemy-claw-arm';
+                            braco.style.position = 'absolute';
+                            braco.style.width = '32px';
+                            braco.style.height = '32px';
+                            braco.style.zIndex = '8';
+                            braco.style.imageRendering = 'pixelated';
+                            braco.style.pointerEvents = 'none';
+                            const offsetBraco = (inimigo.garraBracos.length * 32);
+                            braco.style.left = (inimigo.x + (offsetBraco * dirX)) + 'px';
+                            braco.style.bottom = inimigo.y + 'px';
+                            braco.style.transform = inimigo.garraDirecaoAnim === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+                            inimigo.elemento.parentElement.appendChild(braco);
+                            inimigo.garraBracos.push(braco);
+                        }
+                        if (inimigo.garraDist >= distMax && inimigo.garraItemCarregado === null) {
+                            inimigo.garraAnimEstado = 'catching';
+                            inimigo.garraTimer = 18;
+                            inimigo.garraElemento.src = 'personagem/garra_catching.png';
+                        }
+                    } else if (inimigo.garraAnimEstado === 'catching') {
+                        inimigo.garraTimer--;
+                        if (inimigo.garraTimer <= 0) inimigo.garraAnimEstado = 'voltando';
+                    } else if (inimigo.garraAnimEstado === 'voltando') {
+                        inimigo.garraDist -= velGarra;
+                        if (inimigo.garraItemCarregado && inimigo.garraItemCarregado.elemento) {
+                            const carried = inimigo.garraItemCarregado;
+                            carried.elemento.style.left = inimigo.garraElemento.style.left;
+                            carried.elemento.style.bottom = inimigo.garraElemento.style.bottom;
+                            
+                            // Atualiza coordenadas lógicas (importante para o player não teleportar ao ser solto)
+                            carried.x = parseInt(inimigo.garraElemento.style.left);
+                            carried.y = parseInt(inimigo.garraElemento.style.bottom);
+
+                            // If player is carried, update their associated elements too
+                            if (inimigo.garraItemCarregado.id === 'player') {
+                                if (window.playerControle.armaElemento) window.playerControle.armaElemento.style.left = inimigo.garraElemento.style.left;
+                                if (window.playerControle.armaElemento) window.playerControle.armaElemento.style.bottom = inimigo.garraElemento.style.bottom;
+                                if (window.playerControle.escudoElemento) window.playerControle.escudoElemento.style.left = inimigo.garraElemento.style.left;
+                                if (window.playerControle.escudoElemento) window.playerControle.escudoElemento.style.bottom = inimigo.garraElemento.style.bottom;
+                                if (window.playerControle.botaElemento) window.playerControle.botaElemento.style.left = inimigo.garraElemento.style.left;
+                                if (window.playerControle.botaElemento) window.playerControle.botaElemento.style.bottom = inimigo.garraElemento.style.bottom;
+                                if (window.playerControle.jetpackElemento) window.playerControle.jetpackElemento.style.left = inimigo.garraElemento.style.left;
+                                if (window.playerControle.jetpackElemento) window.playerControle.jetpackElemento.style.bottom = inimigo.garraElemento.style.bottom;
+                            }
+                        }
+                        if (inimigo.garraDist % 32 < velGarra && inimigo.garraBracos.length > 0) {
+                            const ultimoBraco = inimigo.garraBracos.pop();
+                            ultimoBraco.remove();
+                        }
+
+                        if (inimigo.garraItemCarregado && inimigo.garraDist <= velGarra) {
+                            if (inimigo.garraItemCarregado.id === 'player') {
+                                const playerAtingido = inimigo.garraItemCarregado;
+                                playerAtingido.stunned = false;
+                                playerAtingido.stunTimer = 0;
+                                playerAtingido.elemento.style.filter = 'none';
+                                
+                                // Apply damage to player
+                                if (!playerAtingido.temEscudo || playerAtingido.escudoVermelho) {
+                                    playerAtingido.dano = (playerAtingido.dano || 0) + 1;
+                                    if (typeof flashComVibacao === 'function') flashComVibacao(playerAtingido.elemento);
+                                    const limiteVida = playerAtingido.maxVida || 3;
+                                    if (playerAtingido.dano >= limiteVida) {
+                                        playerAtingido.dano = 0;
+                                        alert("Game Over! Você foi derrotado pela garra inimiga.");
+                                        if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
+                                    }
+                                } else {
+                                    playerAtingido.escudoProtegido = (playerAtingido.escudoProtegido || 0) + 1;
+                                    const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
+                                    if (typeof flashElement === 'function' && window.escudoElemento) flashElement(window.escudoElemento, 150, 6);
+                                    if (playerAtingido.escudoProtegido >= tirosProtegidos) playerAtingido.escudoVermelho = true;
+                                    window.atualizarVisualEscudo();
+                                    window.salvarInventario();
+                                }
+
+                                // Knockback player
+                                const direcaoKnockback = (inimigo.direcao === 'd' ? 1 : -1);
+                                const valorKnockback = obterKnockbackRecebido(config, 'inimigoChute'); // Reusing kick knockback
+                                const duracaoRecuo = 15;
+                                playerAtingido.framesKnockbackRestante = duracaoRecuo;
+                                playerAtingido.velocidadeKnockback = (valorKnockback / duracaoRecuo) * direcaoKnockback;
+
+                            } else { // It's an item
+                                // Enemy collects the item
+                                // This logic is already handled by the item collection block below
+                                // We just need to ensure it's re-added to the global list for processing
+                                window.itensColetaveis.push(inimigo.garraItemCarregado);
+                            }
+                            inimigo.garraItemCarregado = null;
+                            inimigo.garraAnimEstado = 'idle';
+                            inimigo.garraElemento.src = config.spriteGarraPlayer || 'personagem/garra.png';
+                            inimigo.garraBracos.forEach(b => b.remove());
+                            inimigo.garraBracos = [];
+                        }
+                        if (inimigo.garraDist <= 0 && inimigo.garraItemCarregado === null) {
+                            inimigo.garraAnimEstado = 'idle';
+                            inimigo.garraElemento.src = config.spriteGarraPlayer || 'personagem/garra.png';
+                            inimigo.garraBracos.forEach(b => b.remove());
+                            inimigo.garraBracos = [];
+                        }
+                    }
+                }
 
                 // Aplica knockback se estiver ativo
                 if (inimigo.framesKnockbackRestante > 0) {
@@ -439,7 +627,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 }
 
                 // Ativa a perseguição se o jogador estiver perto OU se detectar um tiro vindo no radar
-                if (!inimigo.perseguindo && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse)) {
+                if (!inimigo.perseguindo && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse || (inimigo.temGarra && distanciaAtual <= (config.garraAlcanceInimigo || 160)))) {
                     inimigo.perseguindo = true;
                     // console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
                 }
@@ -642,7 +830,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 }
 
                 let movendoDestaVez = false;
-                // Ações que dependem da ativação (movimento e ataque) - só se não estiver afastando
+                // Ações que dependem da ativação (movimento e ataque) - só se não estiver afastando, coletando ou usando a garra
                 if (inimigo.perseguindo && !inimigo.afastando && !inimigo.estaColetando) {
                     // Lógica para INICIAR o chute
                     if (distanciaAtual <= config.distanciaAtaqueInimigo && inimigo.cooldownChute === 0) {
@@ -697,17 +885,24 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     // Lógica de perseguição: move-se na direção do Alvo (AirDrop ou Player)
                     // Aumentamos a margem de parada baseada na velocidade para evitar travamentos
                     if (inimigo.x < xAlvo - velAtiva) {
-                        if (inimigo.tempoChute === 0) {
+                        if (inimigo.tempoChute === 0 && inimigo.garraAnimEstado === 'idle') {
                             inimigo.x += velAtiva;
                             inimigo.direcao = 'd';
                             movendoDestaVez = true;
                         }
                     } else if (inimigo.x > xAlvo + velAtiva) {
-                        if (inimigo.tempoChute === 0) {
+                        if (inimigo.tempoChute === 0 && inimigo.garraAnimEstado === 'idle') {
                             inimigo.x -= velAtiva;
                             inimigo.direcao = 'e';
                             movendoDestaVez = true;
                         }
+                    }
+
+                    // Lógica para INICIAR a Garra (se tiver e estiver no alcance)
+                    if (inimigo.temGarra && inimigo.garraAnimEstado === 'idle' && distanciaAtual <= (config.garraAlcanceInimigo || 160)) {
+                        inimigo.garraAnimEstado = 'prep';
+                        inimigo.garraTimer = 18;
+                        inimigo.garraDirecaoAnim = (inimigo.x < playerX) ? 'd' : 'e';
                     }
                 } else if (!inimigo.perseguindo && !inimigo.stunned && !inimigo.estaColetando) {
                     // Lógica de Patrulha Aleatória: 1s parado, 1s andando devagar

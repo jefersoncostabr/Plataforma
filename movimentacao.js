@@ -297,6 +297,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
     // Estado interno para rastrear posição e teclas pressionadas
     const controle = {
+        id: id,
+        elemento: elemento,
         x: parseInt(elemento.style.left) || 0,
         y: parseInt(elemento.style.bottom) || 0,
         largura: config.HITBOX_LARGURA || 20,
@@ -340,6 +342,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         dano: 0,
         maxVida: 3,
         danoProjetil: 1, // Default projectile damage
+        stunned: false,
+        stunTimer: 0,
         vendaEmCurso: false,
         vendaTimer: 0,
         vendaTipo: null,
@@ -794,6 +798,37 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     });
 
     function atualizar() {
+        // Lógica de Stun do Jogador (quando capturado pela garra inimiga)
+        if (controle.stunned) {
+            if (controle.stunTimer > 0) {
+                controle.stunTimer--;
+                // Visual de atordoamento (olhando para os lados)
+                if (controle.stunTimer % 15 === 0) {
+                    controle.direcao = (controle.direcao === 'd' ? 'e' : 'd');
+                }
+                // Sincroniza visual do player enquanto é arrastado
+                elemento.style.left = controle.x + 'px';
+                elemento.style.bottom = controle.y + 'px';
+                elemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+                
+                // Sincroniza acessórios
+                const posStyle = { left: elemento.style.left, bottom: elemento.style.bottom, transform: elemento.style.transform };
+                if (armaElemento) Object.assign(armaElemento.style, posStyle);
+                if (escudoElemento) Object.assign(escudoElemento.style, posStyle);
+                if (botaElemento) Object.assign(botaElemento.style, posStyle);
+                if (jetpackElemento) Object.assign(jetpackElemento.style, posStyle);
+                if (garraElemento) Object.assign(garraElemento.style, posStyle);
+
+                // Mantém o HUD atualizado
+                atualizarHUD();
+                requestAnimationFrame(atualizar);
+                return; // Bloqueia comandos enquanto estiver atordoado
+            } else {
+                controle.stunned = false;
+                elemento.style.filter = 'none';
+            }
+        }
+
         // Lógica da Skill "AirDrop" (Combo: Cima + I)
         const segurandoCima = controle.teclas['ArrowUp'] || controle.teclas['w'] || controle.teclas['W'];
         const apertouI = controle.teclas['i'] || controle.teclas['I'];
@@ -962,6 +997,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             inimigo.stunned = true;
                             inimigo.stunTimer = config.garraStunDuration || 120; // Default 2 seconds
                             inimigo.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)'; // Visual stun
+                            inimigo.garraAnimEstado = 'idle'; // Reset enemy claw if they were using it
                             inimigo.foiAtingidoNesteChute = false; // Reset hit flag for the upcoming kick
                             window.inimigos.splice(j, 1); // Temporarily remove enemy from global list to pause its AI
                             controle.garraAnimEstado = 'voltando'; // Immediately start retracting
@@ -1044,6 +1080,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     const carried = controle.garraItemCarregado;
                     carried.elemento.style.left = garraElemento.style.left;
                     carried.elemento.style.bottom = garraElemento.style.bottom;
+                    // Atualiza coordenadas lógicas para evitar "snapback" ao soltar
+                    carried.x = parseInt(garraElemento.style.left);
+                    carried.y = parseInt(garraElemento.style.bottom);
 
                     // If it's an enemy, also update its associated elements
                     if (carried.isEnemy) { 

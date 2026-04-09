@@ -42,6 +42,7 @@
     "spriteProjetil": "personagem/projetil.png",
     "spriteItemRestauracao": "personagem/restauracao.png",
     "spriteGarraPlayer": "personagem/garra.png",
+    "garraAlcanceInimigo": 160,
     "spriteItemGarra": "personagem/garra_coletavel.png",
     "velocidadeProjetil": 8,
     "PROJETIL_LARGURA": 8,

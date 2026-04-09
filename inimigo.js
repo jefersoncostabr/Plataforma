@@ -55,7 +55,13 @@ function criarInimigo(idPalco, imagemPath, coord, direcao = 'e', tipo = 1) {
         velocidadeKnockback: 0, // Inicializa velocidade de knockback
         puloTimer: 0, // Inicializa o timer de pulo
         jumpQueued: false // Inicializa a flag de pulo agendado
-        ,isEnemy: true // NEW: Flag to identify as an enemy
+        ,isEnemy: true // Flag to identify as an enemy
+        // Propriedades da Garra para o inimigo
+        ,garraAnimEstado: 'idle' // idle, prep, esticando, catching, voltando
+        ,garraTimer: 0
+        ,garraDist: 0
+        ,garraBracos: []
+        ,garraItemCarregado: null
     });
     console.log(`Inimigo inserido em ${coord} (x: ${x}, y: ${y})`);
 }
@@ -272,7 +278,13 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         velocidadeKnockback: 0, // Inicializa velocidade de knockback
         puloTimer: 0, // Inicializa o timer de pulo
         jumpQueued: false // Inicializa a flag de pulo agendado
-        ,isEnemy: true // NEW: Flag to identify as an enemy
+        ,isEnemy: true // Flag to identify as an enemy
+        // Propriedades da Garra para o inimigo
+        ,garraAnimEstado: 'idle' // idle, prep, esticando, catching, voltando
+        ,garraTimer: 0
+        ,garraDist: 0
+        ,garraBracos: []
+        ,garraItemCarregado: null
     };
     
     window.inimigos.push(novoInimigo);
