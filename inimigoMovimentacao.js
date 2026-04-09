@@ -36,6 +36,68 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         return valor;
     }
 
+    function inimigoColetarItemGarra(inimigo, item) {
+        // This logic is adapted from the existing enemy item collection in the main loop
+        // It assumes the item has already been removed from window.itensColetaveis
+        // and its visual element will be removed by the caller.
+
+        if (item.tipo === 'revolver') { inimigo.temArma = true; inimigo.municao = config.maxMunicao || 5; if (inimigo.armaElemento) inimigo.armaElemento.style.display = 'block'; }
+        else if (item.tipo === 'escudo') { inimigo.temEscudo = true; inimigo.escudoVermelho = false; inimigo.escudoProtegido = 0; if (inimigo.escudoElemento) inimigo.escudoElemento.style.display = 'block'; }
+        else if (item.tipo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
+        else if (item.tipo === 'jetpack') { inimigo.temJetpack = true; if (inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block'; }
+        else if (item.tipo === 'garra') { inimigo.temGarra = true; if (inimigo.garraElemento) inimigo.garraElemento.style.display = 'block'; }
+        else if (item.tipo === 'restauracao') {
+            inimigo.municao = config.maxMunicao || 5;
+            inimigo.escudoProtegido = 0;
+            inimigo.escudoVermelho = false;
+            if (inimigo.inventario.includes('escudo')) {
+                inimigo.temEscudo = true;
+            }
+            console.log("IA: Inimigo coletou item de restauração pela garra!");
+        }
+        else if (item.tipo === 'airdrop') {
+            const conteudos = config.airdrop1?.conteudos || ['item'];
+            const validosParaIA = conteudos.filter(c => c === 'item' || c === 'restauracao');
+            const sorteio = validosParaIA.length > 0
+                ? validosParaIA[Math.floor(Math.random() * validosParaIA.length)]
+                : 'item';
+
+            if (sorteio === 'restauracao') {
+                inimigo.municao = config.maxMunicao || 5;
+                inimigo.escudoProtegido = 0;
+                inimigo.escudoVermelho = false;
+                if (inimigo.inventario.includes('escudo')) {
+                    inimigo.temEscudo = true;
+                }
+                console.log("IA: Inimigo restaurou equipamentos via AirDrop pela garra!");
+            } else {
+                const pendentes = [];
+                if (!inimigo.temArma) pendentes.push('revolver');
+                if (!inimigo.temEscudo) pendentes.push('escudo');
+                if (!inimigo.temBota) pendentes.push('bota');
+                if (!inimigo.temJetpack) pendentes.push('jetpack');
+                if (!inimigo.temGarra) pendentes.push('garra');
+
+                if (pendentes.length > 0) {
+                    const novo = pendentes[Math.floor(Math.random() * pendentes.length)];
+                    if (novo === 'revolver') { inimigo.temArma = true; inimigo.municao = config.maxMunicao; if (inimigo.armaElemento) inimigo.armaElemento.style.display = 'block'; }
+                    else if (novo === 'escudo') { inimigo.temEscudo = true; inimigo.escudoVermelho = false; inimigo.escudoProtegido = 0; if (inimigo.escudoElemento) inimigo.escudoElemento.style.display = 'block'; }
+                    else if (novo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
+                    else if (novo === 'jetpack') { inimigo.temJetpack = true; if (inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block'; }
+                    else if (novo === 'garra') { inimigo.temGarra = true; if (inimigo.garraElemento) inimigo.garraElemento.style.display = 'block'; }
+                    inimigo.inventario.push(novo);
+                }
+            }
+        }
+
+        // Add to inventory if not already present and not a consumable like 'restauracao' or 'airdrop'
+        if (item.tipo !== 'airdrop' && item.tipo !== 'restauracao' && !inimigo.inventario.includes(item.tipo)) {
+            inimigo.inventario.push(item.tipo);
+        }
+        // Remove the item's visual element
+        item.elemento.remove();
+    }
+
     window.resetarInimigos = (dadosInimigos) => {
         // Limpa referências antigas e remove armas
         if (window.inimigos) {
@@ -465,6 +527,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     } else if (inimigo.garraAnimEstado === 'voltando') {
                         inimigo.garraDist -= velGarra;
                         if (inimigo.garraItemCarregado && inimigo.garraItemCarregado.elemento) {
+                            inimigo.garraElemento.src = 'personagem/garra_catching.png'; // Mantém o sprite de "pegando" durante a retração
                             const carried = inimigo.garraItemCarregado;
                             carried.elemento.style.left = inimigo.garraElemento.style.left;
                             carried.elemento.style.bottom = inimigo.garraElemento.style.bottom;
@@ -525,9 +588,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                             } else { // It's an item
                                 // Enemy collects the item
-                                // This logic is already handled by the item collection block below
-                                // We just need to ensure it's re-added to the global list for processing
-                                window.itensColetaveis.push(inimigo.garraItemCarregado);
+                                inimigoColetarItemGarra(inimigo, inimigo.garraItemCarregado);
                             }
                             inimigo.garraItemCarregado = null;
                             inimigo.garraAnimEstado = 'idle';
@@ -1173,9 +1234,11 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 // Sincroniza a garra com o inimigo
                 if (inimigo.garraElemento && inimigo.temGarra) {
-                    inimigo.garraElemento.style.left = inimigo.x + 'px';
-                    inimigo.garraElemento.style.bottom = inimigo.y + 'px';
-                    inimigo.garraElemento.style.transform = inimigo.elemento.style.transform;
+                    if (inimigo.garraAnimEstado === 'idle') { // Only sync to body if not animating
+                        inimigo.garraElemento.style.left = inimigo.x + 'px';
+                        inimigo.garraElemento.style.bottom = inimigo.y + 'px';
+                        inimigo.garraElemento.style.transform = inimigo.elemento.style.transform;
+                    }
                 }
             }
         }
