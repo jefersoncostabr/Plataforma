@@ -45,6 +45,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inim.escudoElemento) inim.escudoElemento.remove();
                 if (inim.jetpackElemento) inim.jetpackElemento.remove();
                 if (inim.jetFogoElemento) inim.jetFogoElemento.remove();
+                if (inim.garraElemento) inim.garraElemento.remove();
             });
         }
         window.inimigos = [];
@@ -221,6 +222,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.temEscudo = (inimigo.tipo === 2);
                     inimigo.temBota = (inimigo.tipo === 3);
                     inimigo.temJetpack = (inimigo.tipo === 4);
+                    inimigo.temGarra = (inimigo.tipo === 6);
                     inimigo.jetpackAtivo = false;
                     inimigo.timerVooRestante = 0;
                     inimigo.framesVoando = 0;
@@ -239,6 +241,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.temEscudo) inimigo.inventario.push('escudo');
                     if (inimigo.temBota) inimigo.inventario.push('bota');
                     if (inimigo.temJetpack) inimigo.inventario.push('jetpack');
+                    if (inimigo.temGarra) inimigo.inventario.push('garra');
                     inimigo.cooldownPulo = 0;
                     inimigo.velocidadeY = 0;
                     inimigo.cooldownVooJetpack = 0;
@@ -324,6 +327,21 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         jetFogo.style.display = 'none';
                         inimigo.elemento.parentElement.appendChild(jetFogo);
                         inimigo.jetFogoElemento = jetFogo;
+                    }
+
+                    // Cria o elemento visual da garra para o inimigo
+                    if (!inimigo.garraElemento) {
+                        const garra = document.createElement('img');
+                        garra.src = config.spriteGarraPlayer || 'personagem/garra.png';
+                        garra.style.position = 'absolute';
+                        garra.style.width = '32px';
+                        garra.style.height = '32px';
+                        garra.style.zIndex = '9';
+                        garra.style.imageRendering = 'pixelated';
+                        garra.style.pointerEvents = 'none';
+                        garra.style.display = inimigo.temGarra ? 'block' : 'none';
+                        inimigo.elemento.parentElement.appendChild(garra);
+                        inimigo.garraElemento = garra;
                     }
                 }
 
@@ -524,7 +542,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                 ((item.tipo === 'revolver' && inimigo.temArma && inimigo.municao > 0) ||
                                  (item.tipo === 'escudo' && inimigo.temEscudo) ||
                                  (item.tipo === 'bota' && inimigo.temBota) ||
-                                 (item.tipo === 'jetpack' && inimigo.temJetpack))) continue;
+                                 (item.tipo === 'jetpack' && inimigo.temJetpack) ||
+                                 (item.tipo === 'garra' && inimigo.temGarra))) continue;
 
                             // Se for um item de restauração, o inimigo só coleta se precisar
                             if (item.tipo === 'restauracao') {
@@ -563,6 +582,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             else if (item.tipo === 'escudo') { inimigo.temEscudo = true; inimigo.escudoVermelho = false; inimigo.escudoProtegido = 0; if (inimigo.escudoElemento) inimigo.escudoElemento.style.display = 'block'; }
                             else if (item.tipo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
                             else if (item.tipo === 'jetpack') { inimigo.temJetpack = true; if (inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block'; }
+                            else if (item.tipo === 'garra') { inimigo.temGarra = true; if (inimigo.garraElemento) inimigo.garraElemento.style.display = 'block'; }
                             else if (item.tipo === 'restauracao') { // NEW: Enemy collects restoration item
                                 inimigo.municao = config.maxMunicao || 5;
                                 inimigo.escudoProtegido = 0;
@@ -598,6 +618,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                     if (!inimigo.temEscudo) pendentes.push('escudo');
                                     if (!inimigo.temBota) pendentes.push('bota');
                                     if (!inimigo.temJetpack) pendentes.push('jetpack');
+                                    if (!inimigo.temGarra) pendentes.push('garra');
 
                                     if (pendentes.length > 0) {
                                         const novo = pendentes[Math.floor(Math.random() * pendentes.length)];
@@ -605,6 +626,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                         else if (novo === 'escudo') { inimigo.temEscudo = true; inimigo.escudoVermelho = false; inimigo.escudoProtegido = 0; if (inimigo.escudoElemento) inimigo.escudoElemento.style.display = 'block'; }
                                         else if (novo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
                                         else if (novo === 'jetpack') { inimigo.temJetpack = true; if (inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block'; }
+                                        else if (novo === 'garra') { inimigo.temGarra = true; if (inimigo.garraElemento) inimigo.garraElemento.style.display = 'block'; }
                                         inimigo.inventario.push(novo);
                                     }
                                 }
@@ -951,6 +973,13 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     } else {
                         inimigo.jetFogoElemento.style.display = 'none';
                     }
+                }
+
+                // Sincroniza a garra com o inimigo
+                if (inimigo.garraElemento && inimigo.temGarra) {
+                    inimigo.garraElemento.style.left = inimigo.x + 'px';
+                    inimigo.garraElemento.style.bottom = inimigo.y + 'px';
+                    inimigo.garraElemento.style.transform = inimigo.elemento.style.transform;
                 }
             }
         }

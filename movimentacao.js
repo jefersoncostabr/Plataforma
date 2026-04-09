@@ -170,6 +170,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.timerAtivacaoJetpack = 0;
             jetpackElemento.style.display = 'none'; // Oculta o visual do jetpack
             jetFogoElemento.style.display = 'none'; // Oculta o fogo ao dropar
+        } else if (tipo === 'garra') {
+            itemImg.src = config.spriteItemGarra || 'personagem/garra_coletavel.png';
+            controle.temGarra = false;
+            garraElemento.style.display = 'none';
         }
 
         itemImg.style.position = 'absolute';
@@ -206,6 +210,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             else if (tipo === 'escudo') itemImg.src = config.spriteItemEscudo || 'personagem/escudo_pegavel.png';
             else if (tipo === 'bota') itemImg.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
             else if (tipo === 'jetpack') itemImg.src = config.spriteItemJetpack || 'personagem/jetpack_pegavel.png';
+            else if (tipo === 'garra') itemImg.src = config.spriteItemGarra || 'personagem/garra_coletavel.png';
             
             itemImg.style.position = 'absolute';
             itemImg.style.width = '32px';
@@ -257,6 +262,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 municao: controle.municao,
                 temBota: controle.temBota,
                 temJetpack: controle.temJetpack,
+                temGarra: controle.temGarra,
                 inventario: controle.inventario
             };
             localStorage.setItem(INVENTARIO_STORAGE_KEY, JSON.stringify(estado));
@@ -320,6 +326,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         municao: 0, // Inicia sem munição
         temArma: false, // Inicia sem a capacidade de atirar
         temEscudo: false, // Inicia sem escudo
+        temGarra: false,
         temBota: false, // Inicia sem bota
         temJetpack: false,
         jetpackAtivo: false,
@@ -377,6 +384,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         controle.municao = Number(inventarioSalvo.municao ?? 0);
         controle.temBota = Boolean(inventarioSalvo.temBota);
         controle.temJetpack = Boolean(inventarioSalvo.temJetpack);
+        controle.temGarra = Boolean(inventarioSalvo.temGarra);
         controle.inventario = Array.isArray(inventarioSalvo.inventario) ? inventarioSalvo.inventario : [];
     }
 
@@ -403,6 +411,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 itemImg.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
             } else if (dado.tipo === 'jetpack') {
                 itemImg.src = config.spriteItemJetpack || 'personagem/jetpack_pegavel.png';
+            } else if (dado.tipo === 'garra') {
+                itemImg.src = config.spriteItemGarra || 'personagem/garra_coletavel.png';
             } else if (dado.tipo === 'restauracao') {
                 itemImg.src = config.spriteItemRestauracao || 'personagem/restaurar.png';
             } else {
@@ -493,6 +503,19 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     jetFogoElemento.style.imageRendering = 'pixelated';
     jetFogoElemento.style.pointerEvents = 'none';
     elemento.parentElement.appendChild(jetFogoElemento);
+
+    // Elemento da Garra
+    const garraElemento = document.createElement('img');
+    garraElemento.id = 'player-claw';
+    garraElemento.src = config.spriteGarraPlayer || 'personagem/garra.png';
+    garraElemento.style.position = 'absolute';
+    garraElemento.style.width = '32px';
+    garraElemento.style.height = '32px';
+    garraElemento.style.zIndex = '9'; // Acima do personagem
+    garraElemento.style.display = controle.temGarra ? 'block' : 'none';
+    garraElemento.style.imageRendering = 'pixelated';
+    garraElemento.style.pointerEvents = 'none';
+    elemento.parentElement.appendChild(garraElemento);
 
     // Elemento do Paraquedas
     const paraquedasElemento = document.createElement('img');
@@ -604,11 +627,13 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.temBota = false;
             controle.framesKnockbackRestante = 0;
             controle.velocidadeKnockback = 0;
+            controle.temGarra = false;
             botaElemento.style.display = 'none';
             controle.inventario = [];
             // Novas linhas para remover o Jetpack
             controle.temJetpack = false;
             controle.jetpackAtivo = false;
+            garraElemento.style.display = 'none';
             controle.timerAtivacaoJetpack = 0;
             controle.timerVooRestante = 0;
             controle.cooldownVooJetpack = 0;
@@ -685,6 +710,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 controle.temJetpack = false; 
                 controle.jetpackAtivo = false;
                 jetpackElemento.style.display = 'none'; 
+                garraElemento.style.display = 'none';
                 jetFogoElemento.style.display = 'none';
             }
 
@@ -695,6 +721,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             else if (tipo === 'escudo') visual.src = config.spriteItemEscudo || 'personagem/escudo_pegavel.png';
             else if (tipo === 'bota') visual.src = config.spriteItemBota || 'personagem/bota_pegavel.png';
             else if (tipo === 'jetpack') visual.src = config.spriteItemJetpack || 'personagem/jetpack_pegavel.png';
+            else if (tipo === 'garra') visual.src = config.spriteItemGarra || 'personagem/garra_coletavel.png';
             
             elemento.parentElement.appendChild(visual);
             controle.vendaVisual = visual;
@@ -725,6 +752,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 else if (controle.vendaTipo === 'jetpack') { 
                     controle.temJetpack = true; 
                     jetpackElemento.style.display = 'block'; 
+                }
+                else if (controle.vendaTipo === 'garra') {
+                    controle.temGarra = true;
+                    garraElemento.style.display = 'block';
                 }
                 
                 controle.vendaVisual.remove();
@@ -1498,6 +1529,15 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         jetpackElemento.style.bottom = controle.y + 'px';
                         jetpackElemento.style.display = 'block';
                         salvarInventario();
+                    } else if (item.tipo === 'garra') {
+                        console.log("Jogador coletou a garra!");
+                        controle.temGarra = true;
+                        if (!controle.inventario.includes('garra')) controle.inventario.push('garra');
+                        garraElemento.style.left = controle.x + 'px';
+                        garraElemento.style.bottom = controle.y + 'px';
+                        garraElemento.style.display = 'block';
+                        salvarInventario();
+                    } else if (item.tipo === 'airdrop') {
                     } else if (item.tipo === 'airdrop') {
                         // Lógica de Recompensa Aleatória baseada no JSON
                         const conteudos = config.airdrop1?.conteudos || ['xp'];
@@ -1532,7 +1572,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             }
                         } else if (sorteio === 'item') {
                             // Sorteio de item físico
-                            const itensDisponiveis = ['revolver', 'escudo', 'bota', 'jetpack']; // Inclui jetpack
+                            const itensDisponiveis = ['revolver', 'escudo', 'bota', 'jetpack', 'garra']; // Inclui garra
                             const itemSorteado = itensDisponiveis[Math.floor(Math.random() * itensDisponiveis.length)];
                             
                             if (itemSorteado === 'escudo') { 
@@ -1551,6 +1591,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 controle.temJetpack = true;
                                 if (!controle.inventario.includes('jetpack')) controle.inventario.push('jetpack'); // Garante que o item seja adicionado ao inventário
                                 jetpackElemento.style.display = 'block';
+                            } else if (itemSorteado === 'garra') {
+                                controle.temGarra = true;
+                                if (!controle.inventario.includes('garra')) controle.inventario.push('garra');
+                                garraElemento.style.display = 'block';
                             } else if (itemSorteado === 'revolver') { // Tratamento explícito para revolver
                                 controle.temArma = true; 
                                 controle.municao = config.maxMunicao || 5; 
@@ -1694,6 +1738,21 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         } else {
             jetpackElemento.style.display = 'none';
             jetFogoElemento.style.display = 'none';
+        }
+
+        // Sincroniza a posição e visibilidade da Garra
+        if (controle.temGarra) {
+            // Segurança: Re-anexa ao palco caso o limparCenario o tenha removido
+            if (!document.getElementById('player-claw') && elemento.parentElement) {
+                elemento.parentElement.appendChild(garraElemento);
+            }
+
+            garraElemento.style.display = 'block';
+            garraElemento.style.left = controle.x + 'px';
+            garraElemento.style.bottom = controle.y + 'px';
+            garraElemento.style.transform = elemento.style.transform;
+        } else {
+            garraElemento.style.display = 'none';
         }
 
         // Sincroniza a posição e visibilidade do Paraquedas

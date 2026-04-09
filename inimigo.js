@@ -232,6 +232,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     let temEscudo = false;
     let temBota = false;
     let temJetpack = false;
+    let temGarra = false;
     
     if (tipoInimigo === 1) {
         temArma = true;
@@ -241,6 +242,8 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         temBota = true;
     } else if (tipoInimigo === 4) {
         temJetpack = true;
+    } else if (tipoInimigo === 6) {
+        temGarra = true;
     }
     
     // Registra o inimigo na lista global
@@ -259,6 +262,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         temEscudo: temEscudo,
         temBota: temBota,
         temJetpack: temJetpack,
+        temGarra: temGarra,
         escudoVermelho: false,
         escudoProtegido: 0,
         stunned: false, // Adiciona propriedade de stun
@@ -328,7 +332,21 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         palco.appendChild(jetpackImg);
         novoInimigo.jetpackElemento = jetpackImg;
     }
-    
-    const equipamento = temArma ? 'revólver' : (temEscudo ? 'escudo' : (temBota ? 'botas' : (temJetpack ? 'jetpack' : 'sem equipamento')));
+
+    // Cria elemento de garra se necessário
+    if (temGarra) {
+        const garraImg = document.createElement('img');
+        garraImg.src = window.config?.spriteGarraPlayer || 'personagem/garra.png';
+        garraImg.style.position = 'absolute';
+        garraImg.style.width = tamanhoTile + 'px';
+        garraImg.style.height = tamanhoTile + 'px';
+        garraImg.style.zIndex = '9';
+        garraImg.style.imageRendering = 'pixelated';
+        garraImg.style.pointerEvents = 'none';
+        palco.appendChild(garraImg);
+        novoInimigo.garraElemento = garraImg;
+    }
+
+    const equipamento = temArma ? 'revólver' : (temEscudo ? 'escudo' : (temBota ? 'botas' : (temJetpack ? 'jetpack' : (temGarra ? 'garra' : 'sem equipamento'))));
     console.log(`✓ Inimigo aleatório criado em (${posicao.x}px, ${posicao.y}px) - Equipamento: ${equipamento}`);
 }

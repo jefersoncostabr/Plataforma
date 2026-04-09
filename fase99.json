@@ -8,7 +8,9 @@
     ],
     "inimigos5": ["b4", "b13"],
     "itens": [
-        { "tipo": "restauracao", "pos": "b9" }],
+        { "tipo": "restauracao", "pos": "b9" },
+        { "tipo": "garra", "pos": "b5" }
+    ],
     
     "inimigoAleatorio": [1, 0]
 }

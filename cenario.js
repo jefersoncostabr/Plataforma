@@ -33,7 +33,7 @@ function limparCenario() {
     if (!palco) return;
     
     // 1. Remove fisicamente todos os elementos exceto o personagem e seus acessórios
-    const elementosParaRemover = palco.querySelectorAll('img:not(#player):not(#player-weapon):not(#player-shield):not(#player-boots):not(#player-parachute):not(#player-jetpack):not(#player-jet-fire)');
+    const elementosParaRemover = palco.querySelectorAll('img:not(#player):not(#player-weapon):not(#player-shield):not(#player-boots):not(#player-parachute):not(#player-jetpack):not(#player-jet-fire):not(#player-claw)');
     elementosParaRemover.forEach(el => el.remove());
     
     // 2. Limpa as referências lógicas (FUNDAMENTAL PARA PERFORMANCE)

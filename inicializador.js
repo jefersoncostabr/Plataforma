@@ -1,7 +1,7 @@
 /**
  * Gerenciador central de fases e inicialização.
  */
-window.niveis = ["fase1.json", "fase2.json", "fase3.json", "fase4.json", "fase5.json", "fase6.json", "fase7.json"];
+window.niveis = ["fase1.json", "fase2.json", "fase3.json", "fase4.json", "fase5.json", "fase6.json", "fase7.json", "fase99.json"];
 window.nivelAtual = 0;
 window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para inimigo aleatório
 window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro inimigo
@@ -86,6 +86,7 @@ async function carregarFase(nomeArquivo) {
         if (fase.inimigos3) fase.inimigos3.forEach(p => inimigosParaReset.push({tipo: 3, pos: p}));
         if (fase.inimigos4) fase.inimigos4.forEach(p => inimigosParaReset.push({tipo: 4, pos: p}));
         if (fase.inimigos5) fase.inimigos5.forEach(p => inimigosParaReset.push({tipo: 5, pos: p}));
+        if (fase.inimigos6) fase.inimigos6.forEach(p => inimigosParaReset.push({tipo: 6, pos: p}));
         
         resetarInimigos(inimigosParaReset);
     }
@@ -217,6 +218,10 @@ window.reiniciarJogo = async function(porMorte = true) {
         // Mantém o jetpack se ele já foi coletado
         if (window.playerControle.temJetpack) {
             window.playerControle.temJetpack = true;
+        }
+        // Mantém a garra se ela já foi coletada
+        if (window.playerControle.temGarra) {
+            window.playerControle.temGarra = true;
         }
         if (typeof window.salvarInventario === 'function') {
             window.salvarInventario();
