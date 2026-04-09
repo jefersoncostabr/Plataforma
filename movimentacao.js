@@ -1084,6 +1084,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     
                     if (controle.garraItemCarregado.isEnemy) { // It's an enemy
                         const inimigoAtingido = controle.garraItemCarregado;
+
+                        // Trigger player kick animation
+                        controle.tempoChute = config.tempoChute; // Set kick duration
+                        controle.cooldownChute = config.cooldownChute; // Set kick cooldown
+                        controle.framesImpulsoRestante = 0; // No dash for this specific kick
+                        controle.velocidadeDash = 0; // No dash for this specific kick
                         
                         // Apply kick logic to the enemy
                         inimigoAtingido.foiAtingidoNesteChute = true; // Mark as hit by kick for this frame
