@@ -165,6 +165,23 @@ function renderMenuUI() {
             border: 2px solid transparent;
             border-radius: 5px;
         `;
+
+        // Suporte para Mouse: Atualiza a seleção ao passar o mouse
+        btn.onmouseenter = () => {
+            menuSelectedIndex = index;
+            updateMenuVisuals();
+        };
+
+        // Suporte para Mouse: Executa a ação ao clicar
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            try {
+                opt.action();
+            } catch (error) {
+                console.error("Menu: Erro ao executar ação do menu via clique:", error);
+            }
+        };
+
         optionsContainer.appendChild(btn);
     });
 

@@ -430,7 +430,6 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     // Define um delay randômico antes de pular
                     inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
                     inimigo.jumpQueued = true; // Marca que um pulo foi agendado
-                    console.log('Inimigo iniciou timer de pulo por projétil:', inimigo.puloTimer, 'frames');
                 }
 
                 // Executa o pulo ou VOO se o timer chegou a zero e foi agendado
@@ -818,7 +817,6 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                 flashComVibacao(document.getElementById('player'));
                             }
                         } else {
-                            console.log('Escudo bloqueou o chute! Apenas knockback aplicado.');
                             if (typeof piscaLeve === 'function' && window.escudoElemento) {
                                 piscaLeve(window.escudoElemento);
                             }

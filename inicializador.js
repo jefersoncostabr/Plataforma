@@ -1,7 +1,7 @@
 /**
  * Gerenciador central de fases e inicialização.
  */
-window.niveis = ["fase1.json", "fase2.json", "fase3.json", "fase4.json", "fase5.json", "fase6.json", "fase7.json", "fase8.json"];
+window.niveis = ["fase1.json", "fase2.json", "fase3.json", "fase4.json", "fase5.json", "fase6.json", "fase7.json"];
 window.nivelAtual = 0;
 window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para inimigo aleatório
 window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro inimigo
@@ -27,8 +27,16 @@ async function carregarFase(nomeArquivo) {
         window.timeoutPrimeiroInimigoAleatorio = null;
     }
     
-    const resposta = await fetch(nomeArquivo);
-    const fase = await resposta.json();
+    let fase;
+    try {
+        const resposta = await fetch(nomeArquivo);
+        if (!resposta.ok) throw new Error(`Erro ${resposta.status}: ${nomeArquivo} não encontrado.`);
+        fase = await resposta.json();
+    } catch (erro) {
+        console.error("Erro ao carregar nível:", erro);
+        alert("Erro técnico: O arquivo da fase não foi encontrado ou está corrompido.");
+        return; // Interrompe a função para não quebrar o restante do código
+    }
 
     // 1. Limpa o cenário anterior (tiles, inimigos e itens)
     const idPalco = 'game-stage';
