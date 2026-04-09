@@ -55,6 +55,7 @@ function criarInimigo(idPalco, imagemPath, coord, direcao = 'e', tipo = 1) {
         velocidadeKnockback: 0, // Inicializa velocidade de knockback
         puloTimer: 0, // Inicializa o timer de pulo
         jumpQueued: false // Inicializa a flag de pulo agendado
+        ,isEnemy: true // NEW: Flag to identify as an enemy
     });
     console.log(`Inimigo inserido em ${coord} (x: ${x}, y: ${y})`);
 }
@@ -271,6 +272,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         velocidadeKnockback: 0, // Inicializa velocidade de knockback
         puloTimer: 0, // Inicializa o timer de pulo
         jumpQueued: false // Inicializa a flag de pulo agendado
+        ,isEnemy: true // NEW: Flag to identify as an enemy
     };
     
     window.inimigos.push(novoInimigo);

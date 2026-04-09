@@ -88,6 +88,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 velocidadeKnockback: 0, // Inicializa velocidade de knockback
                 puloTimer: 0, // Inicializa o timer de pulo
                 jumpQueued: false // Inicializa a flag de pulo agendado
+                ,isEnemy: true // NEW: Flag to identify as an enemy
             });
         });
     };

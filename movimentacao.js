@@ -938,6 +938,42 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 console.log(`Animação Garra: [2/4] Esticando... Distância: ${controle.garraDist}px`);
                 
                 // NEW: Collision detection for items
+                // Check for ENEMIES first
+                let grabbedSomething = false;
+                if (window.inimigos && window.inimigos.length > 0) {
+                    for (let j = window.inimigos.length - 1; j >= 0; j--) {
+                        const inimigo = window.inimigos[j];
+                        const hitboxGarra = {
+                            x: parseInt(garraElemento.style.left),
+                            y: parseInt(garraElemento.style.bottom),
+                            largura: 32, // Assuming garraElemento is 32x32
+                            altura: 32
+                        };
+                        const hitboxInimigo = {
+                            x: inimigo.x + (inimigo.offsetX || 0),
+                            y: inimigo.y,
+                            largura: inimigo.largura,
+                            altura: inimigo.altura
+                        };
+
+                        if (detectarColisaoHitbox(hitboxGarra, hitboxInimigo, 0, 0, 0)) {
+                            console.log(`Garra pegou o inimigo: Tipo ${inimigo.tipo}`);
+                            controle.garraItemCarregado = inimigo;
+                            inimigo.stunned = true;
+                            inimigo.stunTimer = config.garraStunDuration || 120; // Default 2 seconds
+                            inimigo.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)'; // Visual stun
+                            inimigo.foiAtingidoNesteChute = false; // Reset hit flag for the upcoming kick
+                            window.inimigos.splice(j, 1); // Temporarily remove enemy from global list to pause its AI
+                            controle.garraAnimEstado = 'voltando'; // Immediately start retracting
+                            garraElemento.src = 'personagem/garra_catching.png'; // Change sprite to indicate carrying
+                            grabbedSomething = true;
+                            break; // Only pick up one enemy at a time
+                        }
+                    }
+                }
+
+                // Existing item collision detection (only if no enemy was caught)
+                if (!grabbedSomething) {
                 for (let i = window.itensColetaveis.length - 1; i >= 0; i--) {
                     const item = window.itensColetaveis[i];
                     const hitboxGarra = {
@@ -958,12 +994,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         controle.garraItemCarregado = item;
                         window.itensColetaveis.splice(i, 1); // Remove item from global list
                         controle.garraAnimEstado = 'voltando'; // Immediately start retracting
-                        garraElemento.src = 'personagem/garra_catching.png'; // Change sprite to indicate carrying
+                        garraElemento.src = 'personagem/garra_catching.png'; // Change sprite to indicate carrying item
                         break; // Only pick up one item at a time
                     }
                 }
-                // END NEW
-
+                }
+                
                 // Cria segmentos do braço a cada 32px
                 if (controle.garraDist > 0 && controle.garraDist % 32 < velGarra && controle.garraDist <= distMax) {
                     const braco = document.createElement('img');
@@ -1004,9 +1040,35 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 // Mantém garra_catching.png durante o retorno
 
                 // NEW: Update item position if carrying one
-                if (controle.garraItemCarregado) {
-                    controle.garraItemCarregado.elemento.style.left = garraElemento.style.left;
-                    controle.garraItemCarregado.elemento.style.bottom = garraElemento.style.bottom;
+                if (controle.garraItemCarregado) { // Could be an item or an enemy
+                    const carried = controle.garraItemCarregado;
+                    carried.elemento.style.left = garraElemento.style.left;
+                    carried.elemento.style.bottom = garraElemento.style.bottom;
+
+                    // If it's an enemy, also update its associated elements
+                    if (carried.isEnemy) { 
+                        if (carried.armaElemento) {
+                            carried.armaElemento.style.left = garraElemento.style.left;
+                            carried.armaElemento.style.bottom = garraElemento.style.bottom;
+                            carried.armaElemento.style.transform = carried.elemento.style.transform;
+                        }
+                        if (carried.botaElemento) {
+                            carried.botaElemento.style.left = garraElemento.style.left;
+                            carried.botaElemento.style.bottom = garraElemento.style.bottom;
+                            carried.botaElemento.style.transform = carried.elemento.style.transform;
+                        }
+                        if (carried.escudoElemento) {
+                            carried.escudoElemento.style.left = garraElemento.style.left;
+                            carried.escudoElemento.style.bottom = garraElemento.style.bottom;
+                            carried.escudoElemento.style.transform = carried.elemento.style.transform;
+                        }
+                        if (carried.jetpackElemento) {
+                            carried.jetpackElemento.style.left = garraElemento.style.left;
+                            carried.jetpackElemento.style.bottom = garraElemento.style.bottom;
+                            carried.jetpackElemento.style.transform = carried.elemento.style.transform;
+                        }
+                        // No need for jetFogoElemento or garraElemento for the carried enemy, as they are part of the enemy's own visual state.
+                    }
                 }
                 // END NEW
 
@@ -1017,29 +1079,81 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 }
 
                 // NEW: Kick and collect item when close to player
-                if (controle.garraItemCarregado && controle.garraDist <= velGarra) { // Item is very close to player
+                if (controle.garraItemCarregado && controle.garraDist <= velGarra) { // Item/Enemy is very close to player
                     console.log("Garra: Item perto do jogador, acionando chute e coleta.");
-                    // Trigger player kick animation and effects
-                    controle.tempoChute = config.tempoChute;
-                    controle.cooldownChute = config.cooldownChute;
-                    controle.framesImpulsoRestante = 0; // No dash for this kick
-                    controle.velocidadeDash = 0;
-                    // Ensure kick doesn't affect enemies for this specific action
-                    if (window.inimigos) window.inimigos.forEach(inimigo => inimigo.foiAtingidoNesteChute = false);
+                    
+                    if (controle.garraItemCarregado.isEnemy) { // It's an enemy
+                        const inimigoAtingido = controle.garraItemCarregado;
+                        
+                        // Apply kick logic to the enemy
+                        inimigoAtingido.foiAtingidoNesteChute = true; // Mark as hit by kick for this frame
+                        inimigoAtingido.vida = (inimigoAtingido.vida || 0) + 1; // Apply damage
+                        
+                        // Remove stun visual and state
+                        inimigoAtingido.stunned = false;
+                        inimigoAtingido.stunTimer = 0;
+                        inimigoAtingido.elemento.style.filter = 'none';
 
-                    // Collect the item
-                    coletarItemGarra(controle.garraItemCarregado);
-                    controle.garraItemCarregado.elemento.remove(); // Remove item's visual element
-                    controle.garraItemCarregado = null; // Clear carried item
+                        // Knockback: Lança o inimigo para trás with base on player's direction
+                        const direcaoKnockback = (controle.direcao === 'd' ? 1 : -1);
+                        let valorKnockbackInimigo = obterKnockback(config, 'playerChute');
+                        
+                        // Reduce enemy knockback if it has an active shield
+                        if (inimigoAtingido.temEscudo && !inimigoAtingido.escudoVermelho) {
+                            valorKnockbackInimigo *= Number(config.escudoKnockbackMultiplicador ?? 0.5);
+                        }
 
-                    // Reset claw animation state
-                    controle.garraAnimEstado = 'idle';
-                    // Só volta ao sprite padrão quando a animação termina
-                    garraElemento.src = config.spriteGarraPlayer || 'personagem/garra.png';
+                        const duracaoRecuoInimigo = 15; // Recoil duration in frames
+                        inimigoAtingido.framesKnockbackRestante = duracaoRecuoInimigo;
+                        inimigoAtingido.velocidadeKnockback = (valorKnockbackInimigo / duracaoRecuoInimigo) * direcaoKnockback;
+
+                        // Check for enemy death
+                        if (inimigoAtingido.vida >= 3) {
+                            if (inimigoAtingido.tipo === 5) { // Special logic for Feno target
+                                inimigoAtingido.estaMorto = true;
+                                inimigoAtingido.framesKnockbackRestante = 0;
+                                inimigoAtingido.velocidadeKnockback = 0;
+                                inimigoAtingido.velocidadeY = 0;
+                                inimigoAtingido.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
+                                setTimeout(() => {
+                                    inimigoAtingido.vida = 0;
+                                    inimigoAtingido.x = inimigoAtingido.startX;
+                                    inimigoAtingido.y = inimigoAtingido.startY;
+                                    inimigoAtingido.estaMorto = false;
+                                    inimigoAtingido.elemento.style.filter = 'none';
+                                    inimigoAtingido.elemento.style.left = inimigoAtingido.x + 'px';
+                                    inimigoAtingido.elemento.style.bottom = inimigoAtingido.y + 'px';
+                                    window.inimigos.push(inimigoAtingido); // Re-add to active enemies
+                                }, 2000);
+                            } else { // Normal enemy death
+                                if (typeof flashComVibacao === 'function') {
+                                    flashComVibacao(inimigoAtingido.elemento);
+                                }
+                                droparItensInimigo(inimigoAtingido);
+                                if (typeof window.ganharXP === 'function') window.ganharXP(1);
+                                if (inimigoAtingido.armaElemento) inimigoAtingido.armaElemento.remove();
+                                if (inimigoAtingido.botaElemento) inimigoAtingido.botaElemento.remove();
+                                if (inimigoAtingido.escudoElemento) inimigoAtingido.escudoElemento.remove();
+                                if (inimigoAtingido.jetpackElemento) inimigoAtingido.jetpackElemento.remove();
+                                if (inimigoAtingido.jetFogoElemento) inimigoAtingido.jetFogoElemento.remove();
+                                inimigoAtingido.elemento.remove();
+                                // No need to splice from window.inimigos, as it was already removed when grabbed.
+                                // If it's dead, we don't re-add it.
+                            }
+                        } else {
+                            window.inimigos.push(inimigoAtingido); // Re-add to active enemies if not dead
+                        }
+                    } else { // It's an item
+                        // Collect the item
+                        coletarItemGarra(controle.garraItemCarregado);
+                        controle.garraItemCarregado.elemento.remove(); // Remove item's visual element
+                    }
+                    controle.garraItemCarregado = null; // Clear carried item/enemy
+                    controle.garraAnimEstado = 'idle'; // Reset claw animation state
+                    garraElemento.src = config.spriteGarraPlayer || 'personagem/garra.png'; // Reset claw visual
                     controle.garraBracos.forEach(b => b.remove());
                     controle.garraBracos = [];
-                    // console.log("Animação Garra: Finalizada. Retornando ao estado idle.");
-                    console.log("Animação Garra: Finalizada com coleta. Retornando ao estado idle.");
+                    console.log("Animação Garra: Finalizada com coleta/liberação. Retornando ao estado idle.");
                 }
                 // END NEW
 
