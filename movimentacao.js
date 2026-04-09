@@ -349,6 +349,13 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         teclas: {}
     };
 
+    // Variáveis específicas da animação da garra
+    controle.garraAnimEstado = 'idle'; // idle, prep, esticando, catching, voltando
+    controle.garraTimer = 0;
+    controle.garraDist = 0;
+    controle.garraBracos = [];
+    controle.garraDirecaoAnim = 'd';
+
     window.isPaused = false;
     window.togglePause = () => {
         window.isPaused = !window.isPaused;
@@ -616,6 +623,14 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             window.debugInimigoTeclas[' '] = true;
         }
 
+        // Acionamento da Garra com a tecla J
+        if ((e.key === 'j' || e.key === 'J') && controle.temGarra && controle.garraAnimEstado === 'idle') {
+            console.log("Animação Garra: [1/4] Acionamento detectado. Iniciando preparação...");
+            controle.garraAnimEstado = 'prep';
+            controle.garraTimer = 18; // ~0.3s a 60fps
+            controle.garraDirecaoAnim = controle.direcao;
+        }
+
         if (e.key === '0') {
             limparInventarioSalvo();
             console.log('Inventário salvo zerado.');
@@ -772,6 +787,95 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             
             requestAnimationFrame(atualizar);
             return; // Bloqueia outras ações enquanto vende
+        }
+
+        // Lógica da Animação da Garra (Estilo Cartoon)
+        if (controle.garraAnimEstado !== 'idle') {
+            const velGarra = 8; // Velocidade do esticamento
+            const distMax = 32 * 6; // 6 blocos
+
+            // Animação da Garra pronto para iniciar
+            if (controle.garraAnimEstado === 'prep') {
+                garraElemento.src = 'personagem/garra_using2.png';
+                controle.garraTimer--;
+                // Mantém na mão do jogador durante o preparo
+                garraElemento.style.left = controle.x + 'px';
+                garraElemento.style.bottom = controle.y + 'px';
+
+                if (controle.garraTimer <= 0) {
+                    controle.garraAnimEstado = 'esticando';
+                }
+            } 
+            else if (controle.garraAnimEstado === 'esticando') {
+                controle.garraDist += velGarra;
+                garraElemento.src = 'personagem/garra_using1.png';
+                console.log(`Animação Garra: [2/4] Esticando... Distância: ${controle.garraDist}px`);
+                
+                // Cria segmentos do braço a cada 32px
+                if (controle.garraDist > 0 && controle.garraDist % 32 < velGarra && controle.garraDist <= distMax) {
+                    const braco = document.createElement('img');
+                    braco.src = 'personagem/garra_braco.png';
+                    braco.className = 'player-claw-arm';
+                    braco.style.position = 'absolute';
+                    braco.style.width = '32px';
+                    braco.style.height = '32px';
+                    braco.style.zIndex = '8';
+                    braco.style.imageRendering = 'pixelated';
+                    braco.style.pointerEvents = 'none';
+                    
+                    // O braço fica na posição anterior da garra
+                    const offsetBraco = (Math.floor(controle.garraDist / 32) - 1) * 32;
+                    const dirX = controle.garraDirecaoAnim === 'd' ? 1 : -1;
+                    braco.style.left = (controle.x + (offsetBraco * dirX)) + 'px';
+                    braco.style.bottom = controle.y + 'px';
+                    braco.style.transform = controle.garraDirecaoAnim === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+                    
+                    elemento.parentElement.appendChild(braco);
+                    controle.garraBracos.push(braco);
+                }
+
+                // Move a "mão" (a garra) para a ponta
+                const dirX = controle.garraDirecaoAnim === 'd' ? 1 : -1;
+                garraElemento.style.left = (controle.x + (controle.garraDist * dirX)) + 'px';
+                garraElemento.style.bottom = controle.y + 'px';
+
+                if (controle.garraDist >= distMax) {
+                    controle.garraAnimEstado = 'catching';
+                    controle.garraTimer = 18; // ~0.3s
+                    garraElemento.src = 'personagem/garra_catching.png';
+                    console.log("Animação Garra: [3/4] Ápice atingido com garra_catching.png na ponta.");
+                }
+            }
+            else if (controle.garraAnimEstado === 'catching') {
+                controle.garraTimer--;
+                if (controle.garraTimer <= 0) {
+                    console.log("Animação Garra: [4/4] Recolhendo...");
+                    controle.garraAnimEstado = 'voltando';
+                }
+            }
+            else if (controle.garraAnimEstado === 'voltando') {
+                controle.garraDist -= velGarra;
+                garraElemento.src = config.spriteGarraPlayer || 'personagem/garra.png';
+                
+                // Move a "mão" de volta
+                const dirX = controle.garraDirecaoAnim === 'd' ? 1 : -1;
+                garraElemento.style.left = (controle.x + (controle.garraDist * dirX)) + 'px';
+                garraElemento.style.bottom = controle.y + 'px';
+
+                // Remove segmentos do braço conforme volta
+                if (controle.garraDist % 32 < velGarra && controle.garraBracos.length > 0) {
+                    const ultimoBraco = controle.garraBracos.pop();
+                    ultimoBraco.remove();
+                }
+
+                if (controle.garraDist <= 0) {
+                    controle.garraAnimEstado = 'idle';
+                    garraElemento.src = config.spriteGarraPlayer || 'personagem/garra.png';
+                    controle.garraBracos.forEach(b => b.remove());
+                    controle.garraBracos = [];
+                    console.log("Animação Garra: Finalizada. Retornando ao estado idle.");
+                }
+            }
         }
 
         // Detecta combinação de Drop: S ou Seta Baixo + Pulo
@@ -1748,9 +1852,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             }
 
             garraElemento.style.display = 'block';
-            garraElemento.style.left = controle.x + 'px';
-            garraElemento.style.bottom = controle.y + 'px';
-            garraElemento.style.transform = elemento.style.transform;
+            // Se não estiver animando, a garra fica colada no personagem
+            if (controle.garraAnimEstado === 'idle') {
+                garraElemento.style.left = controle.x + 'px';
+                garraElemento.style.bottom = controle.y + 'px';
+                garraElemento.style.transform = elemento.style.transform;
+            }
         } else {
             garraElemento.style.display = 'none';
         }
