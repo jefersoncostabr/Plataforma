@@ -1,8 +1,9 @@
 /**
  * Gerenciador central de fases e inicialização.
  */
-window.niveis = ["fase1.json", "fase2.json", "fase3.json", "fase4.json", "fase5.json", "fase6.json", "fase7.json", "fase99.json"];
+window.niveis = ["fase1.json", "fase2.json", "fase3.json", "fase4.json", "fase5.json", "fase6.json", "fase7.json"];
 window.nivelAtual = 0;
+window.isTraining = false; // Flag para identificar se o jogador está no modo treino
 window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para inimigo aleatório
 window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro inimigo
 
@@ -143,6 +144,14 @@ async function carregarFase(nomeArquivo) {
 }
 
 window.proximoNivel = async function() {
+    // Se estiver no modo treino, volta para o menu ao atingir o objetivo
+    if (window.isTraining) {
+        window.isTraining = false;
+        alert("Treino Concluído!");
+        if (typeof window.togglePauseMenu === 'function') window.togglePauseMenu();
+        return;
+    }
+
     const proximoIndice = window.nivelAtual + 1;
 
     if (proximoIndice < window.niveis.length) {
@@ -174,6 +183,7 @@ window.reiniciarJogo = async function(porMorte = true) {
     
     // Reseta o dano do jogador e o estado de controle
     if (window.playerControle) {
+        window.isTraining = false; // Garante que sai do modo treino ao reiniciar o jogo normal
         window.playerControle.dano = 0;
         window.playerControle.teclas = {};
         window.playerControle.movendoHorizontal = false;

@@ -18,6 +18,11 @@ const getActiveMenuOptions = () => {
         { label: "SKILLS", action: () => {
             window.togglePauseMenu(); window.toggleSkillMenu();
         } },
+        { label: "TREINO", action: () => {
+            window.isTraining = true;
+            window.togglePauseMenu();
+            if (typeof carregarFase === 'function') carregarFase("fase99.json");
+        } },
         { label: "REINICIAR", action: () => {
             window.isFirstStart = false; // Garante que o próximo pause mostre 'REINICIAR'
             window.togglePauseMenu();
