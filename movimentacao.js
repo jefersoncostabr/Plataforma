@@ -793,16 +793,25 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         if (controle.garraAnimEstado !== 'idle') {
             const velGarra = 8; // Velocidade do esticamento
             const distMax = 32 * 5; // 5 blocos limite de esticamento (160px)
+            const dirX = controle.garraDirecaoAnim === 'd' ? 1 : -1;
+
+            // Sincroniza todos os segmentos do braço com a posição atual do personagem
+            // Isso garante que o braço siga o player durante pulos ou quedas
+            controle.garraBracos.forEach((braco, index) => {
+                const offset = index * 32;
+                braco.style.left = (controle.x + (offset * dirX)) + 'px';
+                braco.style.bottom = controle.y + 'px';
+            });
+
+            // Sincroniza a posição da "mão" (a garra na ponta) com o personagem e a distância atual
+            garraElemento.style.left = (controle.x + (controle.garraDist * dirX)) + 'px';
+            garraElemento.style.bottom = controle.y + 'px';
+            garraElemento.style.transform = (controle.garraDirecaoAnim === 'e' ? 'scaleX(-1)' : 'scaleX(1)');
 
             // Animação da Garra pronto para iniciar
             if (controle.garraAnimEstado === 'prep') {
                 garraElemento.src = 'personagem/garra_using1.png'; // Sprite da garra sobre o personagem antes de esticar
                 controle.garraTimer--;
-                // Mantém na mão do jogador durante o preparo
-                // A garra fica junto ao jogador durante a preparação
-                garraElemento.style.left = controle.x + 'px';
-                garraElemento.style.bottom = controle.y + 'px';
-
                 if (controle.garraTimer <= 0) {
                     controle.garraAnimEstado = 'esticando';
                 }
@@ -825,22 +834,14 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     braco.style.pointerEvents = 'none'; // Impede que o mouse interaja com o segmento.
                     
                     // O braço começa a aparecer um bloco (32px) à frente do personagem
-                    const offsetBraco = Math.floor(controle.garraDist / 32) * 32; // Arredonda a distância atual para múltiplos de 32 para alinhar perfeitamente os blocos do braço.
-                    const dirX = controle.garraDirecaoAnim === 'd' ? 1 : -1; // Define se o braço cresce para a direita (1) ou esquerda (-1) baseado na direção inicial.
-                    braco.style.left = (controle.x + ((controle.garraDist - 32) * dirX)) + 'px'; // Calcula a posição X final somando a posição do jogador ao deslocamento do braço.
+                    const offsetBraco = (controle.garraBracos.length * 32);
+                    braco.style.left = (controle.x + (offsetBraco * dirX)) + 'px';
                     braco.style.bottom = controle.y + 'px'; // Mantém o segmento do braço na mesma altura vertical (eixo Y) em que o jogador se encontra.
                     braco.style.transform = controle.garraDirecaoAnim === 'e' ? 'scaleX(-1)' : 'scaleX(1)'; // Aplica o espelhamento horizontal no sprite caso a animação seja para a esquerda.
                     
                     elemento.parentElement.appendChild(braco);
                     controle.garraBracos.push(braco);
                 }
-
-                // Move a "mão" (a garra) para a ponta
-                const dirX = controle.garraDirecaoAnim === 'd' ? 1 : -1;
-                garraElemento.style.left = (controle.x + ((controle.garraDist) * dirX)) + 'px'; // Começa na posição do jogador + distância
-                garraElemento.style.bottom = controle.y + 'px'; // Mantém na altura do jogador
-                garraElemento.style.transform = (controle.garraDirecaoAnim === 'e' ? 'scaleX(-1)' : 'scaleX(1)');
-
                 if (controle.garraDist >= distMax) {
                     controle.garraAnimEstado = 'catching';
                     controle.garraTimer = 18; // ~0.3s
@@ -850,7 +851,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             }
             else if (controle.garraAnimEstado === 'catching') {
                 controle.garraTimer--;
-                garraElemento.style.transform = (controle.garraDirecaoAnim === 'e' ? 'scaleX(-1)' : 'scaleX(1)');
                 if (controle.garraTimer <= 0) {
                     console.log("Animação Garra: [4/4] Recolhendo...");
                     controle.garraAnimEstado = 'voltando';
@@ -860,12 +860,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 controle.garraDist -= velGarra;
                 // Mantém garra_catching.png durante o retorno
                 
-                // Move a "mão" de volta
-                const dirX = controle.garraDirecaoAnim === 'd' ? 1 : -1; // Reutiliza dirX
-                garraElemento.style.left = (controle.x + (controle.garraDist * dirX)) + 'px'; // Começa na posição do jogador + distância
-                garraElemento.style.bottom = controle.y + 'px';
-                garraElemento.style.transform = (controle.garraDirecaoAnim === 'e' ? 'scaleX(-1)' : 'scaleX(1)');
-
                 // Remove segmentos do braço conforme volta
                 if (controle.garraDist % 32 < velGarra && controle.garraBracos.length > 0) {
                     const ultimoBraco = controle.garraBracos.pop();
