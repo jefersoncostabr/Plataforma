@@ -355,6 +355,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     controle.garraDist = 0;
     controle.garraBracos = [];
     controle.garraDirecaoAnim = 'd';
+    controle.garraItemCarregado = null; // Inicializa como null para evitar bugs de comparação no nascimento
 
     window.isPaused = false;
     window.togglePause = () => {
@@ -381,6 +382,110 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
     window.projeteis = [];
     window.itensColetaveis = [];
+
+    // NEW: Helper function to collect items brought by the claw
+    function coletarItemGarra(item) {
+        // This logic is adapted from the existing item collection in the main loop
+        // It assumes the item has already been removed from window.itensColetaveis
+        // and its visual element will be removed by the caller.
+
+        if (item.tipo === 'escudo') {
+            controle.temEscudo = true;
+            controle.escudoVermelho = item.escudoVermelho || false;
+            controle.escudoProtegido = item.escudoProtegido || 0;
+            if (!controle.inventario.includes('escudo')) controle.inventario.push('escudo');
+            escudoElemento.style.display = 'block';
+            atualizarVisualEscudo();
+        } else if (item.tipo === 'bota') {
+            controle.temBota = true;
+            if (!controle.inventario.includes('bota')) controle.inventario.push('bota');
+            botaElemento.style.display = 'block';
+        } else if (item.tipo === 'jetpack') {
+            controle.temJetpack = true;
+            if (!controle.inventario.includes('jetpack')) controle.inventario.push('jetpack');
+            controle.timerVooRestante = config.jetpackDuracaoVoo || 360;
+            controle.cooldownVooJetpack = 0;
+            jetpackElemento.style.display = 'block';
+        } else if (item.tipo === 'garra') {
+            controle.temGarra = true;
+            if (!controle.inventario.includes('garra')) controle.inventario.push('garra');
+            garraElemento.style.display = 'block';
+        } else if (item.tipo === 'airdrop') {
+            const conteudos = config.airdrop1?.conteudos || ['xp'];
+            const sorteio = conteudos[Math.floor(Math.random() * conteudos.length)];
+            console.log("AirDrop resgatado pela garra! Conteúdo: " + sorteio);
+
+            if (sorteio === 'skillpoint') {
+                window.skillPoints += 1;
+            } else if (sorteio === 'xp') {
+                if (typeof window.ganharXP === 'function') window.ganharXP(6);
+            } else if (sorteio === 'restauracao') {
+                controle.municao = config.maxMunicao || 5;
+                controle.escudoProtegido = 0;
+                controle.escudoVermelho = false;
+                if (controle.inventario.includes('escudo')) {
+                    controle.temEscudo = true;
+                }
+                atualizarVisualEscudo();
+            } else if (sorteio === 'skill') {
+                if (window.skillsData && Object.keys(window.skillsData).length > 0) {
+                    const disponiveis = Object.keys(window.skillsData).filter(s => !window.playerSkills.includes(s) && window.skillsData[s].parent === null);
+                    if (disponiveis.length > 0) {
+                        const skillSorteada = disponiveis[Math.floor(Math.random() * disponiveis.length)];
+                        window.playerSkills.push(skillSorteada);
+                        if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
+                        console.log(`Nova Skill Desbloqueada: ${window.skillsData[skillSorteada].nome}`);
+                    } else {
+                        if (typeof window.ganharXP === 'function') window.ganharXP(5);
+                    }
+                }
+            } else if (sorteio === 'item') {
+                const itensDisponiveis = ['revolver', 'escudo', 'bota', 'jetpack', 'garra'];
+                const itemSorteado = itensDisponiveis[Math.floor(Math.random() * itensDisponiveis.length)];
+
+                if (itemSorteado === 'escudo') {
+                    controle.temEscudo = true;
+                    controle.escudoVermelho = false;
+                    controle.escudoProtegido = 0;
+                    if (!controle.inventario.includes('escudo')) controle.inventario.push('escudo');
+                    atualizarVisualEscudo();
+                } else if (itemSorteado === 'bota') {
+                    controle.temBota = true;
+                    if (!controle.inventario.includes('bota')) controle.inventario.push('bota');
+                    botaElemento.style.display = 'block';
+                } else if (itemSorteado === 'jetpack') {
+                    controle.temJetpack = true;
+                    if (!controle.inventario.includes('jetpack')) controle.inventario.push('jetpack');
+                    jetpackElemento.style.display = 'block';
+                } else if (itemSorteado === 'garra') {
+                    controle.temGarra = true;
+                    if (!controle.inventario.includes('garra')) controle.inventario.push('garra');
+                    garraElemento.style.display = 'block';
+                } else if (itemSorteado === 'revolver') {
+                    controle.temArma = true;
+                    controle.municao = config.maxMunicao || 5;
+                    if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
+                    armaElemento.style.display = 'block';
+                }
+            }
+        } else if (item.tipo === 'revolver') {
+            const novaMunicao = item.municao !== undefined ? item.municao : (config.maxMunicao || 5);
+            controle.municao = Math.min((controle.municao || 0) + novaMunicao, (config.maxMunicao || 5) * 2);
+            controle.temArma = true;
+            if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
+            armaElemento.style.display = 'block';
+        } else if (item.tipo === 'restauracao') {
+            controle.municao = config.maxMunicao || 5;
+            controle.escudoProtegido = 0;
+            controle.escudoVermelho = false;
+            if (controle.inventario.includes('escudo')) {
+                controle.temEscudo = true;
+            }
+            atualizarVisualEscudo();
+        }
+        salvarInventario();
+    }
+    // END NEW
 
     const inventarioSalvo = carregarInventarioSalvo();
     if (inventarioSalvo) {
@@ -523,6 +628,13 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     garraElemento.style.imageRendering = 'pixelated';
     garraElemento.style.pointerEvents = 'none';
     elemento.parentElement.appendChild(garraElemento);
+
+    // Sincronização imediata de posição caso o jogador já nasça com a garra no inventário
+    if (controle.temGarra) {
+        garraElemento.style.left = controle.x + 'px';
+        garraElemento.style.bottom = controle.y + 'px';
+        garraElemento.style.transform = (controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)');
+    }
 
     // Elemento do Paraquedas
     const paraquedasElemento = document.createElement('img');
@@ -816,11 +928,42 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     controle.garraAnimEstado = 'esticando';
                 }
             } 
-            else if (controle.garraAnimEstado === 'esticando') {
+            else if (controle.garraAnimEstado === 'esticando') { // NEW: Collision detection for items
                 controle.garraDist += velGarra;
                 garraElemento.src = 'personagem/garra_using1.png'; // A "mão" da garra que avança
+                // Garante que a garra não estique além do limite máximo
+                if (controle.garraDist > distMax) {
+                    controle.garraDist = distMax;
+                }
                 console.log(`Animação Garra: [2/4] Esticando... Distância: ${controle.garraDist}px`);
                 
+                // NEW: Collision detection for items
+                for (let i = window.itensColetaveis.length - 1; i >= 0; i--) {
+                    const item = window.itensColetaveis[i];
+                    const hitboxGarra = {
+                        x: parseInt(garraElemento.style.left),
+                        y: parseInt(garraElemento.style.bottom),
+                        largura: 32, // Assuming garraElemento is 32x32
+                        altura: 32
+                    };
+                    const hitboxItem = {
+                        x: item.x,
+                        y: item.y,
+                        largura: 32, // Assuming items are 32x32
+                        altura: 32
+                    };
+
+                    if (detectarColisaoHitbox(hitboxGarra, hitboxItem, 0, 0, 0)) {
+                        console.log(`Garra pegou o item: ${item.tipo}`);
+                        controle.garraItemCarregado = item;
+                        window.itensColetaveis.splice(i, 1); // Remove item from global list
+                        controle.garraAnimEstado = 'voltando'; // Immediately start retracting
+                        garraElemento.src = 'personagem/garra_catching.png'; // Change sprite to indicate carrying
+                        break; // Only pick up one item at a time
+                    }
+                }
+                // END NEW
+
                 // Cria segmentos do braço a cada 32px
                 if (controle.garraDist > 0 && controle.garraDist % 32 < velGarra && controle.garraDist <= distMax) {
                     const braco = document.createElement('img');
@@ -842,7 +985,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     elemento.parentElement.appendChild(braco);
                     controle.garraBracos.push(braco);
                 }
-                if (controle.garraDist >= distMax) {
+                if (controle.garraDist >= distMax && controle.garraItemCarregado === null) { // Only transition to catching if no item is caught
                     controle.garraAnimEstado = 'catching';
                     controle.garraTimer = 18; // ~0.3s
                     garraElemento.src = 'personagem/garra_catching.png';
@@ -859,14 +1002,48 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             else if (controle.garraAnimEstado === 'voltando') {
                 controle.garraDist -= velGarra;
                 // Mantém garra_catching.png durante o retorno
-                
+
+                // NEW: Update item position if carrying one
+                if (controle.garraItemCarregado) {
+                    controle.garraItemCarregado.elemento.style.left = garraElemento.style.left;
+                    controle.garraItemCarregado.elemento.style.bottom = garraElemento.style.bottom;
+                }
+                // END NEW
+
                 // Remove segmentos do braço conforme volta
                 if (controle.garraDist % 32 < velGarra && controle.garraBracos.length > 0) {
                     const ultimoBraco = controle.garraBracos.pop();
                     ultimoBraco.remove();
                 }
 
-                if (controle.garraDist <= 0) {
+                // NEW: Kick and collect item when close to player
+                if (controle.garraItemCarregado && controle.garraDist <= velGarra) { // Item is very close to player
+                    console.log("Garra: Item perto do jogador, acionando chute e coleta.");
+                    // Trigger player kick animation and effects
+                    controle.tempoChute = config.tempoChute;
+                    controle.cooldownChute = config.cooldownChute;
+                    controle.framesImpulsoRestante = 0; // No dash for this kick
+                    controle.velocidadeDash = 0;
+                    // Ensure kick doesn't affect enemies for this specific action
+                    if (window.inimigos) window.inimigos.forEach(inimigo => inimigo.foiAtingidoNesteChute = false);
+
+                    // Collect the item
+                    coletarItemGarra(controle.garraItemCarregado);
+                    controle.garraItemCarregado.elemento.remove(); // Remove item's visual element
+                    controle.garraItemCarregado = null; // Clear carried item
+
+                    // Reset claw animation state
+                    controle.garraAnimEstado = 'idle';
+                    // Só volta ao sprite padrão quando a animação termina
+                    garraElemento.src = config.spriteGarraPlayer || 'personagem/garra.png';
+                    controle.garraBracos.forEach(b => b.remove());
+                    controle.garraBracos = [];
+                    // console.log("Animação Garra: Finalizada. Retornando ao estado idle.");
+                    console.log("Animação Garra: Finalizada com coleta. Retornando ao estado idle.");
+                }
+                // END NEW
+
+                if (controle.garraDist <= 0 && controle.garraItemCarregado === null) { // Only go idle if no item is being carried
                     controle.garraAnimEstado = 'idle';
                     // Só volta ao sprite padrão quando a animação termina
                     garraElemento.src = config.spriteGarraPlayer || 'personagem/garra.png';
