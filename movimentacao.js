@@ -327,6 +327,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         framesVoando: 0,
         timerVooRestante: 0,
         cooldownVooJetpack: 0,
+        jetpackHovering: false, // Nova flag para o modo de pairar
         escudoVermelho: false,
         escudoProtegido: 0,
         dano: 0,
@@ -505,7 +506,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     paraquedasElemento.style.imageRendering = 'pixelated';
     paraquedasElemento.style.pointerEvents = 'none';
     elemento.parentElement.appendChild(paraquedasElemento);
-    console.log("Sistema: Sprite do paraquedas inicializado. Parent element ID:", elemento.parentElement.id);
 
     paraquedasElemento.onerror = () => {
         console.error("ERRO: Não foi possível carregar a imagem do paraquedas em 'personagem/paraquedas.png'. Verifique o caminho e o arquivo.");
@@ -1001,17 +1001,30 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.timerVooRestante--;
             controle.framesVoando++;
 
-            if (controle.teclas['ArrowUp'] || controle.teclas['w'] || controle.teclas['W']) {
-                controle.velocidadeY = config.jetpackForcaVoo || 2; // Sobe lentamente
-            } else {
-                controle.velocidadeY = -1; // Desce lentamente ao soltar as teclas
+            const subindo = controle.teclas['ArrowUp'] || controle.teclas['w'] || controle.teclas['W'];
+
+            // 1. Controle de Voo: Subir ou Toggle do Hover (Pairar)
+            if (subindo) {
+                controle.velocidadeY = config.jetpackForcaVoo || 2;
+                controle.jetpackHovering = false; // Subir cancela o estado de pairar automaticamente
+            } else if (puloAcabouDeSerPressionado) {
+                controle.jetpackHovering = !controle.jetpackHovering; // Alterna o estado (ON/OFF)
             }
+
+            // 2. Aplica a física baseada no estado de pairar ou descida lenta
+            if (controle.jetpackHovering) {
+                controle.velocidadeY = 0; // Fica parado no ar
+            } else if (!subindo) {
+                controle.velocidadeY = -1; // Descida lenta padrão
+            }
+
             controle.y += controle.velocidadeY;
 
             // Lógica de Desativação 1: Esgotamento de Combustível.
             // Quando o timer zera, o motor desliga forçadamente e entra em estado de recarga (cooldown), ativando o filtro visual vermelho.
             if (controle.timerVooRestante <= 0) {
                 controle.jetpackAtivo = false;
+                controle.jetpackHovering = false; // Reseta o pairar ao acabar o combustível
                 controle.velocidadeY = 0;
                 controle.cooldownVooJetpack = config.jetpackCooldown || 180;// Inicia o cooldown ao terminar o voo
             }

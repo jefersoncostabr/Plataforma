@@ -185,6 +185,7 @@ window.reiniciarJogo = async function(porMorte = true) {
         window.playerControle.timerAtivacaoJetpack = 0;
         window.playerControle.timerVooRestante = 0;
         window.playerControle.cooldownVooJetpack = 0;
+        window.playerControle.jetpackHovering = false; // Reseta o estado de pairar
 
         // Reseta itens coletados para o máximo e restaura o escudo se estiver quebrado
         if (window.playerControle.temEscudo || window.playerControle.escudoVermelho) {
@@ -231,6 +232,9 @@ window.reiniciarJogo = async function(porMorte = true) {
 
 // Função para iniciar o jogo pela primeira vez
 async function iniciarJogo() {
+    // Marca que o jogo está iniciando agora para ajustar o menu inicial
+    window.isFirstStart = true;
+
     // Busca a configuração para saber por qual fase começar
     const respostaConfig = await fetch('configuracoesGerais.json');
     const config = await respostaConfig.json();
@@ -261,6 +265,9 @@ async function iniciarJogo() {
     );
     await iniciarIAInimigos(1, 'personagem/Personagem_parado.png', 'personagem/Personagem_andando.png', 'personagem/personagem_chute2.png');
     
-    // Carrega a primeira fase
+    // Carrega a fase atual e abre o menu de pause interativo imediatamente
     await carregarFase(window.niveis[window.nivelAtual]);
+    if (typeof window.togglePauseMenu === 'function') {
+        window.togglePauseMenu();
+    }
 }

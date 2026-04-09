@@ -10,7 +10,6 @@
 function aplicarFisica(controle, teclas, forcaPulo = 12, gravidade = 0.6, cooldownValor = 0) {
     // Inicializa variáveis de física se não existirem
     if (controle.velocidadeY === undefined) {
-        console.log("Fisica: Inicializando variáveis de física.");
         controle.velocidadeY = 0;
         controle.noChao = false;
         controle.cooldownPulo = 0;

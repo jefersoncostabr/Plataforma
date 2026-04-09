@@ -1,16 +1,29 @@
 /**
  * Gerenciador do Menu de Pause
  */
-console.log("Menu: Arquivo menu.js carregado e inicializado com sucesso.");
 
 window.isMenuOpen = false;
 let menuSelectedIndex = 0;
 
-const menuOptions = [
-    { label: "RETORNAR", action: () => window.togglePauseMenu() },
-    { label: "SKILLS", action: () => { window.togglePauseMenu(); window.toggleSkillMenu(); } },
-    { label: "REINICIAR", action: () => { window.togglePauseMenu(); if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo(); } },
-    { label: "SAIR", action: () => { 
+/**
+ * Retorna a lista de opções do menu, ajustando o comportamento para o início do jogo.
+ */
+const getActiveMenuOptions = () => {
+    // Define as ações padrão para cada botão
+    const baseOptions = [
+        { label: "RETORNAR", action: () => {
+            window.isFirstStart = false; // Garante que o próximo pause mostre 'RETORNAR'
+            window.togglePauseMenu();
+        } },
+        { label: "SKILLS", action: () => {
+            window.togglePauseMenu(); window.toggleSkillMenu();
+        } },
+        { label: "REINICIAR", action: () => {
+            window.isFirstStart = false; // Garante que o próximo pause mostre 'REINICIAR'
+            window.togglePauseMenu();
+            if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
+        } },
+        { label: "SAIR", action: () => {
         if (confirm("Deseja realmente sair do jogo?")) {
             window.close();
             
@@ -20,14 +33,30 @@ const menuOptions = [
             }, 300);
         }
     } }
-];
+    ];
+
+    if (window.isFirstStart) {
+        // Se for o primeiro início, o botão "RETORNAR" vira "INICIAR" e executa reiniciarJogo(false)
+        return [
+            { label: "INICIAR", action: async () => {
+                window.isFirstStart = false; // Desativa a flag de primeiro início
+                window.togglePauseMenu(); // Fecha o menu e despausa o jogo
+                if (typeof window.reiniciarJogo === 'function') {
+                    await window.reiniciarJogo(false); // Inicia um novo jogo (sem resetar XP/Skills)
+                }
+            } },
+            // baseOptions[1], // SKILLS
+            baseOptions[3]  // SAIR (REINICIAR é omitido no início)
+        ];
+    } else {
+        // Se não for o primeiro início, retorna as opções padrão
+        return baseOptions;
+    }
+};
 
 window.togglePauseMenu = () => {
-    console.log("Menu: togglePauseMenu executado. Estado anterior (aberto?):", window.isMenuOpen);
-
     // Se o menu de skills estiver aberto, o Esc fecha as skills e RETORNA AO MENU
     if (window.isSkillMenuOpen) {
-        console.log("Menu: Retornando das skills para o menu de pause.");
         if (typeof fecharMenuSkillsUI === 'function') fecharMenuSkillsUI();
         window.isSkillMenuOpen = false;
         
@@ -38,13 +67,14 @@ window.togglePauseMenu = () => {
         return;
     }
 
+    // Alterna o estado do menu principal
     window.isMenuOpen = !window.isMenuOpen;
     
     // Utiliza a função de pausa global
     if (typeof window.togglePause === 'function') {
         window.togglePause();
     }
-
+    
     if (window.isMenuOpen) {
         menuSelectedIndex = 0;
         renderMenuUI();
@@ -59,19 +89,29 @@ function handleMenuInput(e) {
     if (!window.isMenuOpen) return;
 
     const key = e.key.toLowerCase();
+    // Obtém as opções ativas (INICIAR/RETORNAR, SKILLS, REINICIAR/omitido, SAIR)
+    const currentOptions = getActiveMenuOptions();
+    if (!currentOptions || currentOptions.length === 0) {
+        console.error("Menu Input: currentOptions está vazio ou indefinido.");
+        return;
+    }
     
     // Navegação (Setas e WASD)
     if (key === 'arrowup' || key === 'w') {
-        menuSelectedIndex = (menuSelectedIndex - 1 + menuOptions.length) % menuOptions.length;
+        menuSelectedIndex = (menuSelectedIndex - 1 + currentOptions.length) % currentOptions.length;
         updateMenuVisuals();
     } else if (key === 'arrowdown' || key === 's') {
-        menuSelectedIndex = (menuSelectedIndex + 1) % menuOptions.length;
+        menuSelectedIndex = (menuSelectedIndex + 1) % currentOptions.length;
         updateMenuVisuals();
     } 
     // Seleção (Enter ou Espaço)
     else if (key === 'enter' || key === ' ') {
         e.preventDefault();
-        menuOptions[menuSelectedIndex].action();
+        try {
+            currentOptions[menuSelectedIndex].action();
+        } catch (error) {
+            console.error("Menu: Erro ao executar ação do menu:", error);
+        }
     }
 }
 
@@ -96,7 +136,7 @@ function renderMenuUI() {
     `;
 
     const title = document.createElement('h1');
-    title.innerText = "PAUSE";
+    title.innerText = window.isFirstStart ? "MENU PRINCIPAL" : "PAUSE";
     title.style.marginBottom = "30px";
     title.style.letterSpacing = "10px";
     overlay.appendChild(title);
@@ -107,11 +147,14 @@ function renderMenuUI() {
     optionsContainer.style.flexDirection = "column";
     optionsContainer.style.gap = "15px";
     optionsContainer.style.width = "200px";
+    
+    // Obtém as opções ativas para renderização
+    const currentOptions = getActiveMenuOptions();
 
-    menuOptions.forEach((opt, index) => {
+    currentOptions.forEach((opt, index) => {
         const btn = document.createElement('div');
         btn.className = 'menu-option';
-        btn.innerText = opt.label;
+        btn.innerText = opt.label; // Usa o label já definido em getActiveMenuOptions
         btn.style = `
             padding: 12px;
             font-size: 18px;

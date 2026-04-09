@@ -45,8 +45,6 @@ function limparCenario() {
 
     // 3. Reseta filtros de CSS que podem estar pesando na GPU (como blur ou grayscale)
     palco.style.filter = 'none';
-
-    console.log("Sistema: Limpeza de cache de fase concluída.");
 }
 
 /**
