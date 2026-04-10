@@ -75,7 +75,8 @@ Para que o jogo reconheça a sua nova fase, você precisa adicioná-la à lista 
 3. Adicione o nome do seu arquivo à lista:
 
 ```javascript
-window.niveis = ["fase1.json", "fase2.json", "fase3.json", "fase4.json"];
+const listaArquivosFases = ["fase1.json", "fase2.json", "fase3.json", "fase4.json"];
+window.niveis = listaArquivosFases.map(nome => `fases/${nome}`);
 ```
 
 ---
