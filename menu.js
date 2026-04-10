@@ -121,13 +121,13 @@ function handleMenuInput(e) {
 }
 
 function renderMenuUI() {
-    const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
-    if (!palco) {
-        console.error("Menu: Não foi possível encontrar o container do jogo (#game-stage ou #jogo-container) para renderizar a interface.");
+    const container = document.getElementById('jogo-container');
+    if (!container) {
+        console.error("Menu: Não foi possível encontrar o container do jogo (#jogo-container) para renderizar a interface.");
         return;
     }
 
-    const rect = palco.getBoundingClientRect();
+    const rect = container.getBoundingClientRect();
     const overlay = document.createElement('div');
     overlay.id = 'pause-menu-overlay';
     overlay.style = `

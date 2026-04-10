@@ -18,10 +18,19 @@ function criarInimigo(idPalco, imagemPath, coord, direcao = 'e', tipo = 1) {
 
     // Converte coordenada (ex: "b10") para pixels
     const coordLimpa = coord.trim().toLowerCase();
-    const letra = coordLimpa[0];
-    const numero = parseInt(coordLimpa.substring(1));
-    const row = letra.charCodeAt(0) - 'a'.charCodeAt(0);
-    const col = numero - 1;
+    const match = coordLimpa.match(/^([a-z]+)(\d+)$/);
+    if (!match) return;
+
+    const letras = match[1];
+    const col = parseInt(match[2]) - 1;
+    
+    let row = 0;
+    if (letras.length === 1) {
+        row = letras.charCodeAt(0) - 'a'.charCodeAt(0);
+    } else {
+        row = (letras.charCodeAt(0) - 'a'.charCodeAt(0) + 1) * 26 + (letras.charCodeAt(1) - 'a'.charCodeAt(0));
+    }
+
     const tamanhoTile = 32;
 
     const x = col * tamanhoTile;
@@ -75,10 +84,19 @@ function criarInimigo(idPalco, imagemPath, coord, direcao = 'e', tipo = 1) {
  */
 window.gridParaPixels = function(coord) {
     const coordLimpa = coord.trim().toLowerCase();
-    const letra = coordLimpa[0];
-    const numero = parseInt(coordLimpa.substring(1));
-    const row = letra.charCodeAt(0) - 'a'.charCodeAt(0);
-    const col = numero - 1;
+    const match = coordLimpa.match(/^([a-z]+)(\d+)$/);
+    if (!match) return {x:0, y:0, coord: coord};
+
+    const letras = match[1];
+    const col = parseInt(match[2]) - 1;
+
+    let row = 0;
+    if (letras.length === 1) {
+        row = letras.charCodeAt(0) - 'a'.charCodeAt(0);
+    } else {
+        row = (letras.charCodeAt(0) - 'a'.charCodeAt(0) + 1) * 26 + (letras.charCodeAt(1) - 'a'.charCodeAt(0));
+    }
+
     const tamanhoTile = 32;
     
     return {

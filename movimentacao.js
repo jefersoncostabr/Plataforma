@@ -104,8 +104,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     // Lógica do AirDrop: Após o tempo configurado, o suprimento cai do céu
     const tempoEspera = (config.airdrop1?.espera || 10) * 1000;
     setTimeout(() => {
-        // Escolhe uma coluna aleatória entre 0 e 19 (total de 20 colunas no palco de 640px)
-        const colAleatoria = Math.floor(Math.random() * 20);
+        // Agora escolhe uma coluna baseada na largura total do mundo atual
+        const colunasTotais = Math.floor(window.mundoLargura / 32);
+        const colAleatoria = Math.floor(Math.random() * colunasTotais);
         const xFinal = colAleatoria * 32;
         const yFinal = 448; // Linha "o" no sistema de grid (14 * 32px)
 
@@ -667,7 +668,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     hudElemento.style.gap = '5px';
     hudElemento.style.alignItems = 'center';
     hudElemento.style.zIndex = '100';
-    elemento.parentElement.appendChild(hudElemento);
+    
+    // FIX: Anexa ao jogo-container (fixo) e não ao game-stage (móvel)
+    const containerFixo = document.getElementById('jogo-container') || elemento.parentElement;
+    containerFixo.appendChild(hudElemento);
 
     function atualizarHUD() {
         if (!window.playerSkills || !window.playerSkills.includes('skillb')) {
@@ -1599,8 +1603,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             // Transforma em Skill Passiva: Verifica se o player possui a skill 'skillb1' (Resgate)
             if (window.playerSkills?.includes('skillb1')) {
                 console.log("Habilidade Passiva: Resgate Ativado!");
-                const larguraPalco = 640;
-                const alturaPalco = 480;
+                const larguraPalco = window.mundoLargura || 640;
+                const alturaPalco = window.mundoAltura || 480;
                 const larguraPlayer = 32;
 
                 controle.x = Math.random() * (larguraPalco - larguraPlayer);
@@ -1923,8 +1927,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
                 const hitCenario = verificarColisaoComTiles(proj.x, proj.y, config.PROJETIL_LARGURA, config.PROJETIL_ALTURA, window.plataformas);
 
-                // Remove o projétil se bater em algo ou sair da tela (limite de 700px)
-                if (hitCenario || hitAlvo || proj.x < -50 || proj.x > 700) {
+                // Remove o projétil se bater em algo ou sair muito longe dos limites do mundo
+                const limiteDireito = (window.mundoLargura || 640) + 100;
+                if (hitCenario || hitAlvo || proj.x < -100 || proj.x > limiteDireito) {
                     proj.elemento.remove();
                     window.projeteis.splice(i, 1);
                 }
@@ -2235,6 +2240,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 paraquedasElemento.style.display = 'none';
                 console.log("Paraquedas: Inactive. Display set to none.");
             }
+        }
+
+        // ATUALIZAÇÃO DA CÂMERA: Mantém o jogador centralizado
+        if (typeof window.atualizarCamera === 'function') {
+            window.atualizarCamera(controle.x, controle.y, window.mundoLargura, window.mundoAltura);
         }
 
         requestAnimationFrame(atualizar);

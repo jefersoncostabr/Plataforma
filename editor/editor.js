@@ -3,11 +3,12 @@
  */
 
 const TILE_SIZE = 32;
-const COLS = 20; // 640 / 32
-const ROWS = 15; // 480 / 32
+let COLS = 20; 
+let ROWS = 15; 
 
 // Estado da fase
 let faseData = {
+    proporcao: "1x1",
     posicaoInicialJogador: "b2",
     objetivo: "f19",
     plataformas: [],
@@ -30,6 +31,7 @@ const paletteItems = document.querySelectorAll('.palette-item');
 const btnExport = document.getElementById('btn-export');
 const btnClear = document.getElementById('btn-clear');
 const output = document.getElementById('json-output');
+const proportionSelect = document.getElementById('proportion-select'); // Novo elemento necessário no HTML
 
 // Referências para os novos elementos que serão criados via JS
 let fillBottomCheckbox;
@@ -44,7 +46,8 @@ let tooltipElement;
 
 // Inicialização
 window.onload = () => {
-    configurarGrade();
+    configurarControlesDimensoes();
+    atualizarTamanhoStage();
     configurarPaleta();
     configurarStage();
     configurarFerramentasAutomaticas();
@@ -117,8 +120,32 @@ window.onload = () => {
     stage.addEventListener('mouseleave', () => tooltipElement.style.display = 'none');
 };
 
+function configurarControlesDimensoes() {
+    if (!proportionSelect) return;
+    
+    proportionSelect.onchange = (e) => {
+        faseData.proporcao = e.target.value;
+        atualizarTamanhoStage();
+    };
+}
+
+function atualizarTamanhoStage() {
+    const [hMult, wMult] = faseData.proporcao.split('x').map(Number);
+    COLS = 20 * (wMult || 1);
+    ROWS = 15 * (hMult || 1);
+
+    stage.style.width = (COLS * TILE_SIZE) + 'px';
+    stage.style.height = (ROWS * TILE_SIZE) + 'px';
+
+    configurarGrade();
+    atualizarVisual();
+}
+
 function configurarGrade() {
-    const grade = document.createElement('div');
+    let grade = document.getElementById('grade-auxiliar');
+    if (grade) grade.remove();
+
+    grade = document.createElement('div');
     grade.id = 'grade-auxiliar';
     grade.style.position = 'absolute';
     grade.style.width = '100%';
@@ -134,7 +161,11 @@ function configurarGrade() {
     for (let r = 0; r < ROWS; r++) {
         for (let c = 1; c <= COLS; c++) {
             const label = document.createElement('span');
-            const letra = String.fromCharCode(97 + r);
+            // Suporte para letras duplas se o mapa for muito alto (a, b... z, aa, ab...)
+            const letra = r < 26 
+                ? String.fromCharCode(97 + r) 
+                : String.fromCharCode(97 + Math.floor(r/26) - 1) + String.fromCharCode(97 + (r % 26));
+            
             label.textContent = letra + c;
             label.style.position = 'absolute';
             label.style.left = ((c - 1) * TILE_SIZE) + 'px';
@@ -223,13 +254,10 @@ function adicionarElemento(coord) {
 
 function removerElemento(coord) {
     faseData.plataformas = faseData.plataformas.filter(c => c !== coord);
-    faseData.inimigos0 = (faseData.inimigos0 || []).filter(c => c !== coord);
-    faseData.inimigos1 = (faseData.inimigos1 || []).filter(c => c !== coord);
-    faseData.inimigos2 = (faseData.inimigos2 || []).filter(c => c !== coord);
-    faseData.inimigos3 = (faseData.inimigos3 || []).filter(c => c !== coord);
-    faseData.inimigos4 = (faseData.inimigos4 || []).filter(c => c !== coord);
-    faseData.inimigos5 = (faseData.inimigos5 || []).filter(c => c !== coord);
-    faseData.inimigos6 = (faseData.inimigos6 || []).filter(c => c !== coord);
+    const tiposInimigos = ['inimigos0', 'inimigos1', 'inimigos2', 'inimigos3', 'inimigos4', 'inimigos5', 'inimigos6'];
+    tiposInimigos.forEach(tipo => {
+        if (faseData[tipo]) faseData[tipo] = faseData[tipo].filter(c => c !== coord);
+    });
     faseData.itens = faseData.itens.filter(i => i.pos !== coord);
     if (faseData.posicaoInicialJogador === coord) faseData.posicaoInicialJogador = ''; // Limpa se for o jogador
 }
@@ -264,8 +292,21 @@ function atualizarVisual() {
 }
 
 function criarIcone(coord, src, classe = '') {
-    const row = coord[0].charCodeAt(0) - 'a'.charCodeAt(0);
-    const col = parseInt(coord.substring(1)) - 1;
+    // Ajuste para ler coordenadas de 1 ou 2 letras (ex: "a1" ou "aa1")
+    const match = coord.match(/^([a-z]+)(\d+)$/);
+    if (!match) return;
+    
+    const letras = match[1];
+    const numero = parseInt(match[2]);
+    
+    const col = numero - 1;
+    let row = 0;
+    if (letras.length === 1) {
+        row = letras.charCodeAt(0) - 'a'.charCodeAt(0);
+    } else {
+        row = (letras.charCodeAt(0) - 'a'.charCodeAt(0) + 1) * 26 + (letras.charCodeAt(1) - 'a'.charCodeAt(0));
+    }
+
     const img = document.createElement('img');
     img.src = src;
     if (classe) img.classList.add(classe);

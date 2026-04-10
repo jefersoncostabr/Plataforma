@@ -15,10 +15,13 @@ const EPSILON = 0.01;
  * @param {number} chaoAltura - Altura do chão para colisão (padrão 32).
  * @returns {Object} Objeto com as coordenadas {x, y} ajustadas.
  */
-function limitarPosicaoAoPalco(x, y, largura, altura, palcoLargura = 640, palcoAltura = 480, chaoAltura = 32) {
+function limitarPosicaoAoPalco(x, y, largura, altura, palcoLargura, palcoAltura, chaoAltura = 32) {
+    const maxW = palcoLargura || window.mundoLargura || 640;
+    const maxH = palcoAltura || window.mundoAltura || 480;
+
     const ajustado = {
-        x: Math.max(0, Math.min(palcoLargura - largura, x)),
-        y: Math.max(chaoAltura, Math.min(palcoAltura - altura, y))
+        x: Math.max(0, Math.min(maxW - largura, x)),
+        y: Math.max(chaoAltura, Math.min(maxH - altura, y))
     };
     return ajustado;
 }
@@ -37,7 +40,11 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
 
     for (let r = rowInicio; r <= rowFim; r++) {
         for (let c = colInicio; c <= colFim; c++) {
-            const coord = String.fromCharCode(97 + r) + (c + 1);
+            // Suporte para coordenadas expandidas (a...z, aa, ab...)
+            const letra = r < 26 
+                ? String.fromCharCode(97 + r) 
+                : String.fromCharCode(97 + Math.floor(r/26) - 1) + String.fromCharCode(97 + (r % 26));
+            const coord = letra + (c + 1);
             if (plataformaObj[coord]) return true;
         }
     }

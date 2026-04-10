@@ -3,12 +3,16 @@
  */
 
 
-const listaArquivosFases = ["fase1.json", "fase2.json", "fase3.json", "fase4.json", "fase5.json", "fase6.json", "fase7.json", "fase8.json"];
+const listaArquivosFases = ["fase1.json", "fase2.json", "fase3.json", "fase4.json", "fase5.json", "fase6.json", "fase7.json", "fase8.json", "fase9.json"];
 window.niveis = listaArquivosFases.map(nome => `fases/${nome}`);
 window.nivelAtual = 0;
 window.isTraining = false; // Flag para identificar se o jogador está no modo treino
 window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para inimigo aleatório
 window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro inimigo
+
+// Dimensões globais do mundo atual
+window.mundoLargura = 640;
+window.mundoAltura = 480;
 
 async function carregarFase(nomeArquivo) {
     // console.log(`Carregando nível: ${nomeArquivo}`);
@@ -42,9 +46,25 @@ async function carregarFase(nomeArquivo) {
         return; // Interrompe a função para não quebrar o restante do código
     }
 
+    // Configura as dimensões do mundo baseadas na proporção definida no JSON (ex: "1x2")
+    const proporcao = fase.proporcao || "1x1";
+    const parts = proporcao.split('x').map(Number);
+    const multH = parts[0] || 1;
+    const multW = parts[1] || 1;
+
+    window.mundoLargura = 640 * multW;
+    window.mundoAltura = 480 * multH;
+
     // 1. Limpa o cenário anterior (tiles, inimigos e itens)
     const idPalco = 'game-stage';
     if (typeof limparCenario === 'function') limparCenario(idPalco);
+
+    // Ajusta o tamanho do palco para as dimensões do novo mundo
+    const gameStage = document.getElementById(idPalco);
+    if (gameStage) {
+        gameStage.style.width = window.mundoLargura + 'px';
+        gameStage.style.height = window.mundoAltura + 'px';
+    }
 
     // 2. Renderiza as novas plataformas e o objetivo
     if (typeof renderizarPlataformas === 'function') {
@@ -53,6 +73,9 @@ async function carregarFase(nomeArquivo) {
     if (typeof renderizarObjetivo === 'function') {
         renderizarObjetivo(idPalco, 'personagem/objetivo.png', fase.objetivo);
     }
+
+    // Reseta a posição da câmera para o início da fase
+    if (typeof window.resetarCamera === 'function') window.resetarCamera();
 
     // Exibe o palco novamente após a montagem
     if (palcoElemento) {
