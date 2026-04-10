@@ -1,7 +1,7 @@
 /**
  * Gerenciador central de fases e inicialização.
  */
-window.niveis = ["fase1.json", "fase2.json", "fase3.json", "fase4.json", "fase5.json", "fase6.json", "fase7.json", "fase8.json"];
+window.niveis = ["fase1.json", "fase2.json", "fase3.json", "fase4.json", "fase5.json", "fase6.json", "fase7.json", "fase8.json", "fase9.json"];
 window.nivelAtual = 0;
 window.isTraining = false; // Flag para identificar se o jogador está no modo treino
 window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para inimigo aleatório

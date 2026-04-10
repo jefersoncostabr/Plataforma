@@ -971,11 +971,19 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 if (controle.garraDist > distMax) {
                     controle.garraDist = distMax;
                 }
+
+                // Impede que a garra do jogador atravesse blocos sólidos
+                const tipX = controle.x + (controle.garraDist * dirX);
+                if (typeof verificarColisaoComTiles === 'function' && 
+                    verificarColisaoComTiles(tipX, controle.y, 32, 32, window.plataformas)) {
+                    controle.garraAnimEstado = 'catching';
+                    controle.garraTimer = 10;
+                    garraElemento.src = 'personagem/garra_catching.png';
+                }
                 
-                // NEW: Collision detection for items
-                // Check for ENEMIES first
+                // Só tenta capturar entidades se a garra não estiver bloqueada
                 let grabbedSomething = false;
-                if (window.inimigos && window.inimigos.length > 0) {
+                if (controle.garraAnimEstado === 'esticando' && window.inimigos && window.inimigos.length > 0) {
                     for (let j = window.inimigos.length - 1; j >= 0; j--) {
                         const inimigo = window.inimigos[j];
                         const hitboxGarra = {

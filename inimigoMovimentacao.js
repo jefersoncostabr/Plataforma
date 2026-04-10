@@ -461,9 +461,21 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             inimigo.garraDist = distMax;
                         }
 
+                        // Impede que a garra do inimigo atravesse blocos sólidos
+                        const tipX = inimigo.x + (inimigo.garraDist * dirX);
+                        if (typeof verificarColisaoComTiles === 'function' && 
+                            verificarColisaoComTiles(tipX, inimigo.y, 32, 32, window.plataformas)) {
+                            inimigo.garraAnimEstado = 'catching';
+                            inimigo.garraTimer = 10;
+                            inimigo.garraElemento.src = 'personagem/garra_catching.png';
+                        }
+
                         let grabbedSomething = false;
-                        // Check for PLAYER collision
-                        const hitboxGarra = {
+                        // Check for hits (apenas se a garra não foi bloqueada por um bloco)
+                        if (inimigo.garraAnimEstado === 'esticando') {
+                            const hitboxGarra = {
+                                x: parseInt(inimigo.garraElemento.style.left),
+                                y: parseInt(inimigo.garraElemento.style.bottom),
                             x: parseInt(inimigo.garraElemento.style.left),
                             y: parseInt(inimigo.garraElemento.style.bottom),
                             largura: 32,
@@ -494,10 +506,11 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                 if (detectarColisaoHitbox(hitboxGarra, hitboxItem, 0, 0, 0)) {
                                     inimigo.garraItemCarregado = item;
                                     window.itensColetaveis.splice(k, 1);
-                                    inimigo.garraAnimEstado = 'voltando';
-                                    inimigo.garraElemento.src = 'personagem/garra_catching.png';
-                                    grabbedSomething = true;
-                                    break;
+                                        inimigo.garraAnimEstado = 'voltando';
+                                        inimigo.garraElemento.src = 'personagem/garra_catching.png';
+                                        grabbedSomething = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
