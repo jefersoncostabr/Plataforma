@@ -965,7 +965,19 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 }
             } 
             else if (controle.garraAnimEstado === 'esticando') { // NEW: Collision detection for items
-                controle.garraDist += velGarra;
+                const proxDist = controle.garraDist + velGarra;
+                const tipX = controle.x + (proxDist * dirX);
+
+                // Impede que a garra do jogador atravesse blocos sólidos
+                if (typeof verificarColisaoComTiles === 'function' && 
+                    verificarColisaoComTiles(tipX, controle.y, 32, 32, window.plataformas)) {
+                    controle.garraAnimEstado = 'catching';
+                    controle.garraTimer = 18;
+                    garraElemento.src = 'personagem/garra_catching.png';
+                } else {
+                    controle.garraDist = proxDist;
+                }
+
                 garraElemento.src = 'personagem/garra_using1.png'; // A "mão" da garra que avança
                 // Garante que a garra não estique além do limite máximo
                 if (controle.garraDist > distMax) {

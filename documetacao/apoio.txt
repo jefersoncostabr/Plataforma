@@ -1,6 +1,11 @@
-pegar ultimo commit
+-Pegar ultimo commit
 git reset --hard HEAD
+
+-Pegar commit específico
 git reset --hard 8c4e92
 
+-Log dos commits
 git log --oneline
+
+-Log da branch atual
 git log --oneline --decorate --no-merges

@@ -455,7 +455,19 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             inimigo.garraAnimEstado = 'esticando';
                         }
                     } else if (inimigo.garraAnimEstado === 'esticando') {
-                        inimigo.garraDist += velGarra;
+                        const proxDist = inimigo.garraDist + velGarra;
+                        const tipX = inimigo.x + (proxDist * dirX);
+
+                        // Verifica colisão com o cenário antes de avançar
+                        if (typeof verificarColisaoComTiles === 'function' && 
+                            verificarColisaoComTiles(tipX, inimigo.y, 32, 32, window.plataformas)) {
+                            inimigo.garraAnimEstado = 'catching';
+                            inimigo.garraTimer = 18;
+                            inimigo.garraElemento.src = 'personagem/garra_catching.png';
+                        } else {
+                            inimigo.garraDist = proxDist;
+                        }
+
                         inimigo.garraElemento.src = 'personagem/garra_using1.png';
                         if (inimigo.garraDist > distMax) {
                             inimigo.garraDist = distMax;
