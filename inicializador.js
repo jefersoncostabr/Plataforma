@@ -297,3 +297,10 @@ async function iniciarJogo() {
         window.togglePauseMenu();
     }
 }
+
+// Atalho de Debug: Avançar de fase
+window.addEventListener('keydown', (e) => {
+    if (e.key === '4') {
+        if (typeof window.proximoNivel === 'function') window.proximoNivel();
+    }
+});

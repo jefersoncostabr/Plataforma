@@ -49,6 +49,7 @@ Este documento detalha todas as teclas mapeadas no jogo e suas respectivas funç
 
 | Tecla | Ação |
 | :--- | :--- |
+| **4** | **Pular de Fase:** Avança instantaneamente para o próximo nível da lista. |
 | **5** | **Cheat XP:** Adiciona +5 de XP instantaneamente (concede 1 ponto de skill). |
 | **7** | **Spawn Inimigo:** Cria um inimigo aleatório em uma plataforma disponível no mapa com equipamento sorteado. |
 | **0 (Zero)** | **Reset Total:** Limpa o inventário salvo no LocalStorage e remove todos os equipamentos atuais do jogador (arma, bota, escudo). |
