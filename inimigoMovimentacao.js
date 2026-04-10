@@ -108,6 +108,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inim.jetpackElemento) inim.jetpackElemento.remove();
                 if (inim.jetFogoElemento) inim.jetFogoElemento.remove();
                 if (inim.garraElemento) inim.garraElemento.remove();
+                if (inim.garraBracos) inim.garraBracos.forEach(b => b.remove());
             });
         }
         window.inimigos = [];
@@ -157,6 +158,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 ,garraDist: 0
                 ,garraBracos: []
                 ,garraItemCarregado: null
+                ,cooldownGarra: 60 // Novo cooldown para a garra do inimigo
             });
         });
     };
@@ -425,6 +427,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inimigo.cooldownAfastamento > 0) inimigo.cooldownAfastamento--;
                 if (inimigo.cooldownPulo > 0) inimigo.cooldownPulo--;
                 if (inimigo.cooldownVooJetpack > 0) inimigo.cooldownVooJetpack--;
+                if (inimigo.cooldownGarra > 0) inimigo.cooldownGarra--; // Decrementa o cooldown da garra
 
                 // Lógica da Animação da Garra (Estilo Cartoon) para o inimigo
                 if (inimigo.temGarra && inimigo.garraAnimEstado !== 'idle' && !inimigo.stunned) {
@@ -595,12 +598,14 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             inimigo.garraElemento.src = config.spriteGarraPlayer || 'personagem/garra.png';
                             inimigo.garraBracos.forEach(b => b.remove());
                             inimigo.garraBracos = [];
+                            inimigo.cooldownGarra = 120; // Define cooldown de 2 segundos (120 frames)
                         }
                         if (inimigo.garraDist <= 0 && inimigo.garraItemCarregado === null) {
                             inimigo.garraAnimEstado = 'idle';
                             inimigo.garraElemento.src = config.spriteGarraPlayer || 'personagem/garra.png';
                             inimigo.garraBracos.forEach(b => b.remove());
                             inimigo.garraBracos = [];
+                            inimigo.cooldownGarra = 120; // Define cooldown de 2 segundos (120 frames)
                         }
                     }
                 }
@@ -774,6 +779,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
                     if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
                     if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
+                    if (inimigo.garraElemento) inimigo.garraElemento.remove();
+                    if (inimigo.garraBracos) inimigo.garraBracos.forEach(b => b.remove());
                     inimigo.elemento.remove();
                     window.inimigos.splice(i, 1);
                     continue;
@@ -960,7 +967,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     }
 
                     // Lógica para INICIAR a Garra (se tiver e estiver no alcance)
-                    if (inimigo.temGarra && inimigo.garraAnimEstado === 'idle' && distanciaAtual <= (config.garraAlcanceInimigo || 160)) {
+                    if (inimigo.temGarra && inimigo.garraAnimEstado === 'idle' && inimigo.cooldownGarra === 0 && distanciaAtual <= (config.garraAlcanceInimigo || 160)) {
                         inimigo.garraAnimEstado = 'prep';
                         inimigo.garraTimer = 18;
                         inimigo.garraDirecaoAnim = (inimigo.x < playerX) ? 'd' : 'e';

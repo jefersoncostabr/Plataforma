@@ -741,7 +741,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Acionamento da Garra com a tecla J
         if ((e.key === 'j' || e.key === 'J') && controle.temGarra && controle.garraAnimEstado === 'idle') {
-            console.log("Animação Garra: [1/4] Acionamento detectado. Iniciando preparação...");
             controle.garraAnimEstado = 'prep';
             controle.garraTimer = 18; // ~0.3s a 60fps
             controle.garraDirecaoAnim = controle.direcao;
@@ -784,6 +783,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 if (inimigo.botaElemento) inimigo.botaElemento.remove();
                 if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
                 if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
+                if (inimigo.garraElemento) inimigo.garraElemento.remove();
+                if (inimigo.garraBracos) inimigo.garraBracos.forEach(b => b.remove());
                 inimigo.elemento.remove();
                 window.inimigos.splice(i, 1);
             }
@@ -970,7 +971,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 if (controle.garraDist > distMax) {
                     controle.garraDist = distMax;
                 }
-                console.log(`Animação Garra: [2/4] Esticando... Distância: ${controle.garraDist}px`);
                 
                 // NEW: Collision detection for items
                 // Check for ENEMIES first
@@ -992,7 +992,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         };
 
                         if (detectarColisaoHitbox(hitboxGarra, hitboxInimigo, 0, 0, 0)) {
-                            console.log(`Garra pegou o inimigo: Tipo ${inimigo.tipo}`);
                             controle.garraItemCarregado = inimigo;
                             inimigo.stunned = true;
                             inimigo.stunTimer = config.garraStunDuration || 120; // Default 2 seconds
@@ -1026,7 +1025,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     };
 
                     if (detectarColisaoHitbox(hitboxGarra, hitboxItem, 0, 0, 0)) {
-                        console.log(`Garra pegou o item: ${item.tipo}`);
                         controle.garraItemCarregado = item;
                         window.itensColetaveis.splice(i, 1); // Remove item from global list
                         controle.garraAnimEstado = 'voltando'; // Immediately start retracting
@@ -1067,7 +1065,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             else if (controle.garraAnimEstado === 'catching') {
                 controle.garraTimer--;
                 if (controle.garraTimer <= 0) {
-                    console.log("Animação Garra: [4/4] Recolhendo...");
                     controle.garraAnimEstado = 'voltando';
                 }
             }
@@ -1119,8 +1116,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
                 // NEW: Kick and collect item when close to player
                 if (controle.garraItemCarregado && controle.garraDist <= velGarra) { // Item/Enemy is very close to player
-                    console.log("Garra: Item perto do jogador, acionando chute e coleta.");
-                    
                     if (controle.garraItemCarregado.isEnemy) { // It's an enemy
                         const inimigoAtingido = controle.garraItemCarregado;
 
@@ -1174,13 +1169,15 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 if (typeof flashComVibacao === 'function') {
                                     flashComVibacao(inimigoAtingido.elemento);
                                 }
-                                droparItensInimigo(inimigoAtingido);
+                                droparItensInimigo(inimigoAtingido); // Garante o drop normal de itens coletáveis
                                 if (typeof window.ganharXP === 'function') window.ganharXP(1);
                                 if (inimigoAtingido.armaElemento) inimigoAtingido.armaElemento.remove();
                                 if (inimigoAtingido.botaElemento) inimigoAtingido.botaElemento.remove();
                                 if (inimigoAtingido.escudoElemento) inimigoAtingido.escudoElemento.remove();
                                 if (inimigoAtingido.jetpackElemento) inimigoAtingido.jetpackElemento.remove();
                                 if (inimigoAtingido.jetFogoElemento) inimigoAtingido.jetFogoElemento.remove();
+                                if (inimigoAtingido.garraElemento) inimigoAtingido.garraElemento.remove();
+                                if (inimigoAtingido.garraBracos) inimigoAtingido.garraBracos.forEach(b => b.remove());
                                 inimigoAtingido.elemento.remove();
                                 // No need to splice from window.inimigos, as it was already removed when grabbed.
                                 // If it's dead, we don't re-add it.
@@ -1198,7 +1195,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     garraElemento.src = config.spriteGarraPlayer || 'personagem/garra.png'; // Reset claw visual
                     controle.garraBracos.forEach(b => b.remove());
                     controle.garraBracos = [];
-                    console.log("Animação Garra: Finalizada com coleta/liberação. Retornando ao estado idle.");
                 }
                 // END NEW
 
@@ -1739,6 +1735,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
                                 if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
                                 if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
+                                if (inimigo.garraElemento) inimigo.garraElemento.remove();
+                                if (inimigo.garraBracos) inimigo.garraBracos.forEach(b => b.remove());
                                 inimigo.elemento.remove();
                                 window.inimigos.splice(i, 1);
                             }
@@ -1845,6 +1843,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                     if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
                                     if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
                                     if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
+                                    if (inimigo.garraElemento) inimigo.garraElemento.remove();
+                                    if (inimigo.garraBracos) inimigo.garraBracos.forEach(b => b.remove());
                                     inimigo.elemento.remove();
                                     window.inimigos.splice(j, 1);
                                 }
