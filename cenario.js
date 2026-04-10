@@ -89,7 +89,7 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         palco.appendChild(tile);
     });
 
-    console.log('Plataformas carregadas:', window.plataformas);
+    //console.log('Plataformas carregadas:', window.plataformas);
 }
 
 /**
