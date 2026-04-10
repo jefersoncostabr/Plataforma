@@ -1,0 +1,63 @@
+{
+    "posicaoInicialJogador": "b2",
+    "objetivo": "f19",
+    "plataformas": [
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8",
+        "a9",
+        "a10",
+        "a11",
+        "a12",
+        "a13",
+        "a14",
+        "a15",
+        "a16",
+        "a17",
+        "a18",
+        "a19",
+        "a20",
+        "b4",
+        "b10",
+        "b16",
+        "l5",
+        "l17"
+    ],
+    "inimigos0": [],
+    "inimigos1": [],
+    "inimigos2": [],
+    "inimigos3": [],
+    "inimigos4": [
+        "m5"
+    ],
+    "inimigos5": [
+        "c4"
+    ],
+    "inimigos6": [
+        "c10",
+        "c16"
+    ],
+    "itens": [
+        {
+            "tipo": "restauracao",
+            "pos": "m17"
+        },
+        {
+            "tipo": "bota",
+            "pos": "b11"
+        },
+        {
+            "tipo": "bota",
+            "pos": "b17"
+        }
+    ],
+    "inimigoAleatorio": [
+        1,
+        0
+    ]
+}

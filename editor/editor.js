@@ -16,6 +16,8 @@ let faseData = {
     inimigos2: [],
     inimigos3: [],
     inimigos4: [],
+    inimigos5: [],
+    inimigos6: [],
     itens: [],
     inimigoAleatorio: [1, 0]
 };
@@ -56,6 +58,8 @@ window.onload = () => {
             faseData.inimigos2 = [];
             faseData.inimigos3 = [];
             faseData.inimigos4 = [];
+            faseData.inimigos5 = [];
+            faseData.inimigos6 = [];
             faseData.itens = [];
             atualizarVisual();
         }
@@ -92,6 +96,8 @@ window.onload = () => {
         else if (faseData.inimigos2.includes(coord)) legenda = "Inimigo Escudado";
         else if (faseData.inimigos3.includes(coord)) legenda = "Inimigo Rápido (Botas)";
         else if (faseData.inimigos4.includes(coord)) legenda = "Inimigo Voador (Jetpack)";
+        else if (faseData.inimigos5 && faseData.inimigos5.includes(coord)) legenda = "Alvo de Feno (Treino)";
+        else if (faseData.inimigos6 && faseData.inimigos6.includes(coord)) legenda = "Inimigo com Garra";
         else if (faseData.posicaoInicialJogador === coord) legenda = "Ponto Inicial do Jogador";
         else if (faseData.objetivo === coord) legenda = "Objetivo da Fase";
         else {
@@ -222,6 +228,8 @@ function removerElemento(coord) {
     faseData.inimigos2 = (faseData.inimigos2 || []).filter(c => c !== coord);
     faseData.inimigos3 = (faseData.inimigos3 || []).filter(c => c !== coord);
     faseData.inimigos4 = (faseData.inimigos4 || []).filter(c => c !== coord);
+    faseData.inimigos5 = (faseData.inimigos5 || []).filter(c => c !== coord);
+    faseData.inimigos6 = (faseData.inimigos6 || []).filter(c => c !== coord);
     faseData.itens = faseData.itens.filter(i => i.pos !== coord);
     if (faseData.posicaoInicialJogador === coord) faseData.posicaoInicialJogador = ''; // Limpa se for o jogador
 }
@@ -236,12 +244,16 @@ function atualizarVisual() {
     (faseData.inimigos2 || []).forEach(coord => criarIcone(coord, '../personagem/escudo_pegavel.png', 'enemy-marker'));
     (faseData.inimigos3 || []).forEach(coord => criarIcone(coord, '../personagem/bota_pegavel.png', 'enemy-marker'));
     (faseData.inimigos4 || []).forEach(coord => criarIcone(coord, '../personagem/jetpack_pegavel.png', 'enemy-marker'));
+    (faseData.inimigos5 || []).forEach(coord => criarIcone(coord, '../personagem/alvoFeno.png', 'enemy-marker'));
+    (faseData.inimigos6 || []).forEach(coord => criarIcone(coord, '../personagem/garra_coletavel.png', 'enemy-marker'));
 
     faseData.itens.forEach(item => {
         let src = '../personagem/revolver_pegavel.png';
         if (item.tipo === 'escudo') src = '../personagem/escudo_pegavel.png';
         else if (item.tipo === 'bota') src = '../personagem/bota_pegavel.png';
         else if (item.tipo === 'jetpack') src = '../personagem/jetpack_pegavel.png';
+        else if (item.tipo === 'garra') src = '../personagem/garra_coletavel.png';
+        else if (item.tipo === 'restauracao') src = '../personagem/restauracao.png';
         criarIcone(item.pos, src, '');
     });
     
@@ -292,6 +304,13 @@ function removeBlocks(coordsArray) {
 }
 
 function exportarJSON() {
+    // Sincroniza as configurações de spawn aleatório da interface antes de exportar
+    const enabled = document.getElementById('spawn-random').checked;
+    const diff = parseInt(document.getElementById('random-diff').value);
+    const type = parseInt(document.getElementById('random-type').value);
+    
+    faseData.inimigoAleatorio = enabled ? [diff, type] : [0, 0];
+
     const finalData = { ...faseData };
     const jsonStr = JSON.stringify(finalData, null, 4);
     output.value = jsonStr;

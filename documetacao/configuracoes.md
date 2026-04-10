@@ -94,3 +94,4 @@ Este documento descreve cada campo presente no arquivo de configuração central
 | `spriteBotaParado` | Visual da bota equipada em estado estático. |
 | `spriteBotaAndando` | Visual da bota equipada durante o movimento. |
 | `spriteBotaChutando` | Visual da bota equipada durante o ataque de chute. |
+| `spriteAlvoFeno` | Imagem para o alvo de feno (inimigo tipo 5). |

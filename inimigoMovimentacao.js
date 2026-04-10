@@ -123,7 +123,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             const inimigoImg = document.createElement('img'); // Variável correta para o elemento imagem do inimigo
             const tipo = dado.tipo !== undefined ? dado.tipo : 1;
             if (tipo === 5) {
-                inimigoImg.src = config.spriteAlvoFeno || 'personagem/alvoFeno.png';
+                // Tenta pegar da config local, depois da global, e por fim o caminho fixo
+                inimigoImg.src = config.spriteAlvoFeno || window.config?.spriteAlvoFeno || 'personagem/alvoFeno.png';
             } else {
                 inimigoImg.src = spriteParado;
             }

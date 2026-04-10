@@ -8,6 +8,5 @@
     ],
     "inimigos0": ["b13"],
     "inimigos5": ["b4"],
-    "itens": [{"tipo": "garra", "pos": "b10"}],
     "inimigoAleatorio": [1, 0]
 }

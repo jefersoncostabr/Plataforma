@@ -27,6 +27,7 @@ Este documento detalha todas as teclas mapeadas no jogo e suas respectivas funç
 | Tecla | Ação |
 | :--- | :--- |
 | **K** | Executa um chute. Ativa a hitbox de ataque e fornece um pequeno impulso (dash) para frente. |
+| **J** | Ativa a **Garra:** Estica um braço mecânico para capturar itens ou inimigos à distância (requer ter coletado a garra). |
 | **Seta Baixo + Espaço** ou **S + Espaço** | **Soltar Item:** Descarta o item mais recente do inventário (requer habilidade `skilla`). O item mantém seu estado original (munição/durabilidade). |
 | **I** | Dispara o revólver (requer ter coletado a arma e possuir munição). |
 | **Segurar Espaço (aprox. 2s)** | **Ativar Jetpack:** Liga o motor de voo por 6 segundos (requer ter coletado o Jetpack). |

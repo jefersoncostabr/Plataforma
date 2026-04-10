@@ -219,7 +219,11 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     if (!palco) return;
     
     const tamanhoTile = 32;
-    const imagemInimigo = window.config?.spriteParadoInimigo || 'personagem/Personagem_parado.png';
+    // Define a imagem base: se for tipo 5 (feno), usa o sprite específico
+    let imagemInimigo = window.config?.spriteParadoInimigo || 'personagem/Personagem_parado.png';
+    if (tipoEquipamento === 5) {
+        imagemInimigo = window.config?.spriteAlvoFeno || 'personagem/alvoFeno.png';
+    }
     
     const inimigoImg = document.createElement('img');
     inimigoImg.src = imagemInimigo;
@@ -233,7 +237,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     inimigoImg.style.transform = 'scaleX(1)'; // Virado para esquerda inicialmente
     palco.appendChild(inimigoImg);
     
-    // Determina tipo e equipamento baseado no parâmetro (0=melee, 1=revolver, 2=escudo, 3=bota, 4=jetpack)
+    // Determina tipo e equipamento baseado no parâmetro (0=melee, 1=revolver, 2=escudo, 3=bota, 4=jetpack, 5=feno, 6=garra)
     let tipoInimigo = tipoEquipamento; 
     let temArma = false;
     let temEscudo = false;

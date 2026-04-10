@@ -59,8 +59,10 @@ Crie um novo arquivo (ex: `fase4.json`) com a seguinte estrutura:
 | `inimigos2` | Lista de coordenadas para inimigos com escudo (mais resistentes, dropam proteção ao serem derrotados). |
 | `inimigos3` | Lista de coordenadas para inimigos com botas (mais rápidos e com pulo aprimorado). |
 | `inimigos4` | Lista de coordenadas para inimigos com jetpack (capazes de voar para perseguir o jogador). |
-| `itens` | Lista de objetos `{ "tipo": "...", "pos": "..." }` para itens fixos no mapa. Tipos disponíveis: `"escudo"`, `"bota"`, `"revolver"`, `"jetpack"`. |
-| `inimigoAleatorio` | Array `[Dificuldade, Equipamento]` para configurar o spawn de inimigos aleatórios. `Dificuldade` (1-3) afeta a frequência de spawn. `Equipamento` (0=nenhum, 1=arma, 2=escudo, 3=bota, 4=jetpack) define o item inicial do inimigo. |
+| `inimigos5` | Lista de coordenadas para o Alvo de Feno (usado para treino, reseta a posição ao ser destruído). |
+| `inimigos6` | Lista de coordenadas para inimigos com garra (capazes de puxar o jogador ou itens). |
+| `itens` | Lista de objetos `{ "tipo": "...", "pos": "..." }` para itens fixos no mapa. Tipos disponíveis: `"escudo"`, `"bota"`, `"revolver"`, `"jetpack"`, `"garra"`, `"restauracao"`. |
+| `inimigoAleatorio` | Array `[Dificuldade, Equipamento]` para configurar o spawn de inimigos aleatórios. `Dificuldade` (1-3) afeta a frequência de spawn. `Equipamento` (0=nenhum, 1=arma, 2=escudo, 3=bota, 4=jetpack, 6=garra) define o item inicial do inimigo. |
 
 ---
 
@@ -83,7 +85,7 @@ window.niveis = ["fase1.json", "fase2.json", "fase3.json", "fase4.json"];
 1.  **Buracos:** Para criar um buraco no cenário, simplesmente omita as coordenadas correspondentes na lista de `plataformas` (ex: pular de `a5` para `a8` cria um buraco entre `a6` e `a7`).
 2.  **Posicionamento de Inimigos:** Inimigos devem ser posicionados pelo menos uma linha (letra) acima da plataforma onde se encontram (ex: inimigo em `b10` para plataforma em `a10`).
 3.  **Curva de Dificuldade:** Inicie as fases com `inimigos0` e introduza gradualmente os tipos `1`, `2`, `3` e `4` à medida que o jogador se familiariza com as mecânicas.
-4.  **Estratégia de Itens:** Posicione itens de forma estratégica. Por exemplo, um item de `bota` pode ser útil antes de um `inimigo2` (com escudo) para permitir que o jogador o flanqueie com um dash.
+4.  **Estratégia de Itens:** Posicione itens de forma estratégica. Por exemplo, uma `garra` pode ser útil para alcançar itens em plataformas isoladas ou puxar inimigos para longe de perigos.
 
 ---
 
