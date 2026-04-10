@@ -121,7 +121,9 @@ function handleMenuInput(e) {
 }
 
 function renderMenuUI() {
-    const container = document.getElementById('jogo-container');
+    // Tenta encontrar o container principal, ou usa o pai do palco como fallback
+    const container = document.getElementById('jogo-container') || document.getElementById('game-stage')?.parentElement;
+    
     if (!container) {
         console.error("Menu: Não foi possível encontrar o container do jogo (#jogo-container) para renderizar a interface.");
         return;

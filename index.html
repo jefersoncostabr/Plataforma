@@ -14,13 +14,21 @@
             margin: 0;
             overflow: hidden;
         }
-        #game-stage {
-            width: 640px; /* Exemplo: 20 tiles de 32px */
-            height: 480px; /* Exemplo: 15 tiles de 32px */
-            background-color: #555;
-            border: 2px solid #fff;
+        #jogo-container {
+            width: 640px;
+            height: 480px;
+            background-color: #222;
+            border: 4px solid #fff;
             position: relative;
-            overflow: hidden;
+            overflow: hidden; /* ESSENCIAL: Recorta o que sair dos 640x480 */
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        #game-stage {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            background-color: #555;
+            /* Largura e altura são definidas dinamicamente pelo inicializador.js */
         }
         .character {
             position: absolute;
@@ -47,8 +55,10 @@
     </style>
 </head>
 <body>
-    <div id="game-stage">
-        <img id="player" class="character" src="personagem/Personagem_parado.png" alt="Personagem">
+    <div id="jogo-container">
+        <div id="game-stage">
+            <img id="player" class="character" src="personagem/Personagem_parado.png" alt="Personagem">
+        </div>
     </div>
 
     <script src="animacao_andando.js"></script>

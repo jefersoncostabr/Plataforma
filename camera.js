@@ -35,14 +35,22 @@ window.atualizarCamera = function(alvoX, alvoY, mundoW, mundoH) {
     window.cameraX = Math.max(0, Math.min(targetX, mundoW - viewportW));
     window.cameraY = Math.max(0, Math.min(targetY, mundoH - viewportH));
 
+    // Log estratégico de transformação
+    if ((mundoW > viewportW || mundoH > viewportH) && Math.random() < 0.01) {
+        const transformacaoStr = `translate(${-window.cameraX.toFixed(0)}px, ${window.cameraY.toFixed(0)}px)`;
+        console.log(`[DEBUG TRANSFORMAÇÃO] Player X: ${alvoX.toFixed(0)} | Mundo W: ${mundoW} | CSS: ${transformacaoStr}`);
+    }
+
     // 3. Aplica a transformação visual ao palco
     const stage = document.getElementById('game-stage');
     if (stage) {
-        const escala = window.config?.escalaPalco || 1;
+        const transformValue = `translate(${-window.cameraX}px, ${window.cameraY}px)`;
+        stage.style.transform = transformValue;
         
-        // Nota: Como o sistema usa 'bottom' para o Y, a lógica de translação 
-        // vertical pode precisar de ajustes dependendo de como o CSS está configurado.
-        // Seguindo o planejamento: translate(-cameraX, cameraY)
-        stage.style.transform = `translate(${-window.cameraX}px, ${window.cameraY}px) scale(${escala})`;
+        if (Math.random() < 0.01) {
+            console.log(`[DEBUG CSS] Style aplicado ao #game-stage: ${stage.style.transform}`);
+        }
+    } else {
+        console.error("[DEBUG CAMERA] Erro: #game-stage não encontrado para aplicar a câmera!");
     }
 };

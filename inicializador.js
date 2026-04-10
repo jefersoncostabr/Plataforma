@@ -17,7 +17,7 @@ window.mundoAltura = 480;
 async function carregarFase(nomeArquivo) {
     // console.log(`Carregando nível: ${nomeArquivo}`);
     
-    // Força a limpeza de qualquer animação ou transição residual no palco
+    // Tenta encontrar o container para controle de exibição
     const palcoElemento = document.getElementById('game-stage') || document.getElementById('jogo-container');
     if (palcoElemento) {
         palcoElemento.style.display = 'none'; // "Esconde" brevemente para forçar o browser a renderizar do zero
@@ -55,6 +55,8 @@ async function carregarFase(nomeArquivo) {
     window.mundoLargura = 640 * multW;
     window.mundoAltura = 480 * multH;
 
+    console.log(`[DEBUG CAMERA] Fase: ${nomeArquivo} | Proporção: ${proporcao} | Mundo: ${window.mundoLargura}x${window.mundoAltura}`);
+
     // 1. Limpa o cenário anterior (tiles, inimigos e itens)
     const idPalco = 'game-stage';
     if (typeof limparCenario === 'function') limparCenario(idPalco);
@@ -64,6 +66,7 @@ async function carregarFase(nomeArquivo) {
     if (gameStage) {
         gameStage.style.width = window.mundoLargura + 'px';
         gameStage.style.height = window.mundoAltura + 'px';
+        console.log(`[DEBUG CAMERA] Palco (#game-stage) redimensionado: ${window.mundoLargura}x${window.mundoAltura}`);
     }
 
     // 2. Renderiza as novas plataformas e o objetivo
@@ -295,12 +298,29 @@ async function iniciarJogo() {
         await window.carregarDadosSkills();
     }
 
-    // Aplica a escala ao palco de forma simples via CSS
-    const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
-    if (palco && config.escalaPalco) {
-        palco.style.transform = `scale(${config.escalaPalco})`;
-        palco.style.transformOrigin = 'top left'; // Mantém o alinhamento no canto superior esquerdo
-        palco.style.imageRendering = 'pixelated'; // Garante que os pixels fiquem nítidos ao crescer
+    // Configura o Viewport (A janela de 640x480 por onde vemos o jogo)
+    const container = document.getElementById('jogo-container');
+    if (container) {
+        container.style.width = '640px';
+        container.style.height = '480px';
+        container.style.overflow = 'hidden';
+        container.style.position = 'relative';
+        container.style.display = 'block';
+        
+        console.log(`[DEBUG VIEWPORT] Container encontrado! Tamanho: ${container.style.width}x${container.style.height} | Overflow: ${container.style.overflow}`);
+        
+        if (config.escalaPalco) {
+            container.style.transform = `scale(${config.escalaPalco})`;
+            container.style.transformOrigin = 'top left';
+        }
+    } else {
+        const stage = document.getElementById('game-stage');
+        console.error("[DEBUG VIEWPORT] ERRO CRÍTICO: #jogo-container não encontrado no HTML!");
+        if (stage) {
+            console.log("[DEBUG VIEWPORT] Dica: O #game-stage existe.");
+            console.log("[DEBUG VIEWPORT] O pai do #game-stage atualmente é:", stage.parentElement.tagName, "ID:", stage.parentElement.id || "Nenhum");
+            console.log("[DEBUG VIEWPORT] Para a câmera funcionar, o pai do #game-stage DEVE ter o ID 'jogo-container'.");
+        }
     }
 
     // Inicia os sistemas básicos (apenas uma vez)
