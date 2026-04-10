@@ -9,3 +9,18 @@ git log --oneline
 
 -Log da branch atual
 git log --oneline --decorate --no-merges
+
+-Merge de branches
+git checkout main
+git pull origin main
+git checkout sua-branch
+git merge main
+
+
+
+git checkout main
+git pull origin main
+git merge refat
+git add .
+git commit
+git push origin main
