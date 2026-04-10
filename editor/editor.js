@@ -311,8 +311,46 @@ function exportarJSON() {
     
     faseData.inimigoAleatorio = enabled ? [diff, type] : [0, 0];
 
-    const finalData = { ...faseData };
-    const jsonStr = JSON.stringify(finalData, null, 4);
+    // Ordena as plataformas: primeiro pela letra (linha) e depois pelo número (coluna)
+    faseData.plataformas.sort((a, b) => {
+        if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
+        return parseInt(a.substring(1)) - parseInt(b.substring(1));
+    });
+
+    // Gera o JSON base com indentação de 4 espaços
+    let jsonStr = JSON.stringify(faseData, null, 4);
+
+    // 1. Compacta listas de inimigos e configuração aleatória em uma única linha
+    jsonStr = jsonStr.replace(/"(inimigos\d|inimigoAleatorio)":\s*\[\s*([\s\S]*?)\s*\]/g, (match, key, content) => {
+        const condensed = content.split('\n').map(l => l.trim()).filter(l => l !== "").join(', ');
+        return `"${key}": [${condensed}]`;
+    });
+
+    // 2. Agrupa plataformas com a mesma letra (mesma linha do cenário) na mesma linha do JSON
+    jsonStr = jsonStr.replace(/"plataformas":\s*\[\s*([\s\S]*?)\s*\]/g, (match, content) => {
+        const items = content.split('\n').map(l => l.trim()).filter(l => l !== "");
+        if (items.length === 0) return '"plataformas": []';
+
+        const rows = [];
+        let currentLine = [];
+        let lastLetter = "";
+
+        items.forEach(item => {
+            const val = item.replace(/,/g, '').trim(); // Remove vírgula residual do stringify
+            const letter = val[1]; // Extrai a letra da coordenada (ex: 'a' de '"a1"')
+            
+            if (lastLetter && letter !== lastLetter) {
+                rows.push("        " + currentLine.join(", "));
+                currentLine = [];
+            }
+            currentLine.push(val);
+            lastLetter = letter;
+        });
+        if (currentLine.length > 0) rows.push("        " + currentLine.join(", "));
+
+        return `"plataformas": [\n${rows.join(",\n")}\n    ]`;
+    });
+
     output.value = jsonStr;
     output.select();
     document.execCommand('copy');

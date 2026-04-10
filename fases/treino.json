@@ -1,0 +1,42 @@
+{
+    "posicaoInicialJogador": "b2",
+    "objetivo": "f19",
+    "plataformas": [
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20",
+        "e1", "e4", "e7", "e10", "e13", "e16"
+    ],
+    "inimigos0": [],
+    "inimigos1": [],
+    "inimigos2": [],
+    "inimigos3": [],
+    "inimigos4": [],
+    "inimigos5": ["b5"],
+    "inimigos6": [],
+    "itens": [
+        {
+            "tipo": "revolver",
+            "pos": "f1"
+        },
+        {
+            "tipo": "escudo",
+            "pos": "f4"
+        },
+        {
+            "tipo": "bota",
+            "pos": "f7"
+        },
+        {
+            "tipo": "jetpack",
+            "pos": "f10"
+        },
+        {
+            "tipo": "garra",
+            "pos": "f13"
+        },
+        {
+            "tipo": "restauracao",
+            "pos": "f16"
+        }
+    ],
+    "inimigoAleatorio": [1, 0]
+}

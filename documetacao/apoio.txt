@@ -1,1 +1,6 @@
-crie um novo iem o coletável é gara_coletável. o noe do item é garra. quando pegar o item coloque garra.png sobre o personagem. tudo deve se comportar como os outros itens do jogo consulte o codigo relacionado. certifique de não quebrar o código ou editar coisas não relacionadas.
+pegar ultimo commit
+git reset --hard HEAD
+git reset --hard 8c4e92
+
+git log --oneline
+git log --oneline --decorate --no-merges
