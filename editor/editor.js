@@ -30,6 +30,7 @@ let gradeVisivel = true;
 const stage = document.getElementById('game-stage');
 const paletteItems = document.querySelectorAll('.palette-item');
 const btnExport = document.getElementById('btn-export');
+const btnImport = document.getElementById('btn-import');
 const btnClear = document.getElementById('btn-clear');
 const output = document.getElementById('json-output');
 const proportionSelect = document.getElementById('proportion-select'); // Novo elemento necessário no HTML
@@ -54,6 +55,7 @@ window.onload = () => {
     configurarFerramentasAutomaticas();
 
     btnExport.onclick = exportarJSON;
+    btnImport.onclick = importarJSON;
     btnClear.onclick = () => {
         if(confirm("Deseja limpar todo o palco?")) {
             faseData.plataformas = [];
@@ -412,4 +414,44 @@ function exportarJSON() {
     output.select();
     document.execCommand('copy');
     alert("JSON copiado!");
+}
+
+function importarJSON() {
+    const jsonStr = output.value.trim();
+    if (!jsonStr) return;
+
+    try {
+        const data = JSON.parse(jsonStr);
+
+        // Atualiza o objeto de estado com os dados importados
+        faseData = {
+            proporcao: data.proporcao || "1x1",
+            posicaoInicialJogador: data.posicaoInicialJogador || "",
+            objetivo: data.objetivo || "",
+            plataformas: data.plataformas || [],
+            plataformasNeve: data.plataformasNeve || [],
+            inimigos0: data.inimigos0 || [],
+            inimigos1: data.inimigos1 || [],
+            inimigos2: data.inimigos2 || [],
+            inimigos3: data.inimigos3 || [],
+            inimigos4: data.inimigos4 || [],
+            inimigos5: data.inimigos5 || [],
+            inimigos6: data.inimigos6 || [],
+            itens: data.itens || [],
+            inimigoAleatorio: data.inimigoAleatorio || [1, 0]
+        };
+
+        // Sincroniza os controles da interface
+        proportionSelect.value = faseData.proporcao;
+        spawnRandomCheck.checked = faseData.inimigoAleatorio[0] > 0;
+        randomDiffSelect.value = faseData.inimigoAleatorio[0] || 1;
+        randomTypeSelect.value = faseData.inimigoAleatorio[1] || 0;
+        document.getElementById('random-config-fields').style.opacity = spawnRandomCheck.checked ? "1" : "0.3";
+
+        // Reconstrói o palco
+        atualizarTamanhoStage();
+        alert("Fase carregada com sucesso!");
+    } catch (e) {
+        alert("Erro ao importar JSON: Verifique se o código está correto.\n" + e.message);
+    }
 }
