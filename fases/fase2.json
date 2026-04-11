@@ -1,14 +1,25 @@
 {
+    "proporcao": "2x2",
     "posicaoInicialJogador": "b2",
     "objetivo": "f19",
     "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", 
-        "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20",
-        "d10", "d11", "d12", "d13", "e17", "f17", "g17", "h17", "i17",
-        "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8"
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
+        "g6", "g7",
+        "o11", "o12",
+        "w15", "w16"
     ],
-    "inimigos1": ["b20"],
-    "inimigos2": ["b19"],
-
-    "inimigoAleatorio": [3, 0]
+    "inimigos0": [],
+    "inimigos1": [],
+    "inimigos2": [],
+    "inimigos3": [],
+    "inimigos4": [],
+    "inimigos5": [],
+    "inimigos6": [],
+    "itens": [
+        {
+            "tipo": "jetpack",
+            "pos": "b6"
+        }
+    ],
+    "inimigoAleatorio": [1, 0]
 }

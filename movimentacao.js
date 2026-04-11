@@ -1310,6 +1310,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Lógica de Disparo (tecla I)
         if ((controle.teclas['i'] || controle.teclas['I']) && controle.cooldownTiro === 0 && controle.temArma && controle.municao > 0) {
+            console.log("%c[TIRO] Jogador disparou!", "color: yellow; font-weight: bold");
             controle.cooldownTiro = config.cooldownTiro; 
             controle.municao--;
             const dir = controle.direcao === 'd' ? 1 : -1;
@@ -1341,6 +1342,14 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             // Efeito visual de disparo na arma do jogador
             if (typeof flashRapido === 'function' && armaElemento) {
                 flashRapido(armaElemento);
+            }
+            // Aciona a nova animação de inclinação
+            if (armaElemento) {
+                if (typeof aplicarRecuoRevolver === 'function') {
+                    aplicarRecuoRevolver(armaElemento);
+                } else {
+                    console.error("[ERRO] Função aplicarRecuoRevolver não encontrada! Verifique se o script foi carregado no HTML.");
+                }
             }
             
             // console.log(`Jogador disparou! Munição restante: ${controle.municao}`);
@@ -2128,7 +2137,15 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // Sincroniza a posição da arma com o jogador (mesma lógica do inimigo)
         armaElemento.style.left = controle.x + 'px';
         armaElemento.style.bottom = controle.y + 'px';
-        armaElemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+
+        // Aplica rotação de 5 graus se estiver no estado de recuo (inclinando para cima)
+        const direcaoFator = controle.direcao === 'e' ? 1 : -1;
+        const emRecuo = armaElemento.dataset.recoil === 'true';
+        const anguloRecuo = emRecuo ? (5 * direcaoFator) : 0;
+        armaElemento.style.transform = (controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)') + ` rotate(${anguloRecuo}deg)`;
+
+        // Console para teste de renderização (apenas durante a animação)
+        if (emRecuo) console.log(`[Render Player] Weapon tilted: ${anguloRecuo}deg`);
 
         // Atualiza o sprite da arma baseado na munição
         armaElemento.src = config.spriteArmaPlayer || 'personagem/revolver.png';
