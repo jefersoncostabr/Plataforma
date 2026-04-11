@@ -79,9 +79,6 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
             row = (letras.charCodeAt(0) - 'a'.charCodeAt(0) + 1) * 26 + (letras.charCodeAt(1) - 'a'.charCodeAt(0));
         }
 
-        // Registra a coordenada no objeto global para colisão
-        window.plataformas[coord.trim().toLowerCase()] = true;
-
         const tile = document.createElement('img');
         tile.src = imagemPath;
         tile.style.position = 'absolute';

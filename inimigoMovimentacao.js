@@ -772,18 +772,18 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 // Colisão Vertical constante para garantir que o inimigo pule e caia corretamente
                 inimigo.noChao = false;
-                if (typeof verificarColisaoComTiles === 'function' && 
-                    verificarColisaoComTiles(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura, window.plataformas)) {
-                    
+                const hitV = typeof verificarColisaoComTiles === 'function' ? verificarColisaoComTiles(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura, window.plataformas) : null;
+
+                if (hitV) {
                     if (inimigo.velocidadeY < 0) {
                         inimigo.noChao = true;
                         inimigo.velocidadeY = 0;
-                        inimigo.y = Math.floor((inimigo.y + EPSILON) / 32 + 1) * 32;
+                        inimigo.y = (typeof hitV === 'object') ? hitV.topoReal : Math.floor((inimigo.y + EPSILON) / 32 + 1) * 32;
                         inimigo.puloTimer = 0;
                         inimigo.jumpQueued = false;
                     } else if (inimigo.velocidadeY > 0) {
                         inimigo.velocidadeY = 0;
-                        inimigo.y = Math.floor((inimigo.y + inimigo.altura) / 32) * 32 - inimigo.altura;
+                        inimigo.y = (typeof hitV === 'object') ? (hitV.baseReal - inimigo.altura) : Math.floor((inimigo.y + inimigo.altura) / 32) * 32 - inimigo.altura;
                     }
                 }
 

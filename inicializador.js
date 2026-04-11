@@ -70,11 +70,22 @@ async function carregarFase(nomeArquivo) {
     if (typeof renderizarPlataformas === 'function') {
         // Garante que o objeto de colisão global contenha todos os blocos sólidos (Grama + Neve)
         window.plataformas = {};
-        const todosOsBlocos = [...(fase.plataformas || []), ...(fase.plataformasNeve || []), ...(fase.plataformasEstacaSup || [])];
-
-        todosOsBlocos.forEach(coord => {
+        
+        // Blocos padrão (colisão cheia 32x32)
+        const blocosPadrao = [...(fase.plataformas || []), ...(fase.plataformasNeve || [])];
+        blocosPadrao.forEach(coord => {
             window.plataformas[coord.trim().toLowerCase()] = true;
         });
+
+        // Estacas (colisão personalizada)
+        if (fase.plataformasEstacaSup) {
+            fase.plataformasEstacaSup.forEach(coord => {
+                // Propriedades da colisão:
+                // yOffset: 2 -> Tira 2px do topo (alinha com o desenho da estaca no teto)
+                // height: 16 -> Define a altura da colisão como 16px (metade do bloco de 32px)
+                window.plataformas[coord.trim().toLowerCase()] = { tipo: 'estaca', yOffset: 16, height: 16 };
+            });
+        }
 
         renderizarPlataformas(idPalco, 'personagem/chao.png', fase.plataformas || []);
         if (fase.plataformasNeve) {

@@ -1559,8 +1559,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         function verificarColisaoVertical(ctrl, yAnt, incY) {
-            if (typeof verificarColisaoComTiles === 'function' && 
-                verificarColisaoComTiles(ctrl.x + ctrl.offsetX, ctrl.y, ctrl.largura, ctrl.altura, window.plataformas)) {
+            const hit = typeof verificarColisaoComTiles === 'function' ? verificarColisaoComTiles(ctrl.x + ctrl.offsetX, ctrl.y, ctrl.largura, ctrl.altura, window.plataformas) : null;
+            if (hit) {
                 
                 if (incY < 0) { // Caindo
                     ctrl.noChao = true;
@@ -1570,10 +1570,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         ctrl.cooldownPosSuperDescida = 60;
                     }
                     ctrl.velocidadeY = 0;
-                    ctrl.y = Math.floor((ctrl.y + EPSILON) / 32 + 1) * 32;
+                    // Ajusta para o topo real do bloco (respeita a altura da estaca)
+                    ctrl.y = (typeof hit === 'object') ? hit.topoReal : Math.floor((ctrl.y + EPSILON) / 32 + 1) * 32;
                 } else if (incY > 0) { // Subindo
                     ctrl.velocidadeY = 0;
-                    ctrl.y = Math.floor((ctrl.y + ctrl.altura) / 32) * 32 - ctrl.altura;
+                    // Ajusta para a base real do bloco (respeita a altura da estaca)
+                    ctrl.y = (typeof hit === 'object') ? (hit.baseReal - ctrl.altura) : Math.floor((ctrl.y + ctrl.altura) / 32) * 32 - ctrl.altura;
                 }
                 return true;
             }

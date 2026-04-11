@@ -45,7 +45,27 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
                 ? String.fromCharCode(97 + r) 
                 : String.fromCharCode(97 + Math.floor(r/26) - 1) + String.fromCharCode(97 + (r % 26));
             const coord = letra + (c + 1);
-            if (plataformaObj[coord]) return true;
+            
+            const bloco = plataformaObj[coord];
+            if (bloco) {
+                // Se for um bloco sólido padrão (true), colisão em todo o tile 32x32
+                if (bloco === true) {
+                    return { tipo: 'solido', topoReal: (r + 1) * 32, baseReal: r * 32 };
+                }
+
+                // Se for um bloco com propriedades especiais (ex: estaca superior)
+                if (bloco.tipo === 'estaca') {
+                    const tileTopo = (r + 1) * 32;
+                    const topoReal = tileTopo - (bloco.yOffset || 0);
+                    const baseReal = topoReal - bloco.height;
+
+                    // Verifica se a hitbox do personagem (y até y+altura) entra na área da estaca
+                    if (y + altura > baseReal && y < topoReal) {
+                        // console.log(`[Colisão Estaca] Coord: ${coord} | Y_Topo: ${(y + altura).toFixed(1)} | Base_Hitbox: ${baseReal}`);
+                        return { tipo: 'estaca', topoReal: topoReal, baseReal: baseReal };
+                    }
+                }
+            }
         }
     }
     return false;
