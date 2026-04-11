@@ -26,10 +26,10 @@
         "u19", "u20", "u21", "u22", "u23", "u24", "u25", "u26"
     ],
     "inimigos0": [],
-    "inimigos1": ["b21", "b22", "b23", "b24", "v21"],
-    "inimigos2": ["b13", "b32", "v25"],
+    "inimigos1": ["b21", "b22", "b23", "b24"],
+    "inimigos2": ["b13", "b32"],
     "inimigos3": [],
-    "inimigos4": ["v24", "v22"],
+    "inimigos4": [],
     "inimigos5": ["v19", "v26"],
     "inimigos6": ["v23"],
     "itens": [
@@ -44,6 +44,26 @@
         {
             "tipo": "restauracao",
             "pos": "b26"
+        },
+        {
+            "tipo": "jetpack",
+            "pos": "v24"
+        },
+        {
+            "tipo": "revolver",
+            "pos": "v22"
+        },
+        {
+            "tipo": "escudo",
+            "pos": "v21"
+        },
+        {
+            "tipo": "bota",
+            "pos": "v25"
+        },
+        {
+            "tipo": "garra",
+            "pos": "e22"
         }
     ],
     "inimigoAleatorio": [1, 0]

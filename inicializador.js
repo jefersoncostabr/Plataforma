@@ -66,8 +66,16 @@ async function carregarFase(nomeArquivo) {
         gameStage.style.height = window.mundoAltura + 'px';
     }
 
-    // 2. Renderiza as novas plataformas e o objetivo
+    // 2. Registro de Colisão e Renderização
     if (typeof renderizarPlataformas === 'function') {
+        // Garante que o objeto de colisão global contenha todos os blocos sólidos (Grama + Neve)
+        window.plataformas = {};
+        const todosOsBlocos = [...(fase.plataformas || []), ...(fase.plataformasNeve || [])];
+
+        todosOsBlocos.forEach(coord => {
+            window.plataformas[coord.trim().toLowerCase()] = true;
+        });
+
         renderizarPlataformas(idPalco, 'personagem/chao.png', fase.plataformas || []);
         if (fase.plataformasNeve) {
             renderizarPlataformas(idPalco, 'personagem/chao_neve.png', fase.plataformasNeve);

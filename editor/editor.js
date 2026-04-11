@@ -195,7 +195,7 @@ function configurarFerramentasAutomaticas() {
         <label>
             Bloco:
             <select id="block-type-select">
-                <option value="padrao">Padrão (Gramda)</option>
+                <option value="padrao">Padrão (Grama)</option>
                 <option value="neve">Neve</option>
             </select>
         </label>
@@ -378,7 +378,10 @@ function exportarJSON() {
 
     // 1. Compacta listas de inimigos e configuração aleatória em uma única linha
     jsonStr = jsonStr.replace(/"(inimigos\d|inimigoAleatorio)":\s*\[\s*([\s\S]*?)\s*\]/g, (match, key, content) => {
-        const condensed = content.split('\n').map(l => l.trim()).filter(l => l !== "").join(', ');
+        const condensed = content.split('\n')
+            .map(l => l.trim().replace(/,$/, '')) // Remove a vírgula do final da linha se ela existir
+            .filter(l => l !== "")
+            .join(', ');
         return `"${key}": [${condensed}]`;
     });
 

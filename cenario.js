@@ -64,19 +64,23 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         ? plataformaData
         : Object.keys(plataformaData);
 
-    // Inicializa o objeto global de plataformas
-    window.plataformas = {};
-
     coordenadas.forEach(coord => {
-        const letra = coord[0].toLowerCase();
-        const numero = parseInt(coord.substring(1));
+        // Ajuste para ler coordenadas de 1 ou 2 letras (ex: "a1" ou "aa1")
+        const match = coord.trim().toLowerCase().match(/^([a-z]+)(\d+)$/);
+        if (!match) return;
 
-        // Converte letra para índice (a=0, b=1, c=2...) e número para índice (1=0, 2=1...)
-        const row = letra.charCodeAt(0) - 'a'.charCodeAt(0);
-        const col = numero - 1;
+        const letras = match[1];
+        const col = parseInt(match[2]) - 1;
+        
+        let row = 0;
+        if (letras.length === 1) {
+            row = letras.charCodeAt(0) - 'a'.charCodeAt(0);
+        } else {
+            row = (letras.charCodeAt(0) - 'a'.charCodeAt(0) + 1) * 26 + (letras.charCodeAt(1) - 'a'.charCodeAt(0));
+        }
 
         // Registra a coordenada no objeto global para colisão
-        window.plataformas[coord] = true;
+        window.plataformas[coord.trim().toLowerCase()] = true;
 
         const tile = document.createElement('img');
         tile.src = imagemPath;

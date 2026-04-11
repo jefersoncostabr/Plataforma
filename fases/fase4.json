@@ -1,10 +1,45 @@
 {
+    "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
-    "objetivo": "f19",
+    "objetivo": "f40",
     "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", 
-        "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20"
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
+        "b6", "b11", "b24",
+        "c7", "c8", "c9", "c10", "c24",
+        "d24",
+        "e24",
+        "f11", "f12", "f13", "f14", "f24",
+        "g24",
+        "h24",
+        "i16", "i24",
+        "j24",
+        "l18", "l19", "l20", "l21", "l22", "l23", "l24", "l25", "l26", "l27", "l28", "l29", "l30"
     ],
-    "inimigos0": ["b13", "b14", "b15", "b16", "b17", "b18", "b19", "b20"],
+    "plataformasNeve": [],
+    "inimigos0": ["b26", "b28", "b30", "b32", "m24"],
+    "inimigos1": [],
+    "inimigos2": [],
+    "inimigos3": [],
+    "inimigos4": ["b23"],
+    "inimigos5": [],
+    "inimigos6": [],
+    "itens": [
+        {
+            "tipo": "revolver",
+            "pos": "b22"
+        },
+        {
+            "tipo": "escudo",
+            "pos": "b21"
+        },
+        {
+            "tipo": "garra",
+            "pos": "b20"
+        },
+        {
+            "tipo": "bota",
+            "pos": "b19"
+        }
+    ],
     "inimigoAleatorio": [1, 0]
 }
