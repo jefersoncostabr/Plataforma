@@ -13,6 +13,7 @@ let faseData = {
     objetivo: "f19",
     plataformas: [],
     plataformasNeve: [],
+    plataformasEstacaSup: [],
     inimigos0: [],
     inimigos1: [],
     inimigos2: [],
@@ -245,6 +246,7 @@ function adicionarElemento(coord) {
     removerElemento(coord);
     if (itemSelecionado === 'plataforma') faseData.plataformas.push(coord);
     else if (itemSelecionado === 'plataformaNeve') faseData.plataformasNeve.push(coord);
+    else if (itemSelecionado === 'estacaSup') faseData.plataformasEstacaSup.push(coord);
     else if (itemSelecionado === 'player') faseData.posicaoInicialJogador = coord;
     else if (itemSelecionado === 'objetivo') faseData.objetivo = coord;
     else if (itemSelecionado.startsWith('inimigos')) {
@@ -260,6 +262,7 @@ function adicionarElemento(coord) {
 function removerElemento(coord) {
     faseData.plataformas = faseData.plataformas.filter(c => c !== coord);
     faseData.plataformasNeve = (faseData.plataformasNeve || []).filter(c => c !== coord);
+    faseData.plataformasEstacaSup = (faseData.plataformasEstacaSup || []).filter(c => c !== coord);
     const tiposInimigos = ['inimigos0', 'inimigos1', 'inimigos2', 'inimigos3', 'inimigos4', 'inimigos5', 'inimigos6'];
     tiposInimigos.forEach(tipo => {
         if (faseData[tipo]) faseData[tipo] = faseData[tipo].filter(c => c !== coord);
@@ -274,6 +277,7 @@ function atualizarVisual() {
 
     faseData.plataformas.forEach(coord => criarIcone(coord, '../personagem/chao.png', ''));
     (faseData.plataformasNeve || []).forEach(coord => criarIcone(coord, '../personagem/chao_neve.png', ''));
+    (faseData.plataformasEstacaSup || []).forEach(coord => criarIcone(coord, '../personagem/estacasup.png', ''));
     (faseData.inimigos0 || []).forEach(coord => criarIcone(coord, '../personagem/Personagem_parado.png', 'enemy-marker'));
     (faseData.inimigos1 || []).forEach(coord => criarIcone(coord, '../personagem/revolver_pegavel.png', 'enemy-marker'));
     (faseData.inimigos2 || []).forEach(coord => criarIcone(coord, '../personagem/escudo_pegavel.png', 'enemy-marker'));
@@ -314,10 +318,14 @@ function criarIcone(coord, src, classe = '') {
         row = (letras.charCodeAt(0) - 'a'.charCodeAt(0) + 1) * 26 + (letras.charCodeAt(1) - 'a'.charCodeAt(0));
     }
 
+    let yPos = row * 32;
+    // Ajuste de 2px para compensar o desenho da estaca e alinhar com o teto/blocos
+    if (src.includes('estacasup.png')) yPos += 2;
+
     const img = document.createElement('img');
     img.src = src;
     if (classe) img.classList.add(classe);
-    img.style = `position:absolute; left:${col*32}px; bottom:${row*32}px; width:32px; height:32px; image-rendering:pixelated; pointer-events:none;`;
+    img.style = `position:absolute; left:${col*32}px; bottom:${yPos}px; width:32px; height:32px; image-rendering:pixelated; pointer-events:none;`;
     if (classe === 'player-filter') img.style.filter = 'hue-rotate(90deg)';
     stage.appendChild(img);
 }
@@ -372,6 +380,10 @@ function exportarJSON() {
         if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
         return parseInt(a.substring(1)) - parseInt(b.substring(1));
     });
+    faseData.plataformasEstacaSup.sort((a, b) => {
+        if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
+        return parseInt(a.substring(1)) - parseInt(b.substring(1));
+    });
 
     // Gera o JSON base com indentação de 4 espaços
     let jsonStr = JSON.stringify(faseData, null, 4);
@@ -412,6 +424,7 @@ function exportarJSON() {
 
     jsonStr = jsonStr.replace(/"(plataformas)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
     jsonStr = jsonStr.replace(/"(plataformasNeve)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
+    jsonStr = jsonStr.replace(/"(plataformasEstacaSup)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
 
     output.value = jsonStr;
     output.select();
@@ -433,6 +446,7 @@ function importarJSON() {
             objetivo: data.objetivo || "",
             plataformas: data.plataformas || [],
             plataformasNeve: data.plataformasNeve || [],
+            plataformasEstacaSup: data.plataformasEstacaSup || [],
             inimigos0: data.inimigos0 || [],
             inimigos1: data.inimigos1 || [],
             inimigos2: data.inimigos2 || [],

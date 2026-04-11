@@ -50,6 +50,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             inimigo.municao = config.maxMunicao || 5;
             inimigo.escudoProtegido = 0;
             inimigo.escudoVermelho = false;
+            inimigo.vida = Math.max(0, (inimigo.vida || 0) - 1);
             if (inimigo.inventario.includes('escudo')) {
                 inimigo.temEscudo = true;
             }
@@ -66,6 +67,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 inimigo.municao = config.maxMunicao || 5;
                 inimigo.escudoProtegido = 0;
                 inimigo.escudoVermelho = false;
+                inimigo.vida = Math.max(0, (inimigo.vida || 0) - 1);
                 if (inimigo.inventario.includes('escudo')) {
                     inimigo.temEscudo = true;
                 }
@@ -857,6 +859,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                 inimigo.municao = config.maxMunicao || 5;
                                 inimigo.escudoProtegido = 0;
                                 inimigo.escudoVermelho = false;
+                                inimigo.vida = Math.max(0, (inimigo.vida || 0) - 1);
                                 if (inimigo.inventario.includes('escudo')) { // Only restore if they had one
                                     inimigo.temEscudo = true;
                                 }
@@ -877,6 +880,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                     inimigo.municao = config.maxMunicao || 5;
                                     inimigo.escudoProtegido = 0;
                                     inimigo.escudoVermelho = false;
+                                    inimigo.vida = Math.max(0, (inimigo.vida || 0) - 1);
                                     if (inimigo.inventario.includes('escudo')) { // Only restore if they had one
                                         inimigo.temEscudo = true;
                                     }

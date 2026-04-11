@@ -70,7 +70,7 @@ async function carregarFase(nomeArquivo) {
     if (typeof renderizarPlataformas === 'function') {
         // Garante que o objeto de colisão global contenha todos os blocos sólidos (Grama + Neve)
         window.plataformas = {};
-        const todosOsBlocos = [...(fase.plataformas || []), ...(fase.plataformasNeve || [])];
+        const todosOsBlocos = [...(fase.plataformas || []), ...(fase.plataformasNeve || []), ...(fase.plataformasEstacaSup || [])];
 
         todosOsBlocos.forEach(coord => {
             window.plataformas[coord.trim().toLowerCase()] = true;
@@ -79,6 +79,9 @@ async function carregarFase(nomeArquivo) {
         renderizarPlataformas(idPalco, 'personagem/chao.png', fase.plataformas || []);
         if (fase.plataformasNeve) {
             renderizarPlataformas(idPalco, 'personagem/chao_neve.png', fase.plataformasNeve);
+        }
+        if (fase.plataformasEstacaSup) {
+            renderizarPlataformas(idPalco, 'personagem/estacasup.png', fase.plataformasEstacaSup);
         }
     }
     if (typeof renderizarObjetivo === 'function') {

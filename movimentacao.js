@@ -483,6 +483,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.municao = config.maxMunicao || 5;
             controle.escudoProtegido = 0;
             controle.escudoVermelho = false;
+            controle.dano = Math.max(0, (controle.dano || 0) - 1);
             if (controle.inventario.includes('escudo')) {
                 controle.temEscudo = true;
             }
@@ -2017,6 +2018,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             controle.municao = config.maxMunicao || 5; 
                             controle.escudoProtegido = 0;
                             controle.escudoVermelho = false;
+                            controle.dano = Math.max(0, (controle.dano || 0) - 1);
                             if (controle.inventario.includes('escudo')) {
                                 controle.temEscudo = true;
                             }
@@ -2084,6 +2086,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         controle.municao = config.maxMunicao || 5; 
                         controle.escudoProtegido = 0;
                         controle.escudoVermelho = false;
+                        controle.dano = Math.max(0, (controle.dano || 0) - 1);
                         if (controle.inventario.includes('escudo')) {
                             controle.temEscudo = true;
                         }
