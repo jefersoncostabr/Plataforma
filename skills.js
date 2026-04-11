@@ -143,11 +143,11 @@ function getSkillDepth(skillId, data) {
 }
 
 function abrirMenuSkillsUI() {
-    const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
-    if (!palco) return;
+    const viewport = document.getElementById('jogo-container') || document.getElementById('game-stage')?.parentElement;
+    if (!viewport) return;
 
-    // Obtém as coordenadas e o tamanho real do palco na tela
-    const rect = palco.getBoundingClientRect();
+    // Obtém as coordenadas e o tamanho real do viewport (tela visível)
+    const rect = viewport.getBoundingClientRect();
     const target = document.body;
 
     skillsLevelMap = {};

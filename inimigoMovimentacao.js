@@ -1199,9 +1199,6 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     const anguloRecuo = emRecuo ? (5 * direcaoFator) : 0;
                     inimigo.armaElemento.style.transform = (inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)') + ` rotate(${anguloRecuo}deg)`;
 
-                    // Console para teste de renderização inimiga
-                    if (emRecuo) console.log(`[Render Enemy] Weapon tilted: ${anguloRecuo}deg`);
-
                     // Aplica filtro vermelho se o inimigo estiver sem munição
                     inimigo.armaElemento.style.filter = (inimigo.municao <= 0) ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
                 }

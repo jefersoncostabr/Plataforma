@@ -1,12 +1,28 @@
 {
+    "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
-    "objetivo": "f19",
+    "objetivo": "f40",
     "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", 
-        "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20",
-        "d10", "d11", "d12", "d13"
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
+        "b10", "b23", "b35",
+        "c35",
+        "d35",
+        "h37",
+        "l40",
+        "n38"
     ],
-    "inimigos0": ["b13"],
-    "inimigos5": ["b4"],
+    "inimigos0": ["b16", "b36"],
+    "inimigos1": [],
+    "inimigos2": [],
+    "inimigos3": [],
+    "inimigos4": [],
+    "inimigos5": ["b6", "b14", "b18"],
+    "inimigos6": [],
+    "itens": [
+        {
+            "tipo": "restauracao",
+            "pos": "o38"
+        }
+    ],
     "inimigoAleatorio": [1, 0]
 }

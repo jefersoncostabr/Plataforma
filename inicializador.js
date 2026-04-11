@@ -55,8 +55,6 @@ async function carregarFase(nomeArquivo) {
     window.mundoLargura = 640 * multW;
     window.mundoAltura = 480 * multH;
 
-    console.log(`[DEBUG CAMERA] Fase: ${nomeArquivo} | Proporção: ${proporcao} | Mundo: ${window.mundoLargura}x${window.mundoAltura}`);
-
     // 1. Limpa o cenário anterior (tiles, inimigos e itens)
     const idPalco = 'game-stage';
     if (typeof limparCenario === 'function') limparCenario(idPalco);
@@ -66,7 +64,6 @@ async function carregarFase(nomeArquivo) {
     if (gameStage) {
         gameStage.style.width = window.mundoLargura + 'px';
         gameStage.style.height = window.mundoAltura + 'px';
-        console.log(`[DEBUG CAMERA] Palco (#game-stage) redimensionado: ${window.mundoLargura}x${window.mundoAltura}`);
     }
 
     // 2. Renderiza as novas plataformas e o objetivo
@@ -306,8 +303,6 @@ async function iniciarJogo() {
         container.style.overflow = 'hidden';
         container.style.position = 'relative';
         container.style.display = 'block';
-        
-        console.log(`[DEBUG VIEWPORT] Container encontrado! Tamanho: ${container.style.width}x${container.style.height} | Overflow: ${container.style.overflow}`);
         
         if (config.escalaPalco) {
             container.style.transform = `scale(${config.escalaPalco})`;

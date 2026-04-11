@@ -1310,7 +1310,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Lógica de Disparo (tecla I)
         if ((controle.teclas['i'] || controle.teclas['I']) && controle.cooldownTiro === 0 && controle.temArma && controle.municao > 0) {
-            console.log("%c[TIRO] Jogador disparou!", "color: yellow; font-weight: bold");
             controle.cooldownTiro = config.cooldownTiro; 
             controle.municao--;
             const dir = controle.direcao === 'd' ? 1 : -1;
@@ -2143,9 +2142,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         const emRecuo = armaElemento.dataset.recoil === 'true';
         const anguloRecuo = emRecuo ? (5 * direcaoFator) : 0;
         armaElemento.style.transform = (controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)') + ` rotate(${anguloRecuo}deg)`;
-
-        // Console para teste de renderização (apenas durante a animação)
-        if (emRecuo) console.log(`[Render Player] Weapon tilted: ${anguloRecuo}deg`);
 
         // Atualiza o sprite da arma baseado na munição
         armaElemento.src = config.spriteArmaPlayer || 'personagem/revolver.png';
