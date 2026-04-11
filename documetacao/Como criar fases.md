@@ -36,6 +36,7 @@ Crie um novo arquivo (ex: `fase4.json`) com a seguinte estrutura:
   "plataformas": [
     "a1", "a2", "a3", "b5", "b6", "c8", "a15", "a16", "a17", "a18", "a19", "a20"
   ],
+  "plataformasNeve": ["a10", "a11", "b12"],
   "inimigos0": ["b6"],
   "inimigos1": ["b15"],
   "inimigos2": ["c8"],
@@ -54,6 +55,7 @@ Crie um novo arquivo (ex: `fase4.json`) com a seguinte estrutura:
 | `posicaoInicialJogador` | Coordenada onde o jogador será posicionado ao iniciar ou reiniciar a fase. |
 | `objetivo` | Coordenada do item de vitória (bandeira ou portal) que finaliza a fase. |
 | `plataformas` | Lista de coordenadas que representam blocos sólidos no cenário. |
+| `plataformasNeve` | Lista de coordenadas para blocos de gelo/neve (mesmo comportamento do chão comum). |
 | `inimigos0` | Lista de coordenadas para inimigos básicos (ataque corpo a corpo, sem armas). |
 | `inimigos1` | Lista de coordenadas para inimigos equipados com revólver (atiram à distância). |
 | `inimigos2` | Lista de coordenadas para inimigos com escudo (mais resistentes, dropam proteção ao serem derrotados). |

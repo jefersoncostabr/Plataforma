@@ -12,6 +12,7 @@ let faseData = {
     posicaoInicialJogador: "b2",
     objetivo: "f19",
     plataformas: [],
+    plataformasNeve: [],
     inimigos0: [],
     inimigos1: [],
     inimigos2: [],
@@ -193,6 +194,7 @@ function configurarFerramentasAutomaticas() {
             Bloco:
             <select id="block-type-select">
                 <option value="padrao">Padrão (Gramda)</option>
+                <option value="neve">Neve</option>
             </select>
         </label>
     `;
@@ -240,6 +242,7 @@ function configurarStage() {
 function adicionarElemento(coord) {
     removerElemento(coord);
     if (itemSelecionado === 'plataforma') faseData.plataformas.push(coord);
+    else if (itemSelecionado === 'plataformaNeve') faseData.plataformasNeve.push(coord);
     else if (itemSelecionado === 'player') faseData.posicaoInicialJogador = coord;
     else if (itemSelecionado === 'objetivo') faseData.objetivo = coord;
     else if (itemSelecionado.startsWith('inimigos')) {
@@ -254,6 +257,7 @@ function adicionarElemento(coord) {
 
 function removerElemento(coord) {
     faseData.plataformas = faseData.plataformas.filter(c => c !== coord);
+    faseData.plataformasNeve = (faseData.plataformasNeve || []).filter(c => c !== coord);
     const tiposInimigos = ['inimigos0', 'inimigos1', 'inimigos2', 'inimigos3', 'inimigos4', 'inimigos5', 'inimigos6'];
     tiposInimigos.forEach(tipo => {
         if (faseData[tipo]) faseData[tipo] = faseData[tipo].filter(c => c !== coord);
@@ -267,6 +271,7 @@ function atualizarVisual() {
     elementos.forEach(el => el.remove());
 
     faseData.plataformas.forEach(coord => criarIcone(coord, '../personagem/chao.png', ''));
+    (faseData.plataformasNeve || []).forEach(coord => criarIcone(coord, '../personagem/chao_neve.png', ''));
     (faseData.inimigos0 || []).forEach(coord => criarIcone(coord, '../personagem/Personagem_parado.png', 'enemy-marker'));
     (faseData.inimigos1 || []).forEach(coord => criarIcone(coord, '../personagem/revolver_pegavel.png', 'enemy-marker'));
     (faseData.inimigos2 || []).forEach(coord => criarIcone(coord, '../personagem/escudo_pegavel.png', 'enemy-marker'));
@@ -333,15 +338,19 @@ function fillBottomLayer(fill) {
 }
 
 function addBlocks(coordsArray) {
+    const tipo = blockTypeSelect.value;
     coordsArray.forEach(coord => {
-        if (!faseData.plataformas.includes(coord)) {
-            faseData.plataformas.push(coord);
+        if (tipo === 'neve') {
+            if (!faseData.plataformasNeve.includes(coord)) faseData.plataformasNeve.push(coord);
+        } else {
+            if (!faseData.plataformas.includes(coord)) faseData.plataformas.push(coord);
         }
     });
 }
 
 function removeBlocks(coordsArray) {
     faseData.plataformas = faseData.plataformas.filter(coord => !coordsArray.includes(coord));
+    faseData.plataformasNeve = faseData.plataformasNeve.filter(coord => !coordsArray.includes(coord));
 }
 
 function exportarJSON() {
@@ -357,6 +366,10 @@ function exportarJSON() {
         if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
         return parseInt(a.substring(1)) - parseInt(b.substring(1));
     });
+    faseData.plataformasNeve.sort((a, b) => {
+        if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
+        return parseInt(a.substring(1)) - parseInt(b.substring(1));
+    });
 
     // Gera o JSON base com indentação de 4 espaços
     let jsonStr = JSON.stringify(faseData, null, 4);
@@ -367,19 +380,20 @@ function exportarJSON() {
         return `"${key}": [${condensed}]`;
     });
 
-    // 2. Agrupa plataformas com a mesma letra (mesma linha do cenário) na mesma linha do JSON
-    jsonStr = jsonStr.replace(/"plataformas":\s*\[\s*([\s\S]*?)\s*\]/g, (match, content) => {
-        const items = content.split('\n').map(l => l.trim()).filter(l => l !== "");
-        if (items.length === 0) return '"plataformas": []';
+    // 2. Agrupa plataformas (Comum e Neve) com a mesma letra na mesma linha do JSON
+    const formatarPlataformas = (match, key, content) => {
+        const items = content.split('\n').map(l => l.trim()).filter(l => l !== "").map(v => v.replace(/,/g, ''));
+        if (items.length === 0) return `"${key}": []`;
 
         const rows = [];
         let currentLine = [];
         let lastLetter = "";
 
         items.forEach(item => {
-            const val = item.replace(/,/g, '').trim(); // Remove vírgula residual do stringify
-            const letter = val[1]; // Extrai a letra da coordenada (ex: 'a' de '"a1"')
-            
+            const val = item.trim();
+            const letterMatch = val.match(/"([a-z]+)\d+"/);
+            const letter = letterMatch ? letterMatch[1] : "";
+
             if (lastLetter && letter !== lastLetter) {
                 rows.push("        " + currentLine.join(", "));
                 currentLine = [];
@@ -388,9 +402,11 @@ function exportarJSON() {
             lastLetter = letter;
         });
         if (currentLine.length > 0) rows.push("        " + currentLine.join(", "));
+        return `"${key}": [\n${rows.join(",\n")}\n    ]`;
+    };
 
-        return `"plataformas": [\n${rows.join(",\n")}\n    ]`;
-    });
+    jsonStr = jsonStr.replace(/"(plataformas)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
+    jsonStr = jsonStr.replace(/"(plataformasNeve)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
 
     output.value = jsonStr;
     output.select();

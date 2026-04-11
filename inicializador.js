@@ -68,7 +68,10 @@ async function carregarFase(nomeArquivo) {
 
     // 2. Renderiza as novas plataformas e o objetivo
     if (typeof renderizarPlataformas === 'function') {
-        renderizarPlataformas(idPalco, 'personagem/chao.png', fase.plataformas);
+        renderizarPlataformas(idPalco, 'personagem/chao.png', fase.plataformas || []);
+        if (fase.plataformasNeve) {
+            renderizarPlataformas(idPalco, 'personagem/chao_neve.png', fase.plataformasNeve);
+        }
     }
     if (typeof renderizarObjetivo === 'function') {
         renderizarObjetivo(idPalco, 'personagem/objetivo.png', fase.objetivo);
@@ -151,7 +154,8 @@ async function carregarFase(nomeArquivo) {
             if (window.isPaused) return;
 
             if (typeof criarInimigoAleatorio === 'function') {
-                criarInimigoAleatorio(fase.plataformas, tipoEquipamento);
+                const todasAsPlataformas = [...(fase.plataformas || []), ...(fase.plataformasNeve || [])];
+                criarInimigoAleatorio(todasAsPlataformas, tipoEquipamento);
             }
         };
         
