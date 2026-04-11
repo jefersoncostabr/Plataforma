@@ -53,16 +53,60 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
                     return { tipo: 'solido', topoReal: (r + 1) * 32, baseReal: r * 32 };
                 }
 
-                // Se for um bloco com propriedades especiais (ex: estaca superior)
+                // Se for um bloco com propriedades especiais (ex: estaca em várias direções)
                 if (bloco.tipo === 'estaca') {
+                    const tileEsquerda = c * 32;
+                    const tileDireita = (c + 1) * 32;
+                    const tileBaixo = r * 32;
                     const tileTopo = (r + 1) * 32;
-                    const topoReal = tileTopo - (bloco.yOffset || 0);
-                    const baseReal = topoReal - bloco.height;
 
-                    // Verifica se a hitbox do personagem (y até y+altura) entra na área da estaca
-                    if (y + altura > baseReal && y < topoReal) {
-                        // console.log(`[Colisão Estaca] Coord: ${coord} | Y_Topo: ${(y + altura).toFixed(1)} | Base_Hitbox: ${baseReal}`);
-                        return { tipo: 'estaca', topoReal: topoReal, baseReal: baseReal };
+                    // ESTACA PARA CIMA
+                    if (bloco.direcao === 'cima') {
+                        const topoReal = tileTopo - (bloco.yOffset || 0);
+                        const baseReal = topoReal - (bloco.height || 16);
+                        if (y + altura > baseReal && y < topoReal) {
+                            return { tipo: 'estaca', direcao: 'cima', topoReal: topoReal, baseReal: baseReal };
+                        }
+                    }
+                    // ESTACA PARA BAIXO
+                    else if (bloco.direcao === 'baixo') {
+                        const topoReal = tileBaixo + (bloco.height || 16);
+                        const baseReal = tileBaixo;
+                        if (y + altura > baseReal && y < topoReal) {
+                            return { tipo: 'estaca', direcao: 'baixo', topoReal: topoReal, baseReal: baseReal };
+                        }
+                    }
+                    // ESTACA PARA DIREITA
+                    else if (bloco.direcao === 'direita') {
+                        const direitaReal = tileDireita - (bloco.xOffset || 0);
+                        const esquerdaReal = direitaReal - (bloco.width || 16);
+                        
+                        // Colisão lateral: verifica X e usa TODA a altura do bloco (Y)
+                        const colisaoX = (x + largura > esquerdaReal && x < direitaReal);
+                        const colisaoY = (y + altura > tileBaixo && y < tileTopo);
+                        
+                        console.log(`[DIR] Coord: ${coord} | X: ${parseInt(x)}-${parseInt(x + largura)} CZ: ${parseInt(esquerdaReal)}-${parseInt(direitaReal)} | Y: ${parseInt(y)}-${parseInt(y + altura)} CZ: ${parseInt(tileBaixo)}-${parseInt(tileTopo)} | ColX: ${colisaoX} ColY: ${colisaoY}`);
+                        
+                        if (colisaoX && colisaoY) {
+                            console.log(`[COLISÃO DIREITA] DETECTADA! X: ${esquerdaReal}-${direitaReal} | Y: ${tileBaixo}-${tileTopo}`);
+                            return { tipo: 'estaca', direcao: 'direita', direitaReal: direitaReal, esquerdaReal: esquerdaReal, topoReal: tileTopo, baseReal: tileBaixo };
+                        }
+                    }
+                    // ESTACA PARA ESQUERDA
+                    else if (bloco.direcao === 'esquerda') {
+                        const direitaReal = tileEsquerda + (bloco.width || 16);
+                        const esquerdaReal = tileEsquerda + (bloco.xOffset || 0);
+                        
+                        // Colisão lateral: verifica X e usa TODA a altura do bloco (Y)
+                        const colisaoX = (x + largura > esquerdaReal && x < direitaReal);
+                        const colisaoY = (y + altura > tileBaixo && y < tileTopo);
+                        
+                        console.log(`[ESQ] Coord: ${coord} | X: ${parseInt(x)}-${parseInt(x + largura)} CZ: ${parseInt(esquerdaReal)}-${parseInt(direitaReal)} | Y: ${parseInt(y)}-${parseInt(y + altura)} CZ: ${parseInt(tileBaixo)}-${parseInt(tileTopo)} | ColX: ${colisaoX} ColY: ${colisaoY}`);
+                        
+                        if (colisaoX && colisaoY) {
+                            console.log(`[COLISÃO ESQUERDA] DETECTADA! X: ${esquerdaReal}-${direitaReal} | Y: ${tileBaixo}-${tileTopo}`);
+                            return { tipo: 'estaca', direcao: 'esquerda', direitaReal: direitaReal, esquerdaReal: esquerdaReal, topoReal: tileTopo, baseReal: tileBaixo };
+                        }
                     }
                 }
             }

@@ -80,10 +80,40 @@ async function carregarFase(nomeArquivo) {
         // Estacas (colisão personalizada)
         if (fase.plataformasEstacaSup) {
             fase.plataformasEstacaSup.forEach(coord => {
-                // Propriedades da colisão:
-                // yOffset: 2 -> Tira 2px do topo (alinha com o desenho da estaca no teto)
-                // height: 16 -> Define a altura da colisão como 16px (metade do bloco de 32px)
-                window.plataformas[coord.trim().toLowerCase()] = { tipo: 'estaca', yOffset: 16, height: 16 };
+                // Estaca Superior: colisão na metade superior do bloco
+                // yOffset: 16 → Começa a colisão 16px abaixo (na metade do bloco)
+                // height: 16 → Colisão tem 16px de altura (metade)
+                window.plataformas[coord.trim().toLowerCase()] = { tipo: 'estaca', direcao: 'cima', yOffset: 16, height: 16 };
+            });
+        }
+
+        // Estacas Direita (colisão personalizada)
+        if (fase.plataformasEstacaDir) {
+            fase.plataformasEstacaDir.forEach(coord => {
+                // Estaca Direita: pontas apontando para direita, bloqueia metade ESQUERDA
+                // xOffset: 16 → Começa a colisão 16px da esquerda (BLOQUEANTE)
+                // width: 16 → Colisão tem 16px de largura (metade esquerda)
+                window.plataformas[coord.trim().toLowerCase()] = { tipo: 'estaca', direcao: 'direita', xOffset: 16, width: 16 };
+            });
+        }
+
+        // Estacas Esquerda (colisão personalizada)
+        if (fase.plataformasEstacaEsq) {
+            fase.plataformasEstacaEsq.forEach(coord => {
+                // Estaca Esquerda: pontas apontando para esquerda, bloqueia metade DIREITA
+                // xOffset: 16 → Começa a colisão 16px da esquerda (BLOQUEANTE)
+                // width: 16 → Colisão tem 16px de largura (metade direita)
+                window.plataformas[coord.trim().toLowerCase()] = { tipo: 'estaca', direcao: 'esquerda', xOffset: 16, width: 16 };
+            });
+        }
+
+        // Estacas Baixo (colisão personalizada)
+        if (fase.plataformasEstacaBaixo) {
+            fase.plataformasEstacaBaixo.forEach(coord => {
+                // Estaca Baixo: colisão na metade inferior do bloco
+                // yOffset: 0 → Começa na base do bloco
+                // height: 16 → Colisão tem 16px de altura (metade)
+                window.plataformas[coord.trim().toLowerCase()] = { tipo: 'estaca', direcao: 'baixo', yOffset: 0, height: 16 };
             });
         }
 
@@ -93,6 +123,15 @@ async function carregarFase(nomeArquivo) {
         }
         if (fase.plataformasEstacaSup) {
             renderizarPlataformas(idPalco, 'personagem/estacasup.png', fase.plataformasEstacaSup);
+        }
+        if (fase.plataformasEstacaDir) {
+            renderizarPlataformas(idPalco, 'personagem/estacadir.png', fase.plataformasEstacaDir);
+        }
+        if (fase.plataformasEstacaEsq) {
+            renderizarPlataformas(idPalco, 'personagem/estacaesq.png', fase.plataformasEstacaEsq);
+        }
+        if (fase.plataformasEstacaBaixo) {
+            renderizarPlataformas(idPalco, 'personagem/estacasdown.png', fase.plataformasEstacaBaixo);
         }
     }
     if (typeof renderizarObjetivo === 'function') {

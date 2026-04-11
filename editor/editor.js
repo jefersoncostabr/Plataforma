@@ -14,6 +14,9 @@ let faseData = {
     plataformas: [],
     plataformasNeve: [],
     plataformasEstacaSup: [],
+    plataformasEstacaDir: [],
+    plataformasEstacaEsq: [],
+    plataformasEstacaBaixo: [],
     inimigos0: [],
     inimigos1: [],
     inimigos2: [],
@@ -247,6 +250,9 @@ function adicionarElemento(coord) {
     if (itemSelecionado === 'plataforma') faseData.plataformas.push(coord);
     else if (itemSelecionado === 'plataformaNeve') faseData.plataformasNeve.push(coord);
     else if (itemSelecionado === 'estacaSup') faseData.plataformasEstacaSup.push(coord);
+    else if (itemSelecionado === 'estacaDir') faseData.plataformasEstacaDir.push(coord);
+    else if (itemSelecionado === 'estacaEsq') faseData.plataformasEstacaEsq.push(coord);
+    else if (itemSelecionado === 'estacaBaixo') faseData.plataformasEstacaBaixo.push(coord);
     else if (itemSelecionado === 'player') faseData.posicaoInicialJogador = coord;
     else if (itemSelecionado === 'objetivo') faseData.objetivo = coord;
     else if (itemSelecionado.startsWith('inimigos')) {
@@ -263,6 +269,9 @@ function removerElemento(coord) {
     faseData.plataformas = faseData.plataformas.filter(c => c !== coord);
     faseData.plataformasNeve = (faseData.plataformasNeve || []).filter(c => c !== coord);
     faseData.plataformasEstacaSup = (faseData.plataformasEstacaSup || []).filter(c => c !== coord);
+    faseData.plataformasEstacaDir = (faseData.plataformasEstacaDir || []).filter(c => c !== coord);
+    faseData.plataformasEstacaEsq = (faseData.plataformasEstacaEsq || []).filter(c => c !== coord);
+    faseData.plataformasEstacaBaixo = (faseData.plataformasEstacaBaixo || []).filter(c => c !== coord);
     const tiposInimigos = ['inimigos0', 'inimigos1', 'inimigos2', 'inimigos3', 'inimigos4', 'inimigos5', 'inimigos6'];
     tiposInimigos.forEach(tipo => {
         if (faseData[tipo]) faseData[tipo] = faseData[tipo].filter(c => c !== coord);
@@ -278,6 +287,9 @@ function atualizarVisual() {
     faseData.plataformas.forEach(coord => criarIcone(coord, '../personagem/chao.png', ''));
     (faseData.plataformasNeve || []).forEach(coord => criarIcone(coord, '../personagem/chao_neve.png', ''));
     (faseData.plataformasEstacaSup || []).forEach(coord => criarIcone(coord, '../personagem/estacasup.png', ''));
+    (faseData.plataformasEstacaDir || []).forEach(coord => criarIcone(coord, '../personagem/estacadir.png', ''));
+    (faseData.plataformasEstacaEsq || []).forEach(coord => criarIcone(coord, '../personagem/estacaesq.png', ''));
+    (faseData.plataformasEstacaBaixo || []).forEach(coord => criarIcone(coord, '../personagem/estacasdown.png', ''));
     (faseData.inimigos0 || []).forEach(coord => criarIcone(coord, '../personagem/Personagem_parado.png', 'enemy-marker'));
     (faseData.inimigos1 || []).forEach(coord => criarIcone(coord, '../personagem/revolver_pegavel.png', 'enemy-marker'));
     (faseData.inimigos2 || []).forEach(coord => criarIcone(coord, '../personagem/escudo_pegavel.png', 'enemy-marker'));
@@ -384,6 +396,18 @@ function exportarJSON() {
         if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
         return parseInt(a.substring(1)) - parseInt(b.substring(1));
     });
+    faseData.plataformasEstacaDir.sort((a, b) => {
+        if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
+        return parseInt(a.substring(1)) - parseInt(b.substring(1));
+    });
+    faseData.plataformasEstacaEsq.sort((a, b) => {
+        if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
+        return parseInt(a.substring(1)) - parseInt(b.substring(1));
+    });
+    faseData.plataformasEstacaBaixo.sort((a, b) => {
+        if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
+        return parseInt(a.substring(1)) - parseInt(b.substring(1));
+    });
 
     // Gera o JSON base com indentação de 4 espaços
     let jsonStr = JSON.stringify(faseData, null, 4);
@@ -425,6 +449,9 @@ function exportarJSON() {
     jsonStr = jsonStr.replace(/"(plataformas)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
     jsonStr = jsonStr.replace(/"(plataformasNeve)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
     jsonStr = jsonStr.replace(/"(plataformasEstacaSup)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
+    jsonStr = jsonStr.replace(/"(plataformasEstacaDir)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
+    jsonStr = jsonStr.replace(/"(plataformasEstacaEsq)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
+    jsonStr = jsonStr.replace(/"(plataformasEstacaBaixo)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
 
     output.value = jsonStr;
     output.select();
@@ -447,6 +474,9 @@ function importarJSON() {
             plataformas: data.plataformas || [],
             plataformasNeve: data.plataformasNeve || [],
             plataformasEstacaSup: data.plataformasEstacaSup || [],
+            plataformasEstacaDir: data.plataformasEstacaDir || [],
+            plataformasEstacaEsq: data.plataformasEstacaEsq || [],
+            plataformasEstacaBaixo: data.plataformasEstacaBaixo || [],
             inimigos0: data.inimigos0 || [],
             inimigos1: data.inimigos1 || [],
             inimigos2: data.inimigos2 || [],

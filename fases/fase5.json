@@ -3,19 +3,26 @@
     "posicaoInicialJogador": "b2",
     "objetivo": "f19",
     "plataformas": [
-        "a1", "a2", "a3", "a4", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20"
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20",
+        "b10", "b14",
+        "c5", "c14"
     ],
     "plataformasNeve": [],
-    "plataformasEstacaSup": [
-        "a5",
-        "b7", "b8", "b9"
+    "plataformasEstacaSup": [],
+    "plataformasEstacaDir": [
+        "b11"
     ],
+    "plataformasEstacaEsq": [
+        "b5", "b9",
+        "c13"
+    ],
+    "plataformasEstacaBaixo": [],
     "inimigos0": [],
     "inimigos1": [],
     "inimigos2": [],
     "inimigos3": [],
     "inimigos4": [],
-    "inimigos5": ["b12"],
+    "inimigos5": [],
     "inimigos6": [],
     "itens": [],
     "inimigoAleatorio": [1, 0]
