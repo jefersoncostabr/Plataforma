@@ -15,7 +15,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     elemento.style.zIndex = '5'; // Define o jogador na camada 5
 
     // Busca as configurações do arquivo JSON
-    const resposta = await fetch('config/configuracoes.json');
+    const resposta = await fetch('../../config/configuracoes.json');
     const config = await resposta.json();
 
     function obterKnockback(config, fonte = 'default') {
@@ -72,7 +72,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             sinalizador.remove();
 
             const explosao = document.createElement('img');
-            explosao.src = 'assets/personagem/explosao.png';
+            explosao.src = '../../assets/personagem/explosao.png';
             explosao.style.position = 'absolute';
             explosao.style.width = '32px';
             explosao.style.height = '32px';
@@ -111,7 +111,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         const yFinal = 448; // Linha "o" no sistema de grid (14 * 32px)
 
         const airdropImg = document.createElement('img');
-        airdropImg.src = 'assets/personagem/airdrop.png';
+        airdropImg.src = '../../assets/personagem/airdrop.png';
         airdropImg.style.position = 'absolute';
         airdropImg.style.width = '32px';
         airdropImg.style.height = '32px';
@@ -148,12 +148,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Define o sprite e captura o estado atual do jogador para o item
         if (tipo === 'revolver') {
-            itemImg.src = config.spriteItemRevolver || 'assets/personagem/revolver_pegavel.png';
+            itemImg.src = config.spriteItemRevolver || '../../assets/personagem/revolver_pegavel.png';
             dadosItem.municao = controle.municao;
             controle.temArma = false;
             armaElemento.style.display = 'none';
         } else if (tipo === 'escudo') {
-            itemImg.src = config.spriteItemEscudo || 'assets/personagem/escudo_pegavel.png';
+            itemImg.src = config.spriteItemEscudo || '../../assets/personagem/escudo_pegavel.png';
             if (controle.escudoVermelho) itemImg.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
             dadosItem.escudoProtegido = controle.escudoProtegido;
             dadosItem.escudoVermelho = controle.escudoVermelho;
@@ -161,18 +161,18 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.escudoVermelho = false;
             atualizarVisualEscudo();
         } else if (tipo === 'bota') {
-            itemImg.src = config.spriteItemBota || 'assets/personagem/bota_pegavel.png';
+            itemImg.src = config.spriteItemBota || '../../assets/personagem/bota_pegavel.png';
             controle.temBota = false;
             botaElemento.style.display = 'none'; // Oculta o visual da bota
         } else if (tipo === 'jetpack') {
-            itemImg.src = config.spriteItemJetpack || 'assets/personagem/jetpack_pegavel.png';
+            itemImg.src = config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
             controle.temJetpack = false;
             controle.jetpackAtivo = false;
             controle.timerAtivacaoJetpack = 0;
             jetpackElemento.style.display = 'none'; // Oculta o visual do jetpack
             jetFogoElemento.style.display = 'none'; // Oculta o fogo ao dropar
         } else if (tipo === 'garra') {
-            itemImg.src = config.spriteItemGarra || 'assets/personagem/garra_coletavel.png';
+            itemImg.src = config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
             controle.temGarra = false;
             garraElemento.style.display = 'none';
         }
@@ -207,11 +207,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         const itensParaDropar = [...inimigo.inventario].reverse();
         itensParaDropar.forEach((tipo, index) => {
             const itemImg = document.createElement('img');
-            if (tipo === 'revolver') itemImg.src = config.spriteItemRevolver || 'assets/personagem/revolver_pegavel.png';
-            else if (tipo === 'escudo') itemImg.src = config.spriteItemEscudo || 'assets/personagem/escudo_pegavel.png';
-            else if (tipo === 'bota') itemImg.src = config.spriteItemBota || 'assets/personagem/bota_pegavel.png';
-            else if (tipo === 'jetpack') itemImg.src = config.spriteItemJetpack || 'assets/personagem/jetpack_pegavel.png';
-            else if (tipo === 'garra') itemImg.src = config.spriteItemGarra || 'assets/personagem/garra_coletavel.png';
+            if (tipo === 'revolver') itemImg.src = config.spriteItemRevolver || '../../assets/personagem/revolver_pegavel.png';
+            else if (tipo === 'escudo') itemImg.src = config.spriteItemEscudo || '../../assets/personagem/escudo_pegavel.png';
+            else if (tipo === 'bota') itemImg.src = config.spriteItemBota || '../../assets/personagem/bota_pegavel.png';
+            else if (tipo === 'jetpack') itemImg.src = config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
+            else if (tipo === 'garra') itemImg.src = config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
             
             itemImg.style.position = 'absolute';
             itemImg.style.width = '32px';
@@ -287,7 +287,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             escudoElemento.style.display = 'none';
         }
 
-        escudoElemento.src = config.spriteEscudoPlayer || 'assets/personagem/escudo.png';
+        escudoElemento.src = config.spriteEscudoPlayer || '../../assets/personagem/escudo.png';
         escudoElemento.style.filter = controle.escudoVermelho ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
     }
 
@@ -524,17 +524,17 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             
             // Define o sprite baseado no tipo (escudo, bota ou revolver)
             if (dado.tipo === 'escudo') {
-                itemImg.src = config.spriteItemEscudo || 'assets/personagem/escudo_pegavel.png';
+                itemImg.src = config.spriteItemEscudo || '../../assets/personagem/escudo_pegavel.png';
             } else if (dado.tipo === 'bota') {
-                itemImg.src = config.spriteItemBota || 'assets/personagem/bota_pegavel.png';
+                itemImg.src = config.spriteItemBota || '../../assets/personagem/bota_pegavel.png';
             } else if (dado.tipo === 'jetpack') {
-                itemImg.src = config.spriteItemJetpack || 'assets/personagem/jetpack_pegavel.png';
+                itemImg.src = config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
             } else if (dado.tipo === 'garra') {
-                itemImg.src = config.spriteItemGarra || 'assets/personagem/garra_coletavel.png';
+                itemImg.src = config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
             } else if (dado.tipo === 'restauracao') {
-                itemImg.src = config.spriteItemRestauracao || 'assets/personagem/restaurar.png';
+                itemImg.src = config.spriteItemRestauracao || '../../assets/personagem/restaurar.png';
             } else {
-                itemImg.src = config.spriteItemRevolver || 'assets/personagem/revolver_pegavel.png';
+                itemImg.src = config.spriteItemRevolver || '../../assets/personagem/revolver_pegavel.png';
             }
 
             itemImg.style.position = 'absolute';
@@ -558,7 +558,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     // Elemento da arma
     const armaElemento = document.createElement('img');
     armaElemento.id = 'player-weapon';
-    armaElemento.src = config.spriteArmaPlayer || 'assets/personagem/revolver.png';
+    armaElemento.src = config.spriteArmaPlayer || '../../assets/personagem/revolver.png';
     armaElemento.style.position = 'absolute';
     armaElemento.style.width = '32px';
     armaElemento.style.height = '32px';
@@ -572,7 +572,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     // Elemento do escudo
     const escudoElemento = document.createElement('img');
     escudoElemento.id = 'player-shield';
-    escudoElemento.src = config.spriteEscudoPlayer || 'assets/personagem/escudo.png';
+    escudoElemento.src = config.spriteEscudoPlayer || '../../assets/personagem/escudo.png';
     escudoElemento.style.position = 'absolute';
     escudoElemento.style.width = '32px';
     escudoElemento.style.height = '32px';
@@ -586,7 +586,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     // Elemento da bota
     const botaElemento = document.createElement('img');
     botaElemento.id = 'player-boots';
-    botaElemento.src = config.spriteBotaParado || 'assets/personagem/bota_parado.png';
+    botaElemento.src = config.spriteBotaParado || '../../assets/personagem/bota_parado.png';
     botaElemento.style.position = 'absolute';
     botaElemento.style.width = '32px';
     botaElemento.style.height = '32px';
@@ -599,7 +599,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     // Elemento do Jetpack (Equipado)
     const jetpackElemento = document.createElement('img');
     jetpackElemento.id = 'player-jetpack';
-    jetpackElemento.src = config.spriteJetpackPlayer || 'assets/personagem/jetpack.png';
+    jetpackElemento.src = config.spriteJetpackPlayer || '../../assets/personagem/jetpack.png';
     jetpackElemento.style.position = 'absolute';
     jetpackElemento.style.width = '32px';
     jetpackElemento.style.height = '32px';
@@ -612,7 +612,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     // Elemento do Fogo do Jetpack
     const jetFogoElemento = document.createElement('img');
     jetFogoElemento.id = 'player-jet-fire';
-    jetFogoElemento.src = config.spriteJetFogo || 'assets/personagem/jet.png';
+    jetFogoElemento.src = config.spriteJetFogo || '../../assets/personagem/jet.png';
     jetFogoElemento.style.position = 'absolute';
     jetFogoElemento.style.width = '32px';
     jetFogoElemento.style.height = '32px';
@@ -625,7 +625,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     // Elemento da Garra
     const garraElemento = document.createElement('img');
     garraElemento.id = 'player-claw';
-    garraElemento.src = config.spriteGarraPlayer || 'assets/personagem/garra.png';
+    garraElemento.src = config.spriteGarraPlayer || '../../assets/personagem/garra.png';
     garraElemento.style.position = 'absolute';
     garraElemento.style.width = '32px';
     garraElemento.style.height = '32px';
@@ -645,7 +645,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     // Elemento do Paraquedas
     const paraquedasElemento = document.createElement('img');
     paraquedasElemento.id = 'player-parachute';
-    paraquedasElemento.src = 'assets/personagem/paraquedas.png';
+    paraquedasElemento.src = '../../assets/personagem/paraquedas.png';
     paraquedasElemento.style.position = 'absolute';
     paraquedasElemento.style.width = '32px';
     paraquedasElemento.style.height = '32px';
@@ -656,7 +656,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     elemento.parentElement.appendChild(paraquedasElemento);
 
     paraquedasElemento.onerror = () => {
-        console.error("ERRO: Não foi possível carregar a imagem do paraquedas em 'assets/personagem/paraquedas.png'. Verifique o caminho e o arquivo.");
+        console.error("ERRO: Não foi possível carregar a imagem do paraquedas em '../../assets/personagem/paraquedas.png'. Verifique o caminho e o arquivo.");
     };
 
     // Elemento do HUD (Skill Visão)
@@ -885,11 +885,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             // Cria o item flutuante
             const visual = document.createElement('img');
             visual.style = `position: absolute; width: 32px; height: 32px; z-index: 20; image-rendering: pixelated;`;
-            if (tipo === 'revolver') visual.src = config.spriteItemRevolver || 'assets/personagem/revolver_pegavel.png';
-            else if (tipo === 'escudo') visual.src = config.spriteItemEscudo || 'assets/personagem/escudo_pegavel.png';
-            else if (tipo === 'bota') visual.src = config.spriteItemBota || 'assets/personagem/bota_pegavel.png';
-            else if (tipo === 'jetpack') visual.src = config.spriteItemJetpack || 'assets/personagem/jetpack_pegavel.png';
-            else if (tipo === 'garra') visual.src = config.spriteItemGarra || 'assets/personagem/garra_coletavel.png';
+            if (tipo === 'revolver') visual.src = config.spriteItemRevolver || '../../assets/personagem/revolver_pegavel.png';
+            else if (tipo === 'escudo') visual.src = config.spriteItemEscudo || '../../assets/personagem/escudo_pegavel.png';
+            else if (tipo === 'bota') visual.src = config.spriteItemBota || '../../assets/personagem/bota_pegavel.png';
+            else if (tipo === 'jetpack') visual.src = config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
+            else if (tipo === 'garra') visual.src = config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
             
             elemento.parentElement.appendChild(visual);
             controle.vendaVisual = visual;
@@ -963,7 +963,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
             // Animação da Garra pronto para iniciar
             if (controle.garraAnimEstado === 'prep') {
-                garraElemento.src = 'assets/personagem/garra_using1.png'; // Sprite da garra sobre o personagem antes de esticar
+                garraElemento.src = '../../assets/personagem/garra_using1.png'; // Sprite da garra sobre o personagem antes de esticar
                 controle.garraTimer--;
                 if (controle.garraTimer <= 0) {
                     controle.garraAnimEstado = 'esticando';
@@ -978,12 +978,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     verificarColisaoComTiles(tipX, controle.y, 32, 32, window.plataformas)) {
                     controle.garraAnimEstado = 'catching';
                     controle.garraTimer = 18;
-                    garraElemento.src = 'assets/personagem/garra_catching.png';
+                    garraElemento.src = '../../assets/personagem/garra_catching.png';
                 } else {
                     controle.garraDist = proxDist;
                 }
 
-                garraElemento.src = 'assets/personagem/garra_using1.png'; // A "mão" da garra que avança
+                garraElemento.src = '../../assets/personagem/garra_using1.png'; // A "mão" da garra que avança
                 // Garante que a garra não estique além do limite máximo
                 if (controle.garraDist > distMax) {
                     controle.garraDist = distMax;
@@ -1017,7 +1017,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             inimigo.foiAtingidoNesteChute = false; // Reset hit flag for the upcoming kick
                             window.inimigos.splice(j, 1); // Temporarily remove enemy from global list to pause its AI
                             controle.garraAnimEstado = 'voltando'; // Immediately start retracting
-                            garraElemento.src = 'assets/personagem/garra_catching.png'; // Change sprite to indicate carrying
+                            garraElemento.src = '../../assets/personagem/garra_catching.png'; // Change sprite to indicate carrying
                             grabbedSomething = true;
                             break; // Only pick up one enemy at a time
                         }
@@ -1045,7 +1045,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         controle.garraItemCarregado = item;
                         window.itensColetaveis.splice(i, 1); // Remove item from global list
                         controle.garraAnimEstado = 'voltando'; // Immediately start retracting
-                        garraElemento.src = 'assets/personagem/garra_catching.png'; // Change sprite to indicate carrying item
+                        garraElemento.src = '../../assets/personagem/garra_catching.png'; // Change sprite to indicate carrying item
                         break; // Only pick up one item at a time
                     }
                 }
@@ -1054,7 +1054,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 // Cria segmentos do braço a cada 32px
                 if (controle.garraDist > 0 && controle.garraDist % 32 < velGarra && controle.garraDist <= distMax) {
                     const braco = document.createElement('img');
-                    braco.src = (controle.garraBracos.length === 0) ? 'assets/personagem/garra_using2.png' : 'assets/personagem/garra_braco.png'; // Define a imagem do segmento (o primeiro é garra_using2.png, os demais são garra_braco.png).
+                    braco.src = (controle.garraBracos.length === 0) ? '../../assets/personagem/garra_using2.png' : '../../assets/personagem/garra_braco.png'; // Define a imagem do segmento (o primeiro é garra_using2.png, os demais são garra_braco.png).
                     braco.className = 'player-claw-arm'; // Adiciona uma classe para identificação.
                     braco.style.position = 'absolute'; // Define o posicionamento absoluto.
                     braco.style.width = '32px'; // Define a largura do segmento.
@@ -1075,7 +1075,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 if (controle.garraDist >= distMax && controle.garraItemCarregado === null) { // Only transition to catching if no item is caught
                     controle.garraAnimEstado = 'catching';
                     controle.garraTimer = 18; // ~0.3s
-                    garraElemento.src = 'assets/personagem/garra_catching.png';
+                    garraElemento.src = '../../assets/personagem/garra_catching.png';
                     // console.log("Animação Garra: [3/4] Ápice atingido com garra_catching.png na ponta.");
                 }
             }
@@ -1209,7 +1209,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     }
                     controle.garraItemCarregado = null; // Clear carried item/enemy
                     controle.garraAnimEstado = 'idle'; // Reset claw animation state
-                    garraElemento.src = config.spriteGarraPlayer || 'assets/personagem/garra.png'; // Reset claw visual
+                    garraElemento.src = config.spriteGarraPlayer || '../../assets/personagem/garra.png'; // Reset claw visual
                     controle.garraBracos.forEach(b => b.remove());
                     controle.garraBracos = [];
                 }
@@ -1218,7 +1218,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 if (controle.garraDist <= 0 && controle.garraItemCarregado === null) { // Only go idle if no item is being carried
                     controle.garraAnimEstado = 'idle';
                     // Só volta ao sprite padrão quando a animação termina
-                    garraElemento.src = config.spriteGarraPlayer || 'assets/personagem/garra.png';
+                    garraElemento.src = config.spriteGarraPlayer || '../../assets/personagem/garra.png';
                     controle.garraBracos.forEach(b => b.remove());
                     controle.garraBracos = [];
                     // console.log("Animação Garra: Finalizada. Retornando ao estado idle.");
@@ -1616,7 +1616,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 });
             }
             const impacto = document.createElement('img');
-            impacto.src = 'assets/personagem/impacto.png';
+            impacto.src = '../../assets/personagem/impacto.png';
             impacto.style.position = 'absolute';
             impacto.style.width = '64px'; impacto.style.height = '32px';
             impacto.style.left = (ctrl.x - 16) + 'px'; impacto.style.bottom = ctrl.y + 'px';
@@ -2172,7 +2172,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         armaElemento.style.transform = (controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)') + ` rotate(${anguloRecuo}deg)`;
 
         // Atualiza o sprite da arma baseado na munição
-        armaElemento.src = config.spriteArmaPlayer || 'assets/personagem/revolver.png';
+        armaElemento.src = config.spriteArmaPlayer || '../../assets/personagem/revolver.png';
         // Aplica filtro vermelho se estiver sem munição
         armaElemento.style.filter = (controle.municao <= 0) ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
 
@@ -2190,18 +2190,18 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             
             // Melhoria da lógica de animação: a bota deve seguir o frame exato do personagem
             if (controle.chutando) {
-                botaElemento.src = config.spriteBotaChutando || 'assets/personagem/bota_chutando.png';
+                botaElemento.src = config.spriteBotaChutando || '../../assets/personagem/bota_chutando.png';
             } else if (!controle.noChao) {
                 // Se estiver no ar, usa o sprite específico para o ar
-                botaElemento.src = config.spriteBotaNoAr || 'assets/personagem/bota_no_ar.png';
+                botaElemento.src = config.spriteBotaNoAr || '../../assets/personagem/bota_no_ar.png';
             } else if (controle.movendoHorizontal) {
                 // Se estiver andando no chão, sincroniza com o frameAtual (1 é o frame de caminhada)
                 botaElemento.src = (controle.frameAtual === 1)
-                    ? (config.spriteBotaAndando || 'assets/personagem/bota_andando.png')
-                    : (config.spriteBotaParado || 'assets/personagem/bota_parado.png');
+                    ? (config.spriteBotaAndando || '../../assets/personagem/bota_andando.png')
+                    : (config.spriteBotaParado || '../../assets/personagem/bota_parado.png');
             } else {
                 // Totalmente parado
-                botaElemento.src = config.spriteBotaParado || 'assets/personagem/bota_parado.png';
+                botaElemento.src = config.spriteBotaParado || '../../assets/personagem/bota_parado.png';
             }
         }
 
@@ -2294,3 +2294,4 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     // Inicia o loop de atualização
     requestAnimationFrame(atualizar);
 }
+

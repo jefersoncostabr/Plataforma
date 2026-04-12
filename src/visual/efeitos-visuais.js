@@ -114,3 +114,4 @@ function flashComVibacao(elemento) {
     }
 }
 
+

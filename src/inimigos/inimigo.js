@@ -238,9 +238,9 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     
     const tamanhoTile = 32;
     // Define a imagem base: se for tipo 5 (feno), usa o sprite específico
-    let imagemInimigo = window.config?.spriteParadoInimigo || 'assets/personagem/Personagem_parado.png';
+    let imagemInimigo = window.config?.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png';
     if (tipoEquipamento === 5) {
-        imagemInimigo = window.config?.spriteAlvoFeno || 'assets/personagem/alvoFeno.png';
+        imagemInimigo = window.config?.spriteAlvoFeno || '../../assets/personagem/alvoFeno.png';
     }
     
     const inimigoImg = document.createElement('img');
@@ -314,7 +314,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     // Cria elemento de arma se necessário
     if (temArma) {
         const armaImg = document.createElement('img');
-        armaImg.src = window.config?.spriteArmaPlayer || 'assets/personagem/revolver.png';
+        armaImg.src = window.config?.spriteArmaPlayer || '../../assets/personagem/revolver.png';
         armaImg.style.position = 'absolute';
         armaImg.style.width = tamanhoTile + 'px';
         armaImg.style.height = tamanhoTile + 'px';
@@ -329,7 +329,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     // Cria elemento de escudo se necessário
     if (temEscudo) {
         const escudoImg = document.createElement('img');
-        escudoImg.src = window.config?.spriteEscudoPlayer || 'assets/personagem/escudo.png';
+        escudoImg.src = window.config?.spriteEscudoPlayer || '../../assets/personagem/escudo.png';
         escudoImg.style.position = 'absolute';
         escudoImg.style.width = tamanhoTile + 'px';
         escudoImg.style.height = tamanhoTile + 'px';
@@ -344,7 +344,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     // Cria elemento de bota se necessário
     if (temBota) {
         const botaImg = document.createElement('img');
-        botaImg.src = window.config?.spriteBotaParado || 'assets/personagem/bota_parado.png';
+        botaImg.src = window.config?.spriteBotaParado || '../../assets/personagem/bota_parado.png';
         botaImg.style.position = 'absolute';
         botaImg.style.width = tamanhoTile + 'px';
         botaImg.style.height = tamanhoTile + 'px';
@@ -358,7 +358,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     // Cria elemento de jetpack se necessário
     if (temJetpack) {
         const jetpackImg = document.createElement('img');
-        jetpackImg.src = window.config?.spriteJetpackPlayer || 'assets/personagem/jetpack.png';
+        jetpackImg.src = window.config?.spriteJetpackPlayer || '../../assets/personagem/jetpack.png';
         jetpackImg.style.position = 'absolute';
         jetpackImg.style.width = tamanhoTile + 'px';
         jetpackImg.style.height = tamanhoTile + 'px';
@@ -372,7 +372,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     // Cria elemento de garra se necessário
     if (temGarra) {
         const garraImg = document.createElement('img');
-        garraImg.src = window.config?.spriteGarraPlayer || 'assets/personagem/garra.png';
+        garraImg.src = window.config?.spriteGarraPlayer || '../../assets/personagem/garra.png';
         garraImg.style.position = 'absolute';
         garraImg.style.width = tamanhoTile + 'px';
         garraImg.style.height = tamanhoTile + 'px';
@@ -386,3 +386,4 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     const equipamento = temArma ? 'revólver' : (temEscudo ? 'escudo' : (temBota ? 'botas' : (temJetpack ? 'jetpack' : (temGarra ? 'garra' : 'sem equipamento'))));
     console.log(`✓ Inimigo aleatório criado em (${posicao.x}px, ${posicao.y}px) - Equipamento: ${equipamento}`);
 }
+

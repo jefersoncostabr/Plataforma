@@ -16,3 +16,4 @@ function configurarPosicaoInicial(id, x, y, direcao) {
     // Aplica o espelhamento se a direção for 'e' (esquerda)
     elemento.style.transform = direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
 }
+

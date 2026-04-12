@@ -163,3 +163,4 @@ function renderizarObjetivo(idPalco, imagemPath, coord) {
     };
 }
 
+

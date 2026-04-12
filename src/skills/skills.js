@@ -33,7 +33,7 @@ window.ganharXP = (quantidade = 1) => {
  */
 window.carregarDadosSkills = async (forçarReset = false) => {
     try {
-        const resposta = await fetch('config/skills-dados.json');
+        const resposta = await fetch('../../config/skills-dados.json');
         const dados = await resposta.json();
         window.skillsData = dados.skills;
 
@@ -303,3 +303,4 @@ function fecharMenuSkillsUI() {
     const overlay = document.getElementById('skill-tree-overlay');
     if (overlay) overlay.remove();
 }
+

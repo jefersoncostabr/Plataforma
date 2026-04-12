@@ -203,3 +203,4 @@ function detectarColisaoHitbox(objA, objB, pX = 4, pTopo = 4, pBase = 4) {
             a.topo > b.base &&
             a.base < b.topo);
 }
+

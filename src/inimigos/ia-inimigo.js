@@ -9,7 +9,7 @@
  */
 async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteChute) {
     // Busca as configurações do arquivo JSON
-    const resposta = await fetch('config/configuracoes.json');
+    const resposta = await fetch('../../config/configuracoes.json');
     const config = await resposta.json();
 
     // Default values for jump delay
@@ -126,7 +126,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             const tipo = dado.tipo !== undefined ? dado.tipo : 1;
             if (tipo === 5) {
                 // Tenta pegar da config local, depois da global, e por fim o caminho fixo
-                inimigoImg.src = config.spriteAlvoFeno || window.config?.spriteAlvoFeno || 'assets/personagem/alvoFeno.png';
+                inimigoImg.src = config.spriteAlvoFeno || window.config?.spriteAlvoFeno || '../../assets/personagem/alvoFeno.png';
             } else {
                 inimigoImg.src = spriteParado;
             }
@@ -332,7 +332,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     // Cria o elemento da arma (revolver) acoplado ao inimigo
                     if (!inimigo.armaElemento) {
                         const arma = document.createElement('img');
-                        arma.src = config.spriteArmaPlayer || 'assets/personagem/revolver.png';
+                        arma.src = config.spriteArmaPlayer || '../../assets/personagem/revolver.png';
                         arma.style.position = 'absolute';
                         arma.style.width = '32px';
                         arma.style.height = '32px';
@@ -347,7 +347,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     // Cria o elemento visual da bota para o inimigo
                     if (!inimigo.botaElemento) {
                         const bota = document.createElement('img');
-                        bota.src = config.spriteBotaParado || 'assets/personagem/bota_parado.png';
+                        bota.src = config.spriteBotaParado || '../../assets/personagem/bota_parado.png';
                         bota.style.position = 'absolute';
                         bota.style.width = '32px';
                         bota.style.height = '32px';
@@ -362,7 +362,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     // Cria o elemento do escudo para o inimigo tipo 2
                     if (!inimigo.escudoElemento) {
                         const escudo = document.createElement('img');
-                        escudo.src = config.spriteEscudoPlayer || 'assets/personagem/escudo.png';
+                        escudo.src = config.spriteEscudoPlayer || '../../assets/personagem/escudo.png';
                         escudo.style.position = 'absolute';
                         escudo.style.width = '32px';
                         escudo.style.height = '32px';
@@ -377,7 +377,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     // Cria o elemento do jetpack para o inimigo
                     if (!inimigo.jetpackElemento) {
                         const jetpack = document.createElement('img');
-                        jetpack.src = config.spriteJetpackPlayer || 'assets/personagem/jetpack.png';
+                        jetpack.src = config.spriteJetpackPlayer || '../../assets/personagem/jetpack.png';
                         jetpack.style.position = 'absolute';
                         jetpack.style.width = '32px';
                         jetpack.style.height = '32px';
@@ -392,7 +392,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     // Cria o elemento do fogo do jetpack para o inimigo
                     if (!inimigo.jetFogoElemento) {
                         const jetFogo = document.createElement('img');
-                        jetFogo.src = config.spriteJetFogo || 'assets/personagem/jet.png';
+                        jetFogo.src = config.spriteJetFogo || '../../assets/personagem/jet.png';
                         jetFogo.style.position = 'absolute';
                         jetFogo.style.width = '32px';
                         jetFogo.style.height = '32px';
@@ -407,7 +407,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     // Cria o elemento visual da garra para o inimigo
                     if (!inimigo.garraElemento) {
                         const garra = document.createElement('img');
-                        garra.src = config.spriteGarraPlayer || 'assets/personagem/garra.png';
+                        garra.src = config.spriteGarraPlayer || '../../assets/personagem/garra.png';
                         garra.style.position = 'absolute';
                         garra.style.width = '32px';
                         garra.style.height = '32px';
@@ -451,7 +451,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.garraElemento.style.transform = (inimigo.garraDirecaoAnim === 'e' ? 'scaleX(-1)' : 'scaleX(1)');
 
                     if (inimigo.garraAnimEstado === 'prep') {
-                        inimigo.garraElemento.src = 'assets/personagem/garra_using1.png';
+                        inimigo.garraElemento.src = '../../assets/personagem/garra_using1.png';
                         inimigo.garraTimer--;
                         if (inimigo.garraTimer <= 0) {
                             inimigo.garraAnimEstado = 'esticando';
@@ -465,12 +465,12 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             verificarColisaoComTiles(tipX, inimigo.y, 32, 32, window.plataformas)) {
                             inimigo.garraAnimEstado = 'catching';
                             inimigo.garraTimer = 18;
-                            inimigo.garraElemento.src = 'assets/personagem/garra_catching.png';
+                            inimigo.garraElemento.src = '../../assets/personagem/garra_catching.png';
                         } else {
                             inimigo.garraDist = proxDist;
                         }
 
-                        inimigo.garraElemento.src = 'assets/personagem/garra_using1.png';
+                        inimigo.garraElemento.src = '../../assets/personagem/garra_using1.png';
                         if (inimigo.garraDist > distMax) {
                             inimigo.garraDist = distMax;
                         }
@@ -496,7 +496,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             window.playerControle.stunTimer = config.garraStunDurationPlayer || 120; // Default 2 seconds
                             window.playerControle.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
                             inimigo.garraAnimEstado = 'voltando';
-                            inimigo.garraElemento.src = 'assets/personagem/garra_catching.png';
+                            inimigo.garraElemento.src = '../../assets/personagem/garra_catching.png';
                             grabbedSomething = true;
                         }
 
@@ -509,7 +509,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                     inimigo.garraItemCarregado = item;
                                     window.itensColetaveis.splice(k, 1);
                                     inimigo.garraAnimEstado = 'voltando';
-                                    inimigo.garraElemento.src = 'assets/personagem/garra_catching.png';
+                                    inimigo.garraElemento.src = '../../assets/personagem/garra_catching.png';
                                     grabbedSomething = true;
                                     break;
                                 }
@@ -519,7 +519,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         // Cria segmentos do braço
                         if (inimigo.garraDist > 0 && inimigo.garraDist % 32 < velGarra && inimigo.garraDist <= distMax) {
                             const braco = document.createElement('img');
-                            braco.src = (inimigo.garraBracos.length === 0) ? 'assets/personagem/garra_using2.png' : 'assets/personagem/garra_braco.png';
+                            braco.src = (inimigo.garraBracos.length === 0) ? '../../assets/personagem/garra_using2.png' : '../../assets/personagem/garra_braco.png';
                             braco.className = 'enemy-claw-arm';
                             braco.style.position = 'absolute';
                             braco.style.width = '32px';
@@ -537,7 +537,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         if (inimigo.garraDist >= distMax && inimigo.garraItemCarregado === null) {
                             inimigo.garraAnimEstado = 'catching';
                             inimigo.garraTimer = 18;
-                            inimigo.garraElemento.src = 'assets/personagem/garra_catching.png';
+                            inimigo.garraElemento.src = '../../assets/personagem/garra_catching.png';
                         }
                     } else if (inimigo.garraAnimEstado === 'catching') {
                         inimigo.garraTimer--;
@@ -545,7 +545,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     } else if (inimigo.garraAnimEstado === 'voltando') {
                         inimigo.garraDist -= velGarra;
                         if (inimigo.garraItemCarregado && inimigo.garraItemCarregado.elemento) {
-                            inimigo.garraElemento.src = 'assets/personagem/garra_catching.png'; // Mantém o sprite de "pegando" durante a retração
+                            inimigo.garraElemento.src = '../../assets/personagem/garra_catching.png'; // Mantém o sprite de "pegando" durante a retração
                             const carried = inimigo.garraItemCarregado;
                             carried.elemento.style.left = inimigo.garraElemento.style.left;
                             carried.elemento.style.bottom = inimigo.garraElemento.style.bottom;
@@ -610,14 +610,14 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             }
                             inimigo.garraItemCarregado = null;
                             inimigo.garraAnimEstado = 'idle';
-                            inimigo.garraElemento.src = config.spriteGarraPlayer || 'assets/personagem/garra.png';
+                            inimigo.garraElemento.src = config.spriteGarraPlayer || '../../assets/personagem/garra.png';
                             inimigo.garraBracos.forEach(b => b.remove());
                             inimigo.garraBracos = [];
                             inimigo.cooldownGarra = 120; // Define cooldown de 2 segundos (120 frames)
                         }
                         if (inimigo.garraDist <= 0 && inimigo.garraItemCarregado === null) {
                             inimigo.garraAnimEstado = 'idle';
-                            inimigo.garraElemento.src = config.spriteGarraPlayer || 'assets/personagem/garra.png';
+                            inimigo.garraElemento.src = config.spriteGarraPlayer || '../../assets/personagem/garra.png';
                             inimigo.garraBracos.forEach(b => b.remove());
                             inimigo.garraBracos = [];
                             inimigo.cooldownGarra = 120; // Define cooldown de 2 segundos (120 frames)
@@ -1213,7 +1213,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.escudoElemento.style.bottom = inimigo.y + 'px';
                     inimigo.escudoElemento.style.transform = inimigo.elemento.style.transform;
 
-                    inimigo.escudoElemento.src = config.spriteEscudoPlayer || 'assets/personagem/escudo.png';
+                    inimigo.escudoElemento.src = config.spriteEscudoPlayer || '../../assets/personagem/escudo.png';
                     // Aplica filtro vermelho se o escudo do inimigo quebrar
                     inimigo.escudoElemento.style.filter = inimigo.escudoVermelho ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
                 }
@@ -1225,16 +1225,16 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.botaElemento.style.transform = inimigo.elemento.style.transform;
                     
                     if (estaChutando) {
-                        inimigo.botaElemento.src = config.spriteBotaChutando || 'assets/personagem/bota_chutando.png';
+                        inimigo.botaElemento.src = config.spriteBotaChutando || '../../assets/personagem/bota_chutando.png';
                     } else if (!inimigo.noChao) {
                         // Se estiver no ar, usa o sprite específico para o ar
-                        inimigo.botaElemento.src = config.spriteBotaNoAr || 'assets/personagem/bota_no_ar.png';
+                        inimigo.botaElemento.src = config.spriteBotaNoAr || '../../assets/personagem/bota_no_ar.png';
                     } else if (movendoDestaVez) {
                         inimigo.botaElemento.src = (inimigo.frameAtual === 1)
-                            ? (config.spriteBotaAndando || 'assets/personagem/bota_andando.png')
-                            : (config.spriteBotaParado || 'assets/personagem/bota_parado.png');
+                            ? (config.spriteBotaAndando || '../../assets/personagem/bota_andando.png')
+                            : (config.spriteBotaParado || '../../assets/personagem/bota_parado.png');
                     } else {
-                        inimigo.botaElemento.src = config.spriteBotaParado || 'assets/personagem/bota_parado.png';
+                        inimigo.botaElemento.src = config.spriteBotaParado || '../../assets/personagem/bota_parado.png';
                     }
                 }
 
@@ -1284,3 +1284,4 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     // Inicia o ciclo de atualização
     requestAnimationFrame(atualizarIA);
 }
+

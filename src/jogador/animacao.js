@@ -34,3 +34,4 @@ function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spri
         controle.frameAtual = 0;
     }
 }
+

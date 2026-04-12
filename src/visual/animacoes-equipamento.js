@@ -18,3 +18,4 @@ function aplicarRecuoRevolver(elemento, duracao = 100) {
         elemento.dataset.recoil = "false";
     }, duracao);
 }
+

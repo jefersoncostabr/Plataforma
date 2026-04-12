@@ -46,3 +46,4 @@ window.atualizarCamera = function(alvoX, alvoY, mundoW, mundoH) {
         console.error("[DEBUG CAMERA] Erro: #game-stage não encontrado para aplicar a câmera!");
     }
 };
+

@@ -35,3 +35,4 @@ function aplicarFisica(controle, teclas, forcaPulo = 12, gravidade = 0.6, cooldo
     controle.velocidadeY -= gravidade;
     controle.y += controle.velocidadeY;
 }
+
