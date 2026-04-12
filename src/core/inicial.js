@@ -10,90 +10,13 @@ window.isTraining = false; // Flag para identificar se o jogador está no modo t
 window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para inimigo aleatório
 window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro inimigo
 
-// Dimensões globais do mundo atual
-window.mundoLargura = 640;
-window.mundoAltura = 480;
-
 // ⭐ Escala atual do jogo
 window.escalaAtual = 1;
 
-/**
- * Debug: Mostra informações detalhadas sobre o #game-stage no console
- */
-function debugGameStage(label = "Debug #game-stage") {
-    const stage = document.getElementById('game-stage');
-    const container = document.getElementById('jogo-container');
-    
-    if (!stage) {
-        console.error("❌ #game-stage não encontrado no DOM!");
-        return;
-    }
-    
-    const rect = stage.getBoundingClientRect();
-    const compStyles = window.getComputedStyle(stage);
-    const containerRect = container ? container.getBoundingClientRect() : null;
-    const proporcaoAltura = window.mundoAltura / 480;
-    const proporcaoLargura = window.mundoLargura / 640;
-    
-    console.group(`🎮 ${label}`);
-    
-    console.log("%c📍 POSIÇÃO", "color: #00ff00; font-weight: bold;");
-    console.table({
-        "Top": `${rect.top}px`,
-        "Left": `${rect.left}px`,
-        "Right": `${rect.right}px`,
-        "Bottom": `${rect.bottom}px`
-    });
-    
-    console.log("%c📏 DIMENSÕES", "color: #00ffff; font-weight: bold;");
-    console.table({
-        "Largura (stage)": `${rect.width}px (${stage.style.width} inline)`,
-        "Altura (stage)": `${rect.height}px (${stage.style.height} inline)`,
-        "Largura (container/viewport)": containerRect ? `${containerRect.width}px` : "N/A",
-        "Altura (container/viewport)": containerRect ? `${containerRect.height}px` : "N/A"
-    });
-    
-    console.log("%c🗺️ PROPORÇÃO DA FASE", "color: #ffff00; font-weight: bold;");
-    console.log(
-        `Mundo: ${proporcaoLargura}x${proporcaoAltura} (${window.mundoLargura}x${window.mundoAltura}px)\n` +
-        `➜ Container é uma "câmera" (viewport) que recorta o mundo via overflow:hidden`
-    );
-    
-    console.log("%c⚙️ ESTILOS COMPUTADOS", "color: #ffaa00; font-weight: bold;");
-    console.table({
-        "Position": compStyles.position,
-        "Display": compStyles.display,
-        "Top": compStyles.top,
-        "Left": compStyles.left,
-        "Right": compStyles.right,
-        "Bottom": compStyles.bottom,
-        "Background": compStyles.backgroundColor,
-        "Overflow": compStyles.overflow,
-        "Z-index": compStyles.zIndex
-    });
-    
-    console.log("%c📦 BOX MODEL", "color: #ff6600; font-weight: bold;");
-    console.table({
-        "Margin": `${compStyles.margin}`,
-        "Padding": `${compStyles.padding}`,
-        "Border": `${compStyles.border}`,
-        "Box-sizing": compStyles.boxSizing
-    });
-    
-    console.log("%c🌳 ELEMENTO", "color: #aa00ff; font-weight: bold;");
-    console.log(stage);
-    
-    console.groupEnd();
-}
 
-// Inicialização no carregamento
-document.addEventListener('DOMContentLoaded', () => {
-    // Debug inicial
-    setTimeout(() => debugGameStage("Inicial"), 100);
-});
 
 async function carregarFase(nomeArquivo) {
-    // console.log(`Carregando nível: ${nomeArquivo}`);
+
     
     // Tenta encontrar o container para controle de exibição
     const palcoElemento = document.getElementById('game-stage') || document.getElementById('jogo-container');
@@ -133,19 +56,18 @@ async function carregarFase(nomeArquivo) {
     window.mundoLargura = 640 * multW;
     window.mundoAltura = 480 * multH;
 
-    // 1. Limpa o cenário anterior (tiles, inimigos e itens)
+    // Limpa cenário anterior
     const idPalco = 'game-stage';
     if (typeof limparCenario === 'function') limparCenario(idPalco);
 
-    // Ajusta o tamanho do palco para as dimensões do novo mundo
+    // Redimensiona stage para o tamanho da fase
     const gameStage = document.getElementById(idPalco);
     if (gameStage) {
-        // Configura dimensões do stage conforme o tamanho do mundo
         gameStage.style.width = window.mundoLargura + 'px';
         gameStage.style.height = window.mundoAltura + 'px';
     }
 
-    // 2. Registro de Colisão e Renderização
+    // Registra plataformas para sistema de colisão
     if (typeof renderizarPlataformas === 'function') {
         // Garante que o objeto de colisão global contenha todos os blocos sólidos (Grama + Neve)
         window.plataformas = {};
@@ -200,6 +122,7 @@ async function carregarFase(nomeArquivo) {
             });
         }
 
+        // Renderiza todas as plataformas da fase
         renderizarPlataformas(idPalco, '../../assets/personagem/chao.png', fase.plataformas || []);
         if (fase.plataformasNeve) {
             renderizarPlataformas(idPalco, '../../assets/personagem/chao_neve.png', fase.plataformasNeve);
@@ -217,22 +140,21 @@ async function carregarFase(nomeArquivo) {
             renderizarPlataformas(idPalco, '../../assets/personagem/estacasdown.png', fase.plataformasEstacaBaixo);
         }
     }
+    
+    // Renderiza objetivo da fase
     if (typeof renderizarObjetivo === 'function') {
         renderizarObjetivo(idPalco, '../../assets/personagem/objetivo.png', fase.objetivo);
     }
 
-    // Reseta a posição da câmera para o início da fase
+    // Reseta câmera para o início
     if (typeof window.resetarCamera === 'function') window.resetarCamera();
 
-    // Exibe o palco novamente após a montagem
+    // Mostra o palco
     if (palcoElemento) {
         palcoElemento.style.display = 'block';
     }
 
-    // Debug: Mostra informações sobre o game-stage após a fase ser carregada
-    setTimeout(() => debugGameStage(`Fase ${window.nivelAtual + 1} Carregada`), 50);
-
-    // 3. Posiciona o jogador
+    // Inicializa posição do jogador
     if (window.playerControle) {
         const pos = typeof fase.posicaoInicialJogador === 'string' 
             ? (typeof window.gridParaPixels === 'function' ? window.gridParaPixels(fase.posicaoInicialJogador) : {x: 0, y: 0})
@@ -241,7 +163,7 @@ async function carregarFase(nomeArquivo) {
         window.playerControle.y = pos.y;
         window.playerControle.velocidadeY = 0;
         
-        // CORREÇÃO: Reseta o estado de entrada e timers para evitar que o personagem ande/pule sozinho
+        // Reseta estado de entrada e timers
         window.playerControle.teclas = {};
         window.playerControle.movendoHorizontal = false;
         window.playerControle.chutando = false;
@@ -251,10 +173,10 @@ async function carregarFase(nomeArquivo) {
         window.playerControle.cooldownPulo = 0;
         
         window.playerControle.airdropUsadoNoNivel = false;
-        window.playerControle.noChao = false; // Garante que a física recalcule o chão no novo local
+        window.playerControle.noChao = false;
     }
 
-    // 4. Cria os novos inimigos
+    // Carrega inimigos da fase
     if (typeof resetarInimigos === 'function') {
         const inimigosParaReset = [];
         if (fase.inimigos1) fase.inimigos1.forEach(p => inimigosParaReset.push({tipo: 1, pos: p}));
@@ -268,12 +190,12 @@ async function carregarFase(nomeArquivo) {
         resetarInimigos(inimigosParaReset);
     }
 
-    // 5. Cria os itens iniciais da fase (como o escudo)
+    // Carrega itens iniciais da fase
     if (typeof window.resetarItens === 'function') {
         window.resetarItens(fase.itens || []);
     }
 
-    // 6. Configura o intervalo para inimigo aleatório (se habilitado)
+    // Configura spawn de inimigos aleatórios
     if (Array.isArray(fase.inimigoAleatorio) && fase.inimigoAleatorio.length === 2) {
         const dificuldade = fase.inimigoAleatorio[0]; // 1, 2 ou 3
         const tipoEquipamento = fase.inimigoAleatorio[1]; // 0, 1 ou 2
@@ -288,12 +210,7 @@ async function carregarFase(nomeArquivo) {
             tempoEmMs = 30000; // 30 segundos
         }
         
-        let nomeEquipamento = 'sem equipamento';
-        if (tipoEquipamento === 1) nomeEquipamento = 'revólver';
-        else if (tipoEquipamento === 2) nomeEquipamento = 'escudo';
-        
-        const tempoSegundos = tempoEmMs / 1000;
-        // console.log(`Inimigo aleatório habilitado! Equipamento: ${nomeEquipamento}. Aparecerá a cada ${tempoSegundos}s.`);
+
         
         // Define uma função para criar o inimigo repetidamente
         const criarInimigoRepetido = () => {
@@ -320,8 +237,9 @@ async function carregarFase(nomeArquivo) {
     }
 }
 
+// Avança para próxima fase
 window.proximoNivel = async function() {
-    // Se estiver no modo treino, volta para o menu ao atingir o objetivo
+    // Retorna ao menu se em modo treino
     if (window.isTraining) {
         window.isTraining = false;
         alert("Treino Concluído!");
@@ -345,20 +263,19 @@ window.proximoNivel = async function() {
     }
 };
 
+// Reinicia a fase atual
 window.reiniciarJogo = async function(porMorte = true) {
-    // Limpa o intervalo de inimigo aleatório se existir
+    // Cancela spawns de inimigos aleatórios
     if (window.intervalInimigoAleatorio !== null) {
         clearInterval(window.intervalInimigoAleatorio);
         window.intervalInimigoAleatorio = null;
     }
-    
-    // Limpa o timeout do primeiro inimigo aleatório se existir
     if (window.timeoutPrimeiroInimigoAleatorio !== null) {
         clearTimeout(window.timeoutPrimeiroInimigoAleatorio);
         window.timeoutPrimeiroInimigoAleatorio = null;
     }
     
-    // Reseta o dano do jogador e o estado de controle
+    // Reseta estado do jogador
     if (window.playerControle) {
         window.isTraining = false; // Garante que sai do modo treino ao reiniciar o jogo normal
         window.playerControle.dano = 0;
@@ -381,32 +298,30 @@ window.reiniciarJogo = async function(porMorte = true) {
         window.playerControle.timerAtivacaoJetpack = 0;
         window.playerControle.timerVooRestante = 0;
         window.playerControle.cooldownVooJetpack = 0;
-        window.playerControle.jetpackHovering = false; // Reseta o estado de pairar
+        window.playerControle.jetpackHovering = false;
 
-        // Reseta itens coletados para o máximo e restaura o escudo se estiver quebrado
+        // Restaura itens coletados
         if (window.playerControle.temEscudo || window.playerControle.escudoVermelho) {
-            window.playerControle.temEscudo = true; // Garante que volte a ser funcional
-            window.playerControle.escudoVermelho = false; // Volta para a cor azul
-            window.playerControle.escudoProtegido = 0; // Reseta a vida do escudo
+            window.playerControle.temEscudo = true;
+            window.playerControle.escudoVermelho = false;
+            window.playerControle.escudoProtegido = 0;
         }
         if (window.playerControle.temArma) {
             window.playerControle.municao = window.config.maxMunicao || 5;
         }
 
-        // Re-aplica os bônus das habilidades adquiridas após resetar os valores base
+        // Reaplicaa bônus das skills
         if (typeof window.aplicarEfeitosSkills === 'function') {
             window.aplicarEfeitosSkills();
         }
 
-        // Mantém a bota se ela já foi coletada
+        // Mantém equipamentos adquiridos
         if (window.playerControle.temBota) {
             window.playerControle.temBota = true;
         }
-        // Mantém o jetpack se ele já foi coletado
         if (window.playerControle.temJetpack) {
             window.playerControle.temJetpack = true;
         }
-        // Mantém a garra se ela já foi coletada
         if (window.playerControle.temGarra) {
             window.playerControle.temGarra = true;
         }
@@ -415,83 +330,82 @@ window.reiniciarJogo = async function(porMorte = true) {
         }
     }
     
-    // Reseta o progresso (XP e Skills) apenas se o reinício for causado por morte
+    // Reseta progresso apenas se morte
     if (porMorte && typeof window.resetarProgressoParaJson === 'function') {
         await window.resetarProgressoParaJson();
     }
 
-    // Volta para a fase definida nas configurações (ou 0 por padrão)
+    // Retorna à fase inicial
     window.nivelAtual = (window.config && window.config.faseInicial !== undefined) ? window.config.faseInicial : 0;
     await carregarFase(window.niveis[window.nivelAtual]);
     
-    // Atualiza visual dos itens após carregar a fase
+    // Atualiza visual dos itens
     if (window.playerControle && typeof window.atualizarVisualEscudo === 'function') {
         window.atualizarVisualEscudo();
     }
 };
 
-// Função para iniciar o jogo pela primeira vez
+// Inicializa o jogo e carrega primeira fase
 async function iniciarJogo() {
-    // Marca que o jogo está iniciando agora para ajustar o menu inicial
     window.isFirstStart = true;
 
-    // Busca a configuração para saber por qual fase começar
+    // Carrega configurações globais
     const respostaConfig = await fetch('../../config/configuracoes.json');
     const config = await respostaConfig.json();
-    window.config = config; // Torna config global
+    window.config = config;
     window.nivelAtual = (config.faseInicial !== undefined) ? config.faseInicial : 0;
 
-    // Carrega o progresso de habilidades e XP antes de iniciar o jogo
+    // Carrega dados de skills e progresso
     if (typeof window.carregarDadosSkills === 'function') {
         await window.carregarDadosSkills();
     }
 
-    // Configura o Viewport (A janela de 640x480 por onde vemos o jogo)
+    // Calcula escala máxima proporcionalmente ao tamanho da tela
+    const baseWidth = 640;   // Viewport base
+    const baseHeight = 480;
+    const maxWidth = window.innerWidth;
+    const maxHeight = window.innerHeight;
+    
+    // Qual a maior escala que cabe em cada dimensão
+    const scaleX = Math.floor(maxWidth / baseWidth);
+    const scaleY = Math.floor(maxHeight / baseHeight);
+    const maxScale = Math.min(scaleX, scaleY, 4); // Limita a 4x para melhor proporção
+    
+    // Dimensões finais do viewport
+    const viewportWidth = baseWidth * maxScale;
+    const viewportHeight = baseHeight * maxScale;
+    
+    // Nota: Não aplicamos zoom aqui, apenas aumentamos o viewport e o mundo proporcionalmente
+    window.escalaAtual = config.escalaPalco; // Mantém zoom conforme config
+
+    // Configura viewport com tamanho máximo proporcionalmente
     const container = document.getElementById('jogo-container');
     if (container) {
-        container.style.width = '640px';
-        container.style.height = '480px';
+        container.style.width = viewportWidth + 'px';
+        container.style.height = viewportHeight + 'px';
         container.style.overflow = 'hidden';
         container.style.position = 'relative';
         container.style.display = 'block';
+        container.style.margin = '0 auto';
+        container.style.top = '0';
+        container.style.left = '0';
         
-        // Centralização horizontal e ajuste de topo
-        container.style.margin = '0 auto'; // Centraliza horizontalmente
-        container.style.top = '0';         // Garante que não haja deslocamento vertical relativo
-        container.style.left = '0';        // Garante que não haja deslocamento horizontal relativo
-        
-        // ⭐ Aplica a escala do palco conforme configuração
-        const escala = config.escalaPalco || 1;
-        window.escalaAtual = escala; // Armazena a escala global
-        if (escala !== 1) {
-            // Calcula deslocamento para centralizar ao fazer zoom
-            const deslocamento = ((1 - escala) / 2) * 100;
-            container.style.transform = `translate(${deslocamento}%, ${deslocamento}%) scale(${escala})`;
-            container.style.transformOrigin = 'center';
-            console.log(`[ESCALA] Aplicada: ${escala}x`);
-        }
-    } else {
-        const stage = document.getElementById('game-stage');
-        console.error("[DEBUG VIEWPORT] ERRO CRÍTICO: #jogo-container não encontrado no HTML!");
-        if (stage) {
-            console.log("[DEBUG VIEWPORT] Dica: O #game-stage existe.");
-            console.log("[DEBUG VIEWPORT] O pai do #game-stage atualmente é:", stage.parentElement.tagName, "ID:", stage.parentElement.id || "Nenhum");
-            console.log("[DEBUG VIEWPORT] Para a câmera funcionar, o pai do #game-stage DEVE ter o ID 'jogo-container'.");
-        }
+        // Armazena a escala automática para uso em carregarFase
+        window.autoScaleMultiplier = maxScale;
     }
 
-    // Inicia os sistemas básicos (apenas uma vez)
+    // Inicializa sistemas de movimento, IA e renderização
     await iniciarMovimentacao(
-        'player', 
-        config.velocidadePlayer || 4, 
-        '../../assets/personagem/Personagem_parado.png', 
-        '../../assets/personagem/Personagem_andando.png', 
+        'player',
+        config.velocidadePlayer || 4,
+        '../../assets/personagem/Personagem_parado.png',
+        '../../assets/personagem/Personagem_andando.png',
         '../../assets/personagem/personagem_chute2.png',
         '../../assets/personagem/personagem_no_ar.png'
     );
     await iniciarIAInimigos(1, '../../assets/personagem/Personagem_parado.png', '../../assets/personagem/Personagem_andando.png', '../../assets/personagem/personagem_chute2.png');
     
-    // Carrega a fase atual e abre o menu de pause interativo imediatamente
+    // Carrega fase e abre menu inicial
     await carregarFase(window.niveis[window.nivelAtual]);
     if (typeof window.togglePauseMenu === 'function') {
         window.togglePauseMenu();

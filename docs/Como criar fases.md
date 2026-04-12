@@ -36,68 +36,62 @@ Crie um novo arquivo (ex: `fase4.json`) com a seguinte estrutura:
   "plataformas": [
     "a1", "a2", "a3", "b5", "b6", "c8", "a15", "a16", "a17", "a18", "a19", "a20"
   ],
-  "plataformasNeve": ["a10", "a11", "b12"],
-  "inimigos0": ["b6"],
-  "inimigos1": ["b15"],
-  "inimigos2": ["c8"],
-  "inimigos3": ["b17"],
-  "itens": [
-    { "tipo": "jetpack", "pos": "d5" }
+  "inimigos0": [
+    { "coord": "b6", "direcao": "d", "tipo": 0 }
   ],
-  "inimigoAleatorio": [2, 1]
+  "inimigos1": [
+    { "coord": "b15", "direcao": "e", "tipo": 1 }
+  ]
 }
 ```
 
-### Detalhes das Chaves:
+### Detalhes das Chaves Disponíveis:
 
-| Chave | Descrição |
-| :--- | :--- |
-| `posicaoInicialJogador` | Coordenada onde o jogador será posicionado ao iniciar ou reiniciar a fase. |
-| `objetivo` | Coordenada do item de vitória (bandeira ou portal) que finaliza a fase. |
-| `plataformas` | Lista de coordenadas que representam blocos sólidos no cenário. |
-| `plataformasNeve` | Lista de coordenadas para blocos de gelo/neve (mesmo comportamento do chão comum). |
-| `inimigos0` | Lista de coordenadas para inimigos básicos (ataque corpo a corpo, sem armas). |
-| `inimigos1` | Lista de coordenadas para inimigos equipados com revólver (atiram à distância). |
-| `inimigos2` | Lista de coordenadas para inimigos com escudo (mais resistentes, dropam proteção ao serem derrotados). |
-| `inimigos3` | Lista de coordenadas para inimigos com botas (mais rápidos e com pulo aprimorado). |
-| `inimigos4` | Lista de coordenadas para inimigos com jetpack (capazes de voar para perseguir o jogador). |
-| `inimigos5` | Lista de coordenadas para o Alvo de Feno (usado para treino, reseta a posição ao ser destruído). |
-| `inimigos6` | Lista de coordenadas para inimigos com garra (capazes de puxar o jogador ou itens). |
-| `itens` | Lista de objetos `{ "tipo": "...", "pos": "..." }` para itens fixos no mapa. Tipos disponíveis: `"escudo"`, `"bota"`, `"revolver"`, `"jetpack"`, `"garra"`, `"restauracao"`. |
-| `inimigoAleatorio` | Array `[Dificuldade, Equipamento]` para configurar o spawn de inimigos aleatórios. `Dificuldade` (1-3) afeta a frequência de spawn. `Equipamento` (0=nenhum, 1=arma, 2=escudo, 3=bota, 4=jetpack, 6=garra) define o item inicial do inimigo. |
+| Chave | Descrição | Exemplo |
+| :--- | :--- | :--- |
+| `posicaoInicialJogador` | Coordenada onde o jogador inicia a fase | `"b2"` |
+| `objetivo` | Coordenada do item de vitória que finaliza a fase | `"c18"` |
+| `plataformas` | Lista de coordenadas de blocos sólidos | `["a1", "a2", "b5", "b6"]` |
+| `inimigos0` | Lista de inimigos tipo 0 (básico, comportamento simples) | `[{"coord": "b6", "direcao": "d", "tipo": 0}]` |
+| `inimigos1` | Lista de inimigos tipo 1 (comportamento intermediário) | `[{"coord": "b15", "direcao": "e", "tipo": 1}]` |
+
+#### Campo de Inimigo (Objeto)
+```json
+{
+  "coord": "b6",        // Coordenada de spawn
+  "direcao": "d",       // Direção inicial: "d"=direita, "e"=esquerda
+  "tipo": 0             // 0=básico, 1=intermediário
+}
+```
 
 ---
 
 ## 3. Como Adicionar a Fase ao Jogo
 
-Para que o jogo reconheça a sua nova fase, você precisa adicioná-la à lista de níveis no arquivo `inicializador.js`.
+Para que o jogo reconheça a sua nova fase, você precisa adicioná-la ao arquivo de fases em `config/fases/`.
 
-1. Abra o arquivo `inicializador.js`.
-2. Localize a variável `window.niveis`.
-3. Adicione o nome do seu arquivo à lista:
+1. Crie o arquivo `faseX.json` em `config/fases/`
+2. O jogo carrega automaticamente todas as fases na ordem alfabética
+3. Use o Debug Key (4) para pular entre fases
 
-```javascript
-const listaArquivosFases = ["fase1.json", "fase2.json", "fase3.json", "fase4.json"];
-window.niveis = listaArquivosFases.map(nome => `fases/${nome}`);
-```
+**Nota:** O arquivo `src/core/inicial.js` carrega as fases dinamicamente do diretório `config/fases/`.
 
 ---
 
 ## 4. Dicas de Design
 
-1.  **Buracos:** Para criar um buraco no cenário, simplesmente omita as coordenadas correspondentes na lista de `plataformas` (ex: pular de `a5` para `a8` cria um buraco entre `a6` e `a7`).
-2.  **Posicionamento de Inimigos:** Inimigos devem ser posicionados pelo menos uma linha (letra) acima da plataforma onde se encontram (ex: inimigo em `b10` para plataforma em `a10`).
-3.  **Curva de Dificuldade:** Inicie as fases com `inimigos0` e introduza gradualmente os tipos `1`, `2`, `3` e `4` à medida que o jogador se familiariza com as mecânicas.
-4.  **Estratégia de Itens:** Posicione itens de forma estratégica. Por exemplo, uma `garra` pode ser útil para alcançar itens em plataformas isoladas ou puxar inimigos para longe de perigos.
+1. **Buracos:** Para criar um buraco no cenário, simplesmente omita as coordenadas correspondentes na lista de `plataformas` (ex: pular de `a5` para `a8` cria um buraco entre `a6` e `a7`).
+2. **Posicionamento de Inimigos:** Inimigos devem ser posicionados pelo menos uma linha (letra) acima da plataforma onde se encontram (ex: inimigo em `b10` para plataforma em `a10`).
+3. **Curva de Dificuldade:** Comece com `inimigos0` e introduza gradualmente `inimigos1` à medida que o jogador se familiariza com as mecânicas.
 
 ---
 
-## 5. Limites do Palco
+## 5. Visão Geral do Sistema de Coordenadas
 
-Por padrão, o palco configurado é de **640x480 pixels**.
-*   Isso corresponde a aproximadamente **20 colunas** (de 1 a 20) e **15 linhas** (de 'a' a 'o') de tiles de 32x32 pixels.
-*   O jogo atualmente utiliza uma câmera estática por fase. Se o jogador se mover além dos limites visíveis, o cenário não será renderizado.
-```
+O palco padrão é **640x480 pixels**.
+- Corresponde a aproximadamente **20 colunas** (1 a 20) e **15 linhas** (a a o) de tiles 32x32px
+- **Fases dinâmicas:** Você pode criar fases maiores definindo a propriedade `proporcao` no JSON (ex: `"proporcao": "2x2"` para 1280x960px)
+- A **câmera inteligente** ajusta automaticamente: em fases pequenas, fica fixa; em fases grandes, segue o jogador```
 
 ### Conferência rápida:
 *   **Coordenadas:** Expliquei o sistema `letra + número`, que é o que as funções `gridParaPixels` e `coordenadaParaPosicao` nos seus arquivos esperam.

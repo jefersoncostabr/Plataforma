@@ -21,30 +21,26 @@ body {
 }
 
 #jogo-container {
-    width: 640px;
-    height: 480px;
+    width: 100%;
+    height: 100%;
     background-color: #222;
-    border: 4px solid #fff;
+    border: none;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    box-shadow: none;
     flex-shrink: 0;
-    transition:
-        width 0.3s ease,
-        height 0.3s ease,
-        transform 0.3s ease;
 }
 
 #game-stage {
     position: absolute;
-    top: 0px;
-    left: 0;
-    right: auto;
-    bottom: auto;
-    width: 640px;
-    height: 480px;
-    background-color: #555;
-    overflow: hidden;
+    /* top: 0px;
+    left: 0; */
+    /* right: auto;
+    bottom: auto; */
+    /* width: 640px;
+    height: 480px; */
+    /* background-color: #555;
+    overflow: hidden; */
     /* Largura e altura também podem ser definidas dinamicamente pelo inicializador.js */
 }
 

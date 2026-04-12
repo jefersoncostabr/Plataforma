@@ -1,1 +1,0 @@
-// Removido a pedido do usuário.

@@ -1,6 +1,43 @@
-# Plano de Implementação: Câmera e Mundos Dinâmicos
+# 🎬 Câmera e Mundos Dinâmicos (IMPLEMENTADO ✅)
 
-Este documento descreve as etapas para permitir que as fases sejam maiores que o palco de 640x480, utilizando um sistema de câmera deslizante.
+**Status:** COMPLETO - O sistema de câmera foi implementado em `src/visual/camera.js`
+
+> Este documento serve como **referência histórica** das etapas de implementação. A câmera dinâmica já está funcional no projeto atual.
+
+## O que Foi Implementado
+
+- ✅ **Sistema de Câmera Dinâmica**: Fases maiores que 640x480 agora funcionam com câmera deslizante
+- ✅ **Smart Camera**: A câmera só se move se a fase for MAIOR que o viewport (640x480)
+- ✅ **Transform-based**: Usa `transform: translate()` para performance
+- ✅ **Clamping**: Impede a câmera de mostrar áreas vazias fora dos limites do mundo
+- ✅ **Escala Respeitada**: Funciona corretamente com escalaPalco (zoom)
+
+## Alterações Principais Implementadas
+
+### 1. Viewport e Mundo (CSS)
+- `#jogo-container`: viewport fixo (640x480px) com `overflow: hidden`
+- `#game-stage`: redimensiona dinamicamente com tamanho da fase
+
+### 2. Função `atualizarCamera()` (src/visual/camera.js)
+```javascript
+window.atualizarCamera = function(alvoX, alvoY, mundoW, mundoH)
+// Parâmetros:
+// - alvoX, alvoY: posição do jugador
+// - mundoW, mundoH: tamanho da fase
+// 
+// Comportamento:
+// - Se fase cabe na viewport: câmera fixa em (0,0)
+// - Se fase é grande: câmera segue o jogador com clamping
+```
+
+### 3. Ajustes em `src/core/inicial.js` (carregarFase)
+- Lê propriedade `proporcao` de fases JSON (ex: "1x1", "2x2")
+- Calcula e aplica dimensões dinâmicas ao stage
+- Inicializa câmera para cada fase
+
+---
+
+## Referência Técnica Original (Planejado e Implementado)
 
 ## 1. Alteração na Estrutura dos Níveis (`.json`)
 Cada arquivo de fase passará a ter uma propriedade `proporcao`.

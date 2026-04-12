@@ -13,7 +13,15 @@ window.resetarCamera = function() {
     window.cameraX = 0;
     window.cameraY = 0;
     const stage = document.getElementById('game-stage');
-    if (stage) stage.style.transform = `translate(0px, 0px)`;
+    if (stage) {
+        const autoScale = window.autoScaleMultiplier || 1;
+        if (autoScale !== 1) {
+            stage.style.transform = `translate(0px, 0px) scale(${autoScale})`;
+            stage.style.transformOrigin = 'top left';
+        } else {
+            stage.style.transform = `translate(0px, 0px)`;
+        }
+    }
     console.log("[CÂMERA] Posição resetada para origem");
 };
 
@@ -28,6 +36,7 @@ window.resetarCamera = function() {
  * @param {number} mundoH - Altura total do mundo.
  */
 window.atualizarCamera = function(alvoX, alvoY, mundoW, mundoH) {
+    // Viewport base (não é ampliado, apenas o viewport visual é maior)
     const VIEWPORT_W = 640;
     const VIEWPORT_H = 480;
     
@@ -36,7 +45,7 @@ window.atualizarCamera = function(alvoX, alvoY, mundoW, mundoH) {
     const viewportW_efetiva = VIEWPORT_W / escala;
     const viewportH_efetiva = VIEWPORT_H / escala;
 
-    // ⭐ Se a fase é pequena (cabe toda na viewport ORIGINAL), não move a câmera
+    // ⭐ Se a fase é pequena (cabe toda na viewport), não move a câmera
     if (mundoW <= VIEWPORT_W && mundoH <= VIEWPORT_H) {
         // Fase cabe toda na tela - câmera fixa no (0, 0)
         window.cameraX = 0;
@@ -59,7 +68,15 @@ window.atualizarCamera = function(alvoX, alvoY, mundoW, mundoH) {
         // Arredondamos os valores para evitar que os sprites fiquem "embaçados" em sub-pixels
         const x = Math.round(window.cameraX);
         const y = Math.round(window.cameraY);
-        stage.style.transform = `translate(${-x}px, ${y}px)`;
+        
+        // Combina translate com scale (se houver escala automática)
+        const autoScale = window.autoScaleMultiplier || 1;
+        if (autoScale !== 1) {
+            stage.style.transform = `translate(${-x}px, ${y}px) scale(${autoScale})`;
+            stage.style.transformOrigin = 'top left';
+        } else {
+            stage.style.transform = `translate(${-x}px, ${y}px)`;
+        }
     } else {
         console.error("[DEBUG CAMERA] Erro: #game-stage não encontrado para aplicar a câmera!");
     }
