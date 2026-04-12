@@ -3,11 +3,17 @@
  * Deve ser chamada dentro do loop principal (requestAnimationFrame).
  */
 function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spriteNoAr) {
+    //console.log('[ANIMACAO] Função chamada - tempo chute:', controle.tempoChute, 'chutando:', controle.chutando);
+    
     // Se o personagem estiver chutando, não altera o sprite aqui para evitar conflitos
-    if (controle.chutando || (controle.tempoChute > 0)) return;
+    if (controle.chutando || (controle.tempoChute > 0)) {
+        //console.log('[ANIMACAO] ❌ Ignorando - personagem chutando');
+        return;
+    }
 
     // Inicializa contadores se não existirem
     if (controle.contadorAnimacao === undefined) {
+        //console.log('[ANIMACAO] ⚙️ Inicializando contadores de animação');
         controle.contadorAnimacao = 0;
         controle.frameAtual = 0;
     }
@@ -20,10 +26,12 @@ function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spri
         if (controle.contadorAnimacao >= 10) {
             controle.frameAtual = controle.frameAtual === 0 ? 1 : 0;
             elemento.src = controle.frameAtual === 0 ? spriteParado : spriteAndando;
+            //console.log('[ANIMACAO] 🔄 Frame trocado para:', elemento.src);
             controle.contadorAnimacao = 0;
         }
     } else if (!controle.noChao && spriteNoAr) {
         // Se estiver no ar, usa o sprite específico para pulo/queda
+        //console.log('[ANIMACAO] 🚀 No ar - usando sprite:', spriteNoAr);
         elemento.src = spriteNoAr;
         controle.contadorAnimacao = 0;
         controle.frameAtual = 0;

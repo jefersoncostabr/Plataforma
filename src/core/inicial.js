@@ -14,6 +14,85 @@ window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro
 window.mundoLargura = 640;
 window.mundoAltura = 480;
 
+/**
+ * Debug: Mostra informações detalhadas sobre o #game-stage no console
+ */
+function debugGameStage(label = "Debug #game-stage") {
+    const stage = document.getElementById('game-stage');
+    const container = document.getElementById('jogo-container');
+    
+    if (!stage) {
+        console.error("❌ #game-stage não encontrado no DOM!");
+        return;
+    }
+    
+    const rect = stage.getBoundingClientRect();
+    const compStyles = window.getComputedStyle(stage);
+    const containerRect = container ? container.getBoundingClientRect() : null;
+    const proporcaoAltura = window.mundoAltura / 480;
+    const proporcaoLargura = window.mundoLargura / 640;
+    
+    console.group(`🎮 ${label}`);
+    
+    console.log("%c📍 POSIÇÃO", "color: #00ff00; font-weight: bold;");
+    console.table({
+        "Top": `${rect.top}px`,
+        "Left": `${rect.left}px`,
+        "Right": `${rect.right}px`,
+        "Bottom": `${rect.bottom}px`
+    });
+    
+    console.log("%c📏 DIMENSÕES", "color: #00ffff; font-weight: bold;");
+    console.table({
+        "Largura (stage)": `${rect.width}px (${stage.style.width} inline)`,
+        "Altura (stage)": `${rect.height}px (${stage.style.height} inline)`,
+        "Largura (container/viewport)": containerRect ? `${containerRect.width}px` : "N/A",
+        "Altura (container/viewport)": containerRect ? `${containerRect.height}px` : "N/A"
+    });
+    
+    console.log("%c🗺️ PROPORÇÃO DA FASE", "color: #ffff00; font-weight: bold;");
+    console.log(
+        `Mundo: ${proporcaoLargura}x${proporcaoAltura} (${window.mundoLargura}x${window.mundoAltura}px)\n` +
+        `➜ Container é uma "câmera" (viewport) que recorta o mundo via overflow:hidden`
+    );
+    
+    console.log("%c⚙️ ESTILOS COMPUTADOS", "color: #ffaa00; font-weight: bold;");
+    console.table({
+        "Position": compStyles.position,
+        "Display": compStyles.display,
+        "Top": compStyles.top,
+        "Left": compStyles.left,
+        "Right": compStyles.right,
+        "Bottom": compStyles.bottom,
+        "Background": compStyles.backgroundColor,
+        "Overflow": compStyles.overflow,
+        "Z-index": compStyles.zIndex
+    });
+    
+    console.log("%c📦 BOX MODEL", "color: #ff6600; font-weight: bold;");
+    console.table({
+        "Margin": `${compStyles.margin}`,
+        "Padding": `${compStyles.padding}`,
+        "Border": `${compStyles.border}`,
+        "Box-sizing": compStyles.boxSizing
+    });
+    
+    console.log("%c🌳 ELEMENTO", "color: #aa00ff; font-weight: bold;");
+    console.log(stage);
+    console.groupEnd();
+}
+
+// Chama debug automaticamente após carregamento da página
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => debugGameStage("Inicial"), 100);
+    
+    // Mensagem no console para o desenvolvedor
+    console.log(
+        "%c💡 DICA: Use debugGameStage() no console para ver detalhes do #game-stage a qualquer momento!",
+        "color: #ff00ff; font-weight: bold; font-size: 12px; background: #1a1a1a; padding: 8px;"
+    );
+});
+
 async function carregarFase(nomeArquivo) {
     // console.log(`Carregando nível: ${nomeArquivo}`);
     
@@ -149,6 +228,9 @@ async function carregarFase(nomeArquivo) {
     if (palcoElemento) {
         palcoElemento.style.display = 'block';
     }
+
+    // Debug: Mostra informações sobre o game-stage após a fase ser carregada
+    setTimeout(() => debugGameStage(`Fase ${window.nivelAtual + 1} Carregada`), 50);
 
     // 3. Posiciona o jogador
     if (window.playerControle) {
@@ -373,9 +455,21 @@ async function iniciarJogo() {
         container.style.position = 'relative';
         container.style.display = 'block';
         
-        if (config.escalaPalco) {
-            container.style.transform = `scale(${config.escalaPalco})`;
-            container.style.transformOrigin = 'top left';
+        // Centralização horizontal e ajuste de topo
+        container.style.margin = '0 auto'; // Centraliza horizontalmente
+        container.style.top = '0';         // Garante que não haja deslocamento vertical relativo
+        container.style.left = '0';        // Garante que não haja deslocamento horizontal relativo
+        
+        if (config.escalaPalco && config.escalaPalco !== 1) {
+            // Solução: Escalar a partir do CENTER com compensação de translate
+            // Fórmula: deslocamento = ((1 - escala) / 2) * 100%
+            // Exemplo: escala 1.5 → deslocamento -25% (cresce do centro, mantém visual centralizado)
+            const escala = config.escalaPalco;
+            const deslocamento = ((1 - escala) / 2) * 100;
+            container.style.transform = `translate(${deslocamento}%, ${deslocamento}%) scale(${escala})`;
+            container.style.transformOrigin = 'center';
+            
+            console.log(`[ESCALA PALCO] ${escala}x aplicada com compensação ${deslocamento}% ✓`);
         }
     } else {
         const stage = document.getElementById('game-stage');
@@ -411,4 +505,3 @@ window.addEventListener('keydown', (e) => {
         if (typeof window.proximoNivel === 'function') window.proximoNivel();
     }
 });
-

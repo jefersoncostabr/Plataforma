@@ -2168,7 +2168,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // Aplica rotação de 5 graus se estiver no estado de recuo (inclinando para cima)
         const direcaoFator = controle.direcao === 'e' ? 1 : -1;
         const emRecuo = armaElemento.dataset.recoil === 'true';
-        const anguloRecuo = emRecuo ? (5 * direcaoFator) : 0;
+        const anguloRecuo = emRecuo ? (15 * direcaoFator) : 0;
         armaElemento.style.transform = (controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)') + ` rotate(${anguloRecuo}deg)`;
 
         // Atualiza o sprite da arma baseado na munição
