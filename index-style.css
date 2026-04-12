@@ -1,0 +1,133 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #333;
+    overflow: hidden;
+}
+
+#jogo-container {
+    width: 640px;
+    height: 480px;
+    background-color: #222;
+    border: 4px solid #fff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+    transition:
+        width 0.3s ease,
+        height 0.3s ease,
+        transform 0.3s ease;
+}
+
+#game-stage {
+    position: absolute;
+    top: 0px;
+    left: 0;
+    right: auto;
+    bottom: auto;
+    width: 640px;
+    height: 480px;
+    background-color: #555;
+    overflow: hidden;
+    /* Largura e altura também podem ser definidas dinamicamente pelo inicializador.js */
+}
+
+.character {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    /* Removido o transform fixo para o JS controlar a direção */
+    width: 32px; /* Tamanho do personagem */
+    height: 32px; /* Tamanho do personagem */
+    image-rendering: pixelated; /* Garante que o pixel art não seja suavizado */
+}
+
+/* Estilos para Layers */
+.game-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Camada de fundo */
+#layer-fundo {
+    z-index: 0;
+    background-color: rgba(100, 150, 200, 0.5);
+}
+
+/* Camada de plataformas */
+#layer-plataformas {
+    z-index: 5;
+}
+
+/* Camada de decorações */
+#layer-decoracoes {
+    z-index: 10;
+}
+
+/* Camada de inimigos */
+#layer-inimigos {
+    z-index: 15;
+}
+
+/* Camada do jogador */
+#layer-jogador {
+    z-index: 20;
+    pointer-events: auto; /* Permitir interação com o jogador */
+}
+
+/* Camada de itens */
+#layer-itens {
+    z-index: 23;
+}
+
+/* Camada de projéteis */
+#layer-projeteis {
+    z-index: 25;
+}
+
+/* Camada de efeitos visuais */
+#layer-efeitos {
+    z-index: 30;
+    pointer-events: none;
+}
+
+/* Camada de UI no palco */
+#layer-ui {
+    z-index: 50;
+    pointer-events: auto;
+}
+
+/* Estilos para o HUD da Skill Visão */
+.hud-circle {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid #000;
+}
+
+.hud-square {
+    width: 10px;
+    height: 10px;
+    background-color: #fff;
+    border: 1px solid #000;
+}

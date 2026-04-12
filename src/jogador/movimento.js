@@ -52,13 +52,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             height: ${config.PROJETIL_ALTURA}px;
             left: ${xPartida}px;
             bottom: ${yPartida}px;
-            z-index: 15;
             image-rendering: pixelated;
             transform: translateY(0) rotate(-90deg);
             transition: transform 1.0s linear;
         `;
         
-        elemento.parentElement.appendChild(sinalizador);
+        adicionarAoLayer(sinalizador, window.LAYERS.EFEITOS);
 
         // Inicia a subida usando transform para fluidez via GPU
         requestAnimationFrame(() => {
@@ -78,13 +77,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             explosao.style.height = '32px';
             explosao.style.left = (posX - 12) + 'px';
             explosao.style.bottom = (posY - 12) + 'px';
-            explosao.style.zIndex = '16';
             explosao.style.imageRendering = 'pixelated';
             explosao.style.pointerEvents = 'none';
             explosao.style.transform = 'scale(0.1)';
             explosao.style.transition = 'transform 0.8s ease-out, opacity 0.8s ease-out';
             
-            elemento.parentElement.appendChild(explosao);
+            adicionarAoLayer(explosao, window.LAYERS.EFEITOS);
 
             // Double requestAnimationFrame garante que o navegador processe o scale(0.1) antes de aplicar o scale(4)
             requestAnimationFrame(() => {
@@ -117,20 +115,17 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         airdropImg.style.height = '32px';
         airdropImg.style.left = xFinal + 'px';
         airdropImg.style.bottom = yFinal + 'px';
-        airdropImg.style.zIndex = '5';
         airdropImg.style.imageRendering = 'pixelated';
         
-        if (elemento.parentElement) {
-            elemento.parentElement.appendChild(airdropImg);
-            window.itensColetaveis.push({
-                x: xFinal,
-                y: yFinal,
-                elemento: airdropImg,
-                velocidadeY: 0, // Começa parado e a gravidade configurada assume
-                tipo: 'airdrop'
-            });
-            console.log(`AirDrop: Suprimentos detectados na coluna ${colAleatoria + 1}!`);
-        }
+        adicionarAoLayer(airdropImg, window.LAYERS.ITENS);
+        window.itensColetaveis.push({
+            x: xFinal,
+            y: yFinal,
+            elemento: airdropImg,
+            velocidadeY: 0, // Começa parado e a gravidade configurada assume
+            tipo: 'airdrop'
+        });
+        console.log(`AirDrop: Suprimentos detectados na coluna ${colAleatoria + 1}!`);
     }, tempoEspera);
 }
 
@@ -180,9 +175,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         itemImg.style.position = 'absolute';
         itemImg.style.width = '32px';
         itemImg.style.height = '32px';
-        itemImg.style.zIndex = '3';
         itemImg.style.imageRendering = 'pixelated';
-        elemento.parentElement.appendChild(itemImg);
+        adicionarAoLayer(itemImg, window.LAYERS.ITENS);
 
         // Posicionamento: 2 blocos (64px) à frente
         const direcaoFace = controle.direcao === 'd' ? 1 : -1;
@@ -216,9 +210,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             itemImg.style.position = 'absolute';
             itemImg.style.width = '32px';
             itemImg.style.height = '32px';
-            itemImg.style.zIndex = '3';
             itemImg.style.imageRendering = 'pixelated';
-            elemento.parentElement.appendChild(itemImg);
+            adicionarAoLayer(itemImg, window.LAYERS.ITENS);
 
             let dropX = inimigo.x;
             let tentativa = 0;
@@ -543,9 +536,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             itemImg.style.left = pos.x + 'px';
             itemImg.style.bottom = pos.y + 'px';
             // console.log(`resetarItens: Tentando adicionar item ${dado.tipo} em x:${pos.x}, y:${pos.y} com src:${itemImg.src}`);
-            itemImg.style.zIndex = '3';
             itemImg.style.imageRendering = 'pixelated';
-            palco.appendChild(itemImg);
+            adicionarAoLayer(itemImg, window.LAYERS.ITENS);
 
             window.itensColetaveis.push({
                 x: pos.x, y: pos.y,
@@ -1324,12 +1316,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             projElemento.style.position = 'absolute';
             projElemento.style.width = config.PROJETIL_LARGURA + 'px';
             projElemento.style.height = config.PROJETIL_ALTURA + 'px';
-            projElemento.style.zIndex = '10'; // Garante que fique à frente do cenário
             projElemento.style.left = xPartida + 'px';
             projElemento.style.bottom = yPartida + 'px';
             projElemento.style.imageRendering = 'pixelated';
             projElemento.style.pointerEvents = 'none'; // Não interfere com cliques
-            elemento.parentElement.appendChild(projElemento);
+            adicionarAoLayer(projElemento, window.LAYERS.PROJETEIS);
 
             window.projeteis.push({
                 x: xPartida,
@@ -1620,8 +1611,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             impacto.style.position = 'absolute';
             impacto.style.width = '64px'; impacto.style.height = '32px';
             impacto.style.left = (ctrl.x - 16) + 'px'; impacto.style.bottom = ctrl.y + 'px';
-            impacto.style.zIndex = '11'; impacto.style.imageRendering = 'pixelated';
-            elemento.parentElement.appendChild(impacto);
+            impacto.style.imageRendering = 'pixelated';
+            adicionarAoLayer(impacto, window.LAYERS.EFEITOS);
             requestAnimationFrame(() => { impacto.style.transform = 'scale(.2)'; impacto.style.opacity = '0'; });
             setTimeout(() => impacto.remove(), 400);
         }

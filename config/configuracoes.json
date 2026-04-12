@@ -76,7 +76,7 @@
     "jetpackDuracaoVoo": 400,
     "jetpackCooldown": 180,
     "faseInicial": 4,
-    "escalaPalco": 1,
+    "escalaPalco": 1.5,
     "tempoColetaItem": 100,
     "tempoColetaAirdrop": 100,
     "airdrop1": {

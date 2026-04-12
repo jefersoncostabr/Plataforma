@@ -44,9 +44,8 @@ function criarInimigo(idPalco, imagemPath, coord, direcao = 'e', tipo = 1) {
     inimigoImg.style.width = tamanhoTile + 'px';
     inimigoImg.style.height = tamanhoTile + 'px';
     inimigoImg.style.imageRendering = 'pixelated';
-    inimigoImg.style.zIndex = '4';
     inimigoImg.style.transform = direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
-    palco.appendChild(inimigoImg);
+    adicionarAoLayer(inimigoImg, window.LAYERS.INIMIGOS);
 
     // Registra o inimigo para detecção de colisão (inclui física vertical)
     window.inimigos.push({

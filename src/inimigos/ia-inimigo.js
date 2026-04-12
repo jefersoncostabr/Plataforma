@@ -945,11 +945,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         projElemento.style.position = 'absolute';
                         projElemento.style.width = config.PROJETIL_LARGURA + 'px';
                         projElemento.style.height = config.PROJETIL_ALTURA + 'px';
-                        projElemento.style.zIndex = '10';
                         projElemento.style.left = xPartida + 'px';
                         projElemento.style.bottom = yPartida + 'px';
                         projElemento.style.imageRendering = 'pixelated';
-                        inimigo.elemento.parentElement.appendChild(projElemento);
+                        adicionarAoLayer(projElemento, window.LAYERS.PROJETEIS);
 
                         window.projeteis.push({
                             x: xPartida,

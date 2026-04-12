@@ -6,8 +6,8 @@
  * @param {number} larguraPalco - Largura total do palco (padrão 640).
  */
 function renderizarChao(idPalco, imagemPath, larguraPalco = 640) {
-    const palco = document.getElementById(idPalco);
-    if (!palco) return;
+    const layerPlataformas = obterLayer(window.LAYERS.PLATAFORMAS);
+    if (!layerPlataformas) return;
 
     const tamanhoTile = 32;
     const quantidade = larguraPalco / tamanhoTile;
@@ -21,7 +21,7 @@ function renderizarChao(idPalco, imagemPath, larguraPalco = 640) {
         tile.style.width = tamanhoTile + 'px';
         tile.style.height = tamanhoTile + 'px';
         tile.style.imageRendering = 'pixelated';
-        palco.appendChild(tile);
+        adicionarAoLayer(tile, window.LAYERS.PLATAFORMAS);
     }
 }
 
@@ -29,12 +29,8 @@ function renderizarChao(idPalco, imagemPath, larguraPalco = 640) {
  * Remove todos os elementos de cenário e inimigos do container.
  */
 function limparCenario() {
-    const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
-    if (!palco) return;
-    
-    // 1. Remove fisicamente todos os elementos exceto o personagem e seus acessórios
-    const elementosParaRemover = palco.querySelectorAll('img:not(#player):not(#player-weapon):not(#player-shield):not(#player-boots):not(#player-parachute):not(#player-jetpack):not(#player-jet-fire):not(#player-claw):not(.player-claw-arm)');
-    elementosParaRemover.forEach(el => el.remove());
+    // 1. Limpa os layers (exceto o jogador)
+    limparTodosLayers([window.LAYERS.JOGADOR]);
     
     // 2. Limpa as referências lógicas (FUNDAMENTAL PARA PERFORMANCE)
     // Se não limparmos esses arrays, o loop 'atualizar' continua processando objetos fantasmas
@@ -44,7 +40,8 @@ function limparCenario() {
     window.objetivoData = null;
 
     // 3. Reseta filtros de CSS que podem estar pesando na GPU (como blur ou grayscale)
-    palco.style.filter = 'none';
+    const stage = document.getElementById('game-stage');
+    if (stage) stage.style.filter = 'none';
 }
 
 /**
@@ -56,8 +53,8 @@ function limparCenario() {
  * @param {Object} plataformaObj - Objeto contendo coordenadas como chaves (ex: {"d10": true}).
  */
 function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
-    const palco = document.getElementById(idPalco);
-    if (!palco || !plataformaData) return;
+    const layerPlataformas = obterLayer(window.LAYERS.PLATAFORMAS);
+    if (!layerPlataformas || !plataformaData) return;
 
     const tamanhoTile = 32;
     const coordenadas = Array.isArray(plataformaData)
@@ -87,7 +84,7 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         tile.style.width = tamanhoTile + 'px';
         tile.style.height = tamanhoTile + 'px';
         tile.style.imageRendering = 'pixelated';
-        palco.appendChild(tile);
+        adicionarAoLayer(tile, window.LAYERS.PLATAFORMAS);
     });
 
     //console.log('Plataformas carregadas:', window.plataformas);
@@ -128,8 +125,8 @@ function coordenadaParaGrid(x, y, tileSize = 32) {
  * @param {string} coord - Coordenada (ex: "f19").
  */
 function renderizarObjetivo(idPalco, imagemPath, coord) {
-    const palco = document.getElementById(idPalco);
-    if (!palco) return;
+    const layerUI = obterLayer(window.LAYERS.UI);
+    if (!layerUI) return;
 
     // Limpa espaços e garante minúsculas para processar a coordenada
     const coordLimpa = coord.trim().toLowerCase();
@@ -148,8 +145,7 @@ function renderizarObjetivo(idPalco, imagemPath, coord) {
     objImg.style.width = tamanhoTile + 'px';
     objImg.style.height = tamanhoTile + 'px';
     objImg.style.imageRendering = 'pixelated';
-    objImg.style.zIndex = '5'; // Garante que apareça na frente das plataformas
-    palco.appendChild(objImg);
+    adicionarAoLayer(objImg, window.LAYERS.UI);
 
     // Log de ajuda para verificar se a função rodou
     objImg.onerror = () => console.error(`Erro: Não foi possível carregar a imagem em: ${imagemPath}`);

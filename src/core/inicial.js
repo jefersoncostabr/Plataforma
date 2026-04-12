@@ -14,6 +14,9 @@ window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro
 window.mundoLargura = 640;
 window.mundoAltura = 480;
 
+// ⭐ Escala atual do jogo
+window.escalaAtual = 1;
+
 /**
  * Debug: Mostra informações detalhadas sobre o #game-stage no console
  */
@@ -79,18 +82,14 @@ function debugGameStage(label = "Debug #game-stage") {
     
     console.log("%c🌳 ELEMENTO", "color: #aa00ff; font-weight: bold;");
     console.log(stage);
+    
     console.groupEnd();
 }
 
-// Chama debug automaticamente após carregamento da página
+// Inicialização no carregamento
 document.addEventListener('DOMContentLoaded', () => {
+    // Debug inicial
     setTimeout(() => debugGameStage("Inicial"), 100);
-    
-    // Mensagem no console para o desenvolvedor
-    console.log(
-        "%c💡 DICA: Use debugGameStage() no console para ver detalhes do #game-stage a qualquer momento!",
-        "color: #ff00ff; font-weight: bold; font-size: 12px; background: #1a1a1a; padding: 8px;"
-    );
 });
 
 async function carregarFase(nomeArquivo) {
@@ -141,6 +140,7 @@ async function carregarFase(nomeArquivo) {
     // Ajusta o tamanho do palco para as dimensões do novo mundo
     const gameStage = document.getElementById(idPalco);
     if (gameStage) {
+        // Configura dimensões do stage conforme o tamanho do mundo
         gameStage.style.width = window.mundoLargura + 'px';
         gameStage.style.height = window.mundoAltura + 'px';
     }
@@ -460,16 +460,15 @@ async function iniciarJogo() {
         container.style.top = '0';         // Garante que não haja deslocamento vertical relativo
         container.style.left = '0';        // Garante que não haja deslocamento horizontal relativo
         
-        if (config.escalaPalco && config.escalaPalco !== 1) {
-            // Solução: Escalar a partir do CENTER com compensação de translate
-            // Fórmula: deslocamento = ((1 - escala) / 2) * 100%
-            // Exemplo: escala 1.5 → deslocamento -25% (cresce do centro, mantém visual centralizado)
-            const escala = config.escalaPalco;
+        // ⭐ Aplica a escala do palco conforme configuração
+        const escala = config.escalaPalco || 1;
+        window.escalaAtual = escala; // Armazena a escala global
+        if (escala !== 1) {
+            // Calcula deslocamento para centralizar ao fazer zoom
             const deslocamento = ((1 - escala) / 2) * 100;
             container.style.transform = `translate(${deslocamento}%, ${deslocamento}%) scale(${escala})`;
             container.style.transformOrigin = 'center';
-            
-            console.log(`[ESCALA PALCO] ${escala}x aplicada com compensação ${deslocamento}% ✓`);
+            console.log(`[ESCALA] Aplicada: ${escala}x`);
         }
     } else {
         const stage = document.getElementById('game-stage');

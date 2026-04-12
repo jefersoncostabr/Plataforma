@@ -121,21 +121,26 @@ function handleMenuInput(e) {
 }
 
 function renderMenuUI() {
-    // Tenta encontrar o container principal, ou usa o pai do palco como fallback
-    const container = document.getElementById('jogo-container') || document.getElementById('game-stage')?.parentElement;
+    // ⭐ Tenta adicionar o menu dentro do layer-ui (dentro do container)
+    // Isso faz o menu herdar a escala do jogo
+    let targetLayer = document.getElementById('layer-ui');
     
-    if (!container) {
-        console.error("Menu: Não foi possível encontrar o container do jogo (#jogo-container) para renderizar a interface.");
+    if (!targetLayer) {
+        // Fallback: tenta o container
+        targetLayer = document.getElementById('jogo-container');
+    }
+    
+    if (!targetLayer) {
+        console.error("Menu: Não foi possível encontrar o container ou layer-ui para renderizar a interface.");
         return;
     }
 
-    const rect = container.getBoundingClientRect();
     const overlay = document.createElement('div');
     overlay.id = 'pause-menu-overlay';
     overlay.style = `
-        position: fixed; 
-        top: ${rect.top}px; left: ${rect.left}px; 
-        width: ${rect.width}px; height: ${rect.height}px;
+        position: absolute; 
+        top: 0; left: 0; 
+        width: 640px; height: 480px;
         background: rgba(0, 0, 0, 0.7); z-index: 10000;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         color: white; font-family: 'Segoe UI', Tahoma, sans-serif;
@@ -193,7 +198,7 @@ function renderMenuUI() {
     });
 
     overlay.appendChild(optionsContainer);
-    document.body.appendChild(overlay);
+    targetLayer.appendChild(overlay);
     updateMenuVisuals();
 }
 

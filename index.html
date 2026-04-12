@@ -4,77 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Palco do Jogo</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        html, body {
-            width: 100%;
-            height: 100vh;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #333;
-            overflow: hidden;
-        }
-        #jogo-container {
-            width: 640px;
-            height: 480px;
-            background-color: #222;
-            border: 4px solid #fff;
-            position: relative;
-            overflow: hidden; /* ESSENCIAL: Recorta o que sair dos 640x480 */
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            flex-shrink: 0;
-        }
-        #game-stage {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: auto;
-            bottom: auto;
-            width: 640px;
-            height: 480px;
-            background-color: #555;
-            overflow: hidden;
-            /* Largura e altura também podem ser definidas dinamicamente pelo inicializador.js */
-        }
-        .character {
-            position: absolute;
-            bottom: 0; 
-            left: 0;
-            /* Removido o transform fixo para o JS controlar a direção */
-            width: 32px; /* Tamanho do personagem */
-            height: 32px; /* Tamanho do personagem */
-            image-rendering: pixelated; /* Garante que o pixel art não seja suavizado */
-        }
-        /* Estilos para o HUD da Skill Visão */
-        .hud-circle {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            border: 1px solid #000;
-        }
-        .hud-square {
-            width: 10px;
-            height: 10px;
-            background-color: #fff;
-            border: 1px solid #000;
-        }
-    </style>
+    <link rel="stylesheet" href="index-style.css">
 </head>
 <body>
     <div id="jogo-container">
         <div id="game-stage">
-            <img id="player" class="character" src="assets/personagem/Personagem_parado.png" alt="Personagem">
+            <!-- LAYERS DO JOGO -->
+            <div class="game-layer" id="layer-fundo" data-z-index="0"></div>
+            <div class="game-layer" id="layer-plataformas" data-z-index="5"></div>
+            <div class="game-layer" id="layer-decoracoes" data-z-index="10"></div>
+            <div class="game-layer" id="layer-inimigos" data-z-index="15"></div>
+            <div class="game-layer" id="layer-jogador" data-z-index="20">
+                <img id="player" class="character" src="assets/personagem/Personagem_parado.png" alt="Personagem">
+            </div>
+            <div class="game-layer" id="layer-itens" data-z-index="23"></div>
+            <div class="game-layer" id="layer-projeteis" data-z-index="25"></div>
+            <div class="game-layer" id="layer-efeitos" data-z-index="30"></div>
+            <div class="game-layer" id="layer-ui" data-z-index="50"></div>
         </div>
     </div>
+
+    <!-- Config & Utilities (Devem carregar ANTES dos outros scripts) -->
+    <script src="src/config/constants.js"></script>
+    <script src="src/utils/viewport.js"></script>
+    <script src="src/utils/debug.js"></script>
 
     <!-- Core (Fundamental) -->
     <script src="src/core/inicial.js"></script>
@@ -96,6 +49,7 @@
     <script src="src/skills/skills.js"></script>
 
     <!-- Visual (Rendering) -->
+    <script src="src/visual/layers.js"></script>
     <script src="src/visual/cenario.js"></script>
     <script src="src/visual/camera.js"></script>
     <script src="src/visual/grade-debug.js"></script>
