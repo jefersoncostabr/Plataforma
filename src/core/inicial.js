@@ -4,7 +4,7 @@
 
 
 const listaArquivosFases = ["fase1.json", "fase2.json", "fase3.json", "fase4.json", "fase5.json", "fase6.json", "fase7.json", "fase8.json", "fase9.json"];
-window.niveis = listaArquivosFases.map(nome => `fases/${nome}`);
+window.niveis = listaArquivosFases.map(nome => `config/fases/${nome}`);
 window.nivelAtual = 0;
 window.isTraining = false; // Flag para identificar se o jogador está no modo treino
 window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para inimigo aleatório
@@ -121,25 +121,25 @@ async function carregarFase(nomeArquivo) {
             });
         }
 
-        renderizarPlataformas(idPalco, 'personagem/chao.png', fase.plataformas || []);
+        renderizarPlataformas(idPalco, 'assets/personagem/chao.png', fase.plataformas || []);
         if (fase.plataformasNeve) {
-            renderizarPlataformas(idPalco, 'personagem/chao_neve.png', fase.plataformasNeve);
+            renderizarPlataformas(idPalco, 'assets/personagem/chao_neve.png', fase.plataformasNeve);
         }
         if (fase.plataformasEstacaSup) {
-            renderizarPlataformas(idPalco, 'personagem/estacasup.png', fase.plataformasEstacaSup);
+            renderizarPlataformas(idPalco, 'assets/personagem/estacasup.png', fase.plataformasEstacaSup);
         }
         if (fase.plataformasEstacaDir) {
-            renderizarPlataformas(idPalco, 'personagem/estacadir.png', fase.plataformasEstacaDir);
+            renderizarPlataformas(idPalco, 'assets/personagem/estacadir.png', fase.plataformasEstacaDir);
         }
         if (fase.plataformasEstacaEsq) {
-            renderizarPlataformas(idPalco, 'personagem/estacaesq.png', fase.plataformasEstacaEsq);
+            renderizarPlataformas(idPalco, 'assets/personagem/estacaesq.png', fase.plataformasEstacaEsq);
         }
         if (fase.plataformasEstacaBaixo) {
-            renderizarPlataformas(idPalco, 'personagem/estacasdown.png', fase.plataformasEstacaBaixo);
+            renderizarPlataformas(idPalco, 'assets/personagem/estacasdown.png', fase.plataformasEstacaBaixo);
         }
     }
     if (typeof renderizarObjetivo === 'function') {
-        renderizarObjetivo(idPalco, 'personagem/objetivo.png', fase.objetivo);
+        renderizarObjetivo(idPalco, 'assets/personagem/objetivo.png', fase.objetivo);
     }
 
     // Reseta a posição da câmera para o início da fase
@@ -354,7 +354,7 @@ async function iniciarJogo() {
     window.isFirstStart = true;
 
     // Busca a configuração para saber por qual fase começar
-    const respostaConfig = await fetch('configuracoesGerais.json');
+    const respostaConfig = await fetch('config/configuracoes.json');
     const config = await respostaConfig.json();
     window.config = config; // Torna config global
     window.nivelAtual = (config.faseInicial !== undefined) ? config.faseInicial : 0;
@@ -391,12 +391,12 @@ async function iniciarJogo() {
     await iniciarMovimentacao(
         'player', 
         config.velocidadePlayer || 4, 
-        'personagem/Personagem_parado.png', 
-        'personagem/Personagem_andando.png', 
-        'personagem/personagem_chute2.png',
-        'personagem/personagem_no_ar.png'
+        'assets/personagem/Personagem_parado.png', 
+        'assets/personagem/Personagem_andando.png', 
+        'assets/personagem/personagem_chute2.png',
+        'assets/personagem/personagem_no_ar.png'
     );
-    await iniciarIAInimigos(1, 'personagem/Personagem_parado.png', 'personagem/Personagem_andando.png', 'personagem/personagem_chute2.png');
+    await iniciarIAInimigos(1, 'assets/personagem/Personagem_parado.png', 'assets/personagem/Personagem_andando.png', 'assets/personagem/personagem_chute2.png');
     
     // Carrega a fase atual e abre o menu de pause interativo imediatamente
     await carregarFase(window.niveis[window.nivelAtual]);

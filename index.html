@@ -57,26 +57,38 @@
 <body>
     <div id="jogo-container">
         <div id="game-stage">
-            <img id="player" class="character" src="personagem/Personagem_parado.png" alt="Personagem">
+            <img id="player" class="character" src="assets/personagem/Personagem_parado.png" alt="Personagem">
         </div>
     </div>
 
-    <script src="animacoesEquipamentos.js"></script>
-    <script src="animacao_andando.js"></script>
-    <script src="posicionamento.js"></script>
-    <script src="colisao.js"></script>
-    <script src="grade.js"></script>
-    <script src="fisica.js"></script>
-    <script src="inimigo.js"></script>
-    <script src="inimigoMovimentacao.js"></script>
-    <script src="cenario.js"></script>
-    <script src="efeitos.js"></script>
-    <script src="skillsEfeitos.js"></script>
-    <script src="skills.js"></script>
-    <script src="menu.js"></script>
-    <script src="camera.js"></script>
-    <script src="movimentacao.js"></script>
-    <script src="inicializador.js"></script>
+    <!-- Core (Fundamental) -->
+    <script src="src/core/inicial.js"></script>
+    <script src="src/core/colisoes.js"></script>
+    <script src="src/core/estacas.js"></script>
+    <script src="src/core/gravidade.js"></script>
+    <script src="src/core/posicao-inicial.js"></script>
+
+    <!-- Jogador (Player) -->
+    <script src="src/jogador/movimento.js"></script>
+    <script src="src/jogador/animacao.js"></script>
+    <script src="src/jogador/skills-efeitos.js"></script>
+
+    <!-- Inimigos (Enemies AI) -->
+    <script src="src/inimigos/inimigo.js"></script>
+    <script src="src/inimigos/ia-inimigo.js"></script>
+
+    <!-- Skills (Abilities) -->
+    <script src="src/skills/skills.js"></script>
+
+    <!-- Visual (Rendering) -->
+    <script src="src/visual/cenario.js"></script>
+    <script src="src/visual/camera.js"></script>
+    <script src="src/visual/grade-debug.js"></script>
+    <script src="src/visual/efeitos-visuais.js"></script>
+    <script src="src/visual/animacoes-equipamento.js"></script>
+
+    <!-- UI (Menu) -->
+    <script src="src/ui/menu.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             // Inicializa a grade de visualização

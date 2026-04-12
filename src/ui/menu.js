@@ -21,7 +21,7 @@ const getActiveMenuOptions = () => {
         { label: "TREINO", action: () => {
             window.isTraining = true;
             window.togglePauseMenu();
-            if (typeof carregarFase === 'function') carregarFase("fases/treino.json");
+            if (typeof carregarFase === 'function') carregarFase("config/fases/treino.json");
         } },
         { label: "REINICIAR", action: () => {
             window.isFirstStart = false; // Garante que o próximo pause mostre 'REINICIAR'

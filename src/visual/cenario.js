@@ -162,3 +162,4 @@ function renderizarObjetivo(idPalco, imagemPath, coord) {
         altura: 13 
     };
 }
+

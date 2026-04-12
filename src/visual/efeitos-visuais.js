@@ -113,3 +113,4 @@ function flashComVibacao(elemento) {
         }, (i * 50) + 25);
     }
 }
+
