@@ -88,6 +88,8 @@ async function carregarFase(nomeArquivo) {
         }
 
         // Estacas Direita (colisão personalizada)
+        // ⚠️ INICIALIZAÇÃO ESTACAS DIREITA (Linha 93)
+        // Spikes apontam para a DIREITA, bloqueiam colisão na ESQUERDA
         if (fase.plataformasEstacaDir) {
             fase.plataformasEstacaDir.forEach(coord => {
                 // Estaca Direita: pontas apontando para direita, bloqueia metade ESQUERDA
@@ -97,7 +99,8 @@ async function carregarFase(nomeArquivo) {
             });
         }
 
-        // Estacas Esquerda (colisão personalizada)
+        // ⚠️ INICIALIZAÇÃO ESTACAS ESQUERDA (Linha 103)
+        // Spikes apontam para a ESQUERDA, bloqueiam colisão na DIREITA
         if (fase.plataformasEstacaEsq) {
             fase.plataformasEstacaEsq.forEach(coord => {
                 // Estaca Esquerda: pontas apontando para esquerda, bloqueia metade DIREITA
@@ -107,7 +110,8 @@ async function carregarFase(nomeArquivo) {
             });
         }
 
-        // Estacas Baixo (colisão personalizada)
+        // ⚠️ INICIALIZAÇÃO ESTACAS BAIXO (Linha 113)
+        // Spikes apontam para BAIXO, bloqueiam colisão na PARTE SUPERIOR
         if (fase.plataformasEstacaBaixo) {
             fase.plataformasEstacaBaixo.forEach(coord => {
                 // Estaca Baixo: colisão na metade inferior do bloco

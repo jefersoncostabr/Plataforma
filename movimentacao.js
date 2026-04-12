@@ -1384,7 +1384,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         const limitePalcoX = limitarPosicaoAoPalco(controle.x + controle.offsetX, controle.y, controle.largura, controle.altura);
         controle.x = limitePalcoX.x - controle.offsetX;
 
-        // ITEM 4: Sub-stepping Horizontal (Detecta colisões intermediárias em alta velocidade)
+        // ⚠️ ITEM 4: Sub-stepping Horizontal (Linha 1390) - DETECTA COLISÕES ESTACAS
+        // Quebra movimento em passos de 16px para detectar colisões com estacas
+        // Se colidir com estaca DIREITA/ESQUERDA, usa esquerdaReal/direitaReal para posicionar
         const distTotalX = controle.x - xAnterior;
         if (Math.abs(distTotalX) > 16) { // Se mover mais de meio bloco (16px) em um frame
             const passos = Math.ceil(Math.abs(distTotalX) / 16);
@@ -1397,58 +1399,38 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     verificarColisaoComTiles(controle.x + controle.offsetX, controle.y, controle.largura, controle.altura, window.plataformas);
                 
                 if (hitH) {
-                    console.log(`[SUB-H] Hit: Tipo=${hitH.tipo}, Dir=${hitH.direcao}, X=${controle.x}, Mov=${incrementoX > 0 ? 'DIREITA' : 'ESQUERDA'}`);
-                    
                     // Ignora colisões verticais (não afetam movimento horizontal)
                     if (hitH.direcao === 'cima' || hitH.direcao === 'baixo') {
-                        console.log(`[SUB-H] ⚠️ IGNORANDO ${hitH.direcao} - continua movimento`);
                         continue; // Continua o movimento horizontal
                     }
                     
                     if (incrementoX > 0) { // Indo para Direita
-                        // Se for estaca, usa esquerdaReal; senão usa snap ao grid
-                        const novoX = (hitH.direcao === 'direita' || hitH.direcao === 'esquerda') 
-                            ? (hitH.esquerdaReal - controle.largura - controle.offsetX - EPSILON)
-                            : Math.floor((controle.x + controle.offsetX + controle.largura) / 32) * 32 - controle.largura - controle.offsetX - EPSILON;
+                        const novoX = aplicarSnapColisao(controle.x, controle.offsetX, controle.largura, hitH, 'direita');
                         controle.x = novoX;
-                        console.log(`[SUB-H] BLOQUEADO à DIREITA. X snap: ${controle.x}`);
                     } else { // Indo para Esquerda
-                        // Se for estaca, usa direitaReal; senão usa snap ao grid
-                        const novoX = (hitH.direcao === 'direita' || hitH.direcao === 'esquerda')
-                            ? (hitH.direitaReal - controle.offsetX + EPSILON)
-                            : (Math.floor((controle.x + controle.offsetX) / 32) + 1) * 32 - controle.offsetX + EPSILON;
+                        const novoX = aplicarSnapColisao(controle.x, controle.offsetX, controle.largura, hitH, 'esquerda');
                         controle.x = novoX;
-                        console.log(`[SUB-H] BLOQUEADO à ESQUERDA. X snap: ${controle.x}`);
                     }
                     break; // Parar o movimento horizontal após o snap
                 }
             }
         } else {
-            // Lógica normal para velocidades baixas
+            // ⚠️ ITEM 5: Colisão Horizontal em baixas velocidades (Linha 1425)
+            // Quando movimento é menor que 16px, verifica colisão direto
             const hitH = typeof verificarColisaoComTiles === 'function' && 
                 verificarColisaoComTiles(controle.x + controle.offsetX, controle.y, controle.largura, controle.altura, window.plataformas);
             
             if (hitH) {
-                console.log(`[H-LENTO] Hit: Tipo=${hitH.tipo}, Dir=${hitH.direcao}, X=${controle.x}`);
-                
                 // Ignora colisões verticais
                 if (hitH.direcao === 'cima' || hitH.direcao === 'baixo') {
-                    console.log(`[H-LENTO] ⚠️ IGNORANDO ${hitH.direcao}`);
+                    // Continua movimento
                 } else {
                     if (controle.x > xAnterior) { // Indo para Direita
-                        // Se for estaca, usa esquerdaReal; senão usa snap ao grid
-                        const novoX = (hitH.direcao === 'direita' || hitH.direcao === 'esquerda')
-                            ? (hitH.esquerdaReal - controle.largura - controle.offsetX - EPSILON)
-                            : Math.floor((controle.x + controle.offsetX + controle.largura) / 32) * 32 - controle.largura - controle.offsetX - EPSILON;
+                        const novoX = aplicarSnapColisao(controle.x, controle.offsetX, controle.largura, hitH, 'direita');
                         controle.x = novoX;
-                        console.log(`[H-LENTO] BLOQUEADO à DIREITA. X snap: ${controle.x}`);
                     } else if (controle.x < xAnterior) { // Indo para Esquerda
-                        // Se for estaca, usa direitaReal; senão usa snap ao grid
-                        const novoX = (hitH.direcao === 'direita' || hitH.direcao === 'esquerda')
-                            ? (hitH.direitaReal - controle.offsetX + EPSILON)
-                            : (Math.floor((controle.x + controle.offsetX) / 32) + 1) * 32 - controle.offsetX + EPSILON;
+                        const novoX = aplicarSnapColisao(controle.x, controle.offsetX, controle.largura, hitH, 'esquerda');
                         controle.x = novoX;
-                        console.log(`[H-LENTO] BLOQUEADO à ESQUERDA. X snap: ${controle.x}`);
                     }
                 }
             }
@@ -1595,18 +1577,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             verificarColisaoVertical(controle, yAnterior, distTotalY);
         }
 
+        // ⚠️ TRATAMENTO DE COLISÃO VERTICAL - ESTACAS (Linha 1598)
+        // Responsável por aplicar colisão com spikes ao cair/pular
+        // Se colidir com estaca: direita/esquerda/cima/baixo, usa coordenadas precisas
         function verificarColisaoVertical(ctrl, yAnt, incY) {
             const hit = typeof verificarColisaoComTiles === 'function' ? verificarColisaoComTiles(ctrl.x + ctrl.offsetX, ctrl.y, ctrl.largura, ctrl.altura, window.plataformas) : null;
             if (hit) {
-                const direcao = (typeof hit === 'object' && hit.direcao) ? hit.direcao : 'nenhuma';
-                console.log(`[VERTICAL] Colisão Detectada: Tipo=${hit.tipo || 'solido'}, Direção=${direcao}, Movimento=${incY < 0 ? 'CAINDO' : 'SUBINDO'}`);
-                
-                // Verifica se é uma colisão horizontal (não deve afetar movimento vertical)
-                if (hit.direcao === 'direita' || hit.direcao === 'esquerda') {
-                    console.log(`[VERTICAL] ⚠️ IGNORANDO colisão ${hit.direcao} - não afeta movimento vertical`);
-                    return false; // Não bloqueia movimento vertical para estacas horizontais
-                }
-                
                 if (incY < 0) { // Caindo
                     ctrl.noChao = true;
                     if (ctrl.superDescidaAtiva) {
@@ -1615,19 +1591,13 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         ctrl.cooldownPosSuperDescida = 60;
                     }
                     ctrl.velocidadeY = 0;
-                    // Se for estaca, usa topoReal; senão usa snap ao grid
-                    const novoY = (hit.direcao === 'cima' || hit.direcao === 'baixo')
-                        ? hit.topoReal
-                        : Math.floor((ctrl.y + EPSILON) / 32 + 1) * 32;
-                    console.log(`[VERTICAL] CAINDO: Y ${ctrl.y} → ${novoY}`);
+                    // Usa função centralizada de snap
+                    const novoY = aplicarSnapColisao(ctrl.y, 0, ctrl.altura, hit, 'cima');
                     ctrl.y = novoY;
                 } else if (incY > 0) { // Subindo
                     ctrl.velocidadeY = 0;
-                    // Se for estaca, usa baseReal; senão usa snap ao grid
-                    const novoY = (hit.direcao === 'cima' || hit.direcao === 'baixo')
-                        ? (hit.baseReal - ctrl.altura)
-                        : Math.floor((ctrl.y + ctrl.altura) / 32) * 32 - ctrl.altura;
-                    console.log(`[VERTICAL] SUBINDO: Y ${ctrl.y} → ${novoY}`);
+                    // Usa função centralizada de snap
+                    const novoY = aplicarSnapColisao(ctrl.y, 0, ctrl.altura, hit, 'baixo');
                     ctrl.y = novoY;
                 }
                 return true;

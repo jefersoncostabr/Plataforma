@@ -4,11 +4,15 @@
     "objetivo": "f19",
     "plataformas": [
         "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20",
-        "b10", "b14",
-        "c5", "c14"
+        "b10", "b14", "b16",
+        "c5", "c14",
+        "d1", "d2", "d3",
+        "g1", "g2", "g3"
     ],
     "plataformasNeve": [],
-    "plataformasEstacaSup": [],
+    "plataformasEstacaSup": [
+        "b15", "b17"
+    ],
     "plataformasEstacaDir": [
         "b11"
     ],
@@ -16,7 +20,10 @@
         "b5", "b9",
         "c13"
     ],
-    "plataformasEstacaBaixo": [],
+    "plataformasEstacaBaixo": [
+        "c1",
+        "f1"
+    ],
     "inimigos0": [],
     "inimigos1": [],
     "inimigos2": [],
