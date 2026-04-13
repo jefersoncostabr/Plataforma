@@ -1580,7 +1580,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 
                 if (hitH) {
                     // Ignora colisões que não têm efeito horizontal
-                    if (hitH.tipo === 'estaca' && !hitH.temColisaoLateral) {
+                    if (hitH.tipo !== 'solido' && hitH.temColisaoLateral === false) {
                         continue; // Continua o movimento horizontal
                     }
                     
@@ -1602,7 +1602,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             
             if (hitH) {
                 // Ignora colisões que não têm efeito horizontal
-                if (hitH.tipo === 'estaca' && !hitH.temColisaoLateral) {
+                if (hitH.tipo !== 'solido' && hitH.temColisaoLateral === false) {
                     // Continua movimento
                 } else {
                     if (controle.x > xAnterior) { // Indo para Direita
@@ -1762,7 +1762,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // Se colidir com estaca: direita/esquerda/cima/baixo, usa coordenadas precisas
         function verificarColisaoVertical(ctrl, yAnt, incY) {
             const hit = typeof verificarColisaoComTiles === 'function' ? verificarColisaoComTiles(ctrl.x + ctrl.offsetX, ctrl.y, ctrl.largura, ctrl.altura, window.plataformas) : null;
-            if (hit && hit.tipo === 'estaca' && !hit.temColisaoVertical) {
+            if (hit && hit.tipo !== 'solido' && hit.temColisaoVertical === false) {
                 return false;
             }
             if (hit) {

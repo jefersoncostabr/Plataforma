@@ -12,6 +12,22 @@
         "l4", "l5", "l9", "l10"
     ],
     "plataformasNeve": [],
+    "plataformasTerraInferior": [
+        "b18",
+        "e2",
+        "g4", "g5"
+    ],
+    "plataformasTerraSuperior": [
+        "c2"
+    ],
+    "plataformasTerraInferior2": [
+        "h6", "h7", "h8",
+        "l12", "l13"
+    ],
+    "plataformasTerraSuperior2": [
+        "i12", "i13",
+        "k12", "k13"
+    ],
     "plataformasEstacaSup": [
         "a17",
         "b15",

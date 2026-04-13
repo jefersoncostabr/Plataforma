@@ -146,6 +146,62 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
                         }
                     }
                 }
+
+                // Meio-blocos (sem dano): mesma geometria de up/down, mas sem tipo estaca
+                if (bloco.tipo === 'meio') {
+                    const tileEsquerda = c * 32;
+                    const tileDireita = (c + 1) * 32;
+                    const tileBaixo = r * 32;
+                    const tileTopo = (r + 1) * 32;
+
+                    if (bloco.direcao === 'superior') {
+                        const topoReal = tileTopo - (bloco.yOffset || 0);
+                        const baseReal = topoReal - (bloco.height || 16);
+                        const esquerdaReal = tileEsquerda;
+                        const direitaReal = tileDireita;
+
+                        const colisaoVertical = (y + altura > baseReal && y < topoReal);
+                        const colisaoX = (x + largura > esquerdaReal && x < direitaReal);
+                        const colisaoY = (y + altura > baseReal && y < topoReal);
+                        const colisaoLateral = colisaoX && colisaoY;
+
+                        if (colisaoVertical || colisaoLateral) {
+                            return {
+                                tipo: 'meio',
+                                direcao: 'superior',
+                                topoReal,
+                                baseReal,
+                                esquerdaReal,
+                                direitaReal,
+                                temColisaoVertical: true,
+                                temColisaoLateral: colisaoLateral
+                            };
+                        }
+                    } else if (bloco.direcao === 'inferior') {
+                        const topoReal = tileTopo - (bloco.yOffset || 0);
+                        const baseReal = topoReal - (bloco.height || 16);
+                        const esquerdaReal = tileEsquerda;
+                        const direitaReal = tileDireita;
+
+                        const colisaoVertical = (y + altura > baseReal && y < topoReal);
+                        const colisaoX = (x + largura > esquerdaReal && x < direitaReal);
+                        const colisaoY = (y + altura > baseReal && y < topoReal);
+                        const colisaoLateral = colisaoX && colisaoY;
+
+                        if (colisaoVertical || colisaoLateral) {
+                            return {
+                                tipo: 'meio',
+                                direcao: 'inferior',
+                                topoReal,
+                                baseReal,
+                                esquerdaReal,
+                                direitaReal,
+                                temColisaoVertical: true,
+                                temColisaoLateral: colisaoLateral
+                            };
+                        }
+                    }
+                }
             }
         }
     }
@@ -168,7 +224,7 @@ function aplicarSnapColisao(posicaoAtual, offsetObjeto, tamanhoObjeto, colisao, 
     if (!colisao) return posicaoAtual;
     
     // Se for ESTACA, usa as coordenadas precisas retornadas por verificarColisaoComTiles
-    if (colisao.tipo === 'estaca') {
+    if (colisao.tipo === 'estaca' || colisao.tipo === 'meio') {
         switch(direcao) {
             case 'direita':
                 // Vindo pela esquerda, para na borda esquerda da colisão

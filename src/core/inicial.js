@@ -97,6 +97,35 @@ async function carregarFase(nomeArquivo) {
             window.plataformas[coord.trim().toLowerCase()] = true;
         });
 
+        // Meio-blocos de terra (sem dano)
+        if (fase.plataformasTerraInferior) {
+            fase.plataformasTerraInferior.forEach(coord => {
+                // Metade inferior sólida (equivalente geométrico da estaca up, sem dano)
+                window.plataformas[coord.trim().toLowerCase()] = { tipo: 'meio', direcao: 'inferior', yOffset: 16, height: 16 };
+            });
+        }
+
+        if (fase.plataformasTerraSuperior) {
+            fase.plataformasTerraSuperior.forEach(coord => {
+                // Metade superior sólida (equivalente geométrico da estaca down, sem dano)
+                window.plataformas[coord.trim().toLowerCase()] = { tipo: 'meio', direcao: 'superior', yOffset: 0, height: 16 };
+            });
+        }
+
+        if (fase.plataformasTerraInferior2) {
+            fase.plataformasTerraInferior2.forEach(coord => {
+                // Variante 2: metade inferior sólida (sem dano)
+                window.plataformas[coord.trim().toLowerCase()] = { tipo: 'meio', direcao: 'inferior', yOffset: 16, height: 16 };
+            });
+        }
+
+        if (fase.plataformasTerraSuperior2) {
+            fase.plataformasTerraSuperior2.forEach(coord => {
+                // Variante 2: metade superior sólida (sem dano)
+                window.plataformas[coord.trim().toLowerCase()] = { tipo: 'meio', direcao: 'superior', yOffset: 0, height: 16 };
+            });
+        }
+
         // Estacas (colisão personalizada)
         if (fase.plataformasEstacaSup) {
             fase.plataformasEstacaSup.forEach(coord => {
@@ -145,6 +174,18 @@ async function carregarFase(nomeArquivo) {
         renderizarPlataformas(idPalco, '../../assets/personagem/chao.png', fase.plataformas || []);
         if (fase.plataformasNeve) {
             renderizarPlataformas(idPalco, '../../assets/personagem/chao_neve.png', fase.plataformasNeve);
+        }
+        if (fase.plataformasTerraInferior) {
+            renderizarPlataformas(idPalco, '../../assets/personagem/terra_inferior.png', fase.plataformasTerraInferior);
+        }
+        if (fase.plataformasTerraSuperior) {
+            renderizarPlataformas(idPalco, '../../assets/personagem/terra_superior.png', fase.plataformasTerraSuperior);
+        }
+        if (fase.plataformasTerraInferior2) {
+            renderizarPlataformas(idPalco, '../../assets/personagem/terra_inferior2.png', fase.plataformasTerraInferior2);
+        }
+        if (fase.plataformasTerraSuperior2) {
+            renderizarPlataformas(idPalco, '../../assets/personagem/terra_superior2.png', fase.plataformasTerraSuperior2);
         }
         if (fase.plataformasEstacaSup) {
             renderizarPlataformas(idPalco, '../../assets/personagem/estacasup.png', fase.plataformasEstacaSup);

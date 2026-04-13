@@ -13,6 +13,10 @@ let faseData = {
     objetivo: "f19",
     plataformas: [],
     plataformasNeve: [],
+    plataformasTerraInferior: [],
+    plataformasTerraSuperior: [],
+    plataformasTerraInferior2: [],
+    plataformasTerraSuperior2: [],
     plataformasEstacaSup: [],
     plataformasEstacaDir: [],
     plataformasEstacaEsq: [],
@@ -63,6 +67,15 @@ window.onload = () => {
     btnClear.onclick = () => {
         if(confirm("Deseja limpar todo o palco?")) {
             faseData.plataformas = [];
+            faseData.plataformasNeve = [];
+            faseData.plataformasTerraInferior = [];
+            faseData.plataformasTerraSuperior = [];
+            faseData.plataformasTerraInferior2 = [];
+            faseData.plataformasTerraSuperior2 = [];
+            faseData.plataformasEstacaSup = [];
+            faseData.plataformasEstacaDir = [];
+            faseData.plataformasEstacaEsq = [];
+            faseData.plataformasEstacaBaixo = [];
             faseData.inimigos0 = [];
             faseData.inimigos1 = [];
             faseData.inimigos2 = [];
@@ -108,6 +121,10 @@ window.onload = () => {
         else if (faseData.inimigos4.includes(coord)) legenda = "Inimigo Voador (Jetpack)";
         else if (faseData.inimigos5 && faseData.inimigos5.includes(coord)) legenda = "Alvo de Feno (Treino)";
         else if (faseData.inimigos6 && faseData.inimigos6.includes(coord)) legenda = "Inimigo com Garra";
+        else if ((faseData.plataformasTerraInferior || []).includes(coord)) legenda = "Terra Meio Bloco Inferior";
+        else if ((faseData.plataformasTerraSuperior || []).includes(coord)) legenda = "Terra Meio Bloco Superior";
+        else if ((faseData.plataformasTerraInferior2 || []).includes(coord)) legenda = "Terra Meio Bloco Inferior 2";
+        else if ((faseData.plataformasTerraSuperior2 || []).includes(coord)) legenda = "Terra Meio Bloco Superior 2";
         else if (faseData.posicaoInicialJogador === coord) legenda = "Ponto Inicial do Jogador";
         else if (faseData.objetivo === coord) legenda = "Objetivo da Fase";
         else {
@@ -207,6 +224,8 @@ function configurarFerramentasAutomaticas() {
             <select id="block-type-select">
                 <option value="padrao">Padrão (Grama)</option>
                 <option value="neve">Neve</option>
+                <option value="terraInferior">Terra Inferior</option>
+                <option value="terraSuperior">Terra Superior</option>
             </select>
         </label>
     `;
@@ -255,6 +274,10 @@ function adicionarElemento(coord) {
     removerElemento(coord);
     if (itemSelecionado === 'plataforma') faseData.plataformas.push(coord);
     else if (itemSelecionado === 'plataformaNeve') faseData.plataformasNeve.push(coord);
+    else if (itemSelecionado === 'terraInferior') faseData.plataformasTerraInferior.push(coord);
+    else if (itemSelecionado === 'terraSuperior') faseData.plataformasTerraSuperior.push(coord);
+    else if (itemSelecionado === 'terraInferior2') faseData.plataformasTerraInferior2.push(coord);
+    else if (itemSelecionado === 'terraSuperior2') faseData.plataformasTerraSuperior2.push(coord);
     else if (itemSelecionado === 'estacaSup') faseData.plataformasEstacaSup.push(coord);
     else if (itemSelecionado === 'estacaDir') faseData.plataformasEstacaDir.push(coord);
     else if (itemSelecionado === 'estacaEsq') faseData.plataformasEstacaEsq.push(coord);
@@ -274,6 +297,10 @@ function adicionarElemento(coord) {
 function removerElemento(coord) {
     faseData.plataformas = faseData.plataformas.filter(c => c !== coord);
     faseData.plataformasNeve = (faseData.plataformasNeve || []).filter(c => c !== coord);
+    faseData.plataformasTerraInferior = (faseData.plataformasTerraInferior || []).filter(c => c !== coord);
+    faseData.plataformasTerraSuperior = (faseData.plataformasTerraSuperior || []).filter(c => c !== coord);
+    faseData.plataformasTerraInferior2 = (faseData.plataformasTerraInferior2 || []).filter(c => c !== coord);
+    faseData.plataformasTerraSuperior2 = (faseData.plataformasTerraSuperior2 || []).filter(c => c !== coord);
     faseData.plataformasEstacaSup = (faseData.plataformasEstacaSup || []).filter(c => c !== coord);
     faseData.plataformasEstacaDir = (faseData.plataformasEstacaDir || []).filter(c => c !== coord);
     faseData.plataformasEstacaEsq = (faseData.plataformasEstacaEsq || []).filter(c => c !== coord);
@@ -292,6 +319,10 @@ function atualizarVisual() {
 
     faseData.plataformas.forEach(coord => criarIcone(coord, '../../assets/personagem/chao.png', ''));
     (faseData.plataformasNeve || []).forEach(coord => criarIcone(coord, '../../assets/personagem/chao_neve.png', ''));
+    (faseData.plataformasTerraInferior || []).forEach(coord => criarIcone(coord, '../../assets/personagem/terra_inferior.png', ''));
+    (faseData.plataformasTerraSuperior || []).forEach(coord => criarIcone(coord, '../../assets/personagem/terra_superior.png', ''));
+    (faseData.plataformasTerraInferior2 || []).forEach(coord => criarIcone(coord, '../../assets/personagem/terra_inferior2.png', ''));
+    (faseData.plataformasTerraSuperior2 || []).forEach(coord => criarIcone(coord, '../../assets/personagem/terra_superior2.png', ''));
     (faseData.plataformasEstacaSup || []).forEach(coord => criarIcone(coord, '../../assets/personagem/estacasup.png', ''));
     (faseData.plataformasEstacaDir || []).forEach(coord => criarIcone(coord, '../../assets/personagem/estacadir.png', ''));
     (faseData.plataformasEstacaEsq || []).forEach(coord => criarIcone(coord, '../../assets/personagem/estacaesq.png', ''));
@@ -370,6 +401,10 @@ function addBlocks(coordsArray) {
     coordsArray.forEach(coord => {
         if (tipo === 'neve') {
             if (!faseData.plataformasNeve.includes(coord)) faseData.plataformasNeve.push(coord);
+        } else if (tipo === 'terraInferior') {
+            if (!faseData.plataformasTerraInferior.includes(coord)) faseData.plataformasTerraInferior.push(coord);
+        } else if (tipo === 'terraSuperior') {
+            if (!faseData.plataformasTerraSuperior.includes(coord)) faseData.plataformasTerraSuperior.push(coord);
         } else {
             if (!faseData.plataformas.includes(coord)) faseData.plataformas.push(coord);
         }
@@ -379,6 +414,8 @@ function addBlocks(coordsArray) {
 function removeBlocks(coordsArray) {
     faseData.plataformas = faseData.plataformas.filter(coord => !coordsArray.includes(coord));
     faseData.plataformasNeve = faseData.plataformasNeve.filter(coord => !coordsArray.includes(coord));
+    faseData.plataformasTerraInferior = faseData.plataformasTerraInferior.filter(coord => !coordsArray.includes(coord));
+    faseData.plataformasTerraSuperior = faseData.plataformasTerraSuperior.filter(coord => !coordsArray.includes(coord));
 }
 
 function exportarJSON() {
@@ -395,6 +432,22 @@ function exportarJSON() {
         return parseInt(a.substring(1)) - parseInt(b.substring(1));
     });
     faseData.plataformasNeve.sort((a, b) => {
+        if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
+        return parseInt(a.substring(1)) - parseInt(b.substring(1));
+    });
+    faseData.plataformasTerraInferior.sort((a, b) => {
+        if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
+        return parseInt(a.substring(1)) - parseInt(b.substring(1));
+    });
+    faseData.plataformasTerraSuperior.sort((a, b) => {
+        if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
+        return parseInt(a.substring(1)) - parseInt(b.substring(1));
+    });
+    faseData.plataformasTerraInferior2.sort((a, b) => {
+        if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
+        return parseInt(a.substring(1)) - parseInt(b.substring(1));
+    });
+    faseData.plataformasTerraSuperior2.sort((a, b) => {
         if (a[0] !== b[0]) return a[0].localeCompare(b[0]);
         return parseInt(a.substring(1)) - parseInt(b.substring(1));
     });
@@ -454,6 +507,10 @@ function exportarJSON() {
 
     jsonStr = jsonStr.replace(/"(plataformas)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
     jsonStr = jsonStr.replace(/"(plataformasNeve)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
+    jsonStr = jsonStr.replace(/"(plataformasTerraInferior)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
+    jsonStr = jsonStr.replace(/"(plataformasTerraSuperior)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
+    jsonStr = jsonStr.replace(/"(plataformasTerraInferior2)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
+    jsonStr = jsonStr.replace(/"(plataformasTerraSuperior2)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
     jsonStr = jsonStr.replace(/"(plataformasEstacaSup)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
     jsonStr = jsonStr.replace(/"(plataformasEstacaDir)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
     jsonStr = jsonStr.replace(/"(plataformasEstacaEsq)":\s*\[\s*([\s\S]*?)\s*\]/g, (m, k, c) => formatarPlataformas(m, k, c));
@@ -479,6 +536,10 @@ function importarJSON() {
             objetivo: data.objetivo || "",
             plataformas: data.plataformas || [],
             plataformasNeve: data.plataformasNeve || [],
+            plataformasTerraInferior: data.plataformasTerraInferior || [],
+            plataformasTerraSuperior: data.plataformasTerraSuperior || [],
+            plataformasTerraInferior2: data.plataformasTerraInferior2 || [],
+            plataformasTerraSuperior2: data.plataformasTerraSuperior2 || [],
             plataformasEstacaSup: data.plataformasEstacaSup || [],
             plataformasEstacaDir: data.plataformasEstacaDir || [],
             plataformasEstacaEsq: data.plataformasEstacaEsq || [],
