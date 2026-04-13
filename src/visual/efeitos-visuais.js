@@ -3,6 +3,10 @@
  * Contém funções para criar efeitos visuais como flash, pisca, etc.
  */
 
+function obterFiltroFlashBrancoInterno() {
+    return 'brightness(0) saturate(0) invert(1) brightness(1.25) contrast(1.1)';
+}
+
 /**
  * Faz um elemento piscar com um flash branco.
  * Cria um efeito visual de impacto/dano.
@@ -26,8 +30,8 @@ function flashElement(elemento, duracao = 200, velocidade = 5) {
         contador++;
 
         if (contador % 2 === 1) {
-            // Aplica o efeito de flash branco (brightness aumentado)
-            elemento.style.filter = 'brightness(2) drop-shadow(0 0 8px rgba(255, 255, 255, 0.8))';
+            // Aplica um flash branco interno no sprite, sem brilho externo.
+            elemento.style.filter = obterFiltroFlashBrancoInterno();
         } else {
             // Remove o efeito
             elemento.style.filter = filterOriginal || 'none';
@@ -74,7 +78,7 @@ function piscaLeve(elemento) {
     // 3 piscadas rápidas
     for (let i = 0; i < 3; i++) {
         setTimeout(() => {
-            elemento.style.filter = 'brightness(1.5) drop-shadow(0 0 4px rgba(255, 255, 255, 0.6))';
+            elemento.style.filter = obterFiltroFlashBrancoInterno();
         }, i * 60);
 
         setTimeout(() => {
@@ -98,8 +102,8 @@ function flashComVibacao(elemento) {
     // Flash com vibração
     for (let i = 0; i < 4; i++) {
         setTimeout(() => {
-            // Flash branco
-            elemento.style.filter = 'brightness(2) drop-shadow(0 0 10px rgba(255, 255, 255, 0.9))';
+            // Flash branco interno
+            elemento.style.filter = obterFiltroFlashBrancoInterno();
 
             // Vibração pequena
             const offsetX = (Math.random() - 0.5) * 4;

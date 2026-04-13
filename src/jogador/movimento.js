@@ -28,10 +28,119 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         return controle.temEscudo && !controle.escudoVermelho;
     }
 
+    function aplicarDanoEspinho(colisaoEstaca) {
+        if (!colisaoEstaca || colisaoEstaca.tipo !== 'estaca') return;
+
+        // Permite passar agachado por baixo da estaca para baixo sem sofrer dano.
+        if (
+            controle.estaAgachado &&
+            colisaoEstaca.direcao === 'baixo' &&
+            typeof colisaoEstaca.baseReal === 'number'
+        ) {
+            const topoJogador = controle.y + controle.altura;
+            const tolerancia = Number(config.toleranciaPassarAgachadoEspinho ?? 1);
+            if (topoJogador <= colisaoEstaca.baseReal + tolerancia) {
+                return;
+            }
+        }
+
+        if ((controle.cooldownDanoEspinho || 0) > 0) return;
+
+        controle.cooldownDanoEspinho = Number(config.cooldownDanoEspinho ?? 24);
+
+        // Knockback sempre acontece ao tocar espinho, mesmo com escudo.
+        if (colisaoEstaca.direcao === 'cima') {
+            const impulsoVertical = Number(config.knockbackEspinhoUpY ?? 8);
+            controle.velocidadeY = Math.max(controle.velocidadeY || 0, impulsoVertical);
+        }
+
+        if (colisaoEstaca.esquerdaReal !== undefined && colisaoEstaca.direitaReal !== undefined) {
+            const centroEstaca = (colisaoEstaca.esquerdaReal + colisaoEstaca.direitaReal) / 2;
+            const centroPlayer = controle.x + (controle.offsetX || 0) + ((controle.largura || 0) / 2);
+            const direcaoKnock = centroPlayer < centroEstaca ? -1 : 1;
+            const valorKnock = Number(config.knockbackEspinho ?? 90);
+            const duracaoKnock = 10;
+            controle.framesKnockbackRestante = Math.max(controle.framesKnockbackRestante || 0, duracaoKnock);
+            controle.velocidadeKnockback = (valorKnock / duracaoKnock) * direcaoKnock;
+        }
+
+        if (temEscudoAtivo()) {
+            controle.escudoProtegido = (controle.escudoProtegido || 0) + 1;
+            const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
+
+            const quebrouEscudoAgora = controle.escudoProtegido >= tirosProtegidos;
+            if (quebrouEscudoAgora) {
+                controle.escudoVermelho = true;
+            } else if (typeof flashElement === 'function' && escudoElemento) {
+                flashElement(escudoElemento, 120, 6);
+            }
+
+            atualizarVisualEscudo();
+            salvarInventario();
+            return;
+        }
+
+        const dano = Number(config.danoEspinho ?? 1);
+        controle.dano = (controle.dano || 0) + dano;
+
+        if (typeof flashComVibacao === 'function') {
+            flashComVibacao(elemento);
+        }
+
+        const limiteVida = controle.maxVida || 3;
+        if (controle.dano >= limiteVida) {
+            controle.dano = 0;
+            alert('Game Over! Você foi derrotado pelos espinhos.');
+            if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
+        }
+    }
+
+    function detectarContatoEspinho() {
+        if (typeof verificarColisaoComTiles !== 'function') return null;
+
+        const xBase = controle.x + (controle.offsetX || 0);
+        const yBase = controle.y;
+        const largura = controle.largura;
+        const altura = controle.altura;
+
+        // 1) Sobreposição direta da hitbox atual
+        const hitDireto = verificarColisaoComTiles(xBase, yBase, largura, altura, window.plataformas);
+        if (hitDireto && hitDireto.tipo === 'estaca') return hitDireto;
+
+        // 2) Probes de contato nas bordas para detectar toque sem penetração
+        const pontos = [
+            { x: xBase + 1, y: yBase - 1 },
+            { x: xBase + largura - 1, y: yBase - 1 },
+            { x: xBase - 1, y: yBase + Math.floor(altura / 2) },
+            { x: xBase + largura + 1, y: yBase + Math.floor(altura / 2) },
+            { x: xBase - 1, y: yBase + Math.max(2, altura - 2) },
+            { x: xBase + largura + 1, y: yBase + Math.max(2, altura - 2) },
+            { x: xBase + Math.floor(largura / 2), y: yBase + altura + 1 }
+        ];
+
+        for (const p of pontos) {
+            const hitProbe = verificarColisaoComTiles(p.x, p.y, 1, 1, window.plataformas);
+            if (hitProbe && hitProbe.tipo === 'estaca') {
+                return hitProbe;
+            }
+        }
+
+        return null;
+    }
+
     function virarFenoParaFonteDano(inimigo, fonteX) {
         if (!inimigo || inimigo.tipo !== 5 || !inimigo.elemento) return;
         const centroX = inimigo.x + ((inimigo.largura || 32) / 2);
         inimigo.elemento.style.transform = fonteX <= centroX ? 'scaleX(1)' : 'scaleX(-1)';
+    }
+
+    function animarDanoAlvo(inimigo) {
+        if (!inimigo || !inimigo.elemento) return;
+        if (typeof piscaLeve === 'function') {
+            piscaLeve(inimigo.elemento);
+        } else if (typeof flashElement === 'function') {
+            flashElement(inimigo.elemento, 120, 8);
+        }
     }
 
     const INVENTARIO_STORAGE_KEY = 'plataformaInventario';
@@ -328,6 +437,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         cooldownChute: 0,
         cooldownPulo: 0,
         cooldownTiro: 0,
+        cooldownDanoEspinho: 0,
         municao: 0, // Inicia sem munição
         temArma: false, // Inicia sem a capacidade de atirar
         temEscudo: false, // Inicia sem escudo
@@ -1159,6 +1269,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         // Apply kick logic to the enemy
                         inimigoAtingido.foiAtingidoNesteChute = true; // Mark as hit by kick for this frame
                         inimigoAtingido.vida = (inimigoAtingido.vida || 0) + 1; // Apply damage
+                        if (inimigoAtingido.vida < 3) animarDanoAlvo(inimigoAtingido);
                         
                         // Remove stun visual and state
                         inimigoAtingido.stunned = false;
@@ -1413,6 +1524,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.cooldownTiro--;
         }
 
+        if (controle.cooldownDanoEspinho > 0) {
+            controle.cooldownDanoEspinho--;
+        }
+
         // Diminui o cooldown do pulo
         if (controle.cooldownPulo > 0) {
             controle.cooldownPulo--;
@@ -1464,9 +1579,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     verificarColisaoComTiles(controle.x + controle.offsetX, controle.y, controle.largura, controle.altura, window.plataformas);
                 
                 if (hitH) {
-                    // Ignora colisões verticais (não afetam movimento horizontal)
-                    // EXCETO se for estaca baixo COM colisão lateral
-                    if ((hitH.direcao === 'cima' || hitH.direcao === 'baixo') && !hitH.temColisaoLateral) {
+                    // Ignora colisões que não têm efeito horizontal
+                    if (hitH.tipo === 'estaca' && !hitH.temColisaoLateral) {
                         continue; // Continua o movimento horizontal
                     }
                     
@@ -1487,8 +1601,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 verificarColisaoComTiles(controle.x + controle.offsetX, controle.y, controle.largura, controle.altura, window.plataformas);
             
             if (hitH) {
-                // Ignora colisões verticais (exceto estaca baixo com colisão lateral)
-                if ((hitH.direcao === 'cima' || hitH.direcao === 'baixo') && !hitH.temColisaoLateral) {
+                // Ignora colisões que não têm efeito horizontal
+                if (hitH.tipo === 'estaca' && !hitH.temColisaoLateral) {
                     // Continua movimento
                 } else {
                     if (controle.x > xAnterior) { // Indo para Direita
@@ -1648,6 +1762,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // Se colidir com estaca: direita/esquerda/cima/baixo, usa coordenadas precisas
         function verificarColisaoVertical(ctrl, yAnt, incY) {
             const hit = typeof verificarColisaoComTiles === 'function' ? verificarColisaoComTiles(ctrl.x + ctrl.offsetX, ctrl.y, ctrl.largura, ctrl.altura, window.plataformas) : null;
+            if (hit && hit.tipo === 'estaca' && !hit.temColisaoVertical) {
+                return false;
+            }
             if (hit) {
                 if (incY < 0) { // Caindo
                     ctrl.noChao = true;
@@ -1696,6 +1813,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         if (controle.noChao && controle.velocidadeY <= 0) {
             // if (!noChaoAnterior && controle.noChao) console.log("Movimentação: Personagem tocou o chão.");
             controle.velocidadeY = 0;
+        }
+
+        const hitEspinho = detectarContatoEspinho();
+        if (hitEspinho && hitEspinho.tipo === 'estaca') {
+            aplicarDanoEspinho(hitEspinho);
         }
 
         // Condição de Game Over por queda (buraco)
@@ -1805,6 +1927,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         inimigo.timerColeta = 0;
                         
                         inimigo.vida = (inimigo.vida || 0) + 1;
+                        if (inimigo.vida < 3) animarDanoAlvo(inimigo);
                         // Inimigo tipo 5 é Feno (alvo de treino) - você verá dano no comportamento
 
                         // Knockback: Lança o inimigo para trás com base na direção do jogador
@@ -1863,11 +1986,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                     }, 800);
                                 }
                             } else {
-                                // Efeito visual apenas se NÃO for o golpe final (evita sobrescrever o vermelho)
-                                if (typeof piscaLeve === 'function') {
-                                    piscaLeve(inimigo.elemento);
-                                }
-
                                 // Morte normal para outros inimigos
                                 droparItensInimigo(inimigo);
                                 if (typeof window.ganharXP === 'function') window.ganharXP(1);
@@ -1938,6 +2056,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             } else {
                                 const danoTomado = (controle.danoProjetil || 1);
                                 inimigo.vida = (inimigo.vida || 0) + danoTomado;
+                                if (inimigo.vida < 3) animarDanoAlvo(inimigo);
                                 // Inimigo tipo 5 é Feno (alvo de treino) - você verá dano no comportamento
                             }
                             

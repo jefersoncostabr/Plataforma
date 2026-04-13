@@ -69,8 +69,23 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
                     if (bloco.direcao === 'cima') {
                         const topoReal = tileTopo - (bloco.yOffset || 0); // Deslocamento a partir do topo do tile
                         const baseReal = topoReal - (bloco.height || 16); // Altura real da área de perigo
-                        if (y + altura > baseReal && y < topoReal) {
-                            return { tipo: 'estaca', direcao: 'cima', topoReal: topoReal, baseReal: baseReal };
+                        const esquerdaReal = tileEsquerda;
+                        const direitaReal = tileDireita;
+                        const colisaoVertical = (y + altura > baseReal && y < topoReal);
+                        const colisaoX = (x + largura > esquerdaReal && x < direitaReal);
+                        const colisaoY = (y + altura > baseReal && y < topoReal);
+                        const colisaoLateral = colisaoX && colisaoY;
+                        if (colisaoVertical || colisaoLateral) {
+                            return {
+                                tipo: 'estaca',
+                                direcao: 'cima',
+                                topoReal: topoReal,
+                                baseReal: baseReal,
+                                esquerdaReal: esquerdaReal,
+                                direitaReal: direitaReal,
+                                temColisaoVertical: true,
+                                temColisaoLateral: colisaoLateral
+                            };
                         }
                     }
                     // ESTACA PARA BAIXO - Colisão vertical + lateral na metade superior
@@ -96,6 +111,7 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
                                 baseReal: baseReal,
                                 esquerdaReal: esquerdaReal,
                                 direitaReal: direitaReal,
+                                temColisaoVertical: true,
                                 temColisaoLateral: colisaoLateral
                             };
                         }
@@ -104,29 +120,29 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
                     // ⚠️ ESTACA PARA DIREITA - Colisão lateral na metade esquerda
                     // Spikes apontam para direita, então bloqueia quem vem pela esquerda
                     else if (bloco.direcao === 'direita') {
-                        const direitaReal = tileDireita - (bloco.xOffset || 0); // Afastamento da borda direita
-                        const esquerdaReal = direitaReal - (bloco.width || 16); // Largura da área de colisão
+                        const esquerdaReal = tileEsquerda + (bloco.xOffset || 0);
+                        const direitaReal = esquerdaReal + (bloco.width || 16);
                         
                         // Colisão lateral: verifica X e usa TODA a altura do bloco (Y)
                         const colisaoX = (x + largura > esquerdaReal && x < direitaReal);
                         const colisaoY = (y + altura > tileBaixo && y < tileTopo);
                         
                         if (colisaoX && colisaoY) {
-                            return { tipo: 'estaca', direcao: 'direita', direitaReal: direitaReal, esquerdaReal: esquerdaReal, topoReal: tileTopo, baseReal: tileBaixo };
+                            return { tipo: 'estaca', direcao: 'direita', direitaReal: direitaReal, esquerdaReal: esquerdaReal, topoReal: tileTopo, baseReal: tileBaixo, temColisaoVertical: false, temColisaoLateral: true };
                         }
                     }
                     // ⚠️ ESTACA PARA ESQUERDA - Colisão lateral na metade direita
                     // Spikes apontam para esquerda, então bloqueia quem vem pela direita
                     else if (bloco.direcao === 'esquerda') {
-                        const direitaReal = tileEsquerda + (bloco.width || 16);
                         const esquerdaReal = tileEsquerda + (bloco.xOffset || 0);
+                        const direitaReal = esquerdaReal + (bloco.width || 16);
                         
                         // Colisão lateral: verifica X e usa TODA a altura do bloco (Y)
                         const colisaoX = (x + largura > esquerdaReal && x < direitaReal);
                         const colisaoY = (y + altura > tileBaixo && y < tileTopo);
                         
                         if (colisaoX && colisaoY) {
-                            return { tipo: 'estaca', direcao: 'esquerda', direitaReal: direitaReal, esquerdaReal: esquerdaReal, topoReal: tileTopo, baseReal: tileBaixo };
+                            return { tipo: 'estaca', direcao: 'esquerda', direitaReal: direitaReal, esquerdaReal: esquerdaReal, topoReal: tileTopo, baseReal: tileBaixo, temColisaoVertical: false, temColisaoLateral: true };
                         }
                     }
                 }

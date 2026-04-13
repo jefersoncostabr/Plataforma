@@ -100,24 +100,30 @@ function calcularCoordenadosEstaca(r, c, bloco) {
 function verificarEstacaCima(r, c, bloco, x, y, largura, altura) {
     const coords = calcularCoordenadosEstaca(r, c, bloco);
     
-    // A estaca ocupa a PARTE SUPERIOR do tile
+    // A estaca ocupa a PARTE INFERIOR do tile (base sólida); as pontas ficam na parte superior sem colisão
     const topoReal = coords.tileTopo - coords.yOffset;
     const baseReal = topoReal - coords.height;
+    const esquerdaReal = coords.tileEsquerda;
+    const direitaReal = coords.tileDireita;
 
-    // Colisão vertical: o jogador está passando pelo topo da estaca?
+    // Colisão vertical: bloqueia quem cai sobre a metade sólida
     const colisaoVertical = (y + altura > baseReal && y < topoReal);
-    
-    // Colisão horizontal: o jogador está dentro da largura da estaca?
-    const colisaoHorizontal = (x + largura > coords.tileEsquerda && x < coords.tileDireita);
 
-    if (colisaoVertical && colisaoHorizontal) {
+    // Colisão lateral: bloqueia entrada pelos lados apenas na metade sólida
+    const colisaoX = (x + largura > esquerdaReal && x < direitaReal);
+    const colisaoY = (y + altura > baseReal && y < topoReal);
+    const colisaoLateral = colisaoX && colisaoY;
+
+    if (colisaoVertical || colisaoLateral) {
         return {
             tipo: 'estaca',
             direcao: 'cima',
             topoReal,
             baseReal,
-            tileEsquerda: coords.tileEsquerda,
-            tileDireita: coords.tileDireita
+            esquerdaReal,
+            direitaReal,
+            temColisaoVertical: true,
+            temColisaoLateral: colisaoLateral
         };
     }
     return false;
@@ -166,6 +172,7 @@ function verificarEstacaBaixo(r, c, bloco, x, y, largura, altura) {
             baseReal,
             esquerdaReal,
             direitaReal,
+            temColisaoVertical: true,
             temColisaoLateral: colisaoLateral
         };
     }
@@ -196,9 +203,10 @@ function verificarEstacaBaixo(r, c, bloco, x, y, largura, altura) {
 function verificarEstacaDireita(r, c, bloco, x, y, largura, altura) {
     const coords = calcularCoordenadosEstaca(r, c, bloco);
     
-    // A estaca ocupa a METADE DIREITA (por padrão)
-    const direitaReal = coords.tileDireita - coords.xOffset;
-    const esquerdaReal = direitaReal - coords.width;
+    // xOffset é medido a partir da esquerda do tile.
+    // Para estaca apontando para direita, a base sólida fica na metade esquerda por padrão.
+    const esquerdaReal = coords.tileEsquerda + coords.xOffset;
+    const direitaReal = esquerdaReal + coords.width;
 
     // Colisão na LATERAL: verifica X e Y completo
     const colisaoX = (x + largura > esquerdaReal && x < direitaReal);
@@ -211,7 +219,9 @@ function verificarEstacaDireita(r, c, bloco, x, y, largura, altura) {
             direitaReal,
             esquerdaReal,
             topoReal: coords.tileTopo,
-            baseReal: coords.tileBaixo
+            baseReal: coords.tileBaixo,
+            temColisaoVertical: false,
+            temColisaoLateral: true
         };
     }
     return false;
@@ -241,9 +251,10 @@ function verificarEstacaDireita(r, c, bloco, x, y, largura, altura) {
 function verificarEstacaEsquerda(r, c, bloco, x, y, largura, altura) {
     const coords = calcularCoordenadosEstaca(r, c, bloco);
     
-    // A estaca ocupa a METADE ESQUERDA (por padrão)
-    const direitaReal = coords.tileEsquerda + coords.width;
+    // xOffset é medido a partir da esquerda do tile.
+    // Para estaca apontando para esquerda, a base sólida fica na metade direita por padrão.
     const esquerdaReal = coords.tileEsquerda + coords.xOffset;
+    const direitaReal = esquerdaReal + coords.width;
 
     const colisaoX = (x + largura > esquerdaReal && x < direitaReal);
     const colisaoY = (y + altura > coords.tileBaixo && y < coords.tileTopo);
@@ -255,7 +266,9 @@ function verificarEstacaEsquerda(r, c, bloco, x, y, largura, altura) {
             direitaReal,
             esquerdaReal,
             topoReal: coords.tileTopo,
-            baseReal: coords.tileBaixo
+            baseReal: coords.tileBaixo,
+            temColisaoVertical: false,
+            temColisaoLateral: true
         };
     }
     return false;

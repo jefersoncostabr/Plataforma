@@ -407,6 +407,4 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     }
 
     const equipamento = temArma ? 'revólver' : (temEscudo ? 'escudo' : (temBota ? 'botas' : (temJetpack ? 'jetpack' : (temGarra ? 'garra' : 'sem equipamento'))));
-    console.log(`✓ Inimigo aleatório criado em (${posicao.x}px, ${posicao.y}px) - Equipamento: ${equipamento}`);
 }
-

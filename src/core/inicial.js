@@ -113,9 +113,9 @@ async function carregarFase(nomeArquivo) {
         if (fase.plataformasEstacaDir) {
             fase.plataformasEstacaDir.forEach(coord => {
                 // Estaca Direita: pontas apontando para direita, bloqueia metade ESQUERDA
-                // xOffset: 16 → Começa a colisão 16px da esquerda (BLOQUEANTE)
+                // xOffset: 0 → Começa a colisão na borda esquerda do tile
                 // width: 16 → Colisão tem 16px de largura (metade esquerda)
-                window.plataformas[coord.trim().toLowerCase()] = { tipo: 'estaca', direcao: 'direita', xOffset: 16, width: 16 };
+                window.plataformas[coord.trim().toLowerCase()] = { tipo: 'estaca', direcao: 'direita', xOffset: 0, width: 16 };
             });
         }
 
@@ -124,7 +124,7 @@ async function carregarFase(nomeArquivo) {
         if (fase.plataformasEstacaEsq) {
             fase.plataformasEstacaEsq.forEach(coord => {
                 // Estaca Esquerda: pontas apontando para esquerda, bloqueia metade DIREITA
-                // xOffset: 16 → Começa a colisão 16px da esquerda (BLOQUEANTE)
+                // xOffset: 16 → Começa a colisão 16px da esquerda do tile
                 // width: 16 → Colisão tem 16px de largura (metade direita)
                 window.plataformas[coord.trim().toLowerCase()] = { tipo: 'estaca', direcao: 'esquerda', xOffset: 16, width: 16 };
             });
