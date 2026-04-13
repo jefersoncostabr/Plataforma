@@ -284,34 +284,34 @@ function atualizarVisual() {
     const elementos = stage.querySelectorAll('img');
     elementos.forEach(el => el.remove());
 
-    faseData.plataformas.forEach(coord => criarIcone(coord, '../personagem/chao.png', ''));
-    (faseData.plataformasNeve || []).forEach(coord => criarIcone(coord, '../personagem/chao_neve.png', ''));
-    (faseData.plataformasEstacaSup || []).forEach(coord => criarIcone(coord, '../personagem/estacasup.png', ''));
-    (faseData.plataformasEstacaDir || []).forEach(coord => criarIcone(coord, '../personagem/estacadir.png', ''));
-    (faseData.plataformasEstacaEsq || []).forEach(coord => criarIcone(coord, '../personagem/estacaesq.png', ''));
-    (faseData.plataformasEstacaBaixo || []).forEach(coord => criarIcone(coord, '../personagem/estacasdown.png', ''));
-    (faseData.inimigos0 || []).forEach(coord => criarIcone(coord, '../personagem/Personagem_parado.png', 'enemy-marker'));
-    (faseData.inimigos1 || []).forEach(coord => criarIcone(coord, '../personagem/revolver_pegavel.png', 'enemy-marker'));
-    (faseData.inimigos2 || []).forEach(coord => criarIcone(coord, '../personagem/escudo_pegavel.png', 'enemy-marker'));
-    (faseData.inimigos3 || []).forEach(coord => criarIcone(coord, '../personagem/bota_pegavel.png', 'enemy-marker'));
-    (faseData.inimigos4 || []).forEach(coord => criarIcone(coord, '../personagem/jetpack_pegavel.png', 'enemy-marker'));
-    (faseData.inimigos5 || []).forEach(coord => criarIcone(coord, '../personagem/alvoFeno.png', 'enemy-marker'));
-    (faseData.inimigos6 || []).forEach(coord => criarIcone(coord, '../personagem/garra_coletavel.png', 'enemy-marker'));
+    faseData.plataformas.forEach(coord => criarIcone(coord, '../../assets/personagem/chao.png', ''));
+    (faseData.plataformasNeve || []).forEach(coord => criarIcone(coord, '../../assets/personagem/chao_neve.png', ''));
+    (faseData.plataformasEstacaSup || []).forEach(coord => criarIcone(coord, '../../assets/personagem/estacasup.png', ''));
+    (faseData.plataformasEstacaDir || []).forEach(coord => criarIcone(coord, '../../assets/personagem/estacadir.png', ''));
+    (faseData.plataformasEstacaEsq || []).forEach(coord => criarIcone(coord, '../../assets/personagem/estacaesq.png', ''));
+    (faseData.plataformasEstacaBaixo || []).forEach(coord => criarIcone(coord, '../../assets/personagem/estacasdown.png', ''));
+    (faseData.inimigos0 || []).forEach(coord => criarIcone(coord, '../../assets/personagem/Personagem_parado.png', 'enemy-marker'));
+    (faseData.inimigos1 || []).forEach(coord => criarIcone(coord, '../../assets/personagem/revolver_pegavel.png', 'enemy-marker'));
+    (faseData.inimigos2 || []).forEach(coord => criarIcone(coord, '../../assets/personagem/escudo_pegavel.png', 'enemy-marker'));
+    (faseData.inimigos3 || []).forEach(coord => criarIcone(coord, '../../assets/personagem/bota_pegavel.png', 'enemy-marker'));
+    (faseData.inimigos4 || []).forEach(coord => criarIcone(coord, '../../assets/personagem/jetpack_pegavel.png', 'enemy-marker'));
+    (faseData.inimigos5 || []).forEach(coord => criarIcone(coord, '../../assets/personagem/alvoFeno.png', 'enemy-marker'));
+    (faseData.inimigos6 || []).forEach(coord => criarIcone(coord, '../../assets/personagem/garra_coletavel.png', 'enemy-marker'));
 
     faseData.itens.forEach(item => {
-        let src = '../personagem/revolver_pegavel.png';
-        if (item.tipo === 'escudo') src = '../personagem/escudo_pegavel.png';
-        else if (item.tipo === 'bota') src = '../personagem/bota_pegavel.png';
-        else if (item.tipo === 'jetpack') src = '../personagem/jetpack_pegavel.png';
-        else if (item.tipo === 'garra') src = '../personagem/garra_coletavel.png';
-        else if (item.tipo === 'restauracao') src = '../personagem/restauracao.png';
+        let src = '../../assets/personagem/revolver_pegavel.png';
+        if (item.tipo === 'escudo') src = '../../assets/personagem/escudo_pegavel.png';
+        else if (item.tipo === 'bota') src = '../../assets/personagem/bota_pegavel.png';
+        else if (item.tipo === 'jetpack') src = '../../assets/personagem/jetpack_pegavel.png';
+        else if (item.tipo === 'garra') src = '../../assets/personagem/garra_coletavel.png';
+        else if (item.tipo === 'restauracao') src = '../../assets/personagem/restauracao.png';
         criarIcone(item.pos, src, '');
     });
     
     if (faseData.posicaoInicialJogador) {
-        criarIcone(faseData.posicaoInicialJogador, '../personagem/Personagem_parado.png', 'player-filter');
+        criarIcone(faseData.posicaoInicialJogador, '../../assets/personagem/Personagem_parado.png', 'player-filter');
     }
-    criarIcone(faseData.objetivo, '../personagem/objetivo.png');
+    criarIcone(faseData.objetivo, '../../assets/personagem/objetivo.png');
 }
 
 function criarIcone(coord, src, classe = '') {

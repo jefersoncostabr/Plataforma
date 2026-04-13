@@ -147,7 +147,7 @@ function renderMenuUI() {
         position: absolute;
         left: ${camX}px; top: ${camY}px;
         width: 640px; height: 480px;
-        background: rgba(0, 0, 0, 0.7); z-index: 10000;
+        background: var(--cor-fundo-overlay); z-index: 10000;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         color: white; font-family: 'Segoe UI', Tahoma, sans-serif;
         border-radius: 4px;

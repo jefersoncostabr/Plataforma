@@ -1205,10 +1205,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.armaElemento.style.left = inimigo.x + 'px';
                     inimigo.armaElemento.style.bottom = inimigo.y + 'px';
 
-                    // Aplica rotação de 5 graus se estiver no estado de recuo
+                    // Aplica rotação de 15 graus se estiver no estado de recuo (igual ao jogador)
                     const direcaoFator = inimigo.direcao === 'e' ? 1 : -1;
                     const emRecuo = inimigo.armaElemento.dataset.recoil === 'true';
-                    const anguloRecuo = emRecuo ? (5 * direcaoFator) : 0;
+                    const anguloRecuo = emRecuo ? (15 * direcaoFator) : 0;
                     inimigo.armaElemento.style.transform = (inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)') + ` rotate(${anguloRecuo}deg)`;
 
                     // Aplica filtro vermelho se o inimigo estiver sem munição

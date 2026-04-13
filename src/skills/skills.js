@@ -160,7 +160,7 @@ function abrirMenuSkillsUI() {
         position: fixed; 
         top: ${rect.top}px; left: ${rect.left}px; 
         width: ${rect.width}px; height: ${rect.height}px;
-        background: rgba(0, 0, 0, 0.9); z-index: 9999;
+        background: var(--cor-fundo-overlay); z-index: 9999;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         pointer-events: all; box-sizing: border-box; overflow: hidden;
