@@ -2298,12 +2298,23 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 jetpackElemento.style.filter = 'none';
             }
 
-            // Lógica do Fogo: aparece apenas quando voando e subindo com efeito de cintilação (piscar)
+            // Lógica do Fogo: visível durante todo o tempo de uso do jetpack ativo.
+            // A intensidade do jato é representada pela frequência de cintilação (piscar):
+            //   - Subindo: jato forte → pisca rápido (período 3: 2 frames ON, 1 OFF)  ~67%
+            //   - Hover:   jato fraco → pisca lento  (período 5: 1 frame ON, 4 OFF)   ~20%
+            //   - Caindo:  jato muito fraco → pisca muito lento (período 8: 1 ON, 7 OFF) ~12%
             const subindo = (controle.teclas['ArrowUp'] || controle.teclas['w'] || controle.teclas['W']);
-            const efeitoPisca = (controle.timerVooRestante % 4 < 2); // Alterna visibilidade a cada 2 frames (rápido)
+            let efeitoPisca;
+            if (subindo) {
+                efeitoPisca = (controle.timerVooRestante % 3 < 2); // Forte: 67% ligado
+            } else if (controle.jetpackHovering) {
+                efeitoPisca = (controle.timerVooRestante % 5 < 1); // Fraco: 20% ligado
+            } else {
+                efeitoPisca = (controle.timerVooRestante % 8 < 1); // Muito fraco: 12% ligado
+            }
             const tremorFogo = (Math.random() * 3) - 1.5; // Pequeno tremor vertical para as chamas
 
-            if (controle.jetpackAtivo && subindo && efeitoPisca) {
+            if (controle.jetpackAtivo && efeitoPisca) {
                 jetFogoElemento.style.display = 'block';
                 jetFogoElemento.style.left = controle.x + 'px';
                 jetFogoElemento.style.bottom = (controle.y - 4 + tremorFogo) + 'px'; // Ajuste com tremor
