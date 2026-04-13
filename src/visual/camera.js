@@ -139,7 +139,6 @@ window.resetarCamera = function() {
     if (stage) {
         stage.style.transform = `translate(0px, 0px)`;
     }
-    console.log("[CÂMERA] Posição resetada para origem");
 };
 
 /**
@@ -155,10 +154,9 @@ window.atualizarCamera = function(alvoX, alvoY, mundoW, mundoH) {
     // Detecta qual câmera deveria ser usada
     const modo = window.detectarTamanhoCâmera();
     
-    // Se mudou de modo, exibe no console
+    // Se mudou de modo, atualiza o estado
     if (window.cameraModo !== modo) {
         window.cameraModo = modo;
-        console.log(`[CÂMERA] 🎥 MODO DETECTADO: ${modo === "pequena" ? "📱 TELA PEQUENA" : "🖥️ TELA GRANDE"} | autoScale: ${window.autoScaleMultiplier}`);
     }
     
     // Executa a câmera apropriada

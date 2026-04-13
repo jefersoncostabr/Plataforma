@@ -28,6 +28,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         return controle.temEscudo && !controle.escudoVermelho;
     }
 
+    function virarFenoParaFonteDano(inimigo, fonteX) {
+        if (!inimigo || inimigo.tipo !== 5 || !inimigo.elemento) return;
+        const centroX = inimigo.x + ((inimigo.largura || 32) / 2);
+        inimigo.elemento.style.transform = fonteX <= centroX ? 'scaleX(1)' : 'scaleX(-1)';
+    }
+
     const INVENTARIO_STORAGE_KEY = 'plataformaInventario';
 
     function obterKnockbackRecebido(fonte = 'default') {
@@ -1155,6 +1161,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         const duracaoRecuoInimigo = 15; // Recoil duration in frames
                         inimigoAtingido.framesKnockbackRestante = duracaoRecuoInimigo;
                         inimigoAtingido.velocidadeKnockback = (valorKnockbackInimigo / duracaoRecuoInimigo) * direcaoKnockback;
+                        virarFenoParaFonteDano(inimigoAtingido, controle.x + ((controle.largura || 32) / 2));
 
                         // Check for enemy death
                         if (inimigoAtingido.vida >= 3) {
@@ -1779,6 +1786,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         const duracaoRecuoInimigo = 15; // Duração do recuo em frames
                         inimigo.framesKnockbackRestante = duracaoRecuoInimigo;
                         inimigo.velocidadeKnockback = (valorKnockbackInimigo / duracaoRecuoInimigo) * direcaoKnockback;
+                        virarFenoParaFonteDano(inimigo, controle.x + ((controle.largura || 32) / 2));
 
                         // console.log(`Ataque: Inimigo atingido! Vida restante: ${3 - inimigo.vida}`);
 
@@ -1908,6 +1916,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 const posAjustada = limitarPosicaoAoPalco(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura);
                                 inimigo.x = posAjustada.x - (inimigo.offsetX || 0);
                             }
+
+                            virarFenoParaFonteDano(inimigo, proj.x);
 
                             inimigo.elemento.style.left = inimigo.x + 'px';
 

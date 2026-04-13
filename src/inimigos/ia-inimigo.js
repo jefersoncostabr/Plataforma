@@ -104,6 +104,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         // Limpa referências antigas e remove armas
         if (window.inimigos) {
             window.inimigos.forEach(inim => {
+                if (inim.elemento) inim.elemento.remove();
                 if (inim.armaElemento) inim.armaElemento.remove();
                 if (inim.botaElemento) inim.botaElemento.remove();
                 if (inim.escudoElemento) inim.escudoElemento.remove();
@@ -137,7 +138,11 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             inimigoImg.style.bottom = pos.y + 'px';
             inimigoImg.style.zIndex = '4';
             inimigoImg.style.imageRendering = 'pixelated';
-            palco.appendChild(inimigoImg);
+            if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
+                adicionarAoLayer(inimigoImg, window.LAYERS.INIMIGOS);
+            } else {
+                palco.appendChild(inimigoImg);
+            }
 
             window.inimigos.push({
                 x: pos.x,
@@ -210,6 +215,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.framesKnockbackRestante > 0) {
                         inimigo.x += inimigo.velocidadeKnockback;
                         inimigo.framesKnockbackRestante--;
+                        inimigo.elemento.style.transform = inimigo.velocidadeKnockback > 0 ? 'scaleX(1)' : 'scaleX(-1)';
                     }
 
                     // Colisão Horizontal com as laterais das plataformas (Snap) para o feno
@@ -235,8 +241,9 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         // Nota: Não ajustamos o Y aqui para permitir que ele caia em buracos se empurrado
                     }
 
-                    // Aplica gravidade básica
-                    if (typeof aplicarFisica === 'function' && !inimigo.noChao) {
+                    // Aplica gravidade continuamente para o feno não ficar "flutuando"
+                    inimigo.noChao = false;
+                    if (typeof aplicarFisica === 'function') {
                         aplicarFisica(inimigo, {}, 0, config.inimigoGravidade, 0);
                     }
                     // Sincroniza posição visual e pula toda a IA

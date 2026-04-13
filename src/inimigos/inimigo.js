@@ -252,7 +252,11 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     inimigoImg.style.imageRendering = 'pixelated';
     inimigoImg.style.zIndex = '4';
     inimigoImg.style.transform = 'scaleX(1)'; // Virado para esquerda inicialmente
-    palco.appendChild(inimigoImg);
+    if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
+        adicionarAoLayer(inimigoImg, window.LAYERS.INIMIGOS);
+    } else {
+        palco.appendChild(inimigoImg);
+    }
     
     // Determina tipo e equipamento baseado no parâmetro (0=melee, 1=revolver, 2=escudo, 3=bota, 4=jetpack, 5=feno, 6=garra)
     let tipoInimigo = tipoEquipamento; 
@@ -320,7 +324,11 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         armaImg.style.zIndex = '6';
         armaImg.style.imageRendering = 'pixelated';
         armaImg.style.pointerEvents = 'none';
-        palco.appendChild(armaImg);
+        if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
+            adicionarAoLayer(armaImg, window.LAYERS.INIMIGOS);
+        } else {
+            palco.appendChild(armaImg);
+        }
         novoInimigo.armaElemento = armaImg;
         novoInimigo.municao = window.config?.maxMunicao || 5;
     }
@@ -336,7 +344,11 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         escudoImg.style.imageRendering = 'pixelated';
         escudoImg.style.pointerEvents = 'none';
         escudoImg.style.display = 'block';
-        palco.appendChild(escudoImg);
+        if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
+            adicionarAoLayer(escudoImg, window.LAYERS.INIMIGOS);
+        } else {
+            palco.appendChild(escudoImg);
+        }
         novoInimigo.escudoElemento = escudoImg;
     }
 
@@ -350,7 +362,11 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         botaImg.style.zIndex = '8';
         botaImg.style.imageRendering = 'pixelated';
         botaImg.style.pointerEvents = 'none';
-        palco.appendChild(botaImg);
+        if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
+            adicionarAoLayer(botaImg, window.LAYERS.INIMIGOS);
+        } else {
+            palco.appendChild(botaImg);
+        }
         novoInimigo.botaElemento = botaImg;
     }
 
@@ -364,7 +380,11 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         jetpackImg.style.zIndex = '3';
         jetpackImg.style.imageRendering = 'pixelated';
         jetpackImg.style.pointerEvents = 'none';
-        palco.appendChild(jetpackImg);
+        if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
+            adicionarAoLayer(jetpackImg, window.LAYERS.INIMIGOS);
+        } else {
+            palco.appendChild(jetpackImg);
+        }
         novoInimigo.jetpackElemento = jetpackImg;
     }
 
@@ -378,7 +398,11 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         garraImg.style.zIndex = '9';
         garraImg.style.imageRendering = 'pixelated';
         garraImg.style.pointerEvents = 'none';
-        palco.appendChild(garraImg);
+        if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
+            adicionarAoLayer(garraImg, window.LAYERS.INIMIGOS);
+        } else {
+            palco.appendChild(garraImg);
+        }
         novoInimigo.garraElemento = garraImg;
     }
 
