@@ -1136,7 +1136,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             controle.garraItemCarregado = inimigo;
                             inimigo.stunned = true;
                             inimigo.stunTimer = config.garraStunDuration || 120; // Default 2 seconds
-                            inimigo.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)'; // Visual stun
                             inimigo.garraAnimEstado = 'idle'; // Reset enemy claw if they were using it
                             inimigo.foiAtingidoNesteChute = false; // Reset hit flag for the upcoming kick
                             window.inimigos.splice(j, 1); // Temporarily remove enemy from global list to pause its AI

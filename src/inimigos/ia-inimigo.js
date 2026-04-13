@@ -100,6 +100,62 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         item.elemento.remove();
     }
 
+    function limparVisuaisInimigo(inimigo) {
+        if (!inimigo) return;
+        if (inimigo.armaElemento) inimigo.armaElemento.remove();
+        if (inimigo.botaElemento) inimigo.botaElemento.remove();
+        if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
+        if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
+        if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
+        if (inimigo.garraElemento) inimigo.garraElemento.remove();
+        if (inimigo.garraBracos) inimigo.garraBracos.forEach(b => b.remove());
+    }
+
+    function aplicarDanoEspinhoInimigo(inimigo, hitEstaca) {
+        if (!inimigo || !hitEstaca || hitEstaca.tipo !== 'estaca') return false;
+        if ((inimigo.cooldownDanoEspinho || 0) > 0) return false;
+
+        inimigo.cooldownDanoEspinho = Number(config.cooldownDanoEspinhoInimigo ?? config.cooldownDanoEspinho ?? 24);
+
+        // Knockback sempre acontece ao tocar estaca.
+        if (hitEstaca.direcao === 'cima') {
+            const impulsoVertical = Number(config.knockbackEspinhoInimigoUpY ?? config.knockbackEspinhoUpY ?? 6);
+            inimigo.velocidadeY = Math.max(inimigo.velocidadeY || 0, impulsoVertical);
+        }
+
+        if (hitEstaca.direcao !== 'cima' && hitEstaca.esquerdaReal !== undefined && hitEstaca.direitaReal !== undefined) {
+            const centroEstaca = (hitEstaca.esquerdaReal + hitEstaca.direitaReal) / 2;
+            const centroInimigo = inimigo.x + (inimigo.offsetX || 0) + ((inimigo.largura || 0) / 2);
+            const direcaoKnock = centroInimigo < centroEstaca ? -1 : 1;
+            const valorKnock = Number(config.knockbackEspinhoInimigo ?? config.knockbackEspinho ?? 70);
+            const duracaoKnock = 10;
+            inimigo.framesKnockbackRestante = Math.max(inimigo.framesKnockbackRestante || 0, duracaoKnock);
+            inimigo.velocidadeKnockback = (valorKnock / duracaoKnock) * direcaoKnock;
+        } else if (hitEstaca.direcao === 'cima') {
+            inimigo.framesKnockbackRestante = 0;
+            inimigo.velocidadeKnockback = 0;
+        }
+
+        if (inimigo.temEscudo && !inimigo.escudoVermelho) {
+            inimigo.escudoProtegido = (inimigo.escudoProtegido || 0) + 1;
+            const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
+            if (inimigo.escudoProtegido >= tirosProtegidos) {
+                inimigo.escudoVermelho = true;
+            }
+            return false;
+        }
+
+        const dano = Number(config.danoEspinhoInimigo ?? config.danoEspinho ?? 1);
+        inimigo.vida = (inimigo.vida || 0) + dano;
+
+        if (typeof piscaLeve === 'function' && inimigo.elemento) {
+            piscaLeve(inimigo.elemento);
+        }
+
+        const limiteVida = Number(config.inimigoVidaMax ?? 3);
+        return inimigo.vida >= limiteVida;
+    }
+
     window.resetarInimigos = (dadosInimigos) => {
         // Limpa referências antigas e remove armas
         if (window.inimigos) {
@@ -149,26 +205,30 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 y: pos.y,
                 startX: pos.x,
                 startY: pos.y,
-                largura: config.HITBOX_LARGURA, // Atribuir largura aqui
-                altura: config.HITBOX_ALTURA,   // Atribuir altura aqui
-                offsetX: config.HITBOX_OFFSET_X, // Atribuir offsetX aqui
-                elemento: inimigoImg, // Usar a variável correta
+                largura: config.HITBOX_LARGURA,
+                altura: config.HITBOX_ALTURA,
+                alturaEmPe: config.HITBOX_ALTURA,
+                offsetX: config.HITBOX_OFFSET_X,
+                elemento: inimigoImg,
                 perseguindo: false,
                 tipo: tipo,
-                framesKnockbackRestante: 0, // Inicializa frames de knockback
-                velocidadeKnockback: 0, // Inicializa velocidade de knockback
-                puloTimer: 0, // Inicializa o timer de pulo
-                jumpQueued: false, // Inicializa a flag de pulo agendado
-                noChao: false, // CRÍTICO: Inicializa contato com solo para evitar inimigos congelados no ar
-                velocidadeY: 0, // Inicializa velocidade vertical
-                isEnemy: true // Flag to identify as an enemy
-                // Propriedades da Garra para o inimigo
-                ,garraAnimEstado: 'idle' // idle, prep, esticando, catching, voltando
-                ,garraTimer: 0
-                ,garraDist: 0
-                ,garraBracos: []
-                ,garraItemCarregado: null
-                ,cooldownGarra: 60 // Novo cooldown para a garra do inimigo
+                framesKnockbackRestante: 0,
+                velocidadeKnockback: 0,
+                puloTimer: 0,
+                jumpQueued: false,
+                noChao: false,
+                velocidadeY: 0,
+                isEnemy: true,
+                garraAnimEstado: 'idle',
+                garraTimer: 0,
+                garraDist: 0,
+                garraBracos: [],
+                garraItemCarregado: null,
+                cooldownGarra: 60,
+                cooldownDanoEspinho: 0,
+                estaAgachado: false,
+                spriteParadoAgachado: config.spriteAgachadoPlayer || '../../assets/personagem/per_agachado.png',
+                spriteAndandoAgachado: config.spriteAgachadoAndandoPlayer || '../../assets/personagem/per_agachado2.png'
             });
         });
     };
@@ -272,6 +332,56 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 // Se houver um item de interesse por perto, ele vira o alvo prioritário da IA
                 const xAlvo = itemInteresse ? itemInteresse.x : playerX;
                 const yAlvo = itemInteresse ? itemInteresse.y : playerY;
+
+                // Lógica de IA: agacha quando já está sob teto baixo OU quando detecta passagem baixa à frente.
+                const alturaAgachado = Number(config.agachadoHitboxAltura ?? 16);
+                const alturaEmPe = Number(inimigo.alturaEmPe || config.HITBOX_ALTURA || 30);
+                const dirAlvo = xAlvo >= inimigo.x ? 1 : -1;
+                const lookAhead = Math.max(8, Math.ceil(velAtivaBase * 3));
+                const frenteX = dirAlvo > 0
+                    ? inimigo.x + (inimigo.offsetX || 0) + inimigo.largura + lookAhead
+                    : inimigo.x + (inimigo.offsetX || 0) - lookAhead;
+
+                let precisaAgacharAgora = false;
+                let precisaAgacharAFrente = false;
+                if (typeof verificarColisaoComTiles === 'function') {
+                    const faixaTopoEmPe = Math.max(1, alturaEmPe - alturaAgachado);
+
+                    // Já está em um ponto onde em pé colidiria no topo.
+                    const bloqueioEmPeAtual = verificarColisaoComTiles(
+                        inimigo.x + (inimigo.offsetX || 0),
+                        inimigo.y + alturaAgachado,
+                        inimigo.largura,
+                        faixaTopoEmPe,
+                        window.plataformas
+                    );
+                    precisaAgacharAgora = !!bloqueioEmPeAtual;
+
+                    // Detecta passagem baixa logo à frente: em pé bloqueia, agachado passa.
+                    const bloqueioEmPeFrente = verificarColisaoComTiles(
+                        frenteX,
+                        inimigo.y + alturaAgachado,
+                        2,
+                        faixaTopoEmPe,
+                        window.plataformas
+                    );
+                    const bloqueioAgachadoFrente = verificarColisaoComTiles(
+                        frenteX,
+                        inimigo.y + 2,
+                        2,
+                        Math.max(1, alturaAgachado - 3),
+                        window.plataformas
+                    );
+                    precisaAgacharAFrente = !!bloqueioEmPeFrente && !bloqueioAgachadoFrente;
+                }
+
+                inimigo.precisaAgacharPassagem = precisaAgacharAFrente;
+                inimigo.estaAgachado = precisaAgacharAgora || precisaAgacharAFrente;
+                
+                // Ajusta a hitbox de acordo com o estado agachado (ANTES das colisões, como o player)
+                inimigo.altura = inimigo.estaAgachado
+                    ? (config.agachadoHitboxAltura ?? 16)
+                    : (inimigo.alturaEmPe || config.HITBOX_ALTURA);
 
                 const estaChutando = inimigo.tempoChute > 0;
 
@@ -782,8 +892,65 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 // Colisão Vertical constante para garantir que o inimigo pule e caia corretamente
                 inimigo.noChao = false;
                 const hitV = typeof verificarColisaoComTiles === 'function' ? verificarColisaoComTiles(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura, window.plataformas) : null;
+                let ignorarSnapVerticalNesteFrame = false;
+                let ignorarColisaoHorizontalNesteFrame = false;
 
-                if (hitV) {
+                if (inimigo.cooldownDanoEspinho > 0) inimigo.cooldownDanoEspinho--;
+                if (hitV && hitV.tipo === 'estaca') {
+                    const morreuPorEspinho = aplicarDanoEspinhoInimigo(inimigo, hitV);
+                    if (!morreuPorEspinho && hitV.direcao === 'cima') {
+                        // Evita grudar em quinas laterais ao tomar dano de estaca para cima.
+                        ignorarSnapVerticalNesteFrame = true;
+                        ignorarColisaoHorizontalNesteFrame = true;
+                        inimigo.noChao = false;
+
+                        if (hitV.esquerdaReal !== undefined && hitV.direitaReal !== undefined) {
+                            const centroEstaca = (hitV.esquerdaReal + hitV.direitaReal) / 2;
+                            const centroInimigo = inimigo.x + (inimigo.offsetX || 0) + ((inimigo.largura || 0) / 2);
+                            const direcaoSaida = centroInimigo < centroEstaca ? -1 : 1;
+                            inimigo.x += direcaoSaida * 6;
+                        }
+                    }
+                    if (morreuPorEspinho) {
+                        if (inimigo.tipo === 5) {
+                            inimigo.estaMorto = true;
+                            inimigo.framesKnockbackRestante = 0;
+                            inimigo.velocidadeKnockback = 0;
+                            inimigo.velocidadeY = 0;
+
+                            if (window.isTraining) {
+                                inimigo.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
+                                window.inimigos.splice(i, 1);
+                                setTimeout(() => {
+                                    inimigo.vida = 0;
+                                    inimigo.x = inimigo.startX;
+                                    inimigo.y = inimigo.startY;
+                                    inimigo.estaMorto = false;
+                                    inimigo.elemento.style.filter = 'none';
+                                    inimigo.elemento.style.left = inimigo.x + 'px';
+                                    inimigo.elemento.style.bottom = inimigo.y + 'px';
+                                    inimigo.noChao = false;
+                                    inimigo.velocidadeY = 0;
+                                    inimigo.cooldownDanoEspinho = 0;
+                                    window.inimigos.push(inimigo);
+                                }, 800);
+                            } else {
+                                inimigo.elemento.src = '../../assets/personagem/feno_quebrado.png';
+                                window.inimigos.splice(i, 1);
+                                setTimeout(() => {
+                                    inimigo.elemento.remove();
+                                }, 800);
+                            }
+                        } else {
+                            limparVisuaisInimigo(inimigo);
+                            inimigo.elemento.remove();
+                            window.inimigos.splice(i, 1);
+                        }
+                        continue;
+                    }
+                }
+
+                if (hitV && !ignorarSnapVerticalNesteFrame) {
                     if (inimigo.velocidadeY < 0) {
                         inimigo.noChao = true;
                         inimigo.velocidadeY = 0;
@@ -980,16 +1147,22 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     }
 
                     // Lógica de perseguição: move-se na direção do Alvo (AirDrop ou Player)
-                    // Aumentamos a margem de parada baseada na velocidade para evitar travamentos
-                    if (inimigo.x < xAlvo - velAtiva) {
+                    // Aplica velocidade reduzida se estiver agachado
+                    let velEfetivaMovimento = velAtiva;
+                    if (inimigo.estaAgachado) {
+                        const multiplicadorAgachado = Number(config.agachadoMultiplicadorVelocidade ?? 0.55);
+                        velEfetivaMovimento = velAtiva * multiplicadorAgachado;
+                    }
+                    
+                    if (inimigo.x < xAlvo - velEfetivaMovimento) {
                         if (inimigo.tempoChute === 0 && inimigo.garraAnimEstado === 'idle') {
-                            inimigo.x += velAtiva;
+                            inimigo.x += velEfetivaMovimento;
                             inimigo.direcao = 'd';
                             movendoDestaVez = true;
                         }
-                    } else if (inimigo.x > xAlvo + velAtiva) {
+                    } else if (inimigo.x > xAlvo + velEfetivaMovimento) {
                         if (inimigo.tempoChute === 0 && inimigo.garraAnimEstado === 'idle') {
-                            inimigo.x -= velAtiva;
+                            inimigo.x -= velEfetivaMovimento;
                             inimigo.direcao = 'e';
                             movendoDestaVez = true;
                         }
@@ -1040,8 +1213,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     }
                 }
 
-                // Lógica de Pulo por Diferença de Altura (Apenas se estiver perseguindo)
-                if (inimigo.perseguindo && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && yAlvo > inimigo.y + 31) {
+                // Lógica de Pulo por Diferença de Altura (Apenas se estiver perseguindo e NÃO agachado)
+                if (inimigo.perseguindo && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && yAlvo > inimigo.y + 31 && !inimigo.estaAgachado) {
                     const distXAlvo = Math.abs(xAlvo - inimigo.x);
                     if (distXAlvo < 64 && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
                         inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
@@ -1049,8 +1222,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     }
                 }
 
-                // Lógica de Salto de Fé (Gap Jumping - Apenas se estiver perseguindo)
-                if (inimigo.perseguindo && movendoDestaVez && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0) {
+                // Lógica de Salto de Fé (Gap Jumping - Apenas se estiver perseguindo e NÃO agachado)
+                if (inimigo.perseguindo && movendoDestaVez && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && !inimigo.estaAgachado) {
                     const checkX = (inimigo.direcao === 'd') 
                         ? inimigo.x + (inimigo.offsetX || 0) + inimigo.largura + 10 
                         : inimigo.x + (inimigo.offsetX || 0) - 10;
@@ -1076,12 +1249,20 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         chutando: inimigo.tempoChute > 0
                     };
 
+                    // Seleciona sprites baseado em agachamento
+                    const spriteParadoUsado = inimigo.estaAgachado 
+                        ? inimigo.spriteParadoAgachado 
+                        : (config.spriteParadoInimigo || spriteParado);
+                    const spriteAndandoUsado = inimigo.estaAgachado
+                        ? inimigo.spriteAndandoAgachado
+                        : (config.spriteAndandoInimigo || spriteAndando);
+
                     if (typeof atualizarAnimacao === 'function') {
                         atualizarAnimacao(
                             controleAnimacao, 
                             inimigo.elemento, 
-                            config.spriteParadoInimigo || spriteParado, 
-                            config.spriteAndandoInimigo || spriteAndando
+                            spriteParadoUsado,
+                            spriteAndandoUsado
                         );
                         // Salva o estado da animação no objeto do inimigo para o próximo frame
                         inimigo.contadorAnimacao = controleAnimacao.contadorAnimacao;
@@ -1159,11 +1340,11 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 }
 
                 // Colisão Horizontal com as laterais das plataformas (após perseguição/dash)
-                if (typeof verificarColisaoComTiles === 'function' && 
+                if (!ignorarColisaoHorizontalNesteFrame && typeof verificarColisaoComTiles === 'function' && 
                     verificarColisaoComTiles(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura, window.plataformas)) {
                     
                     // Item 1: Pulo por Obstrução (Wall Detection)
-                    if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
+                    if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && inimigo.puloTimer === 0 && !inimigo.jumpQueued && !inimigo.estaAgachado && !inimigo.precisaAgacharPassagem) {
                         // Agenda o pulo com um delay aleatório
                         inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
                         inimigo.jumpQueued = true;
