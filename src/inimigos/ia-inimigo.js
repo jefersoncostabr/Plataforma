@@ -1101,15 +1101,20 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 // Lógica da Attackbox do Inimigo (Apenas se estiver perseguindo/atacando)
                 if (inimigo.perseguindo && inimigo.tempoChute > 0 && !inimigo.jaAtacouNesteChute && window.playerControle) {
+                    const ataqueOffsetX = config.INIMIGO_ATAQUE_OFFSET_X ?? config.ATAQUE_OFFSET_X;
+                    const ataqueOffsetY = config.INIMIGO_ATAQUE_OFFSET_Y ?? config.ATAQUE_OFFSET_Y;
+                    const ataqueLargura = config.INIMIGO_ATAQUE_LARGURA ?? config.ATAQUE_LARGURA;
+                    const ataqueAltura = config.INIMIGO_ATAQUE_ALTURA ?? config.ATAQUE_ALTURA;
+
                     let ataqueX = (inimigo.direcao === 'd') 
-                        ? inimigo.x + config.ATAQUE_OFFSET_X 
-                        : inimigo.x + (32 - config.ATAQUE_OFFSET_X - config.ATAQUE_LARGURA);
+                        ? inimigo.x + ataqueOffsetX 
+                        : inimigo.x + (32 - ataqueOffsetX - ataqueLargura);
 
                     const hitboxAtaqueInimigo = {
                         x: ataqueX,
-                        y: inimigo.y + config.ATAQUE_OFFSET_Y,
-                        largura: config.ATAQUE_LARGURA,
-                        altura: config.ATAQUE_ALTURA
+                        y: inimigo.y + ataqueOffsetY,
+                        largura: ataqueLargura,
+                        altura: ataqueAltura
                     };
 
                     const hurtboxPlayer = { 

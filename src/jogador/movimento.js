@@ -35,6 +35,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     }
 
     const INVENTARIO_STORAGE_KEY = 'plataformaInventario';
+    const spriteAgachado = '../../assets/personagem/per_agachado.png';
+    const spriteAgachado2 = '../../assets/personagem/per_agachado2.png';
 
     function obterKnockbackRecebido(fonte = 'default') {
         const valor = obterKnockback(config, fonte);
@@ -350,6 +352,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         vendaVisual: null,
         inventario: [],
         airdropUsadoNoNivel: false,
+        estaAgachado: false,
         teclas: {}
     };
 
@@ -707,6 +710,18 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // Log para confirmar o valor de e.key para a barra de espaço
         // if (e.key === ' ') console.log("Movimentação: KeyDown capturado -> Barra de Espaço");
         controle.teclas[e.key] = true;
+
+        // Toggle de agachar: Baixo alterna estado, Cima força retorno ao normal
+        if (!e.repeat) {
+            const apertouBaixo = e.key === 'ArrowDown' || e.key === 's' || e.key === 'S';
+            const apertouCima = e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W';
+
+            if (apertouBaixo) {
+                controle.estaAgachado = !controle.estaAgachado;
+            } else if (apertouCima) {
+                controle.estaAgachado = false;
+            }
+        }
 
         // Atalho para Menu de Pause (ESC ou Pause/Break)
         if (e.key === 'Pause' || e.key === 'Break' || e.key === 'Escape' || e.key === 'Esc') {
@@ -1285,6 +1300,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             velAtiva += Number(config.bonusVelocidadeBota || 2);
         }
 
+        if (controle.estaAgachado) {
+            const multiplicadorAgachado = Number(config.agachadoMultiplicadorVelocidade ?? 0.55);
+            velAtiva *= Math.max(0, multiplicadorAgachado);
+        }
+
         // Movimentação Horizontal
         if (controle.teclas['ArrowLeft'] || controle.teclas['a'] || controle.teclas['A']) {
             controle.x -= velAtiva;
@@ -1708,7 +1728,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 elemento, 
                 config.spriteParadoPlayer || spriteParado, 
                 config.spriteAndandoPlayer || spriteAndando,
-                config.spriteNoArPlayer || spriteNoAr
+                config.spriteNoArPlayer || spriteNoAr,
+                config.spriteAgachadoPlayer || spriteAgachado,
+                config.spriteAgachadoAndandoPlayer || spriteAgachado2
             );
         }
 

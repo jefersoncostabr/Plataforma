@@ -17,9 +17,24 @@ window.escalaAtual = 1;
 window.ultimaDirecaoX = 0; // -1 = esquerda, 0 = parado, 1 = direita
 window.ultimaDirecaoY = 0; // -1 = baixo, 0 = parado, 1 = cima
 
+function limparAnimacaoDanoJogador() {
+    const playerEl = document.getElementById('player');
+    if (!playerEl) return;
+
+    // Remove qualquer resíduo visual de flash/vibração de dano.
+    playerEl.style.filter = 'none';
+    playerEl.style.transition = '';
+
+    // Reaplica apenas o espelhamento padrão do sprite.
+    const direcao = window.playerControle?.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+    playerEl.style.transform = direcao;
+}
+
 
 
 async function carregarFase(nomeArquivo) {
+
+    limparAnimacaoDanoJogador();
 
     
     // Tenta encontrar o container para controle de exibição
@@ -280,6 +295,8 @@ window.proximoNivel = async function() {
 
 // Reinicia a fase atual
 window.reiniciarJogo = async function(porMorte = true) {
+    limparAnimacaoDanoJogador();
+
     // Cancela spawns de inimigos aleatórios
     if (window.intervalInimigoAleatorio !== null) {
         clearInterval(window.intervalInimigoAleatorio);
