@@ -75,9 +75,9 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
                     }
                     // ESTACA PARA BAIXO
                     else if (bloco.direcao === 'baixo') {
-                        const baseReal = tileBaixo + (bloco.yOffset || 0); // Deslocamento a partir da base do tile
-                        const topoReal = baseReal + (bloco.height || 16); // Altura real da área de perigo (metade inferior)
-                        // Verifica colisão APENAS na metade inferior
+                        const topoReal = tileTopo - (bloco.yOffset || 0); // Deslocamento a partir do topo do tile (base da estaca)
+                        const baseReal = topoReal - (bloco.height || 16); // Altura real da área de colisão (metade superior)
+                        // Verifica colisão APENAS na metade superior (base sólida)
                         if (y + altura > baseReal && y < topoReal) {
                             return { tipo: 'estaca', direcao: 'baixo', topoReal: topoReal, baseReal: baseReal };
                         }

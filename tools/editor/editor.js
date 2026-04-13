@@ -141,8 +141,14 @@ function atualizarTamanhoStage() {
     COLS = 20 * (wMult || 1);
     ROWS = 15 * (hMult || 1);
 
-    stage.style.width = (COLS * TILE_SIZE) + 'px';
+    const larguraCalculada = (COLS * TILE_SIZE) + 'px';
+    stage.style.width = larguraCalculada;
     stage.style.height = (ROWS * TILE_SIZE) + 'px';
+
+    if (output) {
+        output.style.width = larguraCalculada;
+        output.style.boxSizing = 'border-box'; // Garante que a largura total inclua bordas
+    }
 
     configurarGrade();
     atualizarVisual();

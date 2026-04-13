@@ -1299,15 +1299,15 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Lógica de Chute (tecla K)
         if ((controle.teclas['k'] || controle.teclas['K']) && controle.cooldownChute === 0) {
-            controle.tempoChute = config.tempoChute;
-            controle.cooldownChute = config.cooldownChute;
+            controle.tempoChute = config.tempoChute;      // duração da animação → "tempoChute"
+            controle.cooldownChute = config.cooldownChute; // espera até o próximo chute → "cooldownChute"
 
             // Configura o deslocamento suave em vez de teleporte
             const duracaoDash = 10; // O avanço levará 10 frames para completar
             const multiplicadorChute = controle.temBota ? 2 : 1;
             
             controle.framesImpulsoRestante = duracaoDash;
-            // Calcula quanto o personagem deve andar por frame durante o dash
+            // Distância total do avanço → "impulsoChute" (dobra com bota)
             controle.velocidadeDash = (config.impulsoChute * multiplicadorChute) / duracaoDash;
 
             // Reseta o estado de "atingido" de todos os inimigos para este novo chute
@@ -1744,7 +1744,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
                 // 2. Attackbox (Ativa apenas durante o chute)
                 if (controle.chutando) {
-                    // Calcula o X da attackbox baseado na direção (espelhamento)
+                    // Hitbox de ataque — ajuste em configuracoes.json:
+                    // "ATAQUE_OFFSET_X" → distância da borda do sprite até a hitbox (menor = começa mais perto)
+                    // "ATAQUE_LARGURA"  → largura da hitbox (maior = alcance maior)
+                    // "ATAQUE_OFFSET_Y" → deslocamento vertical da hitbox
+                    // "ATAQUE_ALTURA"   → altura da hitbox
                     let ataqueX = (controle.direcao === 'd') 
                         ? controle.x + config.ATAQUE_OFFSET_X 
                         : controle.x + (32 - config.ATAQUE_OFFSET_X - config.ATAQUE_LARGURA);

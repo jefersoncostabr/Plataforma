@@ -142,9 +142,9 @@ function verificarEstacaCima(r, c, bloco, x, y, largura, altura) {
 function verificarEstacaBaixo(r, c, bloco, x, y, largura, altura) {
     const coords = calcularCoordenadosEstaca(r, c, bloco);
     
-    // A estaca ocupa a PARTE INFERIOR do tile
-    const baseReal = coords.tileBaixo;
-    const topoReal = baseReal + coords.height;
+    // A estaca ocupa a PARTE SUPERIOR do tile (base sólida); as pontas ficam na parte inferior sem colisão
+    const topoReal = coords.tileTopo - coords.yOffset;
+    const baseReal = topoReal - coords.height;
 
     const colisaoVertical = (y + altura > baseReal && y < topoReal);
     const colisaoHorizontal = (x + largura > coords.tileEsquerda && x < coords.tileDireita);
