@@ -38,6 +38,7 @@ function limparCenario() {
     window.projeteis = []; 
     window.itensColetaveis = [];
     window.objetivoData = null;
+    window.inimigos = []; // CRÍTICO: Limpa inimigos para não deixar "fantasmas" da fase anterior
 
     // 3. Reseta filtros de CSS que podem estar pesando na GPU (como blur ou grayscale)
     const stage = document.getElementById('game-stage');

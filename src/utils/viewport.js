@@ -20,15 +20,6 @@ window.ViewportUtils = {
     },
 
     /**
-     * Calcula o deslocamento (offset) para centralizar ao fazer zoom
-     * @param {number} escala - Valor do zoom (ex: 1.5)
-     * @returns {number} Deslocamento em percentual
-     */
-    calcularDeslocamentoZoom(escala) {
-        return ((1 - escala) / 2) * 100;
-    },
-
-    /**
      * Calcula o viewport efetivo considerando o zoom
      * @param {number} escala - Valor do zoom
      * @returns {object} {width, height} do viewport efetivo
@@ -120,27 +111,5 @@ window.ViewportUtils = {
 
         stage.style.width = `${width}px`;
         stage.style.height = `${height}px`;
-    },
-
-    /**
-     * Aplica a transformação de zoom ao container
-     * @param {number} escala - Valor do zoom
-     */
-    aplicarZoomContainer(escala) {
-        const container = this.getGameContainer();
-        if (!container) {
-            console.error(`[VIEWPORT] Container não encontrado para aplicar zoom!`);
-            return;
-        }
-
-        if (escala === 1) {
-            container.style.transform = 'none';
-        } else {
-            const deslocamento = this.calcularDeslocamentoZoom(escala);
-            container.style.transform = `translate(${deslocamento}%, ${deslocamento}%) scale(${escala})`;
-            container.style.transformOrigin = 'center';
-        }
-
-        console.log(`[ZOOM] Aplicado: ${escala}x`);
     }
 };

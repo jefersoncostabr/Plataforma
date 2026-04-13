@@ -13,6 +13,10 @@ window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro
 // ⭐ Escala atual do jogo
 window.escalaAtual = 1;
 
+// 📍 Rastreamento de direção para câmera grande
+window.ultimaDirecaoX = 0; // -1 = esquerda, 0 = parado, 1 = direita
+window.ultimaDirecaoY = 0; // -1 = baixo, 0 = parado, 1 = cima
+
 
 
 async function carregarFase(nomeArquivo) {
@@ -369,30 +373,69 @@ async function iniciarJogo() {
     // Qual a maior escala que cabe em cada dimensão
     const scaleX = Math.floor(maxWidth / baseWidth);
     const scaleY = Math.floor(maxHeight / baseHeight);
-    const maxScale = Math.min(scaleX, scaleY, 4); // Limita a 4x para melhor proporção
+    const maxScale = Math.max(1, Math.min(scaleX, scaleY, 4)); // Limita a 4x e garante mínimo 1x
     
-    // Dimensões finais do viewport
-    const viewportWidth = baseWidth * maxScale;
-    const viewportHeight = baseHeight * maxScale;
-    
-    // Nota: Não aplicamos zoom aqui, apenas aumentamos o viewport e o mundo proporcionalmente
+    // Nota: opção 1 - viewport lógico fica fixo em 640x480
+    // A ampliação é aplicada no container (wrapper), não na câmera.
     window.escalaAtual = config.escalaPalco; // Mantém zoom conforme config
 
-    // Configura viewport com tamanho máximo proporcionalmente
+    // Configura viewport base fixa e aplica escala visual no container
     const container = document.getElementById('jogo-container');
     if (container) {
-        container.style.width = viewportWidth + 'px';
-        container.style.height = viewportHeight + 'px';
+        container.style.width = baseWidth + 'px';
+        container.style.height = baseHeight + 'px';
         container.style.overflow = 'hidden';
         container.style.position = 'relative';
         container.style.display = 'block';
         container.style.margin = '0 auto';
         container.style.top = '0';
         container.style.left = '0';
+        container.style.transform = `scale(${maxScale})`;
+        container.style.transformOrigin = 'center center';
         
-        // Armazena a escala automática para uso em carregarFase
+        // Armazena a escala automática para debug/seleção de modo
         window.autoScaleMultiplier = maxScale;
     }
+
+    // Função para recalcular escala ao redimensionar a tela
+    let resizeTimeout = null;
+    window.recalcularTamanhoJogo = function() {
+        // Debounce: evita recalcular muitas vezes enquanto o usuário arrasta
+        if (resizeTimeout) clearTimeout(resizeTimeout);
+        
+        resizeTimeout = setTimeout(() => {
+            const baseWidth = 640;
+            const baseHeight = 480;
+            const maxWidth = window.innerWidth;
+            const maxHeight = window.innerHeight;
+            
+            // Recalcula escala máxima
+            const scaleX = Math.floor(maxWidth / baseWidth);
+            const scaleY = Math.floor(maxHeight / baseHeight);
+            const newMaxScale = Math.max(1, Math.min(scaleX, scaleY, 4));
+            
+            // Apenas atualiza se a escala mudou
+            if (newMaxScale !== window.autoScaleMultiplier) {
+                window.autoScaleMultiplier = newMaxScale;
+                
+                const container = document.getElementById('jogo-container');
+                if (container) {
+                    container.style.width = baseWidth + 'px';
+                    container.style.height = baseHeight + 'px';
+                    container.style.transform = `scale(${newMaxScale})`;
+                    container.style.transformOrigin = 'center center';
+                }
+                
+                // Reaplica a câmera com nova escala
+                if (typeof window.resetarCamera === 'function') {
+                    window.resetarCamera();
+                }
+            }
+        }, 150); // Aguarda 150ms após parar de redimensionar
+    };
+    
+    // Listener para redimensionamento da tela
+    window.addEventListener('resize', window.recalcularTamanhoJogo);
 
     // Inicializa sistemas de movimento, IA e renderização
     await iniciarMovimentacao(

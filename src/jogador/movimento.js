@@ -1163,17 +1163,36 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 inimigoAtingido.framesKnockbackRestante = 0;
                                 inimigoAtingido.velocidadeKnockback = 0;
                                 inimigoAtingido.velocidadeY = 0;
-                                inimigoAtingido.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
-                                setTimeout(() => {
-                                    inimigoAtingido.vida = 0;
-                                    inimigoAtingido.x = inimigoAtingido.startX;
-                                    inimigoAtingido.y = inimigoAtingido.startY;
-                                    inimigoAtingido.estaMorto = false;
-                                    inimigoAtingido.elemento.style.filter = 'none';
-                                    inimigoAtingido.elemento.style.left = inimigoAtingido.x + 'px';
-                                    inimigoAtingido.elemento.style.bottom = inimigoAtingido.y + 'px';
-                                    window.inimigos.push(inimigoAtingido); // Re-add to active enemies
-                                }, 2000);
+
+                                if (window.isTraining) {
+                                    // MODO TREINO: Feno fica vermelho e aparece novamente no local origem
+                                    inimigoAtingido.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
+                                    // Remove do array para evitar duplicação
+                                    const indexBeforeDeath = window.inimigos.indexOf(inimigoAtingido);
+                                    if (indexBeforeDeath > -1) window.inimigos.splice(indexBeforeDeath, 1);
+                                    
+                                    setTimeout(() => {
+                                        inimigoAtingido.vida = 0;
+                                        inimigoAtingido.x = inimigoAtingido.startX;
+                                        inimigoAtingido.y = inimigoAtingido.startY;
+                                        inimigoAtingido.estaMorto = false;
+                                        inimigoAtingido.elemento.style.filter = 'none';
+                                        inimigoAtingido.elemento.style.left = inimigoAtingido.x + 'px';
+                                        inimigoAtingido.elemento.style.bottom = inimigoAtingido.y + 'px';
+                                        inimigoAtingido.noChao = false; // Reset estado de solo
+                                        inimigoAtingido.velocidadeY = 0; // Reset velocidade
+                                        window.inimigos.push(inimigoAtingido); // Re-add to active enemies
+                                    }, 800);
+                                } else {
+                                    // MODO NORMAL: Feno mostra sprite destruído e desaparece para sempre
+                                    inimigoAtingido.elemento.src = '../../assets/personagem/feno_quebrado.png';
+                                    setTimeout(() => {
+                                        inimigoAtingido.elemento.remove();
+                                        // Remove do array de inimigos para não aparecer novamente
+                                        const index = window.inimigos.indexOf(inimigoAtingido);
+                                        if (index > -1) window.inimigos.splice(index, 1);
+                                    }, 800);
+                                }
                             } else { // Normal enemy death
                                 if (typeof flashComVibacao === 'function') {
                                     flashComVibacao(inimigoAtingido.elemento);
@@ -1369,6 +1388,28 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // Diminui o cooldown do Jetpack
         if (controle.cooldownVooJetpack > 0) {
             controle.cooldownVooJetpack--;
+        }
+
+        // 📍 RASTREAMENTO DE DIREÇÃO PARA CÂMERA GRANDE
+        // Calcula em qual direção o jogador se moveu este frame
+        // Usado pela câmera grande para adicionar viés (offset) apropriado
+        const movimentoFrameX = controle.x - xAnterior;
+        const movimentoFrameY = controle.y - yAnterior;
+        
+        if (movimentoFrameX > 0) {
+            window.ultimaDirecaoX = 1; // Movendo para direita
+        } else if (movimentoFrameX < 0) {
+            window.ultimaDirecaoX = -1; // Movendo para esquerda
+        } else {
+            window.ultimaDirecaoX = 0; // Sem movimento horizontal
+        }
+        
+        if (movimentoFrameY > 0) {
+            window.ultimaDirecaoY = 1; // Movendo para cima
+        } else if (movimentoFrameY < 0) {
+            window.ultimaDirecaoY = -1; // Movendo para baixo
+        } else {
+            window.ultimaDirecaoY = 0; // Sem movimento vertical
         }
 
         // ITEM 6: Limites do Palco (Horizontal) - Aplicar antes da colisão com tiles
@@ -1724,7 +1765,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         inimigo.timerColeta = 0;
                         
                         inimigo.vida = (inimigo.vida || 0) + 1;
-                        if (inimigo.tipo === 5) console.log(`[FENO] Recebeu 1 de dano (Chute). Vida acumulada: ${inimigo.vida}/3`);
+                        // Inimigo tipo 5 é Feno (alvo de treino) - você verá dano no comportamento
 
                         // Knockback: Lança o inimigo para trás com base na direção do jogador
                         const direcaoKnockback = (controle.direcao === 'd' ? 1 : -1);
@@ -1744,7 +1785,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         // Se atingir 3 golpes, o inimigo morre e desaparece
                         if (inimigo.vida >= 3) {
                             if (inimigo.tipo === 5) {
-                                // Lógica de Reset para o Alvo de Feno
+                                // Lógica de Feno (Alvo) - Comportamento condicional
                                 inimigo.estaMorto = true;
                                 
                                 // Zera a física imediatamente para evitar recuo residual após o respawn
@@ -1752,16 +1793,34 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 inimigo.velocidadeKnockback = 0;
                                 inimigo.velocidadeY = 0;
 
-                                inimigo.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
-                                setTimeout(() => {
-                                    inimigo.vida = 0;
-                                    inimigo.x = inimigo.startX;
-                                    inimigo.y = inimigo.startY;
-                                    inimigo.estaMorto = false;
-                                    inimigo.elemento.style.filter = 'none';
-                                    inimigo.elemento.style.left = inimigo.x + 'px';
-                                    inimigo.elemento.style.bottom = inimigo.y + 'px';
-                                }, 2000);
+                                if (window.isTraining) {
+                                    // MODO TREINO: Feno fica vermelho e aparece novamente no local origem
+                                    inimigo.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
+                                    // Remove do array para evitar duplicação
+                                    const indexBeforeDeath = window.inimigos.indexOf(inimigo);
+                                    if (indexBeforeDeath > -1) window.inimigos.splice(indexBeforeDeath, 1);
+                                    
+                                    setTimeout(() => {
+                                        inimigo.vida = 0;
+                                        inimigo.x = inimigo.startX;
+                                        inimigo.y = inimigo.startY;
+                                        inimigo.estaMorto = false;
+                                        inimigo.elemento.style.filter = 'none';
+                                        inimigo.elemento.style.left = inimigo.x + 'px';
+                                        inimigo.elemento.style.bottom = inimigo.y + 'px';
+                                        inimigo.noChao = false; // Reset estado de solo
+                                        inimigo.velocidadeY = 0; // Reset velocidade
+                                    }, 800);
+                                } else {
+                                    // MODO NORMAL: Feno mostra sprite destruído e desaparece para sempre
+                                    inimigo.elemento.src = '../../assets/personagem/feno_quebrado.png';
+                                    setTimeout(() => {
+                                        inimigo.elemento.remove();
+                                        // Remove do array de inimigos para não aparecer novamente
+                                        const index = window.inimigos.indexOf(inimigo);
+                                        if (index > -1) window.inimigos.splice(index, 1);
+                                    }, 800);
+                                }
                             } else {
                                 // Efeito visual apenas se NÃO for o golpe final (evita sobrescrever o vermelho)
                                 if (typeof piscaLeve === 'function') {
@@ -1838,7 +1897,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             } else {
                                 const danoTomado = (controle.danoProjetil || 1);
                                 inimigo.vida = (inimigo.vida || 0) + danoTomado;
-                                if (inimigo.tipo === 5) console.log(`[FENO] Recebeu ${danoTomado} de dano (Tiro). Vida acumulada: ${inimigo.vida}/3`);
+                                // Inimigo tipo 5 é Feno (alvo de treino) - você verá dano no comportamento
                             }
                             
                             // Knockback: Lança o inimigo para trás com base na direção do projétil
@@ -1854,6 +1913,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
                             if (inimigo.vida >= 3) {
                                 if (inimigo.tipo === 5) {
+                                    // Lógica de Feno (Alvo) - Comportamento condicional
                                     inimigo.estaMorto = true;
 
                                     // Zera a física imediatamente para o dano por projétil também
@@ -1861,16 +1921,34 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                     inimigo.velocidadeKnockback = 0;
                                     inimigo.velocidadeY = 0;
 
-                                    inimigo.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
-                                    setTimeout(() => {
-                                        inimigo.vida = 0;
-                                        inimigo.x = inimigo.startX;
-                                        inimigo.y = inimigo.startY;
-                                        inimigo.estaMorto = false;
-                                        inimigo.elemento.style.filter = 'none';
-                                        inimigo.elemento.style.left = inimigo.x + 'px';
-                                        inimigo.elemento.style.bottom = inimigo.y + 'px';
-                                    }, 2000);
+                                    if (window.isTraining) {
+                                        // MODO TREINO: Feno fica vermelho e aparece novamente no local origem
+                                        inimigo.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
+                                        // Remove do array para evitar duplicação
+                                        const indexBeforeDeath = window.inimigos.indexOf(inimigo);
+                                        if (indexBeforeDeath > -1) window.inimigos.splice(indexBeforeDeath, 1);
+                                        
+                                        setTimeout(() => {
+                                            inimigo.vida = 0;
+                                            inimigo.x = inimigo.startX;
+                                            inimigo.y = inimigo.startY;
+                                            inimigo.estaMorto = false;
+                                            inimigo.elemento.style.filter = 'none';
+                                            inimigo.elemento.style.left = inimigo.x + 'px';
+                                            inimigo.elemento.style.bottom = inimigo.y + 'px';
+                                            inimigo.noChao = false; // Reset estado de solo
+                                            inimigo.velocidadeY = 0; // Reset velocidade
+                                        }, 800);
+                                    } else {
+                                        // MODO NORMAL: Feno mostra sprite destruído e desaparece para sempre
+                                        inimigo.elemento.src = '../../assets/personagem/feno_quebrado.png';
+                                        setTimeout(() => {
+                                            inimigo.elemento.remove();
+                                            // Remove do array de inimigos para não aparecer novamente
+                                            const index = window.inimigos.indexOf(inimigo);
+                                            if (index > -1) window.inimigos.splice(index, 1);
+                                        }, 800);
+                                    }
                                 } else {
                                     // Efeito visual apenas se NÃO for o golpe final
                                     if (typeof flashComVibacao === 'function') {
@@ -2276,7 +2354,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // ATUALIZAÇÃO DA CÂMERA: Mantém o jogador centralizado
         if (typeof window.atualizarCamera === 'function') {
-            window.atualizarCamera(controle.x, controle.y, window.mundoLargura, window.mundoAltura);
+            // Calcula o centro da hitbox do personagem (não apenas o canto do sprite)
+            const centroPelayerX = controle.x + controle.offsetX + (controle.largura / 2);
+            const centroPelayerY = controle.y + (controle.altura / 2);
+            window.atualizarCamera(centroPelayerX, centroPelayerY, window.mundoLargura, window.mundoAltura);
         }
 
         requestAnimationFrame(atualizar);

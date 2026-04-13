@@ -153,8 +153,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 framesKnockbackRestante: 0, // Inicializa frames de knockback
                 velocidadeKnockback: 0, // Inicializa velocidade de knockback
                 puloTimer: 0, // Inicializa o timer de pulo
-                jumpQueued: false // Inicializa a flag de pulo agendado
-                ,isEnemy: true // Flag to identify as an enemy
+                jumpQueued: false, // Inicializa a flag de pulo agendado
+                noChao: false, // CRÍTICO: Inicializa contato com solo para evitar inimigos congelados no ar
+                velocidadeY: 0, // Inicializa velocidade vertical
+                isEnemy: true // Flag to identify as an enemy
                 // Propriedades da Garra para o inimigo
                 ,garraAnimEstado: 'idle' // idle, prep, esticando, catching, voltando
                 ,garraTimer: 0
