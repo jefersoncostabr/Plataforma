@@ -3,6 +3,7 @@
     "cooldownChute": 102,
     "HITBOX_LARGURA": 7,
     "HITBOX_ALTURA": 25,
+    "agachadoHitboxAltura": 16,
     "HITBOX_OFFSET_X": 12.5,
     "impulsoChute": 28,
     "ATAQUE_OFFSET_X": 8,

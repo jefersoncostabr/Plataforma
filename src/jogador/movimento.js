@@ -304,7 +304,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         x: parseInt(elemento.style.left) || 0,
         y: parseInt(elemento.style.bottom) || 0,
         largura: config.HITBOX_LARGURA || 20,
-        altura: config.HITBOX_ALTURA || 30,
+        altura: config.HITBOX_ALTURA || 25,
+        alturaEmPe: config.HITBOX_ALTURA || 25,
         offsetX: config.HITBOX_OFFSET_X || 6,
         velocidadeY: 0,
         noChao: false,
@@ -1282,6 +1283,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Resetamos o estado horizontal, mas o noChao será validado pelas colisões abaixo
         const noChaoAnterior = controle.noChao;
+
+        // Ajusta a hitbox de acordo com o estado agachado (muda altura a cada frame)
+        controle.altura = controle.estaAgachado
+            ? (config.agachadoHitboxAltura ?? 16)
+            : controle.alturaEmPe;
         
         // Sincroniza o estado de chute com o timer
         controle.chutando = controle.tempoChute > 0;
@@ -1459,7 +1465,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 
                 if (hitH) {
                     // Ignora colisões verticais (não afetam movimento horizontal)
-                    if (hitH.direcao === 'cima' || hitH.direcao === 'baixo') {
+                    // EXCETO se for estaca baixo COM colisão lateral
+                    if ((hitH.direcao === 'cima' || hitH.direcao === 'baixo') && !hitH.temColisaoLateral) {
                         continue; // Continua o movimento horizontal
                     }
                     
@@ -1480,8 +1487,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 verificarColisaoComTiles(controle.x + controle.offsetX, controle.y, controle.largura, controle.altura, window.plataformas);
             
             if (hitH) {
-                // Ignora colisões verticais
-                if (hitH.direcao === 'cima' || hitH.direcao === 'baixo') {
+                // Ignora colisões verticais (exceto estaca baixo com colisão lateral)
+                if ((hitH.direcao === 'cima' || hitH.direcao === 'baixo') && !hitH.temColisaoLateral) {
                     // Continua movimento
                 } else {
                     if (controle.x > xAnterior) { // Indo para Direita

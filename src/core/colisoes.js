@@ -73,13 +73,31 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
                             return { tipo: 'estaca', direcao: 'cima', topoReal: topoReal, baseReal: baseReal };
                         }
                     }
-                    // ESTACA PARA BAIXO
+                    // ESTACA PARA BAIXO - Colisão vertical + lateral na metade superior
                     else if (bloco.direcao === 'baixo') {
                         const topoReal = tileTopo - (bloco.yOffset || 0); // Deslocamento a partir do topo do tile (base da estaca)
                         const baseReal = topoReal - (bloco.height || 16); // Altura real da área de colisão (metade superior)
-                        // Verifica colisão APENAS na metade superior (base sólida)
-                        if (y + altura > baseReal && y < topoReal) {
-                            return { tipo: 'estaca', direcao: 'baixo', topoReal: topoReal, baseReal: baseReal };
+                        const esquerdaReal = tileEsquerda;
+                        const direitaReal = tileDireita;
+
+                        // Colisão vertical (bloqueio ao cair de cima)
+                        const colisaoVertical = (y + altura > baseReal && y < topoReal);
+
+                        // Colisão lateral (bloqueia entrada pelos lados apenas na metade superior)
+                        const colisaoX = (x + largura > esquerdaReal && x < direitaReal);
+                        const colisaoY = (y + altura > baseReal && y < topoReal);
+                        const colisaoLateral = colisaoX && colisaoY;
+
+                        if (colisaoVertical || colisaoLateral) {
+                            return { 
+                                tipo: 'estaca', 
+                                direcao: 'baixo', 
+                                topoReal: topoReal, 
+                                baseReal: baseReal,
+                                esquerdaReal: esquerdaReal,
+                                direitaReal: direitaReal,
+                                temColisaoLateral: colisaoLateral
+                            };
                         }
                     }
                     // ESTACA PARA DIREITA

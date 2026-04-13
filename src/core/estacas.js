@@ -125,7 +125,8 @@ function verificarEstacaCima(r, c, bloco, x, y, largura, altura) {
 
 /**
  * ⚠️ ESTACA PARA BAIXO
- * Pontas apontando para baixo. O jogador não pode atravessar a base.
+ * Pontas apontando para baixo. O jogador não pode atravessar a base (metade superior).
+ * Atravessa a parte inferior (onde estão as pontas).
  * 
  * Visualização:
  * ```
@@ -133,10 +134,11 @@ function verificarEstacaCima(r, c, bloco, x, y, largura, altura) {
  * 
  *   32    64 (X)
  * +-----+
- * |\  / |     height tipicamente = 16
+ * |\  / |     height tipicamente = 16 (metade superior - sólida)
  * | \/ |  <- Estacas apontando para BAIXO
  * +-----+  32
  *     (Y)
+ *     (pontas da parte inferior podem ser atravessadas verticalmente)
  * ```
  */
 function verificarEstacaBaixo(r, c, bloco, x, y, largura, altura) {
@@ -145,18 +147,26 @@ function verificarEstacaBaixo(r, c, bloco, x, y, largura, altura) {
     // A estaca ocupa a PARTE SUPERIOR do tile (base sólida); as pontas ficam na parte inferior sem colisão
     const topoReal = coords.tileTopo - coords.yOffset;
     const baseReal = topoReal - coords.height;
+    const esquerdaReal = coords.tileEsquerda;
+    const direitaReal = coords.tileDireita;
 
+    // Colisão vertical (bloqueio ao cair de cima)
     const colisaoVertical = (y + altura > baseReal && y < topoReal);
-    const colisaoHorizontal = (x + largura > coords.tileEsquerda && x < coords.tileDireita);
+    
+    // Colisão lateral (da metade superior apenas)
+    const colisaoX = (x + largura > esquerdaReal && x < direitaReal);
+    const colisaoY = (y + altura > baseReal && y < topoReal);
+    const colisaoLateral = colisaoX && colisaoY;
 
-    if (colisaoVertical && colisaoHorizontal) {
+    if (colisaoVertical || colisaoLateral) {
         return {
             tipo: 'estaca',
             direcao: 'baixo',
             topoReal,
             baseReal,
-            tileEsquerda: coords.tileEsquerda,
-            tileDireita: coords.tileDireita
+            esquerdaReal,
+            direitaReal,
+            temColisaoLateral: colisaoLateral
         };
     }
     return false;
