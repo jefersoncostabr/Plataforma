@@ -30,7 +30,9 @@ const cameraPequena = function(alvoX, alvoY, mundoW, mundoH) {
     const FASE_BASE_H = 480;
 
     let targetX = alvoX - (FASE_BASE_W / 2);
-    let targetY = alvoY - (FASE_BASE_H / 2);
+    // O jogo usa bottom-coords: Y=0 é o chão, cresce para cima.
+    // Para apontar a câmera ao jogador precisamos inverter: targetY = mundoH - alvoY - viewportH/2
+    let targetY = mundoH - alvoY - (FASE_BASE_H / 2);
 
     // Clamping independente por eixo
     if (mundoW > FASE_BASE_W) {
@@ -99,11 +101,13 @@ const cameraGrande = function(alvoX, alvoY, mundoW, mundoH) {
     const dirX = window.ultimaDirecaoX || 0;
     const dirY = window.ultimaDirecaoY || 0;
     const offsetX = dirX > 0 ? 50 : (dirX < 0 ? -50 : 0);
+    // dirY>0 = subindo (bottom cresce); offsetY positivo soma ao alvo invertido → câmera sobe junto
     const offsetY = dirY > 0 ? 40 : (dirY < 0 ? -40 : 0);
     
-    // Posição alvo centralizada + offset
+    // Posição alvo corrigida para bottom-coords: mundoH - alvoY - viewportH/2
+    // offsetY subtrai porque ao aumentar alvoY (subir) targetY diminui naturalmente
     const targetX = alvoX - (viewportW / 2) + offsetX;
-    const targetY = alvoY - (viewportH / 2) + offsetY;
+    const targetY = mundoH - alvoY - (viewportH / 2) - offsetY;
     const targetClampedX = mundoW > BASE_W ? clamparCamera(targetX, mundoW, viewportW) : 0;
     const targetClampedY = mundoH > BASE_H ? clamparCamera(targetY, mundoH, viewportH) : 0;
 

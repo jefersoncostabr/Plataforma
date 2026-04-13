@@ -178,6 +178,17 @@ async function carregarFase(nomeArquivo) {
         
         window.playerControle.airdropUsadoNoNivel = false;
         window.playerControle.noChao = false;
+
+        // Snap instantâneo da câmera para o spawn do jogador (sem lerp).
+        const centroSnapX = window.playerControle.x + ((window.playerControle.largura || 20) / 2);
+        const centroSnapY = window.playerControle.y + ((window.playerControle.altura || 30) / 2);
+        const snapTargetX = centroSnapX - 320;
+        const snapTargetY = window.mundoAltura - centroSnapY - 240;
+        window.cameraX = Math.max(0, Math.min(snapTargetX, window.mundoLargura - 640));
+        window.cameraY = Math.max(0, Math.min(snapTargetY, window.mundoAltura - 480));
+        if (typeof window.atualizarCamera === 'function') {
+            window.atualizarCamera(centroSnapX, centroSnapY, window.mundoLargura, window.mundoAltura);
+        }
     }
 
     // Carrega inimigos da fase

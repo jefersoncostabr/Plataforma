@@ -135,11 +135,17 @@ function renderMenuUI() {
         return;
     }
 
+    // O overlay precisa cobrir exatamente o viewport visível.
+    // Como está dentro do game-stage (que é transladado pela câmera),
+    // basta posicioná-lo em (cameraX, cameraY) dentro do stage.
+    const camX = Math.round(window.cameraX || 0);
+    const camY = Math.round(window.cameraY || 0);
+
     const overlay = document.createElement('div');
     overlay.id = 'pause-menu-overlay';
     overlay.style = `
-        position: absolute; 
-        top: 0; left: 0; 
+        position: absolute;
+        left: ${camX}px; top: ${camY}px;
         width: 640px; height: 480px;
         background: rgba(0, 0, 0, 0.7); z-index: 10000;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
