@@ -58,6 +58,8 @@
     "spriteGarraPlayer": "assets/personagem/garra.png",
     "garraAlcanceInimigo": 160,
     "spriteItemGarra": "assets/personagem/garra_coletavel.png",
+    "spriteItemCinto": "assets/personagem/cinto_coletavel.png",
+    "spriteCintoPlayer": "assets/personagem/cinto.png",
     "velocidadeProjetil": 8,
     "PROJETIL_LARGURA": 8,
     "PROJETIL_ALTURA": 8,

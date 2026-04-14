@@ -16,6 +16,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
     // Busca as configurações do arquivo JSON
     const resposta = await fetch('../../config/configuracoes.json');
+    if (!resposta.ok) throw new Error(`Erro ao carregar configuracoes.json: ${resposta.statusText}`);
     const config = await resposta.json();
 
     const CONTROLES_STORAGE_KEY = 'plataformaControles';
@@ -465,7 +466,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             else if (tipo === 'bota') itemImg.src = config.spriteItemBota || '../../assets/personagem/bota_pegavel.png';
             else if (tipo === 'jetpack') itemImg.src = config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
             else if (tipo === 'garra') itemImg.src = config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
-            
+            else if (tipo === 'cinto') itemImg.src = config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
+
             itemImg.style.position = 'absolute';
             itemImg.style.width = '32px';
             itemImg.style.height = '32px';
@@ -647,9 +649,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
     // NEW: Helper function to collect items brought by the claw
     function coletarItemGarra(item) {
+            //
         // Novo sistema: se itemDefinitions existir e tiver o item, usa o novo fluxo
         if (window.itemDefinitions && window.itemDefinitions[item.tipo]) {
             const itemData = window.itemDefinitions[item.tipo];
+            //
             if (window.aplicarEfeitoColeta && typeof window.aplicarEfeitoColeta === 'function') {
                 window.aplicarEfeitoColeta(itemData, controle);
             } else if (itemData.efeitos && itemData.efeitos.jogador) {
@@ -687,7 +691,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             salvarInventario();
             return;
         }
-        // Fallback: sistema antigo
+        // Fallback: sistema antigo (código obsoleto removido)
         if (item.tipo === 'escudo') {
             controle.temEscudo = true;
             controle.escudoVermelho = item.escudoVermelho || false;
@@ -1085,13 +1089,14 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 elemento.style.bottom = controle.y + 'px';
                 elemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
                 
-                // Sincroniza acessórios
+                // Sincroniza itens acessórios
                 const posStyle = { left: elemento.style.left, bottom: elemento.style.bottom, transform: elemento.style.transform };
                 if (armaElemento) Object.assign(armaElemento.style, posStyle);
                 if (escudoElemento) Object.assign(escudoElemento.style, posStyle);
                 if (botaElemento) Object.assign(botaElemento.style, posStyle);
                 if (jetpackElemento) Object.assign(jetpackElemento.style, posStyle);
                 if (garraElemento) Object.assign(garraElemento.style, posStyle);
+                if (cintoElemento) Object.assign(cintoElemento.style, posStyle);
 
                 // Mantém o HUD atualizado
                 atualizarHUD();
@@ -1483,8 +1488,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 if (inimigoAtingido.garraElemento) inimigoAtingido.garraElemento.remove();
                                 if (inimigoAtingido.garraBracos) inimigoAtingido.garraBracos.forEach(b => b.remove());
                                 inimigoAtingido.elemento.remove();
-                                // No need to splice from window.inimigos, as it was already removed when grabbed.
-                                // If it's dead, we don't re-add it.
+                                window.inimigos.splice(i, 1);
                             }
                         } else {
                             window.inimigos.push(inimigoAtingido); // Re-add to active enemies if not dead
@@ -2424,8 +2428,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         // Lógica de Recompensa Aleatória baseada no JSON
                         const conteudos = config.airdrop1?.conteudos || ['xp'];
                         const sorteio = conteudos[Math.floor(Math.random() * conteudos.length)];
-                        console.log("AirDrop resgatado! Conteúdo: " + sorteio);
-                        
+                        console.log("AirDrop resgatado pela garra! Conteúdo: " + sorteio);
+
                         if (sorteio === 'skillpoint') {
                             window.skillPoints += 1;
                         } else if (sorteio === 'xp') {
@@ -2455,9 +2459,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             }
                         } else if (sorteio === 'item') {
                             // Sorteio de item físico
-                            const itensDisponiveis = ['revolver', 'escudo', 'bota', 'jetpack', 'garra']; // Inclui garra
+                            const itensDisponiveis = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto']; // Inclui garra
                             const itemSorteado = itensDisponiveis[Math.floor(Math.random() * itensDisponiveis.length)];
-                            
+
                             if (itemSorteado === 'escudo') { 
                                 controle.temEscudo = true; 
                                 controle.escudoVermelho = false; 
@@ -2486,7 +2490,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             } else if (itemSorteado === 'cinto') {
                                 controle.temArma = true; 
                                 controle.municao = config.maxMunicao || 5; 
-                                if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver'); // Garante que o item seja adicionado ao inventário
+                                if (!controle.inventario.includes('cinto')) controle.inventario.push('cinto'); // Garante que o item seja adicionado ao inventário
                                 armaElemento.style.display = 'block';
                             }
                         }
@@ -2578,7 +2582,14 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         escudoElemento.style.bottom = controle.y + 'px';
         escudoElemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
 
-        // Sincroniza a posição e sprite da bota
+        // Sincroniza a posição do cinto com o jogador
+        if (controle.temCinto) {
+            cintoElemento.style.left = controle.x + 'px';
+            cintoElemento.style.bottom = controle.y + 'px';
+            cintoElemento.style.transform = elemento.style.transform;
+        }
+
+        // Sincroniza a posição e visibilidade da bota
         if (controle.temBota) {
             botaElemento.style.left = controle.x + 'px';
             botaElemento.style.bottom = controle.y + 'px';
