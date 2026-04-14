@@ -1,0 +1,13 @@
+{
+    "id": "escudo",
+    "nome": "Escudo",
+    "spriteColetavel": "../../assets/personagem/escudo_pegavel.png",
+    "spriteEquipado": "../../assets/personagem/escudo.png",
+    "efeitos": {
+        "jogador": {
+            "temEscudo": true,
+            "escudoVermelho": false,
+            "escudoProtegido": 0
+        }
+    }
+}

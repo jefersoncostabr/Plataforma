@@ -1,0 +1,12 @@
+{
+    "id": "revolver",
+    "nome": "Revólver",
+    "spriteColetavel": "../../assets/personagem/revolver_pegavel.png",
+    "spriteEquipado": "../../assets/personagem/revolver.png",
+    "efeitos": {
+        "jogador": {
+            "temArma": true,
+            "municao": 5
+        }
+    }
+}

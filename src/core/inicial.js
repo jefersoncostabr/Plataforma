@@ -429,6 +429,9 @@ async function iniciarJogo() {
     window.config = config;
     window.nivelAtual = (config.faseInicial !== undefined) ? config.faseInicial : 0;
 
+    // Carrega as definições de itens para o jogo usar os sprites dos JSONs
+    if (typeof window.carregarItemDefinitions === 'function') await window.carregarItemDefinitions();
+
     // Carrega dados de skills e progresso
     if (typeof window.carregarDadosSkills === 'function') {
         await window.carregarDadosSkills();

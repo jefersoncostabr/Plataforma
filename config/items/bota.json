@@ -1,0 +1,10 @@
+{
+    "id": "bota",
+    "nome": "Botas de Velocidade",
+    "spriteColetavel": "../../assets/personagem/bota_pegavel.png",
+    "efeitos": {
+        "jogador": {
+            "temBota": true
+        }
+    }
+}

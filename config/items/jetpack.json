@@ -1,0 +1,11 @@
+{
+    "id": "jetpack",
+    "nome": "Jetpack",
+    "spriteColetavel": "../../assets/personagem/jetpack_pegavel.png",
+    "efeitos": {
+        "jogador": {
+            "temJetpack": true,
+            "timerVooRestante": 360
+        }
+    }
+}

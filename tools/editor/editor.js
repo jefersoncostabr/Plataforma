@@ -33,11 +33,13 @@ let faseData = {
     inimigoAleatorio: [1, 0]
 };
 
+// Novo: dicionário de definições de itens carregados dos JSONs
+let itemDefinitions = {};
+
 let itemSelecionado = 'plataforma';
 let gradeVisivel = true;
 
 const stage = document.getElementById('game-stage');
-const paletteItems = document.querySelectorAll('.palette-item');
 const btnExport = document.getElementById('btn-export');
 const btnImport = document.getElementById('btn-import');
 const btnClear = document.getElementById('btn-clear');
@@ -56,10 +58,12 @@ const randomTypeSelect = document.getElementById('random-type');
 let tooltipElement;
 
 // Inicialização
-window.onload = () => {
+
+window.onload = async () => {
+    await carregarItemDefinitions();
     configurarControlesDimensoes();
     atualizarTamanhoStage();
-    configurarPaleta();
+    configurarPaletaDinamicaItens();
     configurarStage();
     configurarFerramentasAutomaticas();
 
@@ -132,7 +136,7 @@ window.onload = () => {
         else if (faseData.objetivo === coord) legenda = "Objetivo da Fase";
         else {
             const item = (faseData.itens || []).find(i => i.pos === coord);
-            if (item) legenda = "Item: " + item.tipo.charAt(0).toUpperCase() + item.tipo.slice(1);
+            if (item && itemDefinitions[item.tipo]) legenda = "Item: " + (itemDefinitions[item.tipo].nome || item.tipo);
         }
 
         if (legenda) {
@@ -146,6 +150,53 @@ window.onload = () => {
     });
     stage.addEventListener('mouseleave', () => tooltipElement.style.display = 'none');
 };
+
+// Carrega todos os arquivos JSON de config/items/ e popula itemDefinitions
+async function carregarItemDefinitions() {
+    itemDefinitions = {};
+    // Lista dos tipos de itens conhecidos (poderia ser dinâmico via API/FS)
+    const tipos = ["revolver","escudo","bota","jetpack","garra","cinto"];
+    for (const tipo of tipos) {
+        try {
+            const resp = await fetch(`../../config/items/${tipo}.json`);
+            if (resp.ok) {
+                const data = await resp.json();
+                itemDefinitions[data.id] = data;
+            }
+        } catch (e) { /* ignora erro */ }
+    }
+}
+
+// Monta a paleta de itens dinamicamente
+function configurarPaletaDinamicaItens() {
+    const palette = document.getElementById('palette');
+    if (!palette) return;
+
+    // Remove itens antigos
+    const oldItens = palette.querySelectorAll('.palette-item[data-type^="item_"]');
+    oldItens.forEach(el => el.remove());
+
+    // Adiciona cada item da definição
+    const catItens = Array.from(palette.querySelectorAll('.category')).find(cat => {
+        const texto = cat.querySelector('h4')?.innerText.trim().toLowerCase();
+        return texto === 'itens' || texto === 'items';
+    });
+
+    if (catItens) {
+        for (const tipo in itemDefinitions) {
+            const def = itemDefinitions[tipo];
+            const img = document.createElement('img');
+            img.src = def.spriteColetavel;
+            img.className = 'palette-item';
+            img.setAttribute('data-type', 'item_' + def.id);
+            img.title = def.nome || def.id;
+            catItens.appendChild(img);
+        }
+    }
+
+    // Reconfigura seleção
+    configurarPaleta();
+}
 
 function configurarControlesDimensoes() {
     if (!proportionSelect) return;
@@ -247,9 +298,10 @@ function configurarFerramentasAutomaticas() {
 }
 
 function configurarPaleta() {
-    paletteItems.forEach(item => {
+    const items = document.querySelectorAll('.palette-item');
+    items.forEach(item => {
         item.onclick = () => {
-            paletteItems.forEach(i => i.classList.remove('selected'));
+            items.forEach(i => i.classList.remove('selected'));
             item.classList.add('selected');
             itemSelecionado = item.getAttribute('data-type');
         };
@@ -264,7 +316,11 @@ function configurarStage() {
 
         const col = Math.floor(x / TILE_SIZE) + 1;
         const row = Math.floor(y / TILE_SIZE);
-        const coord = String.fromCharCode(97 + row) + col;
+
+        // Suporte para coordenadas de letras duplas (a..z, aa..az) para mapas grandes
+        const coord = row < 26 
+            ? String.fromCharCode(97 + row) + col
+            : String.fromCharCode(97 + Math.floor(row/26) - 1) + String.fromCharCode(97 + (row % 26)) + col;
 
         if (e.button === 0) adicionarElemento(coord);
         else if (e.button === 2) removerElemento(coord);
@@ -308,7 +364,7 @@ function removerElemento(coord) {
     faseData.plataformasEstacaDir = (faseData.plataformasEstacaDir || []).filter(c => c !== coord);
     faseData.plataformasEstacaEsq = (faseData.plataformasEstacaEsq || []).filter(c => c !== coord);
     faseData.plataformasEstacaBaixo = (faseData.plataformasEstacaBaixo || []).filter(c => c !== coord);
-    const tiposInimigos = ['inimigos0', 'inimigos1', 'inimigos2', 'inimigos3', 'inimigos4', 'inimigos5', 'inimigos6'];
+    const tiposInimigos = ['inimigos0', 'inimigos1', 'inimigos2', 'inimigos3', 'inimigos4', 'inimigos5', 'inimigos6', 'inimigos7'];
     tiposInimigos.forEach(tipo => {
         if (faseData[tipo]) faseData[tipo] = faseData[tipo].filter(c => c !== coord);
     });
@@ -341,12 +397,11 @@ function atualizarVisual() {
 
     faseData.itens.forEach(item => {
         let src = '../../assets/personagem/revolver_pegavel.png';
-        if (item.tipo === 'escudo') src = '../../assets/personagem/escudo_pegavel.png';
-        else if (item.tipo === 'bota') src = '../../assets/personagem/bota_pegavel.png';
-        else if (item.tipo === 'jetpack') src = '../../assets/personagem/jetpack_pegavel.png';
-        else if (item.tipo === 'garra') src = '../../assets/personagem/garra_coletavel.png';
-        else if (item.tipo === 'cinto') src = '../../assets/personagem/cinto_coletavel.png';
-        else if (item.tipo === 'restauracao') src = '../../assets/personagem/restauracao.png';
+        if (itemDefinitions[item.tipo] && itemDefinitions[item.tipo].spriteColetavel) {
+            src = itemDefinitions[item.tipo].spriteColetavel;
+        } else if (item.tipo === 'restauracao') {
+            src = '../../assets/personagem/restauracao.png';
+        }
         criarIcone(item.pos, src, '');
     });
     

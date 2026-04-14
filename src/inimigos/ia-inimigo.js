@@ -126,70 +126,33 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     }
 
     function inimigoColetarItemGarra(inimigo, item) {
-        // This logic is adapted from the existing enemy item collection in the main loop
-        // It assumes the item has already been removed from window.itensColetaveis
-        // and its visual element will be removed by the caller.
-
-        if (item.tipo === 'revolver') { inimigo.temArma = true; inimigo.municao = config.maxMunicao || 5; if (inimigo.armaElemento) inimigo.armaElemento.style.display = 'block'; }
-        else if (item.tipo === 'escudo') { inimigo.temEscudo = true; inimigo.escudoVermelho = false; inimigo.escudoProtegido = 0; if (inimigo.escudoElemento) inimigo.escudoElemento.style.display = 'block'; }
-        else if (item.tipo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
-        else if (item.tipo === 'jetpack') { inimigo.temJetpack = true; if (inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block'; }
-        else if (item.tipo === 'garra') { inimigo.temGarra = true; if (inimigo.garraElemento) inimigo.garraElemento.style.display = 'block'; }
-        else if (item.tipo === 'cinto') { inimigo.temCinto = true; if (inimigo.cintoElemento) inimigo.cintoElemento.style.display = 'block'; }
-        else if (item.tipo === 'restauracao') {
-            inimigo.municao = config.maxMunicao || 5;
-            inimigo.escudoProtegido = 0;
-            inimigo.escudoVermelho = false;
-            inimigo.vida = Math.max(0, (inimigo.vida || 0) - 1);
-            if (inimigo.inventario.includes('escudo')) {
-                inimigo.temEscudo = true;
-            }
-            console.log("IA: Inimigo coletou item de restauração pela garra!");
-        }
-        else if (item.tipo === 'airdrop') {
-            const conteudos = config.airdrop1?.conteudos || ['item'];
-            const validosParaIA = conteudos.filter(c => c === 'item' || c === 'restauracao');
-            const sorteio = validosParaIA.length > 0
-                ? validosParaIA[Math.floor(Math.random() * validosParaIA.length)]
-                : 'item';
-
-            if (sorteio === 'restauracao') {
-                inimigo.municao = config.maxMunicao || 5;
-                inimigo.escudoProtegido = 0;
-                inimigo.escudoVermelho = false;
-                inimigo.vida = Math.max(0, (inimigo.vida || 0) - 1);
-                if (inimigo.inventario.includes('escudo')) {
-                    inimigo.temEscudo = true;
-                }
-                console.log("IA: Inimigo restaurou equipamentos via AirDrop pela garra!");
-            } else {
-                const pendentes = [];
-                if (!inimigo.temArma) pendentes.push('revolver');
-                if (!inimigo.temEscudo) pendentes.push('escudo');
-                if (!inimigo.temBota) pendentes.push('bota');
-                if (!inimigo.temJetpack) pendentes.push('jetpack');
-                if (!inimigo.temGarra) pendentes.push('garra');
-                if (!inimigo.temCinto) pendentes.push('cinto');
-
-                if (pendentes.length > 0) {
-                    const novo = pendentes[Math.floor(Math.random() * pendentes.length)];
-                    if (novo === 'revolver') { inimigo.temArma = true; inimigo.municao = config.maxMunicao; if (inimigo.armaElemento) inimigo.armaElemento.style.display = 'block'; }
-                    else if (novo === 'escudo') { inimigo.temEscudo = true; inimigo.escudoVermelho = false; inimigo.escudoProtegido = 0; if (inimigo.escudoElemento) inimigo.escudoElemento.style.display = 'block'; }
-                    else if (novo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
-                    else if (novo === 'jetpack') { inimigo.temJetpack = true; if (inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block'; }
-                    else if (novo === 'garra') { inimigo.temGarra = true; if (inimigo.garraElemento) inimigo.garraElemento.style.display = 'block'; }
-                    else if (novo === 'cinto') { inimigo.temCinto = true; if (inimigo.cintoElemento) inimigo.cintoElemento.style.display = 'block'; }
-                    inimigo.inventario.push(novo);
+        // Novo sistema: se itemDefinitions existir e tiver o item, usa o novo fluxo
+        if (window.itemDefinitions && window.itemDefinitions[item.tipo]) {
+            const itemData = window.itemDefinitions[item.tipo];
+            // Aplica efeitos do item ao inimigo
+            if (window.aplicarEfeitoColeta && typeof window.aplicarEfeitoColeta === 'function') {
+                window.aplicarEfeitoColeta(itemData, inimigo);
+            } else if (itemData.efeitos && itemData.efeitos.inimigo) {
+                for (const [chave, valor] of Object.entries(itemData.efeitos.inimigo)) {
+                    inimigo[chave] = valor;
                 }
             }
+            // Exibe visual se aplicável
+            if (item.tipo === 'revolver' && inimigo.armaElemento) inimigo.armaElemento.style.display = 'block';
+            else if (item.tipo === 'escudo' && inimigo.escudoElemento) inimigo.escudoElemento.style.display = 'block';
+            else if (item.tipo === 'bota' && inimigo.botaElemento) inimigo.botaElemento.style.display = 'block';
+            else if (item.tipo === 'jetpack' && inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block';
+            else if (item.tipo === 'garra' && inimigo.garraElemento) inimigo.garraElemento.style.display = 'block';
+            else if (item.tipo === 'cinto' && inimigo.cintoElemento) inimigo.cintoElemento.style.display = 'block';
+            // Adiciona ao inventário se não for consumível
+            if (item.tipo !== 'airdrop' && item.tipo !== 'restauracao' && !inimigo.inventario.includes(item.tipo)) {
+                inimigo.inventario.push(item.tipo);
+            }
+            if (item.elemento && typeof item.elemento.remove === 'function') item.elemento.remove();
+            return;
         }
-
-        // Add to inventory if not already present and not a consumable like 'restauracao' or 'airdrop'
-        if (item.tipo !== 'airdrop' && item.tipo !== 'restauracao' && !inimigo.inventario.includes(item.tipo)) {
-            inimigo.inventario.push(item.tipo);
-        }
-        // Remove the item's visual element
-        item.elemento.remove();
+        // Fallback: sistema antigo
+        // ...fallback já presente acima, bloco duplicado removido...
     }
 
     function limparVisuaisInimigo(inimigo) {

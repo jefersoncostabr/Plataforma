@@ -58,7 +58,7 @@ Crie um novo arquivo (ex: `fase4.json`) com a seguinte estrutura:
 | `inimigos0` | Lista de inimigos tipo 0 (básico, comportamento simples) | `[{"coord": "b6", "direcao": "d", "tipo": 0}]` |
 | `inimigos1` | Lista de inimigos tipo 1 (comportamento intermediário) | `[{"coord": "b15", "direcao": "e", "tipo": 1}]` |
 | `inimigos7` | Lista de inimigos equipados com Cinto | `[{"coord": "c10", "direcao": "e", "tipo": 7}]` |
-| `itens` | Lista de itens coletáveis (revolver, escudo, bota, jetpack, garra, cinto) | `[{"tipo": "cinto", "pos": "b5"}]` |
+| `itens` | Lista de itens coletáveis (tipos definidos em `config/items/`, ex: revolver, escudo, bota, jetpack, garra, cinto) | `[{"tipo": "cinto", "pos": "b5"}]` |
 
 #### Campo de Inimigo (Objeto)
 ```json
@@ -72,6 +72,9 @@ Crie um novo arquivo (ex: `fase4.json`) com a seguinte estrutura:
 ---
 
 ## 3. Como Adicionar a Fase ao Jogo
+
+### Itens personalizados
+Para criar novos tipos de itens, siga o guia em `docs/como_criar_itens.md` e adicione o tipo desejado em `config/items/`.
 
 Para que o jogo reconheça a sua nova fase, você precisa adicioná-la ao arquivo de fases em `config/fases/`.
 

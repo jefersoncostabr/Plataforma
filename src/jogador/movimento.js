@@ -359,14 +359,50 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             console.log("Habilidade 'Dropar' não adquirida.");
             return;
         }
-
         if (!controle.inventario || controle.inventario.length === 0) return;
-
         const tipo = controle.inventario.pop();
+        // Novo sistema: se itemDefinitions existir e tiver o item, usa o novo fluxo
+        if (window.itemDefinitions && window.itemDefinitions[tipo]) {
+            const itemData = window.itemDefinitions[tipo];
+            // Atualiza estado do jogador conforme efeitos do JSON
+            if (itemData.efeitos && itemData.efeitos.jogador) {
+                for (const [chave, valor] of Object.entries(itemData.efeitos.jogador)) {
+                    if (chave === 'inventarioAdd' && Array.isArray(controle.inventario)) {
+                        // já removido do inventário
+                    } else {
+                        controle[chave] = valor;
+                    }
+                }
+            }
+            // Oculta visual se aplicável
+            if (tipo === 'revolver') {
+                armaElemento.style.display = 'none';
+            } else if (tipo === 'escudo') {
+                atualizarVisualEscudo();
+            } else if (tipo === 'bota') {
+                botaElemento.style.display = 'none';
+            } else if (tipo === 'jetpack') {
+                jetpackElemento.style.display = 'none';
+                jetFogoElemento.style.display = 'none';
+            } else if (tipo === 'garra') {
+                garraElemento.style.display = 'none';
+            } else if (tipo === 'cinto') {
+                cintoElemento.style.display = 'none';
+            }
+            // Posição do drop
+            const direcaoFace = controle.direcao === 'd' ? 1 : -1;
+            let dropX = controle.x + (64 * direcaoFace);
+            if (typeof limitarPosicaoAoPalco === 'function') {
+                const posFinal = limitarPosicaoAoPalco(dropX, controle.y, 32, 32);
+                dropX = posFinal.x;
+            }
+            window.itensColetaveis.push(window.criarItemColetavel(itemData, dropX, controle.y));
+            if (typeof salvarInventario === 'function') salvarInventario();
+            return;
+        }
+        // Fallback: sistema antigo
         const itemImg = document.createElement('img');
         let dadosItem = { tipo: tipo, x: 0, y: controle.y, velocidadeY: 5 };
-
-        // Define o sprite e captura o estado atual do jogador para o item
         if (tipo === 'revolver') {
             itemImg.src = config.spriteItemRevolver || '../../assets/personagem/revolver_pegavel.png';
             dadosItem.municao = controle.municao;
@@ -383,14 +419,14 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         } else if (tipo === 'bota') {
             itemImg.src = config.spriteItemBota || '../../assets/personagem/bota_pegavel.png';
             controle.temBota = false;
-            botaElemento.style.display = 'none'; // Oculta o visual da bota
+            botaElemento.style.display = 'none';
         } else if (tipo === 'jetpack') {
             itemImg.src = config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
             controle.temJetpack = false;
             controle.jetpackAtivo = false;
             controle.timerAtivacaoJetpack = 0;
-            jetpackElemento.style.display = 'none'; // Oculta o visual do jetpack
-            jetFogoElemento.style.display = 'none'; // Oculta o fogo ao dropar
+            jetpackElemento.style.display = 'none';
+            jetFogoElemento.style.display = 'none';
         } else if (tipo === 'garra') {
             itemImg.src = config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
             controle.temGarra = false;
@@ -400,23 +436,17 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.temCinto = false;
             cintoElemento.style.display = 'none';
         }
-
         itemImg.style.position = 'absolute';
         itemImg.style.width = '32px';
         itemImg.style.height = '32px';
         itemImg.style.imageRendering = 'pixelated';
         adicionarAoLayer(itemImg, window.LAYERS.ITENS);
-
-        // Posicionamento: 2 blocos (64px) à frente
         const direcaoFace = controle.direcao === 'd' ? 1 : -1;
         let dropX = controle.x + (64 * direcaoFace);
-        
-        // Garante que o item não saia do palco
         if (typeof limitarPosicaoAoPalco === 'function') {
             const posFina = limitarPosicaoAoPalco(dropX, controle.y, 32, 32);
             dropX = posFina.x;
         }
-
         dadosItem.x = dropX;
         dadosItem.elemento = itemImg;
         window.itensColetaveis.push(dadosItem);
@@ -617,10 +647,47 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
     // NEW: Helper function to collect items brought by the claw
     function coletarItemGarra(item) {
-        // This logic is adapted from the existing item collection in the main loop
-        // It assumes the item has already been removed from window.itensColetaveis
-        // and its visual element will be removed by the caller.
-
+        // Novo sistema: se itemDefinitions existir e tiver o item, usa o novo fluxo
+        if (window.itemDefinitions && window.itemDefinitions[item.tipo]) {
+            const itemData = window.itemDefinitions[item.tipo];
+            if (window.aplicarEfeitoColeta && typeof window.aplicarEfeitoColeta === 'function') {
+                window.aplicarEfeitoColeta(itemData, controle);
+            } else if (itemData.efeitos && itemData.efeitos.jogador) {
+                for (const [chave, valor] of Object.entries(itemData.efeitos.jogador)) {
+                    controle[chave] = valor;
+                }
+            }
+            // Exibe visual se aplicável
+            if (item.tipo === 'revolver') {
+                if (itemData.spriteEquipado) armaElemento.src = itemData.spriteEquipado;
+                armaElemento.style.display = 'block';
+            }
+            else if (item.tipo === 'escudo') {
+                if (itemData.spriteEquipado) escudoElemento.src = itemData.spriteEquipado;
+                escudoElemento.style.display = 'block'; 
+                atualizarVisualEscudo(); 
+            }
+            else if (item.tipo === 'bota') {
+                if (itemData.spriteEquipado) botaElemento.src = itemData.spriteEquipado;
+                botaElemento.style.display = 'block';
+            }
+            else if (item.tipo === 'jetpack') {
+                if (itemData.spriteEquipado) jetpackElemento.src = itemData.spriteEquipado;
+                jetpackElemento.style.display = 'block';
+            }
+            else if (item.tipo === 'garra') {
+                if (itemData.spriteEquipado) garraElemento.src = itemData.spriteEquipado;
+                garraElemento.style.display = 'block';
+            }
+            else if (item.tipo === 'cinto') {
+                if (itemData.spriteEquipado) cintoElemento.src = itemData.spriteEquipado;
+                cintoElemento.style.display = 'block';
+            }
+            if (!controle.inventario.includes(item.tipo) && item.tipo !== 'airdrop' && item.tipo !== 'restauracao') controle.inventario.push(item.tipo);
+            salvarInventario();
+            return;
+        }
+        // Fallback: sistema antigo
         if (item.tipo === 'escudo') {
             controle.temEscudo = true;
             controle.escudoVermelho = item.escudoVermelho || false;
@@ -728,70 +795,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         salvarInventario();
     }
     // END NEW
-
-    const inventarioSalvo = carregarInventarioSalvo();
-    if (inventarioSalvo) {
-        controle.temEscudo = Boolean(inventarioSalvo.temEscudo);
-        controle.escudoVermelho = Boolean(inventarioSalvo.escudoVermelho);
-        controle.escudoProtegido = Number(inventarioSalvo.escudoProtegido ?? 0);
-        controle.temArma = Boolean(inventarioSalvo.temArma);
-        controle.municao = Number(inventarioSalvo.municao ?? 0);
-        controle.temBota = Boolean(inventarioSalvo.temBota);
-        controle.temCinto = Boolean(inventarioSalvo.temCinto);
-        controle.temJetpack = Boolean(inventarioSalvo.temJetpack);
-        controle.temGarra = Boolean(inventarioSalvo.temGarra);
-        controle.inventario = Array.isArray(inventarioSalvo.inventario) ? inventarioSalvo.inventario : [];
-    }
-
-    // Função para resetar/spawnar itens baseados no JSON da fase
-    window.resetarItens = (dadosItens) => {
-        // O array é limpo aqui; limparCenario já remove as imagens do DOM
-        window.itensColetaveis = [];
-        if (!dadosItens) return;
-
-        // console.log("resetarItens: Dados de itens recebidos:", dadosItens);
-
-        dadosItens.forEach(dado => {
-            // Tenta obter o container do palco de forma segura
-            const palco = document.getElementById('game-stage') || elemento.parentElement;
-            if (!palco) return;
-
-            const pos = typeof window.gridParaPixels === 'function' ? window.gridParaPixels(dado.pos) : {x: 0, y: 0};
-            const itemImg = document.createElement('img');
-            
-            // Define o sprite baseado no tipo (escudo, bota ou revolver)
-            if (dado.tipo === 'escudo') {
-                itemImg.src = config.spriteItemEscudo || '../../assets/personagem/escudo_pegavel.png';
-            } else if (dado.tipo === 'bota') {
-                itemImg.src = config.spriteItemBota || '../../assets/personagem/bota_pegavel.png';
-            } else if (dado.tipo === 'jetpack') {
-                itemImg.src = config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
-            } else if (dado.tipo === 'garra') {
-                itemImg.src = config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
-            } else if (dado.tipo === 'cinto') {
-                itemImg.src = config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
-            } else if (dado.tipo === 'restauracao') {
-                itemImg.src = config.spriteItemRestauracao || '../../assets/personagem/restaurar.png';
-            } else {
-                itemImg.src = config.spriteItemRevolver || '../../assets/personagem/revolver_pegavel.png';
-            }
-
-            itemImg.style.position = 'absolute';
-            itemImg.style.width = '32px';
-            itemImg.style.height = '32px';
-            itemImg.style.left = pos.x + 'px';
-            itemImg.style.bottom = pos.y + 'px';
-            // console.log(`resetarItens: Tentando adicionar item ${dado.tipo} em x:${pos.x}, y:${pos.y} com src:${itemImg.src}`);
-            itemImg.style.imageRendering = 'pixelated';
-            adicionarAoLayer(itemImg, window.LAYERS.ITENS);
-
-            window.itensColetaveis.push({
-                x: pos.x, y: pos.y,
-                elemento: itemImg, velocidadeY: 0,
-                tipo: dado.tipo
-            });
-        });
-    };
     
     // Elemento da arma
     const armaElemento = document.createElement('img');
