@@ -41,6 +41,9 @@ Crie um novo arquivo (ex: `fase4.json`) com a seguinte estrutura:
   ],
   "inimigos1": [
     { "coord": "b15", "direcao": "e", "tipo": 1 }
+  ],
+  "itens": [
+    { "tipo": "cinto", "pos": "b10" }
   ]
 }
 ```
@@ -54,13 +57,15 @@ Crie um novo arquivo (ex: `fase4.json`) com a seguinte estrutura:
 | `plataformas` | Lista de coordenadas de blocos sólidos | `["a1", "a2", "b5", "b6"]` |
 | `inimigos0` | Lista de inimigos tipo 0 (básico, comportamento simples) | `[{"coord": "b6", "direcao": "d", "tipo": 0}]` |
 | `inimigos1` | Lista de inimigos tipo 1 (comportamento intermediário) | `[{"coord": "b15", "direcao": "e", "tipo": 1}]` |
+| `inimigos7` | Lista de inimigos equipados com Cinto | `[{"coord": "c10", "direcao": "e", "tipo": 7}]` |
+| `itens` | Lista de itens coletáveis (revolver, escudo, bota, jetpack, garra, cinto) | `[{"tipo": "cinto", "pos": "b5"}]` |
 
 #### Campo de Inimigo (Objeto)
 ```json
 {
   "coord": "b6",        // Coordenada de spawn
   "direcao": "d",       // Direção inicial: "d"=direita, "e"=esquerda
-  "tipo": 0             // 0=básico, 1=intermediário
+  "tipo": 0             // 0=básico, 1=revólver, 2=escudo, 3=bota, 4=jetpack, 6=garra, 7=cinto
 }
 ```
 

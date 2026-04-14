@@ -257,6 +257,7 @@ async function carregarFase(nomeArquivo) {
         if (fase.inimigos4) fase.inimigos4.forEach(p => inimigosParaReset.push({tipo: 4, pos: p}));
         if (fase.inimigos5) fase.inimigos5.forEach(p => inimigosParaReset.push({tipo: 5, pos: p}));
         if (fase.inimigos6) fase.inimigos6.forEach(p => inimigosParaReset.push({tipo: 6, pos: p}));
+        if (fase.inimigos7) fase.inimigos7.forEach(p => inimigosParaReset.push({tipo: 7, pos: p}));
         
         resetarInimigos(inimigosParaReset);
     }

@@ -135,6 +135,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         else if (item.tipo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
         else if (item.tipo === 'jetpack') { inimigo.temJetpack = true; if (inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block'; }
         else if (item.tipo === 'garra') { inimigo.temGarra = true; if (inimigo.garraElemento) inimigo.garraElemento.style.display = 'block'; }
+        else if (item.tipo === 'cinto') { inimigo.temCinto = true; if (inimigo.cintoElemento) inimigo.cintoElemento.style.display = 'block'; }
         else if (item.tipo === 'restauracao') {
             inimigo.municao = config.maxMunicao || 5;
             inimigo.escudoProtegido = 0;
@@ -168,6 +169,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (!inimigo.temBota) pendentes.push('bota');
                 if (!inimigo.temJetpack) pendentes.push('jetpack');
                 if (!inimigo.temGarra) pendentes.push('garra');
+                if (!inimigo.temCinto) pendentes.push('cinto');
 
                 if (pendentes.length > 0) {
                     const novo = pendentes[Math.floor(Math.random() * pendentes.length)];
@@ -176,6 +178,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     else if (novo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
                     else if (novo === 'jetpack') { inimigo.temJetpack = true; if (inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block'; }
                     else if (novo === 'garra') { inimigo.temGarra = true; if (inimigo.garraElemento) inimigo.garraElemento.style.display = 'block'; }
+                    else if (novo === 'cinto') { inimigo.temCinto = true; if (inimigo.cintoElemento) inimigo.cintoElemento.style.display = 'block'; }
                     inimigo.inventario.push(novo);
                 }
             }
@@ -197,6 +200,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
         if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
         if (inimigo.garraElemento) inimigo.garraElemento.remove();
+        if (inimigo.cintoElemento) inimigo.cintoElemento.remove();
         if (inimigo.garraBracos) inimigo.garraBracos.forEach(b => b.remove());
     }
 
@@ -256,6 +260,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inim.jetpackElemento) inim.jetpackElemento.remove();
                 if (inim.jetFogoElemento) inim.jetFogoElemento.remove();
                 if (inim.garraElemento) inim.garraElemento.remove();
+                if (inim.cintoElemento) inim.cintoElemento.remove();
                 if (inim.garraBracos) inim.garraBracos.forEach(b => b.remove());
             });
         }
@@ -264,7 +269,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
         if (!palco) return;
         dadosInimigos.forEach(dado => {
-            const posStr = typeof dado === 'object' ? dado.pos : dado;
+            const posStr = typeof dado === 'object' ? (dado.pos.coord || dado.pos) : dado;
+            const direcao = (typeof dado === 'object' && dado.pos.direcao) ? dado.pos.direcao : 'e';
             // Obtém as coordenadas X e Y usando a função global gridParaPixels
             const pos = typeof window.gridParaPixels === 'function' ? window.gridParaPixels(posStr) : {x: 0, y: 0};
             
@@ -283,6 +289,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             inimigoImg.style.bottom = pos.y + 'px';
             inimigoImg.style.zIndex = '4';
             inimigoImg.style.imageRendering = 'pixelated';
+            inimigoImg.style.transform = direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
             if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
                 adicionarAoLayer(inimigoImg, window.LAYERS.INIMIGOS);
             } else {
@@ -301,6 +308,12 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 elemento: inimigoImg,
                 perseguindo: false,
                 tipo: tipo,
+                temArma: (tipo === 1),
+                temEscudo: (tipo === 2),
+                temBota: (tipo === 3),
+                temJetpack: (tipo === 4),
+                temGarra: (tipo === 6),
+                temCinto: (tipo === 7),
                 framesKnockbackRestante: 0,
                 velocidadeKnockback: 0,
                 puloTimer: 0,
@@ -318,6 +331,104 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 estaAgachado: false,
                 spriteParadoAgachado: config.spriteAgachadoPlayer || '../../assets/personagem/per_agachado.png',
                 spriteAndandoAgachado: config.spriteAgachadoAndandoPlayer || '../../assets/personagem/per_agachado2.png'
+            });
+
+            const inimigoObj = window.inimigos[window.inimigos.length - 1];
+
+            // Criação imediata dos acessórios para visualização no editor/fase
+            if (inimigoObj.temArma) {
+                const arma = document.createElement('img');
+                arma.src = config.spriteArmaPlayer || '../../assets/personagem/revolver.png';
+                arma.style.position = 'absolute';
+                arma.style.width = '32px'; arma.style.height = '32px';
+                arma.style.zIndex = '6'; arma.style.imageRendering = 'pixelated';
+                arma.style.pointerEvents = 'none';
+                if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
+                    adicionarAoLayer(arma, window.LAYERS.INIMIGOS);
+                } else {
+                    inimigoImg.parentElement.appendChild(arma);
+                }
+                inimigoObj.armaElemento = arma;
+                inimigoObj.municao = config.maxMunicao || 5;
+            }
+            if (inimigoObj.temEscudo) {
+                const escudo = document.createElement('img');
+                escudo.src = config.spriteEscudoPlayer || '../../assets/personagem/escudo.png';
+                escudo.style.position = 'absolute';
+                escudo.style.width = '32px'; escudo.style.height = '32px';
+                escudo.style.zIndex = '7'; escudo.style.imageRendering = 'pixelated';
+                escudo.style.pointerEvents = 'none';
+                if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
+                    adicionarAoLayer(escudo, window.LAYERS.INIMIGOS);
+                } else {
+                    inimigoImg.parentElement.appendChild(escudo);
+                }
+                inimigoObj.escudoElemento = escudo;
+            }
+            if (inimigoObj.temBota) {
+                const bota = document.createElement('img');
+                bota.src = config.spriteBotaParado || '../../assets/personagem/bota_parado.png';
+                bota.style.position = 'absolute';
+                bota.style.width = '32px'; bota.style.height = '32px';
+                bota.style.zIndex = '8'; bota.style.imageRendering = 'pixelated';
+                bota.style.pointerEvents = 'none';
+                if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
+                    adicionarAoLayer(bota, window.LAYERS.INIMIGOS);
+                } else {
+                    inimigoImg.parentElement.appendChild(bota);
+                }
+                inimigoObj.botaElemento = bota;
+            }
+            if (inimigoObj.temJetpack) {
+                const jetpack = document.createElement('img');
+                jetpack.src = config.spriteJetpackPlayer || '../../assets/personagem/jetpack.png';
+                jetpack.style.position = 'absolute';
+                jetpack.style.width = '32px'; jetpack.style.height = '32px';
+                jetpack.style.zIndex = '3'; jetpack.style.imageRendering = 'pixelated';
+                jetpack.style.pointerEvents = 'none';
+                if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
+                    adicionarAoLayer(jetpack, window.LAYERS.INIMIGOS);
+                } else {
+                    inimigoImg.parentElement.appendChild(jetpack);
+                }
+                inimigoObj.jetpackElemento = jetpack;
+            }
+            if (inimigoObj.temGarra) {
+                const garra = document.createElement('img');
+                garra.src = config.spriteGarraPlayer || '../../assets/personagem/garra.png';
+                garra.style.position = 'absolute';
+                garra.style.width = '32px'; garra.style.height = '32px';
+                garra.style.zIndex = '9'; garra.style.imageRendering = 'pixelated';
+                garra.style.pointerEvents = 'none';
+                if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
+                    adicionarAoLayer(garra, window.LAYERS.INIMIGOS);
+                } else {
+                    inimigoImg.parentElement.appendChild(garra);
+                }
+                inimigoObj.garraElemento = garra;
+            }
+            if (inimigoObj.temCinto) {
+                const cinto = document.createElement('img');
+                cinto.src = config.spriteCintoPlayer || '../../assets/personagem/cinto.png';
+                cinto.style.position = 'absolute';
+                cinto.style.width = '32px'; cinto.style.height = '32px';
+                cinto.style.zIndex = '6'; cinto.style.imageRendering = 'pixelated';
+                cinto.style.pointerEvents = 'none';
+                if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
+                    adicionarAoLayer(cinto, window.LAYERS.INIMIGOS);
+                } else {
+                    inimigoImg.parentElement.appendChild(cinto);
+                }
+                inimigoObj.cintoElemento = cinto;
+            }
+
+            // Sincroniza posições iniciais
+            [inimigoObj.armaElemento, inimigoObj.escudoElemento, inimigoObj.botaElemento, inimigoObj.jetpackElemento, inimigoObj.garraElemento, inimigoObj.cintoElemento].forEach(el => {
+                if (el) {
+                    el.style.left = pos.x + 'px';
+                    el.style.bottom = pos.y + 'px';
+                    el.style.transform = inimigoImg.style.transform;
+                }
             });
         });
     };
@@ -505,6 +616,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.temBota = (inimigo.tipo === 3);
                     inimigo.temJetpack = (inimigo.tipo === 4);
                     inimigo.temGarra = (inimigo.tipo === 6);
+                    inimigo.temCinto = (inimigo.tipo === 7);
                     inimigo.jetpackAtivo = false;
                     inimigo.timerVooRestante = 0;
                     inimigo.framesVoando = 0;
@@ -525,6 +637,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.temBota) inimigo.inventario.push('bota');
                     if (inimigo.temJetpack) inimigo.inventario.push('jetpack');
                     if (inimigo.temGarra) inimigo.inventario.push('garra');
+                    if (inimigo.temCinto) inimigo.inventario.push('cinto');
                     inimigo.cooldownPulo = 0;
                     inimigo.velocidadeY = 0;
                     inimigo.cooldownVooJetpack = 0;
@@ -625,6 +738,21 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         garra.style.display = inimigo.temGarra ? 'block' : 'none';
                         inimigo.elemento.parentElement.appendChild(garra);
                         inimigo.garraElemento = garra;
+                    }
+
+                    // Cria o elemento visual do cinto para o inimigo
+                    if (!inimigo.cintoElemento) {
+                        const cinto = document.createElement('img');
+                        cinto.src = config.spriteCintoPlayer || '../../assets/personagem/cinto.png';
+                        cinto.style.position = 'absolute';
+                        cinto.style.width = '32px';
+                        cinto.style.height = '32px';
+                        cinto.style.zIndex = '6';
+                        cinto.style.imageRendering = 'pixelated';
+                        cinto.style.pointerEvents = 'none';
+                        cinto.style.display = inimigo.temCinto ? 'block' : 'none';
+                        inimigo.elemento.parentElement.appendChild(cinto);
+                        inimigo.cintoElemento = cinto;
                     }
                 }
                 // End of one-time initialization block
@@ -1082,6 +1210,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                  (item.tipo === 'escudo' && inimigo.temEscudo) ||
                                  (item.tipo === 'bota' && inimigo.temBota) ||
                                  (item.tipo === 'jetpack' && inimigo.temJetpack) ||
+                                 (item.tipo === 'cinto' && inimigo.temCinto) ||
                                  (item.tipo === 'garra' && inimigo.temGarra))) continue;
 
                             // Se for um item de restauração, o inimigo só coleta se precisar
@@ -1122,6 +1251,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             else if (item.tipo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
                             else if (item.tipo === 'jetpack') { inimigo.temJetpack = true; if (inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block'; }
                             else if (item.tipo === 'garra') { inimigo.temGarra = true; if (inimigo.garraElemento) inimigo.garraElemento.style.display = 'block'; }
+                            else if (item.tipo === 'cinto') { inimigo.temCinto = true; if (inimigo.cintoElemento) inimigo.cintoElemento.style.display = 'block'; }
                             else if (item.tipo === 'restauracao') { // NEW: Enemy collects restoration item
                                 inimigo.municao = config.maxMunicao || 5;
                                 inimigo.escudoProtegido = 0;
@@ -1160,6 +1290,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                     if (!inimigo.temBota) pendentes.push('bota');
                                     if (!inimigo.temJetpack) pendentes.push('jetpack');
                                     if (!inimigo.temGarra) pendentes.push('garra');
+                                    if (!inimigo.temCinto) pendentes.push('cinto');
 
                                     if (pendentes.length > 0) {
                                         const novo = pendentes[Math.floor(Math.random() * pendentes.length)];
@@ -1168,6 +1299,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                         else if (novo === 'bota') { inimigo.temBota = true; if (inimigo.botaElemento) inimigo.botaElemento.style.display = 'block'; }
                                         else if (novo === 'jetpack') { inimigo.temJetpack = true; if (inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block'; }
                                         else if (novo === 'garra') { inimigo.temGarra = true; if (inimigo.garraElemento) inimigo.garraElemento.style.display = 'block'; }
+                                        else if (novo === 'cinto') { inimigo.temCinto = true; if (inimigo.cintoElemento) inimigo.cintoElemento.style.display = 'block'; }
                                         inimigo.inventario.push(novo);
                                     }
                                 }
@@ -1592,6 +1724,13 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     }
                 }
 
+                // Sincroniza o cinto com o inimigo
+                if (inimigo.cintoElemento && inimigo.temCinto) {
+                    inimigo.cintoElemento.style.left = inimigo.x + 'px';
+                    inimigo.cintoElemento.style.bottom = inimigo.y + 'px';
+                    inimigo.cintoElemento.style.transform = inimigo.elemento.style.transform;
+                }
+
                 // Sincroniza a garra com o inimigo
                 if (inimigo.garraElemento && inimigo.temGarra) {
                     if (inimigo.garraAnimEstado === 'idle') { // Only sync to body if not animating
@@ -1610,4 +1749,3 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     // Inicia o ciclo de atualização
     requestAnimationFrame(atualizarIA);
 }
-

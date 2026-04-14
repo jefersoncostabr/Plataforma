@@ -395,6 +395,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             itemImg.src = config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
             controle.temGarra = false;
             garraElemento.style.display = 'none';
+        } else if (tipo === 'cinto') {
+            itemImg.src = config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
+            controle.temCinto = false;
+            cintoElemento.style.display = 'none';
         }
 
         itemImg.style.position = 'absolute';
@@ -481,6 +485,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 municao: controle.municao,
                 temBota: controle.temBota,
                 temJetpack: controle.temJetpack,
+                temCinto: controle.temCinto,
                 temGarra: controle.temGarra,
                 inventario: controle.inventario
             };
@@ -550,6 +555,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         temArma: false, // Inicia sem a capacidade de atirar
         temEscudo: false, // Inicia sem escudo
         temGarra: false,
+        temCinto: false,
         temBota: false, // Inicia sem bota
         temJetpack: false,
         jetpackAtivo: false,
@@ -636,6 +642,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.temGarra = true;
             if (!controle.inventario.includes('garra')) controle.inventario.push('garra');
             garraElemento.style.display = 'block';
+        } else if (item.tipo === 'cinto') {
+            controle.temCinto = true;
+            if (!controle.inventario.includes('cinto')) controle.inventario.push('cinto');
+            cintoElemento.style.display = 'block';
         } else if (item.tipo === 'airdrop') {
             const conteudos = config.airdrop1?.conteudos || ['xp'];
             const sorteio = conteudos[Math.floor(Math.random() * conteudos.length)];
@@ -692,6 +702,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     controle.municao = config.maxMunicao || 5;
                     if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
                     armaElemento.style.display = 'block';
+                } else if (itemSorteado === 'cinto') {
+                    controle.temArma = true;
+                    controle.municao = config.maxMunicao || 5;
+                    if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
+                    armaElemento.style.display = 'block';
                 }
             }
         } else if (item.tipo === 'revolver') {
@@ -722,6 +737,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         controle.temArma = Boolean(inventarioSalvo.temArma);
         controle.municao = Number(inventarioSalvo.municao ?? 0);
         controle.temBota = Boolean(inventarioSalvo.temBota);
+        controle.temCinto = Boolean(inventarioSalvo.temCinto);
         controle.temJetpack = Boolean(inventarioSalvo.temJetpack);
         controle.temGarra = Boolean(inventarioSalvo.temGarra);
         controle.inventario = Array.isArray(inventarioSalvo.inventario) ? inventarioSalvo.inventario : [];
@@ -752,6 +768,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 itemImg.src = config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
             } else if (dado.tipo === 'garra') {
                 itemImg.src = config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
+            } else if (dado.tipo === 'cinto') {
+                itemImg.src = config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
             } else if (dado.tipo === 'restauracao') {
                 itemImg.src = config.spriteItemRestauracao || '../../assets/personagem/restaurar.png';
             } else {
@@ -854,6 +872,19 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     garraElemento.style.imageRendering = 'pixelated';
     garraElemento.style.pointerEvents = 'none';
     elemento.parentElement.appendChild(garraElemento);
+
+    // Elemento do Cinto
+    const cintoElemento = document.createElement('img');
+    cintoElemento.id = 'player-belt';
+    cintoElemento.src = config.spriteCintoPlayer || '../../assets/personagem/cinto.png';
+    cintoElemento.style.position = 'absolute';
+    cintoElemento.style.width = '32px';
+    cintoElemento.style.height = '32px';
+    cintoElemento.style.zIndex = '6';
+    cintoElemento.style.display = controle.temCinto ? 'block' : 'none';
+    cintoElemento.style.imageRendering = 'pixelated';
+    cintoElemento.style.pointerEvents = 'none';
+    elemento.parentElement.appendChild(cintoElemento);
 
     // Sincronização imediata de posição caso o jogador já nasça com a garra no inventário
     if (controle.temGarra) {
@@ -1001,6 +1032,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.temJetpack = false;
             controle.jetpackAtivo = false;
             garraElemento.style.display = 'none';
+            controle.temCinto = false;
+            cintoElemento.style.display = 'none';
             controle.timerAtivacaoJetpack = 0;
             controle.timerVooRestante = 0;
             controle.cooldownVooJetpack = 0;
@@ -2376,6 +2409,13 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         garraElemento.style.bottom = controle.y + 'px';
                         garraElemento.style.display = 'block';
                         salvarInventario();
+                    } else if (item.tipo === 'cinto') {
+                        controle.temCinto = true;
+                        if (!controle.inventario.includes('cinto')) controle.inventario.push('cinto');
+                        cintoElemento.style.left = controle.x + 'px';
+                        cintoElemento.style.bottom = controle.y + 'px';
+                        cintoElemento.style.display = 'block';
+                        salvarInventario();
                     } else if (item.tipo === 'airdrop') {
                     } else if (item.tipo === 'airdrop') {
                         // Lógica de Recompensa Aleatória baseada no JSON
@@ -2436,6 +2476,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 if (!controle.inventario.includes('garra')) controle.inventario.push('garra');
                                 garraElemento.style.display = 'block';
                             } else if (itemSorteado === 'revolver') { // Tratamento explícito para revolver
+                                controle.temArma = true; 
+                                controle.municao = config.maxMunicao || 5; 
+                                if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver'); // Garante que o item seja adicionado ao inventário
+                                armaElemento.style.display = 'block';
+                            } else if (itemSorteado === 'cinto') {
                                 controle.temArma = true; 
                                 controle.municao = config.maxMunicao || 5; 
                                 if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver'); // Garante que o item seja adicionado ao inventário
@@ -2657,4 +2702,3 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     // Inicia o loop de atualização
     requestAnimationFrame(atualizar);
 }
-

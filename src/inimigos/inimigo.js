@@ -222,7 +222,7 @@ function gerarPosicaoAleatoria(plataformas) {
  * O inimigo será colocado sempre ACIMA de uma plataforma, nunca dentro.
  * 
  * @param {array} plataformas - Lista de coordenadas das plataformas.
- * @param {number} tipoEquipamento - Tipo de equipamento do inimigo (0=sem, 1=revólver, 2=escudo).
+ * @param {number} tipoEquipamento - Tipo de equipamento do inimigo (0=sem, 1=revólver, 2=escudo, 3=bota, 4=jetpack, 5=feno, 6=garra, 7=cinto).
  */
 function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     const posicao = gerarPosicaoAleatoria(plataformas);
@@ -265,6 +265,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     let temBota = false;
     let temJetpack = false;
     let temGarra = false;
+    let temCinto = false;
     
     if (tipoInimigo === 1) {
         temArma = true;
@@ -276,6 +277,8 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         temJetpack = true;
     } else if (tipoInimigo === 6) {
         temGarra = true;
+    } else if (tipoInimigo === 7) {
+        temCinto = true;
     }
     
     // Registra o inimigo na lista global
@@ -295,6 +298,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         temBota: temBota,
         temJetpack: temJetpack,
         temGarra: temGarra,
+        temCinto: temCinto,
         escudoVermelho: false,
         escudoProtegido: 0,
         stunned: false, // Adiciona propriedade de stun
@@ -406,5 +410,23 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         novoInimigo.garraElemento = garraImg;
     }
 
-    const equipamento = temArma ? 'revólver' : (temEscudo ? 'escudo' : (temBota ? 'botas' : (temJetpack ? 'jetpack' : (temGarra ? 'garra' : 'sem equipamento'))));
+    // Cria elemento de cinto se necessário
+    if (temCinto) {
+        const cintoImg = document.createElement('img');
+        cintoImg.src = window.config?.spriteCintoPlayer || '../../assets/personagem/cinto.png';
+        cintoImg.style.position = 'absolute';
+        cintoImg.style.width = tamanhoTile + 'px';
+        cintoImg.style.height = tamanhoTile + 'px';
+        cintoImg.style.zIndex = '6';
+        cintoImg.style.imageRendering = 'pixelated';
+        cintoImg.style.pointerEvents = 'none';
+        if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
+            adicionarAoLayer(cintoImg, window.LAYERS.INIMIGOS);
+        } else {
+            palco.appendChild(cintoImg);
+        }
+        novoInimigo.cintoElemento = cintoImg;
+    }
+
+    const equipamento = temArma ? 'revólver' : (temEscudo ? 'escudo' : (temBota ? 'botas' : (temJetpack ? 'jetpack' : (temGarra ? 'garra' : (temCinto ? 'cinto' : 'sem equipamento')))));
 }
