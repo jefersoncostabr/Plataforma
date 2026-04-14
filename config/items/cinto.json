@@ -2,6 +2,7 @@
     "id": "cinto",
     "nome": "Cinto de Utilidades",
     "spriteColetavel": "../../assets/personagem/cinto_coletavel.png",
+    "spriteEquipado": "../../assets/personagem/cinto.png",
     "efeitos": {
         "jogador": {
             "temCinto": true

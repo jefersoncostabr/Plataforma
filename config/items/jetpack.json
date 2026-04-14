@@ -2,6 +2,7 @@
     "id": "jetpack",
     "nome": "Jetpack",
     "spriteColetavel": "../../assets/personagem/jetpack_pegavel.png",
+    "spriteEquipado": "../../assets/personagem/jetpack.png",
     "efeitos": {
         "jogador": {
             "temJetpack": true,

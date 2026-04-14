@@ -2,6 +2,7 @@
     "id": "garra",
     "nome": "Garra Retrátil",
     "spriteColetavel": "../../assets/personagem/garra_coletavel.png",
+    "spriteEquipado": "../../assets/personagem/garra.png",
     "efeitos": {
         "jogador": {
             "temGarra": true
