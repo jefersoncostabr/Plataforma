@@ -18,6 +18,82 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     const resposta = await fetch('../../config/configuracoes.json');
     const config = await resposta.json();
 
+    const CONTROLES_STORAGE_KEY = 'plataformaControles';
+    const CONTROLES_PADRAO = {
+        esquerda: ['ArrowLeft', 'a', 'A'],
+        direita: ['ArrowRight', 'd', 'D'],
+        cima: ['ArrowUp', 'w', 'W'],
+        baixo: ['ArrowDown', 's', 'S'],
+        pulo: [' '],
+        chute: ['k', 'K'],
+        tiro: ['i', 'I'],
+        garra: ['j', 'J']
+    };
+
+    function normalizarControles(raw) {
+        const base = { ...CONTROLES_PADRAO };
+        if (!raw || typeof raw !== 'object') return base;
+
+        Object.keys(base).forEach((acao) => {
+            const valor = raw[acao];
+            if (Array.isArray(valor) && valor.length > 0) {
+                base[acao] = valor.map(v => String(v));
+            }
+        });
+
+        return base;
+    }
+
+    async function carregarControles() {
+        let doArquivo = {};
+        try {
+            const resp = await fetch('../../config/controles.json');
+            if (resp.ok) doArquivo = await resp.json();
+        } catch (_) {
+            doArquivo = {};
+        }
+
+        let doStorage = {};
+        try {
+            const raw = localStorage.getItem(CONTROLES_STORAGE_KEY);
+            if (raw) doStorage = JSON.parse(raw);
+        } catch (_) {
+            doStorage = {};
+        }
+
+        window.controlesConfig = normalizarControles({ ...doArquivo, ...doStorage });
+    }
+
+    function getBinds(acao) {
+        const cfg = window.controlesConfig || CONTROLES_PADRAO;
+        const binds = cfg[acao];
+        return Array.isArray(binds) ? binds : [];
+    }
+
+    function teclaEhAcao(tecla, acao) {
+        if (!tecla) return false;
+        const key = String(tecla);
+        return getBinds(acao).some(k => key === k || key.toLowerCase() === String(k).toLowerCase());
+    }
+
+    function acaoAtiva(acao) {
+        return getBinds(acao).some(k => {
+            const key = String(k);
+            return !!(controle.teclas[key] || controle.teclas[key.toLowerCase()] || controle.teclas[key.toUpperCase()]);
+        });
+    }
+
+    function consumirAcao(acao) {
+        getBinds(acao).forEach((k) => {
+            const key = String(k);
+            controle.teclas[key] = false;
+            controle.teclas[key.toLowerCase()] = false;
+            controle.teclas[key.toUpperCase()] = false;
+        });
+    }
+
+    await carregarControles();
+
     function obterKnockback(config, fonte = 'default') {
         const base = Number(config.knockbackBase ?? config.knockbackInimigo ?? 150);
         const ajuste = Number(config.knockbackAjustes?.[fonte] ?? 0);
@@ -153,6 +229,38 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             return valor * Number(config.escudoKnockbackMultiplicador ?? 0.5);
         }
         return valor;
+    }
+
+    function aplicarDeslocamentoHorizontalComColisao(ent, deslocX, opcoes = {}) {
+        if (!ent || !deslocX) return;
+
+        const largura = Number(opcoes.largura ?? ent.largura ?? 32);
+        const altura = Number(opcoes.altura ?? ent.altura ?? 32);
+        const offsetX = Number(opcoes.offsetX ?? ent.offsetX ?? 0);
+        const maxPasso = Math.max(0.25, Number(opcoes.maxPasso ?? config.playerKnockbackPassoMax ?? config.inimigoKnockbackPassoMax ?? 1));
+        const passos = Math.max(1, Math.ceil(Math.abs(deslocX) / maxPasso));
+        const passoX = deslocX / passos;
+
+        for (let i = 0; i < passos; i++) {
+            const xAnterior = ent.x;
+            ent.x += passoX;
+
+            if (typeof verificarColisaoComTiles === 'function' &&
+                verificarColisaoComTiles(ent.x + offsetX, ent.y, largura, altura, window.plataformas)) {
+                ent.x = xAnterior;
+
+                if (opcoes.cancelarKnockbackAoColidir) {
+                    ent.framesKnockbackRestante = 0;
+                    ent.velocidadeKnockback = 0;
+                }
+                break;
+            }
+
+            if (typeof limitarPosicaoAoPalco === 'function') {
+                const posAjustada = limitarPosicaoAoPalco(ent.x + offsetX, ent.y, largura, altura);
+                ent.x = posAjustada.x - offsetX;
+            }
+        }
     }
 
     function dispararSinalizador() {
@@ -824,8 +932,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Toggle de agachar: Baixo alterna estado, Cima força retorno ao normal
         if (!e.repeat) {
-            const apertouBaixo = e.key === 'ArrowDown' || e.key === 's' || e.key === 'S';
-            const apertouCima = e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W';
+            const apertouBaixo = teclaEhAcao(e.key, 'baixo');
+            const apertouCima = teclaEhAcao(e.key, 'cima');
 
             if (apertouBaixo) {
                 controle.estaAgachado = !controle.estaAgachado;
@@ -869,7 +977,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Acionamento da Garra com a tecla J
-        if ((e.key === 'j' || e.key === 'J') && controle.temGarra && controle.garraAnimEstado === 'idle') {
+        if (teclaEhAcao(e.key, 'garra') && controle.temGarra && controle.garraAnimEstado === 'idle') {
             controle.garraAnimEstado = 'prep';
             controle.garraTimer = 18; // ~0.3s a 60fps
             controle.garraDirecaoAnim = controle.direcao;
@@ -960,8 +1068,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Lógica da Skill "AirDrop" (Combo: Cima + I)
-        const segurandoCima = controle.teclas['ArrowUp'] || controle.teclas['w'] || controle.teclas['W'];
-        const apertouI = controle.teclas['i'] || controle.teclas['I'];
+        const segurandoCima = acaoAtiva('cima');
+        const apertouI = acaoAtiva('tiro');
 
         // Log de teste para debug (remova ou comente após testar)
         if (apertouI) {
@@ -975,13 +1083,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             console.log("Skill AirDrop: Suporte aéreo solicitado!");
             
             // Consome a tecla para evitar que o personagem atire no mesmo frame
-            controle.teclas['i'] = false;
-            controle.teclas['I'] = false;
+            consumirAcao('tiro');
         }
 
         // Lógica da Skill "Vender" (Combo: Baixo + I)
-        const segurandoBaixoVenda = controle.teclas['ArrowDown'] || controle.teclas['s'] || controle.teclas['S'];
-        const apertouVenda = controle.teclas['i'] || controle.teclas['I'];
+        const segurandoBaixoVenda = acaoAtiva('baixo');
+        const apertouVenda = acaoAtiva('tiro');
 
         // Debug de teclas combinadas (Vender)
         if (segurandoBaixoVenda && apertouVenda) {
@@ -1034,7 +1141,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             }
 
             // Cancelamento por Pulo
-            if (controle.teclas[' ']) {
+            if (acaoAtiva('pulo')) {
                 // console.log("Venda cancelada pelo pulo!");
                 controle.inventario.push(controle.vendaTipo);
                 // Devolve os itens logicamente
@@ -1135,7 +1242,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         if (detectarColisaoHitbox(hitboxGarra, hitboxInimigo, 0, 0, 0)) {
                             controle.garraItemCarregado = inimigo;
                             inimigo.stunned = true;
-                            inimigo.stunTimer = config.garraStunDuration || 120; // Default 2 seconds
+                            inimigo.stunTimer = Number(config.garraStunDuration ?? 180); // Default 3 seconds
                             inimigo.garraAnimEstado = 'idle'; // Reset enemy claw if they were using it
                             inimigo.foiAtingidoNesteChute = false; // Reset hit flag for the upcoming kick
                             window.inimigos.splice(j, 1); // Temporarily remove enemy from global list to pause its AI
@@ -1371,15 +1478,15 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Detecta combinação de Drop: S ou Seta Baixo + Pulo
-        const segurandoBaixo = controle.teclas['ArrowDown'] || controle.teclas['s'] || controle.teclas['S'];
+        const segurandoBaixo = acaoAtiva('baixo');
         
         // Debug de teclas combinadas (Dropar)
-        if (segurandoBaixo && controle.teclas[' ']) {
+        if (segurandoBaixo && acaoAtiva('pulo')) {
             // console.log("Debug: Tentativa de Drop detectada. No chão?", controle.noChao);
         }
 
-        if (segurandoBaixo && controle.teclas[' '] && controle.noChao) {
-            controle.teclas[' '] = false; // Consome o pulo para não pular e dropar ao mesmo tempo
+        if (segurandoBaixo && acaoAtiva('pulo') && controle.noChao) {
+            consumirAcao('pulo'); // Consome o pulo para não pular e dropar ao mesmo tempo
             droparItemJogador();
         }
 
@@ -1422,19 +1529,19 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Movimentação Horizontal
-        if (controle.teclas['ArrowLeft'] || controle.teclas['a'] || controle.teclas['A']) {
+        if (acaoAtiva('esquerda')) {
             controle.x -= velAtiva;
             if (!controle.chutando) controle.direcao = 'e';
             controle.movendoHorizontal = true;
         }
-        if (controle.teclas['ArrowRight'] || controle.teclas['d'] || controle.teclas['D']) {
+        if (acaoAtiva('direita')) {
             controle.x += velAtiva;
             if (!controle.chutando) controle.direcao = 'd';
             controle.movendoHorizontal = true;
         }
 
         // Lógica de Chute (tecla K)
-        if ((controle.teclas['k'] || controle.teclas['K']) && controle.cooldownChute === 0) {
+        if (acaoAtiva('chute') && controle.cooldownChute === 0) {
             controle.tempoChute = config.tempoChute;      // duração da animação → "tempoChute"
             controle.cooldownChute = config.cooldownChute; // espera até o próximo chute → "cooldownChute"
 
@@ -1459,12 +1566,18 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Aplica knockback se o jogador foi atingido (executa o movimento calculado)
         if (controle.framesKnockbackRestante > 0) {
-            controle.x += controle.velocidadeKnockback;
+            aplicarDeslocamentoHorizontalComColisao(controle, controle.velocidadeKnockback, {
+                largura: controle.largura,
+                altura: controle.altura,
+                offsetX: controle.offsetX || 0,
+                maxPasso: Number(config.playerKnockbackPassoMax ?? 1),
+                cancelarKnockbackAoColidir: true
+            });
             controle.framesKnockbackRestante--;
         }
 
         // Lógica de Disparo (tecla I)
-        if ((controle.teclas['i'] || controle.teclas['I']) && controle.cooldownTiro === 0 && controle.temArma && controle.municao > 0) {
+        if (acaoAtiva('tiro') && controle.cooldownTiro === 0 && controle.temArma && controle.municao > 0) {
             controle.cooldownTiro = config.cooldownTiro; 
             controle.municao--;
             const dir = controle.direcao === 'd' ? 1 : -1;
@@ -1630,7 +1743,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         if (controle.cooldownPosSuperDescida > 0) controle.cooldownPosSuperDescida--;
 
         // Lógica da Skill Passiva "Salto" (skillb2) - Pulo Duplo
-        const teclaPuloAtiva = controle.teclas[' '] && controle.cooldownPosSuperDescida === 0;
+        const teclaPuloAtiva = acaoAtiva('pulo') && controle.cooldownPosSuperDescida === 0;
         const puloAcabouDeSerPressionado = teclaPuloAtiva && !controle.espacoPressionado;
         controle.espacoPressionado = !!teclaPuloAtiva;
 
@@ -1658,7 +1771,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Lógica de Ativação do Jetpack
         if (controle.temJetpack) {
-            const segurandoCimaAtivacao = controle.teclas['ArrowUp'] || controle.teclas['w'] || controle.teclas['W'];
+            const segurandoCimaAtivacao = acaoAtiva('cima');
             
             // Ativação Instantânea: Cima + Pulo (Apenas se não houver cooldown)
             if (segurandoCimaAtivacao && puloAcabouDeSerPressionado && !controle.jetpackAtivo && controle.cooldownVooJetpack === 0) {
@@ -1671,7 +1784,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 controle.timerAtivacaoJetpack = 0;
             } 
             // Ativação por tempo (Segurar Espaço por 2 segundos) (Apenas se não houver cooldown)
-            else if (controle.teclas[' '] && controle.cooldownVooJetpack === 0) {
+            else if (acaoAtiva('pulo') && controle.cooldownVooJetpack === 0) {
                 controle.timerAtivacaoJetpack++;
                 if (controle.timerAtivacaoJetpack >= (config.jetpackTempoAtivacao || 120) && !controle.jetpackAtivo) {
                     controle.jetpackAtivo = true;
@@ -1730,7 +1843,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Mecânica de Super Descida e Paraquedas
-        if (!controle.noChao && controle.velocidadeY < 0 && controle.teclas[' '] && !controle.usandoParaquedas && controle.pulosRealizados === 2) {
+        if (!controle.noChao && controle.velocidadeY < 0 && acaoAtiva('pulo') && !controle.usandoParaquedas && controle.pulosRealizados === 2) {
             controle.velocidadeY = -20; 
             controle.superDescidaAtiva = true;
         }
@@ -1788,12 +1901,15 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         function aplicarImpactoSuperDescida(ctrl) {
+            const raioStun = Number(config.superDescidaRaioStunInimigos ?? 56);
+            const raioStunY = Number(config.superDescidaRaioStunInimigosY ?? raioStun);
             if (window.inimigos) {
                 window.inimigos.forEach(inimigo => {
                     const distanciaX = Math.abs((ctrl.x + 16) - (inimigo.x + 16));
-                    if (distanciaX <= 32 && inimigo.noChao) {
+                    const distanciaY = Math.abs((ctrl.y + 16) - (inimigo.y + 16));
+                    if (distanciaX <= raioStun && distanciaY <= raioStunY) {
                         inimigo.stunned = true;
-                        inimigo.stunTimer = 120;
+                        inimigo.stunTimer = Number(config.superDescidaStunDuracaoInimigos ?? 180);
                     }
                 });
             }
@@ -2059,14 +2175,17 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 // Inimigo tipo 5 é Feno (alvo de treino) - você verá dano no comportamento
                             }
                             
-                            // Knockback: Lança o inimigo para trás com base na direção do projétil
-                            inimigo.x += obterKnockback(config, 'playerProjetil') * proj.direcao;
-
-                            // Limita a posição para o inimigo não sair do palco no momento do impacto
-                            if (typeof limitarPosicaoAoPalco === 'function') {
-                                const posAjustada = limitarPosicaoAoPalco(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura);
-                                inimigo.x = posAjustada.x - (inimigo.offsetX || 0);
-                            }
+                            // Knockback por subpassos para impedir atravessar blocos em impactos fortes.
+                            aplicarDeslocamentoHorizontalComColisao(
+                                inimigo,
+                                obterKnockback(config, 'playerProjetil') * proj.direcao,
+                                {
+                                    largura: inimigo.largura,
+                                    altura: inimigo.altura,
+                                    offsetX: inimigo.offsetX || 0,
+                                    maxPasso: Number(config.inimigoKnockbackPassoMax ?? 1)
+                                }
+                            );
 
                             virarFenoParaFonteDano(inimigo, proj.x);
 

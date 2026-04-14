@@ -36,6 +36,95 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         return valor;
     }
 
+    function detectarEstacaEmPonto(x, y) {
+        if (typeof verificarColisaoComTiles !== 'function') return null;
+        const hit = verificarColisaoComTiles(x, y, 1, 1, window.plataformas);
+        return (hit && hit.tipo === 'estaca') ? hit : null;
+    }
+
+    function analisarPerigoEstacaFrente(inimigo, direcao, distanciaFrente = 12) {
+        const baseX = inimigo.x + (inimigo.offsetX || 0);
+        const probeX = direcao > 0
+            ? baseX + inimigo.largura + distanciaFrente
+            : baseX - distanciaFrente;
+
+        const yPe = inimigo.y + 2;
+        const yMeio = inimigo.y + Math.floor((inimigo.altura || 30) * 0.5);
+        const yCabeca = inimigo.y + Math.max(2, (inimigo.altura || 30) - 2);
+
+        const hits = [
+            detectarEstacaEmPonto(probeX, yPe),
+            detectarEstacaEmPonto(probeX, yMeio),
+            detectarEstacaEmPonto(probeX, yCabeca)
+        ].filter(Boolean);
+
+        const temUp = hits.some(h => h.direcao === 'cima');
+        const temLateral = direcao > 0
+            ? hits.some(h => h.direcao === 'esquerda')
+            : hits.some(h => h.direcao === 'direita');
+
+        return { up: temUp, lateral: temLateral };
+    }
+
+    function temEstacaBaixoNoArcoDoPulo(inimigo, direcao) {
+        const baseX = inimigo.x + (inimigo.offsetX || 0);
+        const centroX = baseX + (inimigo.largura / 2);
+        const deslocFrente = Number(config.inimigoEstacaDownProbeFrenteX ?? 8);
+        const frenteX = direcao > 0
+            ? baseX + inimigo.largura + deslocFrente
+            : baseX - deslocFrente;
+
+        const yInicial = Number(config.inimigoEstacaDownProbeYInicial ?? 8);
+        const yPasso = Number(config.inimigoEstacaDownProbeYPasso ?? 8);
+        const yNiveis = Math.max(1, Number(config.inimigoEstacaDownProbeNiveis ?? 3));
+
+        const pontosX = [centroX, frenteX];
+        const pontosY = [];
+        for (let nivel = 0; nivel < yNiveis; nivel++) {
+            pontosY.push(inimigo.y + (inimigo.altura || 30) + yInicial + (nivel * yPasso));
+        }
+
+        for (const px of pontosX) {
+            for (const py of pontosY) {
+                const hit = detectarEstacaEmPonto(px, py);
+                if (hit && hit.direcao === 'baixo') return true;
+            }
+        }
+
+        return false;
+    }
+
+    function aplicarDeslocamentoHorizontalComColisao(ent, deslocX) {
+        if (!ent || !deslocX) return;
+
+        const maxPasso = Math.max(0.25, Number(config.inimigoKnockbackPassoMax ?? 1));
+        const passos = Math.max(1, Math.ceil(Math.abs(deslocX) / maxPasso));
+        const passoX = deslocX / passos;
+
+        for (let p = 0; p < passos; p++) {
+            const xAnteriorPasso = ent.x;
+            ent.x += passoX;
+
+            if (typeof verificarColisaoComTiles === 'function' &&
+                verificarColisaoComTiles(ent.x + (ent.offsetX || 0), ent.y, ent.largura, ent.altura, window.plataformas)) {
+                ent.x = xAnteriorPasso;
+                ent.framesKnockbackRestante = 0;
+                ent.velocidadeKnockback = 0;
+                break;
+            }
+
+            if (typeof limitarPosicaoAoPalco === 'function') {
+                const posAjustada = limitarPosicaoAoPalco(
+                    ent.x + (ent.offsetX || 0),
+                    ent.y,
+                    ent.largura,
+                    ent.altura
+                );
+                ent.x = posAjustada.x - (ent.offsetX || 0);
+            }
+        }
+    }
+
     function inimigoColetarItemGarra(inimigo, item) {
         // This logic is adapted from the existing enemy item collection in the main loop
         // It assumes the item has already been removed from window.itensColetaveis
@@ -273,7 +362,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                     // Aplica knockback se estiver ativo
                     if (inimigo.framesKnockbackRestante > 0) {
-                        inimigo.x += inimigo.velocidadeKnockback;
+                        aplicarDeslocamentoHorizontalComColisao(inimigo, inimigo.velocidadeKnockback);
                         inimigo.framesKnockbackRestante--;
                         inimigo.elemento.style.transform = inimigo.velocidadeKnockback > 0 ? 'scaleX(1)' : 'scaleX(-1)';
                     }
@@ -746,11 +835,13 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 // Aplica knockback se estiver ativo
                 if (inimigo.framesKnockbackRestante > 0) {
-                    inimigo.x += inimigo.velocidadeKnockback;
+                    aplicarDeslocamentoHorizontalComColisao(inimigo, inimigo.velocidadeKnockback);
                     inimigo.framesKnockbackRestante--;
                 }
                 // Decrementa o timer de stun
                 if (inimigo.stunTimer > 0) inimigo.stunTimer--;
+
+                let iaBloqueadaPorStun = false;
 
                 // Lógica de Stun: Se o inimigo estiver atordoado, ele não faz mais nada
                 if (inimigo.stunned) {
@@ -758,12 +849,12 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         inimigo.stunned = false; // Fim do stun
                         console.log(`Inimigo em x:${inimigo.x} não está mais atordoado.`);
                     } else {
+                        iaBloqueadaPorStun = true;
                         // Faz o inimigo olhar de um lado para o outro
                         if (inimigo.stunTimer % 15 === 0) { // Troca de direção a cada 15 frames (aprox. 0.25s)
                             inimigo.direcao = (inimigo.direcao === 'd' ? 'e' : 'd');
                             inimigo.elemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
                         }
-                        continue; // Pula o restante da lógica de IA para este inimigo
                     }
                 }
 
@@ -772,7 +863,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 const distanciaY = Math.abs(playerY - inimigo.y);
                 const distanciaMinima = config.inimigoDistanciaMinimaAtaque || 20;
 
-                if (inimigo.perseguindo && distanciaX <= distanciaMinima && distanciaY <= distanciaMinima && !inimigo.afastando && inimigo.tempoAfastamento === 0 && inimigo.cooldownAfastamento === 0) {
+                if (!iaBloqueadaPorStun && inimigo.perseguindo && distanciaX <= distanciaMinima && distanciaY <= distanciaMinima && !inimigo.afastando && inimigo.tempoAfastamento === 0 && inimigo.cooldownAfastamento === 0) {
                     // Inimigo está muito próximo do jogador - inicia afastamento
                     inimigo.afastando = true;
                     inimigo.tempoAfastamento = config.inimigoTempoAfastamento || 30;
@@ -780,7 +871,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 }
 
                 // Lógica de afastamento
-                if (inimigo.afastando && inimigo.tempoAfastamento > 0) {
+                if (!iaBloqueadaPorStun && inimigo.afastando && inimigo.tempoAfastamento > 0) {
                     const velocidadeAfastamento = config.inimigoVelocidadeAfastamento || 3;
                     // Afasta-se na direção oposta ao jogador
                     if (inimigo.x < playerX) {
@@ -798,7 +889,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.x = limiteX.x - (inimigo.offsetX || 0);
                     
                     verificarSnapInimigo(inimigo, xAnterior);
-                } else if (inimigo.afastando && inimigo.tempoAfastamento === 0) {
+                } else if (!iaBloqueadaPorStun && inimigo.afastando && inimigo.tempoAfastamento === 0) {
                     // Terminou o afastamento - volta ao comportamento normal
                     inimigo.afastando = false;
                     inimigo.cooldownAfastamento = config.inimigoCooldownAfastamento || 60;
@@ -827,20 +918,20 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 }
 
                 // Ativa a perseguição se o jogador estiver perto OU se detectar um tiro vindo no radar
-                if (!inimigo.perseguindo && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse || (inimigo.temGarra && distanciaAtual <= (config.garraAlcanceInimigo || 160)))) {
+                if (!iaBloqueadaPorStun && !inimigo.perseguindo && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse || (inimigo.temGarra && distanciaAtual <= (config.garraAlcanceInimigo || 160)))) {
                     inimigo.perseguindo = true;
                     // console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
                 }
 
                 // Lógica de pulo de desvio (usa o projVindo detectado acima)
-                if (projVindo && inimigo.noChao && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
+                if (!iaBloqueadaPorStun && projVindo && inimigo.noChao && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
                     // Define um delay randômico antes de pular
                     inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
                     inimigo.jumpQueued = true; // Marca que um pulo foi agendado
                 }
 
                 // Executa o pulo ou VOO se o timer chegou a zero e foi agendado
-                if (inimigo.puloTimer === 0 && inimigo.jumpQueued) {
+                if (!iaBloqueadaPorStun && inimigo.puloTimer === 0 && inimigo.jumpQueued) {
                     if (inimigo.temJetpack && !inimigo.jetpackAtivo && inimigo.cooldownVooJetpack === 0) {
                         inimigo.jetpackAtivo = true;
                         if (inimigo.timerVooRestante <= 0) {
@@ -1092,7 +1183,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 let movendoDestaVez = false;
                 // Ações que dependem da ativação (movimento e ataque) - só se não estiver afastando, coletando ou usando a garra
-                if (inimigo.perseguindo && !inimigo.afastando && !inimigo.estaColetando) {
+                if (!iaBloqueadaPorStun && inimigo.perseguindo && !inimigo.afastando && !inimigo.estaColetando) {
                     // Lógica para INICIAR o chute
                     if (distanciaAtual <= config.distanciaAtaqueInimigo && inimigo.cooldownChute === 0) {
                         inimigo.tempoChute = config.tempoChute;
@@ -1154,17 +1245,43 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         velEfetivaMovimento = velAtiva * multiplicadorAgachado;
                     }
                     
+                    const lookaheadMin = Number(config.inimigoEstacaLookaheadMin ?? 10);
+                    const lookaheadBonus = Number(config.inimigoEstacaLookaheadBonus ?? 8);
+                    const distanciaPerigo = Math.max(lookaheadMin, Math.ceil(velEfetivaMovimento) + lookaheadBonus);
+                    const perigoDireita = analisarPerigoEstacaFrente(inimigo, 1, distanciaPerigo);
+                    const perigoEsquerda = analisarPerigoEstacaFrente(inimigo, -1, distanciaPerigo);
+
                     if (inimigo.x < xAlvo - velEfetivaMovimento) {
                         if (inimigo.tempoChute === 0 && inimigo.garraAnimEstado === 'idle') {
-                            inimigo.x += velEfetivaMovimento;
-                            inimigo.direcao = 'd';
-                            movendoDestaVez = true;
+                            // Estaca da direita/esquerda à frente: não avança nessa direção.
+                            if (!perigoDireita.lateral) {
+                                // Estaca up à frente: prioriza salto por cima (se não houver estaca down no arco).
+                                if (perigoDireita.up) {
+                                    if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && inimigo.puloTimer === 0 && !inimigo.jumpQueued && !inimigo.estaAgachado && !temEstacaBaixoNoArcoDoPulo(inimigo, 1)) {
+                                        inimigo.puloTimer = 0;
+                                        inimigo.jumpQueued = true;
+                                    }
+                                } else {
+                                    inimigo.x += velEfetivaMovimento;
+                                    inimigo.direcao = 'd';
+                                    movendoDestaVez = true;
+                                }
+                            }
                         }
                     } else if (inimigo.x > xAlvo + velEfetivaMovimento) {
                         if (inimigo.tempoChute === 0 && inimigo.garraAnimEstado === 'idle') {
-                            inimigo.x -= velEfetivaMovimento;
-                            inimigo.direcao = 'e';
-                            movendoDestaVez = true;
+                            if (!perigoEsquerda.lateral) {
+                                if (perigoEsquerda.up) {
+                                    if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && inimigo.puloTimer === 0 && !inimigo.jumpQueued && !inimigo.estaAgachado && !temEstacaBaixoNoArcoDoPulo(inimigo, -1)) {
+                                        inimigo.puloTimer = 0;
+                                        inimigo.jumpQueued = true;
+                                    }
+                                } else {
+                                    inimigo.x -= velEfetivaMovimento;
+                                    inimigo.direcao = 'e';
+                                    movendoDestaVez = true;
+                                }
+                            }
                         }
                     }
 
@@ -1174,7 +1291,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         inimigo.garraTimer = 18;
                         inimigo.garraDirecaoAnim = (inimigo.x < playerX) ? 'd' : 'e';
                     }
-                } else if (!inimigo.perseguindo && !inimigo.stunned && !inimigo.estaColetando) {
+                } else if (!iaBloqueadaPorStun && !inimigo.perseguindo && !inimigo.estaColetando) {
                     // Lógica de Patrulha Aleatória: 1s parado, 1s andando devagar
                     inimigo.patrulhaTimer--;
                     
@@ -1191,6 +1308,9 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.estadoPatrulha === 'caminhando') {
                         const velPatrulha = velAtiva * 0.3; // Caminha bem devagar
                         const dirSign = inimigo.direcaoPatrulha === 'd' ? 1 : -1;
+                        const dirPatrulha = inimigo.direcaoPatrulha === 'd' ? 1 : -1;
+                        const lookaheadPatrulha = Number(config.inimigoEstacaLookaheadPatrulha ?? 14);
+                        const perigoPatrulha = analisarPerigoEstacaFrente(inimigo, dirPatrulha, lookaheadPatrulha);
                         
                         // Verificação de segurança (parede ou buraco à frente)
                         const margemCheck = (inimigo.direcaoPatrulha === 'd' ? 20 : -20);
@@ -1201,7 +1321,15 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         const temParede = typeof verificarColisaoComTiles === 'function' && 
                                           verificarColisaoComTiles(checkX, inimigo.y + 10, 2, 2, window.plataformas);
 
-                        if (temChao && !temParede) {
+                        if (perigoPatrulha.lateral) {
+                            inimigo.estadoPatrulha = 'parado';
+                            inimigo.patrulhaTimer = 60;
+                        } else if (perigoPatrulha.up) {
+                            if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && inimigo.puloTimer === 0 && !inimigo.jumpQueued && !inimigo.estaAgachado && !temEstacaBaixoNoArcoDoPulo(inimigo, dirPatrulha)) {
+                                inimigo.puloTimer = 0;
+                                inimigo.jumpQueued = true;
+                            }
+                        } else if (temChao && !temParede) {
                             inimigo.x += velPatrulha * dirSign;
                             inimigo.direcao = inimigo.direcaoPatrulha;
                             movendoDestaVez = true;
@@ -1214,16 +1342,17 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 }
 
                 // Lógica de Pulo por Diferença de Altura (Apenas se estiver perseguindo e NÃO agachado)
-                if (inimigo.perseguindo && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && yAlvo > inimigo.y + 31 && !inimigo.estaAgachado) {
+                if (!iaBloqueadaPorStun && inimigo.perseguindo && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && yAlvo > inimigo.y + 31 && !inimigo.estaAgachado) {
                     const distXAlvo = Math.abs(xAlvo - inimigo.x);
-                    if (distXAlvo < 64 && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
+                    const dirPuloAltura = xAlvo >= inimigo.x ? 1 : -1;
+                    if (distXAlvo < 64 && inimigo.puloTimer === 0 && !inimigo.jumpQueued && !temEstacaBaixoNoArcoDoPulo(inimigo, dirPuloAltura)) {
                         inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
                         inimigo.jumpQueued = true;
                     }
                 }
 
                 // Lógica de Salto de Fé (Gap Jumping - Apenas se estiver perseguindo e NÃO agachado)
-                if (inimigo.perseguindo && movendoDestaVez && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && !inimigo.estaAgachado) {
+                if (!iaBloqueadaPorStun && inimigo.perseguindo && movendoDestaVez && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && !inimigo.estaAgachado) {
                     const checkX = (inimigo.direcao === 'd') 
                         ? inimigo.x + (inimigo.offsetX || 0) + inimigo.largura + 10 
                         : inimigo.x + (inimigo.offsetX || 0) - 10;
@@ -1234,8 +1363,11 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         !verificarColisaoComTiles(checkX, checkY, 2, 2, window.plataformas) && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
                         const minDelay = config.inimigoPuloDelayMinGap ?? 0;
                         const maxDelay = config.inimigoPuloDelayMaxGap ?? 10;
-                        inimigo.puloTimer = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
-                        inimigo.jumpQueued = true;
+                        const dirGap = inimigo.direcao === 'd' ? 1 : -1;
+                        if (!temEstacaBaixoNoArcoDoPulo(inimigo, dirGap)) {
+                            inimigo.puloTimer = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+                            inimigo.jumpQueued = true;
+                        }
                     }
                 }
 
@@ -1281,7 +1413,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 }
 
                 // Lógica da Attackbox do Inimigo (Apenas se estiver perseguindo/atacando)
-                if (inimigo.perseguindo && inimigo.tempoChute > 0 && !inimigo.jaAtacouNesteChute && window.playerControle) {
+                if (!iaBloqueadaPorStun && inimigo.perseguindo && inimigo.tempoChute > 0 && !inimigo.jaAtacouNesteChute && window.playerControle) {
                     const ataqueOffsetX = config.INIMIGO_ATAQUE_OFFSET_X ?? config.ATAQUE_OFFSET_X;
                     const ataqueOffsetY = config.INIMIGO_ATAQUE_OFFSET_Y ?? config.ATAQUE_OFFSET_Y;
                     const ataqueLargura = config.INIMIGO_ATAQUE_LARGURA ?? config.ATAQUE_LARGURA;
@@ -1344,7 +1476,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     verificarColisaoComTiles(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura, window.plataformas)) {
                     
                     // Item 1: Pulo por Obstrução (Wall Detection)
-                    if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && inimigo.puloTimer === 0 && !inimigo.jumpQueued && !inimigo.estaAgachado && !inimigo.precisaAgacharPassagem) {
+                    if (!iaBloqueadaPorStun && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && inimigo.puloTimer === 0 && !inimigo.jumpQueued && !inimigo.estaAgachado && !inimigo.precisaAgacharPassagem && !temEstacaBaixoNoArcoDoPulo(inimigo, inimigo.direcao === 'd' ? 1 : -1)) {
                         // Agenda o pulo com um delay aleatório
                         inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
                         inimigo.jumpQueued = true;
