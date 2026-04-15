@@ -1,0 +1,18 @@
+{
+    "id": "restauracao",
+    "nome": "Reparação",
+    "spriteColetavel": "../../assets/personagem/restauracao.png",
+    "consumivel": true,
+    "efeitos": {
+        "jogador": {
+            "municao": 5,
+            "escudoProtegido": 0,
+            "escudoVermelho": false
+        },
+        "inimigo": {
+            "municao": 5,
+            "escudoProtegido": 0,
+            "escudoVermelho": false
+        }
+    }
+}

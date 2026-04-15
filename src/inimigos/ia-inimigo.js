@@ -131,10 +131,20 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             const itemData = window.itemDefinitions[item.tipo];
             // Aplica efeitos do item ao inimigo
             if (window.aplicarEfeitoColeta && typeof window.aplicarEfeitoColeta === 'function') {
-                window.aplicarEfeitoColeta(itemData, inimigo);
+                window.aplicarEfeitoColeta(inimigo, itemData);
             } else if (itemData.efeitos && itemData.efeitos.inimigo) {
                 for (const [chave, valor] of Object.entries(itemData.efeitos.inimigo)) {
                     inimigo[chave] = valor;
+                }
+            }
+
+            if (item.tipo === 'restauracao') {
+                inimigo.municao = config.maxMunicao || 5;
+                inimigo.escudoProtegido = 0;
+                inimigo.escudoVermelho = false;
+                inimigo.vida = Math.max(0, (inimigo.vida || 0) - 1);
+                if (inimigo.inventario.includes('escudo')) {
+                    inimigo.temEscudo = true;
                 }
             }
             // Exibe visual se aplicável
@@ -157,15 +167,40 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
     function limparVisuaisInimigo(inimigo) {
         if (!inimigo) return;
-        if (inimigo.armaElemento) inimigo.armaElemento.remove();
-        if (inimigo.botaElemento) inimigo.botaElemento.remove();
-        if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
-        if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
-        if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
-        if (inimigo.garraElemento) inimigo.garraElemento.remove();
-        if (inimigo.cintoElemento) inimigo.cintoElemento.remove();
-        if (inimigo.garraBracos) inimigo.garraBracos.forEach(b => b.remove());
+
+        const elementos = [
+            'armaElemento',
+            'botaElemento',
+            'escudoElemento',
+            'jetpackElemento',
+            'jetFogoElemento',
+            'garraElemento',
+            'cintoElemento'
+        ];
+
+        elementos.forEach((chave) => {
+            const el = inimigo[chave];
+            if (el && typeof el.remove === 'function') el.remove();
+            inimigo[chave] = null;
+        });
+
+        if (Array.isArray(inimigo.garraBracos)) {
+            inimigo.garraBracos.forEach((braco) => {
+                if (braco && typeof braco.remove === 'function') braco.remove();
+            });
+        }
+        inimigo.garraBracos = [];
+
+        inimigo.temArma = false;
+        inimigo.temBota = false;
+        inimigo.temEscudo = false;
+        inimigo.temJetpack = false;
+        inimigo.temGarra = false;
+        inimigo.temCinto = false;
+        inimigo.jetpackAtivo = false;
     }
+
+    window.limparVisuaisInimigo = limparVisuaisInimigo;
 
     function aplicarDanoEspinhoInimigo(inimigo, hitEstaca) {
         if (!inimigo || !hitEstaca || hitEstaca.tipo !== 'estaca') return false;
@@ -216,15 +251,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         // Limpa referências antigas e remove armas
         if (window.inimigos) {
             window.inimigos.forEach(inim => {
+                limparVisuaisInimigo(inim);
                 if (inim.elemento) inim.elemento.remove();
-                if (inim.armaElemento) inim.armaElemento.remove();
-                if (inim.botaElemento) inim.botaElemento.remove();
-                if (inim.escudoElemento) inim.escudoElemento.remove();
-                if (inim.jetpackElemento) inim.jetpackElemento.remove();
-                if (inim.jetFogoElemento) inim.jetFogoElemento.remove();
-                if (inim.garraElemento) inim.garraElemento.remove();
-                if (inim.cintoElemento) inim.cintoElemento.remove();
-                if (inim.garraBracos) inim.garraBracos.forEach(b => b.remove());
             });
         }
         window.inimigos = [];
@@ -1147,14 +1175,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 // Remove o inimigo se ele cair no buraco (fora da tela)
                 if (inimigo.y < -64) {
-                    if (inimigo.armaElemento) inimigo.armaElemento.remove();
-                    if (inimigo.botaElemento) inimigo.botaElemento.remove();
-                    if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
-                    if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
-                    if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
-                    if (inimigo.garraElemento) inimigo.garraElemento.remove();
-                    if (inimigo.cintoElemento) inimigo.cintoElemento.remove();
-                    if (inimigo.garraBracos) inimigo.garraBracos.forEach(b => b.remove());
+                    limparVisuaisInimigo(inimigo);
                     inimigo.elemento.remove();
                     window.inimigos.splice(i, 1);
                     continue;

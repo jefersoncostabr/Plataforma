@@ -496,6 +496,77 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         });
     }
 
+    function limparEquipamentosVisuaisInimigo(inimigo) {
+        if (!inimigo) return;
+
+        if (typeof window.limparVisuaisInimigo === 'function') {
+            window.limparVisuaisInimigo(inimigo);
+            return;
+        }
+
+        const elementos = [
+            'armaElemento',
+            'botaElemento',
+            'escudoElemento',
+            'jetpackElemento',
+            'jetFogoElemento',
+            'garraElemento',
+            'cintoElemento'
+        ];
+
+        elementos.forEach((chave) => {
+            const el = inimigo[chave];
+            if (el && typeof el.remove === 'function') el.remove();
+            inimigo[chave] = null;
+        });
+
+        if (Array.isArray(inimigo.garraBracos)) {
+            inimigo.garraBracos.forEach((braco) => {
+                if (braco && typeof braco.remove === 'function') braco.remove();
+            });
+        }
+        inimigo.garraBracos = [];
+
+        inimigo.temArma = false;
+        inimigo.temBota = false;
+        inimigo.temEscudo = false;
+        inimigo.temJetpack = false;
+        inimigo.temGarra = false;
+        inimigo.temCinto = false;
+        inimigo.jetpackAtivo = false;
+    }
+
+    function removerInimigoDerrotado(inimigo, opcoes = {}) {
+        if (!inimigo) return;
+
+        const {
+            droparItens = true,
+            darXP = true
+        } = opcoes;
+
+        inimigo.estaMorto = true;
+
+        if (droparItens) {
+            droparItensInimigo(inimigo);
+        }
+
+        if (darXP && typeof window.ganharXP === 'function') {
+            window.ganharXP(1);
+        }
+
+        limparEquipamentosVisuaisInimigo(inimigo);
+        if (Array.isArray(inimigo.inventario)) inimigo.inventario = [];
+
+        if (inimigo.elemento && typeof inimigo.elemento.remove === 'function') {
+            inimigo.elemento.remove();
+        }
+
+        const index = Array.isArray(window.inimigos) ? window.inimigos.indexOf(inimigo) : -1;
+        if (index > -1) {
+            window.inimigos.splice(index, 1);
+        }
+    }
+
     function carregarInventarioSalvo() {
         try {
             const raw = localStorage.getItem(INVENTARIO_STORAGE_KEY);
@@ -655,11 +726,22 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             const itemData = window.itemDefinitions[item.tipo];
             //
             if (window.aplicarEfeitoColeta && typeof window.aplicarEfeitoColeta === 'function') {
-                window.aplicarEfeitoColeta(itemData, controle);
+                window.aplicarEfeitoColeta(controle, itemData);
             } else if (itemData.efeitos && itemData.efeitos.jogador) {
                 for (const [chave, valor] of Object.entries(itemData.efeitos.jogador)) {
                     controle[chave] = valor;
                 }
+            }
+
+            if (item.tipo === 'restauracao') {
+                controle.municao = config.maxMunicao || 5;
+                controle.escudoProtegido = 0;
+                controle.escudoVermelho = false;
+                controle.dano = Math.max(0, (controle.dano || 0) - 1);
+                if (controle.inventario.includes('escudo')) {
+                    controle.temEscudo = true;
+                }
+                atualizarVisualEscudo();
             }
             // Exibe visual se aplicável
             if (item.tipo === 'revolver') {
@@ -1053,18 +1135,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         if (e.key === '9' && window.inimigos) {
             for (let i = window.inimigos.length - 1; i >= 0; i--) {
                 const inimigo = window.inimigos[i];
-                droparItensInimigo(inimigo);
-                if (typeof window.ganharXP === 'function') window.ganharXP(1);
-                if (inimigo.armaElemento) inimigo.armaElemento.remove();
-                if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
-                if (inimigo.botaElemento) inimigo.botaElemento.remove();
-                if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
-                if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
-                if (inimigo.garraElemento) inimigo.garraElemento.remove();
-                if (inimigo.cintoElemento) inimigo.cintoElemento.remove();
-                if (inimigo.garraBracos) inimigo.garraBracos.forEach(b => b.remove());
-                inimigo.elemento.remove();
-                window.inimigos.splice(i, 1);
+                removerInimigoDerrotado(inimigo);
             }
         }
     });
@@ -1479,17 +1550,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 if (typeof flashComVibacao === 'function') {
                                     flashComVibacao(inimigoAtingido.elemento);
                                 }
-                                droparItensInimigo(inimigoAtingido); // Garante o drop normal de itens coletáveis
-                                if (typeof window.ganharXP === 'function') window.ganharXP(1);
-                                if (inimigoAtingido.armaElemento) inimigoAtingido.armaElemento.remove();
-                                if (inimigoAtingido.botaElemento) inimigoAtingido.botaElemento.remove();
-                                if (inimigoAtingido.escudoElemento) inimigoAtingido.escudoElemento.remove();
-                                if (inimigoAtingido.jetpackElemento) inimigoAtingido.jetpackElemento.remove();
-                                if (inimigoAtingido.jetFogoElemento) inimigoAtingido.jetFogoElemento.remove();
-                                if (inimigoAtingido.garraElemento) inimigoAtingido.garraElemento.remove();
-                                if (inimigoAtingido.garraBracos) inimigoAtingido.garraBracos.forEach(b => b.remove());
-                                inimigoAtingido.elemento.remove();
-                                window.inimigos.splice(i, 1);
+                                removerInimigoDerrotado(inimigoAtingido); // Garante o drop normal de itens coletáveis e limpa os visuais
                             }
                         } else {
                             window.inimigos.push(inimigoAtingido); // Re-add to active enemies if not dead
@@ -2143,18 +2204,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 }
                             } else {
                                 // Morte normal para outros inimigos
-                                droparItensInimigo(inimigo);
-                                if (typeof window.ganharXP === 'function') window.ganharXP(1);
-                                if (inimigo.armaElemento) inimigo.armaElemento.remove();
-                                if (inimigo.botaElemento) inimigo.botaElemento.remove();
-                                if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
-                                if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
-                                if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
-                                if (inimigo.garraElemento) inimigo.garraElemento.remove();
-                                if (inimigo.cintoElemento) inimigo.cintoElemento.remove();
-                                if (inimigo.garraBracos) inimigo.garraBracos.forEach(b => b.remove());
-                                inimigo.elemento.remove();
-                                window.inimigos.splice(i, 1);
+                                removerInimigoDerrotado(inimigo);
                             }
                         }
                     }
@@ -2277,18 +2327,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                         flashComVibacao(inimigo.elemento);
                                     }
 
-                                    droparItensInimigo(inimigo);
-                                    if (typeof window.ganharXP === 'function') window.ganharXP(1);
-                                    if (inimigo.armaElemento) inimigo.armaElemento.remove();
-                                    if (inimigo.botaElemento) inimigo.botaElemento.remove();
-                                    if (inimigo.escudoElemento) inimigo.escudoElemento.remove();
-                                    if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
-                                    if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
-                                    if (inimigo.garraElemento) inimigo.garraElemento.remove();
-                                    if (inimigo.cintoElemento) inimigo.cintoElemento.remove();
-                                    if (inimigo.garraBracos) inimigo.garraBracos.forEach(b => b.remove());
-                                    inimigo.elemento.remove();
-                                    window.inimigos.splice(j, 1);
+                                    removerInimigoDerrotado(inimigo);
                                 }
                             }
                             hitAlvo = true;

@@ -1,39 +1,39 @@
 {
-    "proporcao": "1x1",
+    "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
-    "objetivo": "f19",
+    "objetivo": "e40",
     "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20"
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
+        "b16", "b17",
+        "c32", "c33", "c34", "c35", "c36", "c37", "c38",
+        "j40",
+        "k27", "k28", "k29", "k30", "k31", "k32", "k33",
+        "m18", "m21", "m24", "m38",
+        "n3", "n6", "n9", "n12", "n15", "n36"
     ],
     "plataformasNeve": [],
     "plataformasTerraInferior": [],
-    "plataformasTerraSuperior": [],
+    "plataformasTerraSuperior": [
+        "g39"
+    ],
     "plataformasTerraInferior2": [],
     "plataformasTerraSuperior2": [],
     "plataformasEstacaSup": [],
     "plataformasEstacaDir": [],
     "plataformasEstacaEsq": [],
     "plataformasEstacaBaixo": [],
-    "inimigos0": [],
+    "inimigos0": ["b18", "b35", "d35"],
     "inimigos1": [],
     "inimigos2": [],
     "inimigos3": [],
     "inimigos4": [],
-    "inimigos5": [],
+    "inimigos5": ["b7"],
     "inimigos6": [],
-    "inimigos7": ["b18"],
+    "inimigos7": [],
     "itens": [
         {
             "tipo": "revolver",
-            "pos": "b1"
-        },
-        {
-            "tipo": "revolver",
-            "pos": "b3"
-        },
-        {
-            "tipo": "cinto",
-            "pos": "b4"
+            "pos": "o3"
         }
     ],
     "inimigoAleatorio": [1, 0]
