@@ -25,7 +25,9 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     }
 
     function temEscudoAtivo() {
-        return window.playerControle?.temEscudo && !window.playerControle?.escudoVermelho;
+        return window.playerControle?.temEscudo
+            && !window.playerControle?.escudoVermelho
+            && !window.playerControle?.itensGuardadosNoCinto;
     }
 
     function obterKnockbackRecebido(config, fonte = 'default') {

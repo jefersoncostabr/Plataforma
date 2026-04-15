@@ -689,6 +689,28 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         teclas: {}
     };
 
+    const inventarioSalvo = carregarInventarioSalvo();
+    if (inventarioSalvo && typeof inventarioSalvo === 'object') {
+        controle.temEscudo = !!inventarioSalvo.temEscudo;
+        controle.escudoVermelho = !!inventarioSalvo.escudoVermelho;
+        controle.escudoProtegido = Number(inventarioSalvo.escudoProtegido || 0);
+        controle.temArma = !!inventarioSalvo.temArma;
+        controle.municao = Number(inventarioSalvo.municao || 0);
+        controle.temBota = !!inventarioSalvo.temBota;
+        controle.temJetpack = !!inventarioSalvo.temJetpack;
+        controle.temCinto = !!inventarioSalvo.temCinto;
+        controle.temGarra = !!inventarioSalvo.temGarra;
+        controle.inventario = Array.isArray(inventarioSalvo.inventario) ? [...inventarioSalvo.inventario] : [];
+
+        // Compatibilidade com saves antigos baseados apenas no inventário.
+        if (controle.inventario.includes('revolver')) controle.temArma = true;
+        if (controle.inventario.includes('escudo')) controle.temEscudo = true;
+        if (controle.inventario.includes('bota')) controle.temBota = true;
+        if (controle.inventario.includes('jetpack')) controle.temJetpack = true;
+        if (controle.inventario.includes('garra')) controle.temGarra = true;
+        if (controle.inventario.includes('cinto')) controle.temCinto = true;
+    }
+
     // Variáveis específicas da animação da garra
     controle.garraAnimEstado = 'idle'; // idle, prep, esticando, catching, voltando
     controle.garraTimer = 0;
@@ -996,6 +1018,55 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         ].filter(item => item.possui && item.elemento);
     }
 
+    function podeAgacharSemBloqueio() {
+        return controle.itensGuardadosNoCinto || obterEquipamentosDoCinto().length === 0;
+    }
+
+    function temEspacoParaLevantar() {
+        if (!controle.estaAgachado) return true;
+        if (typeof verificarColisaoComTiles !== 'function') return true;
+
+        return !verificarColisaoComTiles(
+            controle.x + (controle.offsetX || 0),
+            controle.y,
+            controle.largura,
+            controle.alturaEmPe,
+            window.plataformas
+        );
+    }
+
+    function tentarLevantarJogador() {
+        if (!controle.estaAgachado) return true;
+
+        if (temEspacoParaLevantar()) {
+            controle.estaAgachado = false;
+            return true;
+        }
+
+        if (typeof flashElement === 'function') {
+            flashElement(elemento, 120, 4);
+        }
+        return false;
+    }
+
+    function obterOffsetVisualCinto() {
+        let offsetY = 0;
+
+        // Valores para ajuste fino do cinto.
+        if (controle.estaAgachado) offsetY -= 4;
+        if (controle.chutando) offsetY -= 2;
+
+        return { x: 0, y: offsetY };
+    }
+
+    function sincronizarCintoComJogador() {
+        if (!controle.temCinto) return;
+        const offset = obterOffsetVisualCinto();
+        cintoElemento.style.left = (controle.x + offset.x) + 'px';
+        cintoElemento.style.bottom = (controle.y + offset.y) + 'px';
+        cintoElemento.style.transform = elemento.style.transform;
+    }
+
     function atualizarVisibilidadeEquipamentosCinto() {
         const guardados = !!controle.itensGuardadosNoCinto;
 
@@ -1122,6 +1193,17 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         if (!controle.itensGuardadosNoCinto && equipamentos.length === 0) return;
 
         const guardando = !controle.itensGuardadosNoCinto;
+
+        if (!guardando && controle.estaAgachado) {
+            const conseguiuLevantar = tentarLevantarJogador();
+            if (!conseguiuLevantar) {
+                if (typeof flashElement === 'function') {
+                    flashElement(cintoElemento, 140, 5);
+                }
+                return;
+            }
+        }
+
         controle.cintoAnimando = true;
         controle.jetpackAtivo = false;
         controle.jetpackHovering = false;
@@ -1208,7 +1290,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Quadrados de Escudo
-        if (controle.temEscudo && !controle.escudoVermelho) {
+        if (temEscudoAtivo()) {
             const slotsRestantes = (config.escudoTirosProtegidos || 3) - (controle.escudoProtegido || 0);
             for (let i = 0; i < slotsRestantes; i++) {
                 const quadrado = document.createElement('div');
@@ -1226,15 +1308,21 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // if (e.key === ' ') console.log("Movimentação: KeyDown capturado -> Barra de Espaço");
         controle.teclas[e.key] = true;
 
-        // Toggle de agachar: Baixo alterna estado, Cima força retorno ao normal
+        // Agachar só é permitido quando o personagem está "leve".
         if (!e.repeat) {
             const apertouBaixo = teclaEhAcao(e.key, 'baixo');
             const apertouCima = teclaEhAcao(e.key, 'cima');
 
             if (apertouBaixo) {
-                controle.estaAgachado = !controle.estaAgachado;
+                if (controle.estaAgachado) {
+                    tentarLevantarJogador();
+                } else if (podeAgacharSemBloqueio()) {
+                    controle.estaAgachado = true;
+                } else if (typeof flashElement === 'function') {
+                    flashElement(elemento, 120, 4);
+                }
             } else if (apertouCima) {
-                controle.estaAgachado = false;
+                tentarLevantarJogador();
             }
         }
 
@@ -1348,7 +1436,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 if (botaElemento) Object.assign(botaElemento.style, posStyle);
                 if (jetpackElemento) Object.assign(jetpackElemento.style, posStyle);
                 if (garraElemento) Object.assign(garraElemento.style, posStyle);
-                if (cintoElemento) Object.assign(cintoElemento.style, posStyle);
+                if (cintoElemento && controle.temCinto) sincronizarCintoComJogador();
 
                 // Mantém o HUD atualizado
                 atualizarHUD();
@@ -2807,9 +2895,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Sincroniza a posição do cinto com o jogador
         if (controle.temCinto) {
-            cintoElemento.style.left = controle.x + 'px';
-            cintoElemento.style.bottom = controle.y + 'px';
-            cintoElemento.style.transform = elemento.style.transform;
+            sincronizarCintoComJogador();
         }
 
         // Sincroniza a posição e visibilidade da bota
