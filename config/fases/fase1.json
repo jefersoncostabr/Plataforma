@@ -16,13 +16,15 @@
     "plataformasTerraSuperior": [
         "g39"
     ],
-    "plataformasTerraInferior2": [],
+    "plataformasTerraInferior2": [
+        "f35"
+    ],
     "plataformasTerraSuperior2": [],
     "plataformasEstacaSup": [],
     "plataformasEstacaDir": [],
     "plataformasEstacaEsq": [],
     "plataformasEstacaBaixo": [],
-    "inimigos0": ["b18", "b35", "d35"],
+    "inimigos0": ["b35", "d35", "b23"],
     "inimigos1": [],
     "inimigos2": [],
     "inimigos3": [],
@@ -34,6 +36,26 @@
         {
             "tipo": "revolver",
             "pos": "o3"
+        },
+        {
+            "tipo": "escudo",
+            "pos": "b3"
+        },
+        {
+            "tipo": "bota",
+            "pos": "b4"
+        },
+        {
+            "tipo": "jetpack",
+            "pos": "b5"
+        },
+        {
+            "tipo": "garra",
+            "pos": "b6"
+        },
+        {
+            "tipo": "cinto",
+            "pos": "b1"
         }
     ],
     "inimigoAleatorio": [1, 0]

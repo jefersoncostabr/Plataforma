@@ -17,7 +17,8 @@ const CONTROLES_PADRAO = {
     pulo: [' '],
     chute: ['k', 'K'],
     tiro: ['i', 'I'],
-    garra: ['j', 'J']
+    garra: ['j', 'J'],
+    cinto: ['l', 'L']
 };
 
 const CONTROLES_MENU_ITEMS = [
@@ -28,7 +29,8 @@ const CONTROLES_MENU_ITEMS = [
     { id: 'pulo', label: 'Pular' },
     { id: 'chute', label: 'Chutar' },
     { id: 'tiro', label: 'Atirar/Acao' },
-    { id: 'garra', label: 'Garra' }
+    { id: 'garra', label: 'Garra' },
+    { id: 'cinto', label: 'Cinto' }
 ];
 
 function normalizarControles(raw) {

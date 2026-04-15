@@ -28,7 +28,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         pulo: [' '],
         chute: ['k', 'K'],
         tiro: ['i', 'I'],
-        garra: ['j', 'J']
+        garra: ['j', 'J'],
+        cinto: ['l', 'L']
     };
 
     function normalizarControles(raw) {
@@ -102,7 +103,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     }
 
     function temEscudoAtivo() {
-        return controle.temEscudo && !controle.escudoVermelho;
+        return controle.temEscudo && !controle.escudoVermelho && !controle.itensGuardadosNoCinto;
     }
 
     function aplicarDanoEspinho(colisaoEstaca) {
@@ -607,7 +608,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     window.carregarInventarioSalvo = carregarInventarioSalvo;
 
     function atualizarVisualEscudo() {
-        if (controle.temEscudo || controle.escudoVermelho) {
+        if ((controle.temEscudo || controle.escudoVermelho) && !controle.itensGuardadosNoCinto) {
             escudoElemento.style.display = 'block';
         } else {
             escudoElemento.style.display = 'none';
@@ -681,6 +682,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         inventario: [],
         airdropUsadoNoNivel: false,
         estaAgachado: false,
+        itensGuardadosNoCinto: false,
+        cintoAnimando: false,
+        cintoAnimTimeout: null,
+        cintoAnimClones: [],
         teclas: {}
     };
 
@@ -856,10 +861,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
                     armaElemento.style.display = 'block';
                 } else if (itemSorteado === 'cinto') {
-                    controle.temArma = true;
-                    controle.municao = config.maxMunicao || 5;
-                    if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
-                    armaElemento.style.display = 'block';
+                    controle.temCinto = true;
+                    if (!controle.inventario.includes('cinto')) controle.inventario.push('cinto');
+                    cintoElemento.style.display = 'block';
                 }
             }
         } else if (item.tipo === 'revolver') {
@@ -982,6 +986,142 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         garraElemento.style.transform = (controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)');
     }
 
+    function obterEquipamentosDoCinto() {
+        return [
+            { tipo: 'revolver', possui: !!controle.temArma, elemento: armaElemento },
+            { tipo: 'escudo', possui: !!controle.temEscudo || !!controle.escudoVermelho, elemento: escudoElemento },
+            { tipo: 'bota', possui: !!controle.temBota, elemento: botaElemento },
+            { tipo: 'jetpack', possui: !!controle.temJetpack, elemento: jetpackElemento },
+            { tipo: 'garra', possui: !!controle.temGarra, elemento: garraElemento }
+        ].filter(item => item.possui && item.elemento);
+    }
+
+    function atualizarVisibilidadeEquipamentosCinto() {
+        const guardados = !!controle.itensGuardadosNoCinto;
+
+        armaElemento.style.display = (controle.temArma && !guardados) ? 'block' : 'none';
+        botaElemento.style.display = (controle.temBota && !guardados) ? 'block' : 'none';
+        jetpackElemento.style.display = (controle.temJetpack && !guardados) ? 'block' : 'none';
+
+        if (!controle.temJetpack || guardados || !controle.jetpackAtivo) {
+            jetFogoElemento.style.display = 'none';
+        }
+
+        if (guardados) {
+            garraElemento.style.display = 'none';
+        } else if (controle.temGarra && controle.garraAnimEstado === 'idle') {
+            garraElemento.style.display = 'block';
+        } else if (!controle.temGarra) {
+            garraElemento.style.display = 'none';
+        }
+
+        atualizarVisualEscudo();
+    }
+
+    function limparTemporizadorAnimacaoCinto() {
+        if (controle.cintoAnimTimeout) {
+            clearTimeout(controle.cintoAnimTimeout);
+            controle.cintoAnimTimeout = null;
+        }
+    }
+
+    function removerClonesAnimacaoCinto() {
+        if (!Array.isArray(controle.cintoAnimClones)) return;
+        controle.cintoAnimClones.forEach((clone) => {
+            if (clone && clone.parentElement) clone.remove();
+        });
+        controle.cintoAnimClones = [];
+    }
+
+    function obterOffsetAnimacaoCinto(tipo, indice = 0) {
+        const direcao = controle.direcao === 'e' ? -1 : 1;
+        switch (tipo) {
+            case 'revolver': return { x: 12 * direcao, y: 10 + (indice * 2) };
+            case 'escudo': return { x: -12 * direcao, y: 8 + (indice * 2) };
+            case 'bota': return { x: 0, y: -6 };
+            case 'jetpack': return { x: -8 * direcao, y: 12 };
+            case 'garra': return { x: 14 * direcao, y: 2 };
+            default: return { x: 0, y: 4 };
+        }
+    }
+
+    function criarCloneAnimacaoCinto(item, guardando, indice = 0) {
+        if (!item?.elemento || !elemento.parentElement) return null;
+
+        const clone = item.elemento.cloneNode(true);
+        const origemX = parseFloat(item.elemento.style.left) || controle.x;
+        const origemY = parseFloat(item.elemento.style.bottom) || controle.y;
+        const { x: offsetX, y: offsetY } = obterOffsetAnimacaoCinto(item.tipo, indice);
+
+        clone.removeAttribute('id');
+        clone.style.position = 'absolute';
+        clone.style.pointerEvents = 'none';
+        clone.style.display = 'block';
+        clone.style.opacity = guardando ? '1' : '0.2';
+        clone.style.left = (guardando ? origemX : (controle.x + (offsetX * 0.35))) + 'px';
+        clone.style.bottom = (guardando ? origemY : (controle.y + offsetY)) + 'px';
+        clone.style.transform = guardando
+            ? (item.elemento.style.transform || elemento.style.transform || 'scaleX(1)')
+            : `${elemento.style.transform} scale(0.2)`;
+        clone.style.transition = 'left 220ms ease, bottom 220ms ease, transform 220ms ease, opacity 220ms ease';
+        clone.style.zIndex = String(Number(item.elemento.style.zIndex || 10) + 20);
+        elemento.parentElement.appendChild(clone);
+
+        requestAnimationFrame(() => {
+            clone.style.left = guardando ? (controle.x + (offsetX * 0.35)) + 'px' : origemX + 'px';
+            clone.style.bottom = guardando ? (controle.y + offsetY) + 'px' : origemY + 'px';
+            clone.style.opacity = guardando ? '0.15' : '1';
+            clone.style.transform = guardando
+                ? `${elemento.style.transform} scale(0.2)`
+                : (item.elemento.style.transform || elemento.style.transform || 'scaleX(1)');
+        });
+
+        return clone;
+    }
+
+    function alternarItensNoCinto() {
+        if (!controle.temCinto || controle.cintoAnimando || controle.vendaEmCurso || controle.stunned) return;
+        if (controle.garraAnimEstado !== 'idle' || controle.garraItemCarregado) return;
+
+        const equipamentos = obterEquipamentosDoCinto();
+        if (!controle.itensGuardadosNoCinto && equipamentos.length === 0) return;
+
+        const guardando = !controle.itensGuardadosNoCinto;
+        controle.cintoAnimando = true;
+        controle.jetpackAtivo = false;
+        controle.jetpackHovering = false;
+        jetFogoElemento.style.display = 'none';
+
+        limparTemporizadorAnimacaoCinto();
+        removerClonesAnimacaoCinto();
+
+        if (typeof flashElement === 'function') {
+            flashElement(cintoElemento, 180, 6);
+        }
+
+        equipamentos.forEach((item, indice) => {
+            const clone = criarCloneAnimacaoCinto(item, guardando, indice);
+            if (clone) controle.cintoAnimClones.push(clone);
+        });
+
+        if (guardando) {
+            controle.itensGuardadosNoCinto = true;
+            atualizarVisibilidadeEquipamentosCinto();
+        }
+
+        controle.cintoAnimTimeout = setTimeout(() => {
+            removerClonesAnimacaoCinto();
+
+            if (!guardando) {
+                controle.itensGuardadosNoCinto = false;
+            }
+
+            atualizarVisibilidadeEquipamentosCinto();
+            controle.cintoAnimando = false;
+            controle.cintoAnimTimeout = null;
+        }, 320);
+    }
+
     // Elemento do Paraquedas
     const paraquedasElemento = document.createElement('img');
     paraquedasElemento.id = 'player-parachute';
@@ -1097,10 +1237,14 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Acionamento da Garra com a tecla J
-        if (teclaEhAcao(e.key, 'garra') && controle.temGarra && controle.garraAnimEstado === 'idle') {
+        if (teclaEhAcao(e.key, 'garra') && controle.temGarra && !controle.itensGuardadosNoCinto && controle.garraAnimEstado === 'idle') {
             controle.garraAnimEstado = 'prep';
             controle.garraTimer = 18; // ~0.3s a 60fps
             controle.garraDirecaoAnim = controle.direcao;
+        }
+
+        if (!e.repeat && teclaEhAcao(e.key, 'cinto')) {
+            alternarItensNoCinto();
         }
 
         if (e.key === '0') {
@@ -1621,7 +1765,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             : velBase;
 
         // Aplica o bônus de velocidade se estiver usando a bota
-        if (controle.temBota) {
+        if (controle.temBota && !controle.itensGuardadosNoCinto) {
             velAtiva += Number(config.bonusVelocidadeBota || 2);
         }
 
@@ -1649,7 +1793,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
             // Configura o deslocamento suave em vez de teleporte
             const duracaoDash = 10; // O avanço levará 10 frames para completar
-            const multiplicadorChute = controle.temBota ? 2 : 1;
+            const multiplicadorChute = (controle.temBota && !controle.itensGuardadosNoCinto) ? 2 : 1;
             
             controle.framesImpulsoRestante = duracaoDash;
             // Distância total do avanço → "impulsoChute" (dobra com bota)
@@ -1679,7 +1823,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Lógica de Disparo (tecla I)
-        if (acaoAtiva('tiro') && controle.cooldownTiro === 0 && controle.temArma && controle.municao > 0) {
+        if (acaoAtiva('tiro') && controle.cooldownTiro === 0 && controle.temArma && !controle.itensGuardadosNoCinto && controle.municao > 0) {
             controle.cooldownTiro = config.cooldownTiro; 
             controle.municao--;
             const dir = controle.direcao === 'd' ? 1 : -1;
@@ -1831,7 +1975,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Calcula a força do pulo final: se tiver a bota, soma o bônus definido nas configurações
-        const forcaPuloFinal = controle.temBota 
+        const forcaPuloFinal = (controle.temBota && !controle.itensGuardadosNoCinto)
             ? (config.inimigoForcaPulo + (config.bonusPuloBota || 1.5)) 
             : config.inimigoForcaPulo;
 
@@ -2530,10 +2674,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver'); // Garante que o item seja adicionado ao inventário
                                 armaElemento.style.display = 'block';
                             } else if (itemSorteado === 'cinto') {
-                                controle.temArma = true; 
-                                controle.municao = config.maxMunicao || 5; 
+                                controle.temCinto = true; 
                                 if (!controle.inventario.includes('cinto')) controle.inventario.push('cinto'); // Garante que o item seja adicionado ao inventário
-                                armaElemento.style.display = 'block';
+                                cintoElemento.style.display = 'block';
                             }
                         }
                         salvarInventario();
@@ -2604,6 +2747,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         elemento.style.bottom = controle.y + 'px';
         elemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
 
+        atualizarVisibilidadeEquipamentosCinto();
+
         // Sincroniza a posição da arma com o jogador (mesma lógica do inimigo)
         armaElemento.style.left = controle.x + 'px';
         armaElemento.style.bottom = controle.y + 'px';
@@ -2632,7 +2777,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Sincroniza a posição e visibilidade da bota
-        if (controle.temBota) {
+        if (controle.temBota && !controle.itensGuardadosNoCinto) {
             botaElemento.style.left = controle.x + 'px';
             botaElemento.style.bottom = controle.y + 'px';
             // Garante que o espelhamento (lado para o qual olha) seja idêntico ao do personagem
@@ -2656,7 +2801,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Sincroniza a posição e visibilidade do Jetpack e do Fogo
-        if (controle.temJetpack) {
+        if (controle.temJetpack && !controle.itensGuardadosNoCinto) {
             jetpackElemento.style.display = 'block';
             jetpackElemento.style.left = controle.x + 'px';
             jetpackElemento.style.bottom = controle.y + 'px';
@@ -2699,7 +2844,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Sincroniza a posição e visibilidade da Garra
-        if (controle.temGarra) {
+        if (controle.temGarra && !controle.itensGuardadosNoCinto) {
             // Segurança: Re-anexa ao palco caso o limparCenario o tenha removido
             if (!document.getElementById('player-claw') && elemento.parentElement) {
                 elemento.parentElement.appendChild(garraElemento);

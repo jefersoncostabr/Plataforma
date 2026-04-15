@@ -7,6 +7,7 @@
     "chute": ["k", "K"],
     "tiro": ["i", "I"],
     "garra": ["j", "J"],
+    "cinto": ["l", "L"],
     "debugPuloInimigo": ["8"],
     "debugKillInimigos": ["9"]
 }
