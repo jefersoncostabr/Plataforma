@@ -1045,35 +1045,70 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
     }
 
+    function obterPosicaoAtualCinto(tipo, indice = 0) {
+        const { x: offsetX, y: offsetY } = obterOffsetAnimacaoCinto(tipo, indice);
+        return {
+            x: controle.x + (offsetX * 0.35),
+            y: controle.y + offsetY,
+            transform: `${elemento.style.transform} scale(0.2)`
+        };
+    }
+
+    function obterTransformAtualEquipamento(item) {
+        const baseTransform = elemento.style.transform || 'scaleX(1)';
+
+        if (item?.tipo === 'revolver') {
+            const emRecuo = armaElemento?.dataset?.recoil === 'true';
+            const direcaoFator = controle.direcao === 'e' ? 1 : -1;
+            const anguloRecuo = emRecuo ? (15 * direcaoFator) : 0;
+            return `${baseTransform} rotate(${anguloRecuo}deg)`;
+        }
+
+        return baseTransform;
+    }
+
+    function obterPosicaoAtualEquipamento(item) {
+        return {
+            x: controle.x,
+            y: controle.y,
+            transform: obterTransformAtualEquipamento(item)
+        };
+    }
+
+    function sincronizarEquipamentoComJogador(item) {
+        if (!item?.elemento) return;
+        const pos = obterPosicaoAtualEquipamento(item);
+        item.elemento.style.left = pos.x + 'px';
+        item.elemento.style.bottom = pos.y + 'px';
+        item.elemento.style.transform = pos.transform;
+    }
+
     function criarCloneAnimacaoCinto(item, guardando, indice = 0) {
         if (!item?.elemento || !elemento.parentElement) return null;
 
         const clone = item.elemento.cloneNode(true);
-        const origemX = parseFloat(item.elemento.style.left) || controle.x;
-        const origemY = parseFloat(item.elemento.style.bottom) || controle.y;
-        const { x: offsetX, y: offsetY } = obterOffsetAnimacaoCinto(item.tipo, indice);
+        const posEquipamento = obterPosicaoAtualEquipamento(item);
+        const posCinto = obterPosicaoAtualCinto(item.tipo, indice);
+        const inicio = guardando ? posEquipamento : posCinto;
+        const fim = guardando ? posCinto : posEquipamento;
 
         clone.removeAttribute('id');
         clone.style.position = 'absolute';
         clone.style.pointerEvents = 'none';
         clone.style.display = 'block';
         clone.style.opacity = guardando ? '1' : '0.2';
-        clone.style.left = (guardando ? origemX : (controle.x + (offsetX * 0.35))) + 'px';
-        clone.style.bottom = (guardando ? origemY : (controle.y + offsetY)) + 'px';
-        clone.style.transform = guardando
-            ? (item.elemento.style.transform || elemento.style.transform || 'scaleX(1)')
-            : `${elemento.style.transform} scale(0.2)`;
+        clone.style.left = inicio.x + 'px';
+        clone.style.bottom = inicio.y + 'px';
+        clone.style.transform = guardando ? posEquipamento.transform : posCinto.transform;
         clone.style.transition = 'left 220ms ease, bottom 220ms ease, transform 220ms ease, opacity 220ms ease';
         clone.style.zIndex = String(Number(item.elemento.style.zIndex || 10) + 20);
         elemento.parentElement.appendChild(clone);
 
         requestAnimationFrame(() => {
-            clone.style.left = guardando ? (controle.x + (offsetX * 0.35)) + 'px' : origemX + 'px';
-            clone.style.bottom = guardando ? (controle.y + offsetY) + 'px' : origemY + 'px';
+            clone.style.left = fim.x + 'px';
+            clone.style.bottom = fim.y + 'px';
             clone.style.opacity = guardando ? '0.15' : '1';
-            clone.style.transform = guardando
-                ? `${elemento.style.transform} scale(0.2)`
-                : (item.elemento.style.transform || elemento.style.transform || 'scaleX(1)');
+            clone.style.transform = guardando ? posCinto.transform : posEquipamento.transform;
         });
 
         return clone;
@@ -1113,6 +1148,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             removerClonesAnimacaoCinto();
 
             if (!guardando) {
+                equipamentos.forEach((item) => sincronizarEquipamentoComJogador(item));
                 controle.itensGuardadosNoCinto = false;
             }
 
@@ -2016,7 +2052,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Lógica de Ativação do Jetpack
-        if (controle.temJetpack) {
+        if (controle.temJetpack && !controle.itensGuardadosNoCinto) {
             const segurandoCimaAtivacao = acaoAtiva('cima');
             
             // Ativação Instantânea: Cima + Pulo (Apenas se não houver cooldown)
@@ -2045,7 +2081,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Gerenciamento de Física e Voo
-        if (controle.jetpackAtivo) {
+        if (controle.jetpackAtivo && !controle.itensGuardadosNoCinto) {
             controle.timerVooRestante--;
             controle.framesVoando++;
 
