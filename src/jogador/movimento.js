@@ -31,6 +31,18 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         throw new Error('Erro ao carregar hud.js: sistema de HUD indisponível.');
     }
 
+    if (typeof window.criarSistemaMorteInimigo !== 'function') {
+        throw new Error('Erro ao carregar morte-inimigo.js: sistema de morte de inimigos indisponível.');
+    }
+
+    if (typeof window.criarSistemaGarraJogador !== 'function') {
+        throw new Error('Erro ao carregar garra.js: sistema da garra indisponível.');
+    }
+
+    if (typeof window.criarSistemaVisuaisEquipamentos !== 'function') {
+        throw new Error('Erro ao carregar animacoes-equipamento.js: sistema visual de equipamentos indisponível.');
+    }
+
     function obterKnockback(config, fonte = 'default') {
         const base = Number(config.knockbackBase ?? config.knockbackInimigo ?? 150);
         const ajuste = Number(config.knockbackAjustes?.[fonte] ?? 0);
@@ -290,77 +302,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     }, tempoEspera);
 }
 
-    function limparEquipamentosVisuaisInimigo(inimigo) {
-        if (!inimigo) return;
-
-        if (typeof window.limparVisuaisInimigo === 'function') {
-            window.limparVisuaisInimigo(inimigo);
-            return;
-        }
-
-        const elementos = [
-            'armaElemento',
-            'botaElemento',
-            'escudoElemento',
-            'jetpackElemento',
-            'jetFogoElemento',
-            'garraElemento',
-            'cintoElemento'
-        ];
-
-        elementos.forEach((chave) => {
-            const el = inimigo[chave];
-            if (el && typeof el.remove === 'function') el.remove();
-            inimigo[chave] = null;
-        });
-
-        if (Array.isArray(inimigo.garraBracos)) {
-            inimigo.garraBracos.forEach((braco) => {
-                if (braco && typeof braco.remove === 'function') braco.remove();
-            });
-        }
-        inimigo.garraBracos = [];
-
-        inimigo.temArma = false;
-        inimigo.temBota = false;
-        inimigo.temEscudo = false;
-        inimigo.temJetpack = false;
-        inimigo.temGarra = false;
-        inimigo.temCinto = false;
-        inimigo.jetpackAtivo = false;
-    }
-
-    function removerInimigoDerrotado(inimigo, opcoes = {}) {
-        if (!inimigo) return;
-
-        const {
-            droparItens = true,
-            darXP = true
-        } = opcoes;
-
-        inimigo.estaMorto = true;
-
-        if (droparItens) {
-            droparItensInimigo(inimigo);
-        }
-
-        if (darXP && typeof window.ganharXP === 'function') {
-            window.ganharXP(1);
-        }
-
-        limparEquipamentosVisuaisInimigo(inimigo);
-        if (Array.isArray(inimigo.inventario)) inimigo.inventario = [];
-
-        if (inimigo.elemento && typeof inimigo.elemento.remove === 'function') {
-            inimigo.elemento.remove();
-        }
-
-        const index = Array.isArray(window.inimigos) ? window.inimigos.indexOf(inimigo) : -1;
-        if (index > -1) {
-            window.inimigos.splice(index, 1);
-        }
-    }
-
     function atualizarVisualEscudo() {
         if ((controle.temEscudo || controle.escudoVermelho) && !controle.itensGuardadosNoCinto) {
             escudoElemento.style.display = 'block';
@@ -436,12 +377,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         inventario: [],
         airdropUsadoNoNivel: false,
         estaAgachado: false,
-        itensGuardadosNoCinto: false,
-        cintoAnimando: false,
-        cintoAnimTimeout: null,
-        cintoAnimClones: [],
         teclas: {}
     };
+
+    if (typeof window.inicializarEstadoCinto === 'function') {
+        window.inicializarEstadoCinto(controle);
+    }
 
     const inventarioSistema = window.criarSistemaInventarioJogador({
         controle,
@@ -465,15 +406,16 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         aplicarInventarioSalvo
     } = inventarioSistema;
 
-    aplicarInventarioSalvo();
+    const sistemaMorteInimigo = window.criarSistemaMorteInimigo({
+        droparItensInimigo
+    });
 
-    // Variáveis específicas da animação da garra
-    controle.garraAnimEstado = 'idle'; // idle, prep, esticando, catching, voltando
-    controle.garraTimer = 0;
-    controle.garraDist = 0;
-    controle.garraBracos = [];
-    controle.garraDirecaoAnim = 'd';
-    controle.garraItemCarregado = null; // Inicializa como null para evitar bugs de comparação no nascimento
+    const {
+        removerInimigoDerrotado,
+        processarMorteFeno
+    } = sistemaMorteInimigo;
+
+    aplicarInventarioSalvo();
 
     window.isPaused = false;
     window.togglePause = () => {
@@ -501,168 +443,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     window.projeteis = [];
     window.itensColetaveis = [];
 
-    // NEW: Helper function to collect items brought by the claw
-    function coletarItemGarra(item) {
-            //
-        // Novo sistema: se itemDefinitions existir e tiver o item, usa o novo fluxo
-        if (window.itemDefinitions && window.itemDefinitions[item.tipo]) {
-            const itemData = window.itemDefinitions[item.tipo];
-            //
-            if (window.aplicarEfeitoColeta && typeof window.aplicarEfeitoColeta === 'function') {
-                window.aplicarEfeitoColeta(controle, itemData);
-            } else if (itemData.efeitos && itemData.efeitos.jogador) {
-                for (const [chave, valor] of Object.entries(itemData.efeitos.jogador)) {
-                    controle[chave] = valor;
-                }
-            }
-
-            if (item.tipo === 'restauracao') {
-                controle.municao = config.maxMunicao || 5;
-                controle.escudoProtegido = 0;
-                controle.escudoVermelho = false;
-                controle.dano = Math.max(0, (controle.dano || 0) - 1);
-                if (controle.inventario.includes('escudo')) {
-                    controle.temEscudo = true;
-                }
-                atualizarVisualEscudo();
-            }
-            // Exibe visual se aplicável
-            if (item.tipo === 'revolver') {
-                if (itemData.spriteEquipado) armaElemento.src = itemData.spriteEquipado;
-                armaElemento.style.display = 'block';
-            }
-            else if (item.tipo === 'escudo') {
-                if (itemData.spriteEquipado) escudoElemento.src = itemData.spriteEquipado;
-                escudoElemento.style.display = 'block'; 
-                atualizarVisualEscudo(); 
-            }
-            else if (item.tipo === 'bota') {
-                if (itemData.spriteEquipado) botaElemento.src = itemData.spriteEquipado;
-                botaElemento.style.display = 'block';
-            }
-            else if (item.tipo === 'jetpack') {
-                if (itemData.spriteEquipado) jetpackElemento.src = itemData.spriteEquipado;
-                jetpackElemento.style.display = 'block';
-            }
-            else if (item.tipo === 'garra') {
-                if (itemData.spriteEquipado) garraElemento.src = itemData.spriteEquipado;
-                garraElemento.style.display = 'block';
-            }
-            else if (item.tipo === 'cinto') {
-                if (itemData.spriteEquipado) cintoElemento.src = itemData.spriteEquipado;
-                cintoElemento.style.display = 'block';
-            }
-            if (!controle.inventario.includes(item.tipo) && item.tipo !== 'airdrop' && item.tipo !== 'restauracao') controle.inventario.push(item.tipo);
-            salvarInventario();
-            return;
-        }
-        // Fallback: sistema antigo (código obsoleto removido)
-        if (item.tipo === 'escudo') {
-            controle.temEscudo = true;
-            controle.escudoVermelho = item.escudoVermelho || false;
-            controle.escudoProtegido = item.escudoProtegido || 0;
-            if (!controle.inventario.includes('escudo')) controle.inventario.push('escudo');
-            escudoElemento.style.display = 'block';
-            atualizarVisualEscudo();
-        } else if (item.tipo === 'bota') {
-            controle.temBota = true;
-            if (!controle.inventario.includes('bota')) controle.inventario.push('bota');
-            botaElemento.style.display = 'block';
-        } else if (item.tipo === 'jetpack') {
-            controle.temJetpack = true;
-            if (!controle.inventario.includes('jetpack')) controle.inventario.push('jetpack');
-            controle.timerVooRestante = config.jetpackDuracaoVoo || 360;
-            controle.cooldownVooJetpack = 0;
-            jetpackElemento.style.display = 'block';
-        } else if (item.tipo === 'garra') {
-            controle.temGarra = true;
-            if (!controle.inventario.includes('garra')) controle.inventario.push('garra');
-            garraElemento.style.display = 'block';
-        } else if (item.tipo === 'cinto') {
-            controle.temCinto = true;
-            if (!controle.inventario.includes('cinto')) controle.inventario.push('cinto');
-            cintoElemento.style.display = 'block';
-        } else if (item.tipo === 'airdrop') {
-            const conteudos = config.airdrop1?.conteudos || ['xp'];
-            const sorteio = conteudos[Math.floor(Math.random() * conteudos.length)];
-            console.log("AirDrop resgatado pela garra! Conteúdo: " + sorteio);
-
-            if (sorteio === 'skillpoint') {
-                window.skillPoints += 1;
-            } else if (sorteio === 'xp') {
-                if (typeof window.ganharXP === 'function') window.ganharXP(6);
-            } else if (sorteio === 'restauracao') {
-                controle.municao = config.maxMunicao || 5;
-                controle.escudoProtegido = 0;
-                controle.escudoVermelho = false;
-                if (controle.inventario.includes('escudo')) {
-                    controle.temEscudo = true;
-                }
-                atualizarVisualEscudo();
-            } else if (sorteio === 'skill') {
-                if (window.skillsData && Object.keys(window.skillsData).length > 0) {
-                    const disponiveis = Object.keys(window.skillsData).filter(s => !window.playerSkills.includes(s) && window.skillsData[s].parent === null);
-                    if (disponiveis.length > 0) {
-                        const skillSorteada = disponiveis[Math.floor(Math.random() * disponiveis.length)];
-                        window.playerSkills.push(skillSorteada);
-                        if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
-                        console.log(`Nova Skill Desbloqueada: ${window.skillsData[skillSorteada].nome}`);
-                    } else {
-                        if (typeof window.ganharXP === 'function') window.ganharXP(5);
-                    }
-                }
-            } else if (sorteio === 'item') {
-                const itensDisponiveis = ['revolver', 'escudo', 'bota', 'jetpack', 'garra'];
-                const itemSorteado = itensDisponiveis[Math.floor(Math.random() * itensDisponiveis.length)];
-
-                if (itemSorteado === 'escudo') {
-                    controle.temEscudo = true;
-                    controle.escudoVermelho = false;
-                    controle.escudoProtegido = 0;
-                    if (!controle.inventario.includes('escudo')) controle.inventario.push('escudo');
-                    atualizarVisualEscudo();
-                } else if (itemSorteado === 'bota') {
-                    controle.temBota = true;
-                    if (!controle.inventario.includes('bota')) controle.inventario.push('bota');
-                    botaElemento.style.display = 'block';
-                } else if (itemSorteado === 'jetpack') {
-                    controle.temJetpack = true;
-                    if (!controle.inventario.includes('jetpack')) controle.inventario.push('jetpack');
-                    jetpackElemento.style.display = 'block';
-                } else if (itemSorteado === 'garra') {
-                    controle.temGarra = true;
-                    if (!controle.inventario.includes('garra')) controle.inventario.push('garra');
-                    garraElemento.style.display = 'block';
-                } else if (itemSorteado === 'revolver') {
-                    controle.temArma = true;
-                    controle.municao = config.maxMunicao || 5;
-                    if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
-                    armaElemento.style.display = 'block';
-                } else if (itemSorteado === 'cinto') {
-                    controle.temCinto = true;
-                    if (!controle.inventario.includes('cinto')) controle.inventario.push('cinto');
-                    cintoElemento.style.display = 'block';
-                }
-            }
-        } else if (item.tipo === 'revolver') {
-            const novaMunicao = item.municao !== undefined ? item.municao : (config.maxMunicao || 5);
-            controle.municao = Math.min((controle.municao || 0) + novaMunicao, (config.maxMunicao || 5) * 2);
-            controle.temArma = true;
-            if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
-            armaElemento.style.display = 'block';
-        } else if (item.tipo === 'restauracao') {
-            controle.municao = config.maxMunicao || 5;
-            controle.escudoProtegido = 0;
-            controle.escudoVermelho = false;
-            controle.dano = Math.max(0, (controle.dano || 0) - 1);
-            if (controle.inventario.includes('escudo')) {
-                controle.temEscudo = true;
-            }
-            atualizarVisualEscudo();
-        }
-        salvarInventario();
-    }
-    // END NEW
     
     // Elemento da arma
     const armaElemento = document.createElement('img');
@@ -744,18 +524,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     garraElemento.style.pointerEvents = 'none';
     elemento.parentElement.appendChild(garraElemento);
 
-    // Elemento do Cinto
-    const cintoElemento = document.createElement('img');
-    cintoElemento.id = 'player-belt';
-    cintoElemento.src = config.spriteCintoPlayer || '../../assets/personagem/cinto.png';
-    cintoElemento.style.position = 'absolute';
-    cintoElemento.style.width = '32px';
-    cintoElemento.style.height = '32px';
-    cintoElemento.style.zIndex = '6';
-    cintoElemento.style.display = controle.temCinto ? 'block' : 'none';
-    cintoElemento.style.imageRendering = 'pixelated';
-    cintoElemento.style.pointerEvents = 'none';
-    elemento.parentElement.appendChild(cintoElemento);
+    const { cintoElemento, paraquedasElemento } = window.criarElementosSuporteEquipamentos({
+        elemento,
+        config,
+        controle
+    });
 
     // Sincronização imediata de posição caso o jogador já nasça com a garra no inventário
     if (controle.temGarra) {
@@ -764,15 +537,27 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         garraElemento.style.transform = (controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)');
     }
 
-    function obterEquipamentosDoCinto() {
-        return [
-            { tipo: 'revolver', possui: !!controle.temArma, elemento: armaElemento },
-            { tipo: 'escudo', possui: !!controle.temEscudo || !!controle.escudoVermelho, elemento: escudoElemento },
-            { tipo: 'bota', possui: !!controle.temBota, elemento: botaElemento },
-            { tipo: 'jetpack', possui: !!controle.temJetpack, elemento: jetpackElemento },
-            { tipo: 'garra', possui: !!controle.temGarra, elemento: garraElemento }
-        ].filter(item => item.possui && item.elemento);
-    }
+    const sistemaGarra = window.criarSistemaGarraJogador({
+        controle,
+        config,
+        elemento,
+        garraElemento,
+        armaElemento,
+        escudoElemento,
+        botaElemento,
+        jetpackElemento,
+        cintoElemento,
+        atualizarVisualEscudo,
+        salvarInventario,
+        animarDanoAlvo,
+        obterKnockback,
+        virarFenoParaFonteDano,
+        processarMorteFeno,
+        removerInimigoDerrotado,
+        flashComVibacao: typeof flashComVibacao === 'function' ? flashComVibacao : undefined
+    });
+
+    const { acionarGarra, atualizarAnimacaoGarra } = sistemaGarra;
 
     function podeAgacharSemBloqueio() {
         return controle.itensGuardadosNoCinto || obterEquipamentosDoCinto().length === 0;
@@ -805,213 +590,30 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         return false;
     }
 
-    function obterOffsetVisualCinto() {
-        let offsetY = 0;
+    const sistemaVisuaisEquipamentos = window.criarSistemaVisuaisEquipamentos({
+        controle,
+        elemento,
+        config,
+        armaElemento,
+        escudoElemento,
+        botaElemento,
+        jetpackElemento,
+        jetFogoElemento,
+        garraElemento,
+        cintoElemento,
+        paraquedasElemento,
+        atualizarVisualEscudo,
+        tentarLevantarJogador,
+        flashElement: typeof flashElement === 'function' ? flashElement : undefined
+    });
 
-        // Valores para ajuste fino do cinto.
-        if (controle.estaAgachado) offsetY -= 4;
-        if (controle.chutando) offsetY -= 2;
-
-        return { x: 0, y: offsetY };
-    }
-
-    function sincronizarCintoComJogador() {
-        if (!controle.temCinto) return;
-        const offset = obterOffsetVisualCinto();
-        cintoElemento.style.left = (controle.x + offset.x) + 'px';
-        cintoElemento.style.bottom = (controle.y + offset.y) + 'px';
-        cintoElemento.style.transform = elemento.style.transform;
-    }
-
-    function atualizarVisibilidadeEquipamentosCinto() {
-        const guardados = !!controle.itensGuardadosNoCinto;
-
-        armaElemento.style.display = (controle.temArma && !guardados) ? 'block' : 'none';
-        botaElemento.style.display = (controle.temBota && !guardados) ? 'block' : 'none';
-        jetpackElemento.style.display = (controle.temJetpack && !guardados) ? 'block' : 'none';
-
-        if (!controle.temJetpack || guardados || !controle.jetpackAtivo) {
-            jetFogoElemento.style.display = 'none';
-        }
-
-        if (guardados) {
-            garraElemento.style.display = 'none';
-        } else if (controle.temGarra && controle.garraAnimEstado === 'idle') {
-            garraElemento.style.display = 'block';
-        } else if (!controle.temGarra) {
-            garraElemento.style.display = 'none';
-        }
-
-        atualizarVisualEscudo();
-    }
-
-    function limparTemporizadorAnimacaoCinto() {
-        if (controle.cintoAnimTimeout) {
-            clearTimeout(controle.cintoAnimTimeout);
-            controle.cintoAnimTimeout = null;
-        }
-    }
-
-    function removerClonesAnimacaoCinto() {
-        if (!Array.isArray(controle.cintoAnimClones)) return;
-        controle.cintoAnimClones.forEach((clone) => {
-            if (clone && clone.parentElement) clone.remove();
-        });
-        controle.cintoAnimClones = [];
-    }
-
-    function obterOffsetAnimacaoCinto(tipo, indice = 0) {
-        const direcao = controle.direcao === 'e' ? -1 : 1;
-        switch (tipo) {
-            case 'revolver': return { x: 12 * direcao, y: 10 + (indice * 2) };
-            case 'escudo': return { x: -12 * direcao, y: 8 + (indice * 2) };
-            case 'bota': return { x: 0, y: -6 };
-            case 'jetpack': return { x: -8 * direcao, y: 12 };
-            case 'garra': return { x: 14 * direcao, y: 2 };
-            default: return { x: 0, y: 4 };
-        }
-    }
-
-    function obterPosicaoAtualCinto(tipo, indice = 0) {
-        const { x: offsetX, y: offsetY } = obterOffsetAnimacaoCinto(tipo, indice);
-        return {
-            x: controle.x + (offsetX * 0.35),
-            y: controle.y + offsetY,
-            transform: `${elemento.style.transform} scale(0.2)`
-        };
-    }
-
-    function obterTransformAtualEquipamento(item) {
-        const baseTransform = elemento.style.transform || 'scaleX(1)';
-
-        if (item?.tipo === 'revolver') {
-            const emRecuo = armaElemento?.dataset?.recoil === 'true';
-            const direcaoFator = controle.direcao === 'e' ? 1 : -1;
-            const anguloRecuo = emRecuo ? (15 * direcaoFator) : 0;
-            return `${baseTransform} rotate(${anguloRecuo}deg)`;
-        }
-
-        return baseTransform;
-    }
-
-    function obterPosicaoAtualEquipamento(item) {
-        return {
-            x: controle.x,
-            y: controle.y,
-            transform: obterTransformAtualEquipamento(item)
-        };
-    }
-
-    function sincronizarEquipamentoComJogador(item) {
-        if (!item?.elemento) return;
-        const pos = obterPosicaoAtualEquipamento(item);
-        item.elemento.style.left = pos.x + 'px';
-        item.elemento.style.bottom = pos.y + 'px';
-        item.elemento.style.transform = pos.transform;
-    }
-
-    function criarCloneAnimacaoCinto(item, guardando, indice = 0) {
-        if (!item?.elemento || !elemento.parentElement) return null;
-
-        const clone = item.elemento.cloneNode(true);
-        const posEquipamento = obterPosicaoAtualEquipamento(item);
-        const posCinto = obterPosicaoAtualCinto(item.tipo, indice);
-        const inicio = guardando ? posEquipamento : posCinto;
-        const fim = guardando ? posCinto : posEquipamento;
-
-        clone.removeAttribute('id');
-        clone.style.position = 'absolute';
-        clone.style.pointerEvents = 'none';
-        clone.style.display = 'block';
-        clone.style.opacity = guardando ? '1' : '0.2';
-        clone.style.left = inicio.x + 'px';
-        clone.style.bottom = inicio.y + 'px';
-        clone.style.transform = guardando ? posEquipamento.transform : posCinto.transform;
-        clone.style.transition = 'left 220ms ease, bottom 220ms ease, transform 220ms ease, opacity 220ms ease';
-        clone.style.zIndex = String(Number(item.elemento.style.zIndex || 10) + 20);
-        elemento.parentElement.appendChild(clone);
-
-        requestAnimationFrame(() => {
-            clone.style.left = fim.x + 'px';
-            clone.style.bottom = fim.y + 'px';
-            clone.style.opacity = guardando ? '0.15' : '1';
-            clone.style.transform = guardando ? posCinto.transform : posEquipamento.transform;
-        });
-
-        return clone;
-    }
-
-    function alternarItensNoCinto() {
-        if (!controle.temCinto || controle.cintoAnimando || controle.vendaEmCurso || controle.stunned) return;
-        if (controle.garraAnimEstado !== 'idle' || controle.garraItemCarregado) return;
-
-        const equipamentos = obterEquipamentosDoCinto();
-        if (!controle.itensGuardadosNoCinto && equipamentos.length === 0) return;
-
-        const guardando = !controle.itensGuardadosNoCinto;
-
-        if (!guardando && controle.estaAgachado) {
-            const conseguiuLevantar = tentarLevantarJogador();
-            if (!conseguiuLevantar) {
-                if (typeof flashElement === 'function') {
-                    flashElement(cintoElemento, 140, 5);
-                }
-                return;
-            }
-        }
-
-        controle.cintoAnimando = true;
-        controle.jetpackAtivo = false;
-        controle.jetpackHovering = false;
-        jetFogoElemento.style.display = 'none';
-
-        limparTemporizadorAnimacaoCinto();
-        removerClonesAnimacaoCinto();
-
-        if (typeof flashElement === 'function') {
-            flashElement(cintoElemento, 180, 6);
-        }
-
-        equipamentos.forEach((item, indice) => {
-            const clone = criarCloneAnimacaoCinto(item, guardando, indice);
-            if (clone) controle.cintoAnimClones.push(clone);
-        });
-
-        if (guardando) {
-            controle.itensGuardadosNoCinto = true;
-            atualizarVisibilidadeEquipamentosCinto();
-        }
-
-        controle.cintoAnimTimeout = setTimeout(() => {
-            removerClonesAnimacaoCinto();
-
-            if (!guardando) {
-                equipamentos.forEach((item) => sincronizarEquipamentoComJogador(item));
-                controle.itensGuardadosNoCinto = false;
-            }
-
-            atualizarVisibilidadeEquipamentosCinto();
-            controle.cintoAnimando = false;
-            controle.cintoAnimTimeout = null;
-        }, 320);
-    }
-
-    // Elemento do Paraquedas
-    const paraquedasElemento = document.createElement('img');
-    paraquedasElemento.id = 'player-parachute';
-    paraquedasElemento.src = '../../assets/personagem/paraquedas.png';
-    paraquedasElemento.style.position = 'absolute';
-    paraquedasElemento.style.width = '32px';
-    paraquedasElemento.style.height = '32px';
-    paraquedasElemento.style.zIndex = '9'; // Fica acima do personagem e das botas
-    paraquedasElemento.style.display = 'none';
-    paraquedasElemento.style.imageRendering = 'pixelated';
-    paraquedasElemento.style.pointerEvents = 'none';
-    elemento.parentElement.appendChild(paraquedasElemento);
-
-    paraquedasElemento.onerror = () => {
-        console.error("ERRO: Não foi possível carregar a imagem do paraquedas em '../../assets/personagem/paraquedas.png'. Verifique o caminho e o arquivo.");
-    };
+    const {
+        obterEquipamentosDoCinto,
+        sincronizarCintoComJogador,
+        atualizarVisibilidadeEquipamentosCinto,
+        alternarItensNoCinto,
+        sincronizarVisuaisEquipamentos
+    } = sistemaVisuaisEquipamentos;
 
     const hudSistema = window.criarSistemaHUDJogador({
         controle,
@@ -1062,11 +664,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 }
             },
             onAcionarGarra: () => {
-                if (controle.temGarra && !controle.itensGuardadosNoCinto && controle.garraAnimEstado === 'idle') {
-                    controle.garraAnimEstado = 'prep';
-                    controle.garraTimer = 18;
-                    controle.garraDirecaoAnim = controle.direcao;
-                }
+                acionarGarra();
             },
             onAlternarCinto: () => {
                 alternarItensNoCinto();
@@ -1251,298 +849,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             return; // Bloqueia outras ações enquanto vende
         }
 
-        // Lógica da Animação da Garra (Estilo Cartoon)
-        if (controle.garraAnimEstado !== 'idle') {
-            const velGarra = 8; // Velocidade do esticamento
-            const distMax = 32 * 5; // 5 blocos limite de esticamento (160px)
-            const dirX = controle.garraDirecaoAnim === 'd' ? 1 : -1;
-
-            // Sincroniza todos os segmentos do braço com a posição atual do personagem
-            // Isso garante que o braço siga o player durante pulos ou quedas
-            controle.garraBracos.forEach((braco, index) => {
-                const offset = index * 32;
-                braco.style.left = (controle.x + (offset * dirX)) + 'px';
-                braco.style.bottom = controle.y + 'px';
-            });
-
-            // Sincroniza a posição da "mão" (a garra na ponta) com o personagem e a distância atual
-            garraElemento.style.left = (controle.x + (controle.garraDist * dirX)) + 'px';
-            garraElemento.style.bottom = controle.y + 'px';
-            garraElemento.style.transform = (controle.garraDirecaoAnim === 'e' ? 'scaleX(-1)' : 'scaleX(1)');
-
-            // Animação da Garra pronto para iniciar
-            if (controle.garraAnimEstado === 'prep') {
-                garraElemento.src = '../../assets/personagem/garra_using1.png'; // Sprite da garra sobre o personagem antes de esticar
-                controle.garraTimer--;
-                if (controle.garraTimer <= 0) {
-                    controle.garraAnimEstado = 'esticando';
-                }
-            } 
-            else if (controle.garraAnimEstado === 'esticando') { // NEW: Collision detection for items
-                const proxDist = controle.garraDist + velGarra;
-                const tipX = controle.x + (proxDist * dirX);
-
-                // Impede que a garra do jogador atravesse blocos sólidos
-                if (typeof verificarColisaoComTiles === 'function' && 
-                    verificarColisaoComTiles(tipX, controle.y, 32, 32, window.plataformas)) {
-                    controle.garraAnimEstado = 'catching';
-                    controle.garraTimer = 18;
-                    garraElemento.src = '../../assets/personagem/garra_catching.png';
-                } else {
-                    controle.garraDist = proxDist;
-                }
-
-                garraElemento.src = '../../assets/personagem/garra_using1.png'; // A "mão" da garra que avança
-                // Garante que a garra não estique além do limite máximo
-                if (controle.garraDist > distMax) {
-                    controle.garraDist = distMax;
-                }
-                
-                // NEW: Collision detection for items
-                // Check for ENEMIES first
-                let grabbedSomething = false;
-                if (window.inimigos && window.inimigos.length > 0) {
-                    for (let j = window.inimigos.length - 1; j >= 0; j--) {
-                        const inimigo = window.inimigos[j];
-                        const hitboxGarra = {
-                            x: parseInt(garraElemento.style.left),
-                            y: parseInt(garraElemento.style.bottom),
-                            largura: 32, // Assuming garraElemento is 32x32
-                            altura: 32
-                        };
-                        const hitboxInimigo = {
-                            x: inimigo.x + (inimigo.offsetX || 0),
-                            y: inimigo.y,
-                            largura: inimigo.largura,
-                            altura: inimigo.altura
-                        };
-
-                        if (detectarColisaoHitbox(hitboxGarra, hitboxInimigo, 0, 0, 0)) {
-                            controle.garraItemCarregado = inimigo;
-                            inimigo.stunned = true;
-                            inimigo.stunTimer = Number(config.garraStunDuration ?? 180); // Default 3 seconds
-                            inimigo.garraAnimEstado = 'idle'; // Reset enemy claw if they were using it
-                            inimigo.foiAtingidoNesteChute = false; // Reset hit flag for the upcoming kick
-                            window.inimigos.splice(j, 1); // Temporarily remove enemy from global list to pause its AI
-                            controle.garraAnimEstado = 'voltando'; // Immediately start retracting
-                            garraElemento.src = '../../assets/personagem/garra_catching.png'; // Change sprite to indicate carrying
-                            grabbedSomething = true;
-                            break; // Only pick up one enemy at a time
-                        }
-                    }
-                }
-
-                // Existing item collision detection (only if no enemy was caught)
-                if (!grabbedSomething) {
-                for (let i = window.itensColetaveis.length - 1; i >= 0; i--) {
-                    const item = window.itensColetaveis[i];
-                    const hitboxGarra = {
-                        x: parseInt(garraElemento.style.left),
-                        y: parseInt(garraElemento.style.bottom),
-                        largura: 32, // Assuming garraElemento is 32x32
-                        altura: 32
-                    };
-                    const hitboxItem = {
-                        x: item.x,
-                        y: item.y,
-                        largura: 32, // Assuming items are 32x32
-                        altura: 32
-                    };
-
-                    if (detectarColisaoHitbox(hitboxGarra, hitboxItem, 0, 0, 0)) {
-                        controle.garraItemCarregado = item;
-                        window.itensColetaveis.splice(i, 1); // Remove item from global list
-                        controle.garraAnimEstado = 'voltando'; // Immediately start retracting
-                        garraElemento.src = '../../assets/personagem/garra_catching.png'; // Change sprite to indicate carrying item
-                        break; // Only pick up one item at a time
-                    }
-                }
-                }
-                
-                // Cria segmentos do braço a cada 32px
-                if (controle.garraDist > 0 && controle.garraDist % 32 < velGarra && controle.garraDist <= distMax) {
-                    const braco = document.createElement('img');
-                    braco.src = (controle.garraBracos.length === 0) ? '../../assets/personagem/garra_using2.png' : '../../assets/personagem/garra_braco.png'; // Define a imagem do segmento (o primeiro é garra_using2.png, os demais são garra_braco.png).
-                    braco.className = 'player-claw-arm'; // Adiciona uma classe para identificação.
-                    braco.style.position = 'absolute'; // Define o posicionamento absoluto.
-                    braco.style.width = '32px'; // Define a largura do segmento.
-                    braco.style.height = '32px'; // Define a altura do segmento.
-                    braco.style.zIndex = '8'; // Define a ordem de empilhamento (z-index).
-                    braco.style.imageRendering = 'pixelated'; // Garante a renderização pixelada.
-                    braco.style.pointerEvents = 'none'; // Impede que o mouse interaja com o segmento.
-                    
-                    // O braço começa a aparecer um bloco (32px) à frente do personagem
-                    const offsetBraco = (controle.garraBracos.length * 32);
-                    braco.style.left = (controle.x + (offsetBraco * dirX)) + 'px';
-                    braco.style.bottom = controle.y + 'px'; // Mantém o segmento do braço na mesma altura vertical (eixo Y) em que o jogador se encontra.
-                    braco.style.transform = controle.garraDirecaoAnim === 'e' ? 'scaleX(-1)' : 'scaleX(1)'; // Aplica o espelhamento horizontal no sprite caso a animação seja para a esquerda.
-                    
-                    elemento.parentElement.appendChild(braco);
-                    controle.garraBracos.push(braco);
-                }
-                if (controle.garraDist >= distMax && controle.garraItemCarregado === null) { // Only transition to catching if no item is caught
-                    controle.garraAnimEstado = 'catching';
-                    controle.garraTimer = 18; // ~0.3s
-                    garraElemento.src = '../../assets/personagem/garra_catching.png';
-                    // console.log("Animação Garra: [3/4] Ápice atingido com garra_catching.png na ponta.");
-                }
-            }
-            else if (controle.garraAnimEstado === 'catching') {
-                controle.garraTimer--;
-                if (controle.garraTimer <= 0) {
-                    controle.garraAnimEstado = 'voltando';
-                }
-            }
-            else if (controle.garraAnimEstado === 'voltando') {
-                controle.garraDist -= velGarra;
-                // Mantém garra_catching.png durante o retorno
-
-                // NEW: Update item position if carrying one
-                if (controle.garraItemCarregado) { // Could be an item or an enemy
-                    const carried = controle.garraItemCarregado;
-                    carried.elemento.style.left = garraElemento.style.left;
-                    carried.elemento.style.bottom = garraElemento.style.bottom;
-                    // Atualiza coordenadas lógicas para evitar "snapback" ao soltar
-                    carried.x = parseInt(garraElemento.style.left);
-                    carried.y = parseInt(garraElemento.style.bottom);
-
-                    // If it's an enemy, also update its associated elements
-                    if (carried.isEnemy) { 
-                        if (carried.armaElemento) {
-                            carried.armaElemento.style.left = garraElemento.style.left;
-                            carried.armaElemento.style.bottom = garraElemento.style.bottom;
-                            carried.armaElemento.style.transform = carried.elemento.style.transform;
-                        }
-                        if (carried.botaElemento) {
-                            carried.botaElemento.style.left = garraElemento.style.left;
-                            carried.botaElemento.style.bottom = garraElemento.style.bottom;
-                            carried.botaElemento.style.transform = carried.elemento.style.transform;
-                        }
-                        if (carried.escudoElemento) {
-                            carried.escudoElemento.style.left = garraElemento.style.left;
-                            carried.escudoElemento.style.bottom = garraElemento.style.bottom;
-                            carried.escudoElemento.style.transform = carried.elemento.style.transform;
-                        }
-                        if (carried.jetpackElemento) {
-                            carried.jetpackElemento.style.left = garraElemento.style.left;
-                            carried.jetpackElemento.style.bottom = garraElemento.style.bottom;
-                            carried.jetpackElemento.style.transform = carried.elemento.style.transform;
-                        }
-                        // No need for jetFogoElemento or garraElemento for the carried enemy, as they are part of the enemy's own visual state.
-                    }
-                }
-                // END NEW
-
-                // Remove segmentos do braço conforme volta
-                if (controle.garraDist % 32 < velGarra && controle.garraBracos.length > 0) {
-                    const ultimoBraco = controle.garraBracos.pop();
-                    ultimoBraco.remove();
-                }
-
-                // NEW: Kick and collect item when close to player
-                if (controle.garraItemCarregado && controle.garraDist <= velGarra) { // Item/Enemy is very close to player
-                    if (controle.garraItemCarregado.isEnemy) { // It's an enemy
-                        const inimigoAtingido = controle.garraItemCarregado;
-
-                        // Trigger player kick animation
-                        controle.tempoChute = config.tempoChute; // Set kick duration
-                        controle.cooldownChute = config.cooldownChute; // Set kick cooldown
-                        controle.framesImpulsoRestante = 0; // No dash for this specific kick
-                        controle.velocidadeDash = 0; // No dash for this specific kick
-                        
-                        // Apply kick logic to the enemy
-                        inimigoAtingido.foiAtingidoNesteChute = true; // Mark as hit by kick for this frame
-                        inimigoAtingido.vida = (inimigoAtingido.vida || 0) + 1; // Apply damage
-                        if (inimigoAtingido.vida < 3) animarDanoAlvo(inimigoAtingido);
-                        
-                        // Remove stun visual and state
-                        inimigoAtingido.stunned = false;
-                        inimigoAtingido.stunTimer = 0;
-                        inimigoAtingido.elemento.style.filter = 'none';
-
-                        // Knockback: Lança o inimigo para trás with base on player's direction
-                        const direcaoKnockback = (controle.direcao === 'd' ? 1 : -1);
-                        let valorKnockbackInimigo = obterKnockback(config, 'playerChute');
-                        
-                        // Reduce enemy knockback if it has an active shield
-                        if (inimigoAtingido.temEscudo && !inimigoAtingido.escudoVermelho) {
-                            valorKnockbackInimigo *= Number(config.escudoKnockbackMultiplicador ?? 0.5);
-                        }
-
-                        const duracaoRecuoInimigo = 15; // Recoil duration in frames
-                        inimigoAtingido.framesKnockbackRestante = duracaoRecuoInimigo;
-                        inimigoAtingido.velocidadeKnockback = (valorKnockbackInimigo / duracaoRecuoInimigo) * direcaoKnockback;
-                        virarFenoParaFonteDano(inimigoAtingido, controle.x + ((controle.largura || 32) / 2));
-
-                        // Check for enemy death
-                        if (inimigoAtingido.vida >= 3) {
-                            if (inimigoAtingido.tipo === 5) { // Special logic for Feno target
-                                inimigoAtingido.estaMorto = true;
-                                inimigoAtingido.framesKnockbackRestante = 0;
-                                inimigoAtingido.velocidadeKnockback = 0;
-                                inimigoAtingido.velocidadeY = 0;
-
-                                if (window.isTraining) {
-                                    // MODO TREINO: Feno fica vermelho e aparece novamente no local origem
-                                    inimigoAtingido.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
-                                    // Remove do array para evitar duplicação
-                                    const indexBeforeDeath = window.inimigos.indexOf(inimigoAtingido);
-                                    if (indexBeforeDeath > -1) window.inimigos.splice(indexBeforeDeath, 1);
-                                    
-                                    setTimeout(() => {
-                                        inimigoAtingido.vida = 0;
-                                        inimigoAtingido.x = inimigoAtingido.startX;
-                                        inimigoAtingido.y = inimigoAtingido.startY;
-                                        inimigoAtingido.estaMorto = false;
-                                        inimigoAtingido.elemento.style.filter = 'none';
-                                        inimigoAtingido.elemento.style.left = inimigoAtingido.x + 'px';
-                                        inimigoAtingido.elemento.style.bottom = inimigoAtingido.y + 'px';
-                                        inimigoAtingido.noChao = false; // Reset estado de solo
-                                        inimigoAtingido.velocidadeY = 0; // Reset velocidade
-                                        window.inimigos.push(inimigoAtingido); // Re-add to active enemies
-                                    }, 800);
-                                } else {
-                                    // MODO NORMAL: Feno mostra sprite destruído e desaparece para sempre
-                                    inimigoAtingido.elemento.src = '../../assets/personagem/feno_quebrado.png';
-                                    setTimeout(() => {
-                                        inimigoAtingido.elemento.remove();
-                                        // Remove do array de inimigos para não aparecer novamente
-                                        const index = window.inimigos.indexOf(inimigoAtingido);
-                                        if (index > -1) window.inimigos.splice(index, 1);
-                                    }, 800);
-                                }
-                            } else { // Normal enemy death
-                                if (typeof flashComVibacao === 'function') {
-                                    flashComVibacao(inimigoAtingido.elemento);
-                                }
-                                removerInimigoDerrotado(inimigoAtingido); // Garante o drop normal de itens coletáveis e limpa os visuais
-                            }
-                        } else {
-                            window.inimigos.push(inimigoAtingido); // Re-add to active enemies if not dead
-                        }
-                    } else { // It's an item
-                        // Collect the item
-                        coletarItemGarra(controle.garraItemCarregado);
-                        controle.garraItemCarregado.elemento.remove(); // Remove item's visual element
-                    }
-                    controle.garraItemCarregado = null; // Clear carried item/enemy
-                    controle.garraAnimEstado = 'idle'; // Reset claw animation state
-                    garraElemento.src = config.spriteGarraPlayer || '../../assets/personagem/garra.png'; // Reset claw visual
-                    controle.garraBracos.forEach(b => b.remove());
-                    controle.garraBracos = [];
-                }
-                // END NEW
-
-                if (controle.garraDist <= 0 && controle.garraItemCarregado === null) { // Only go idle if no item is being carried
-                    controle.garraAnimEstado = 'idle';
-                    // Só volta ao sprite padrão quando a animação termina
-                    garraElemento.src = config.spriteGarraPlayer || '../../assets/personagem/garra.png';
-                    controle.garraBracos.forEach(b => b.remove());
-                    controle.garraBracos = [];
-                    // console.log("Animação Garra: Finalizada. Retornando ao estado idle.");
-                }
-            }
-        }
+        atualizarAnimacaoGarra();
 
         // Detecta combinação de Drop: S ou Seta Baixo + Pulo
         const segurandoBaixo = acaoAtiva('baixo');
@@ -2131,44 +1438,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         // Se atingir 3 golpes, o inimigo morre e desaparece
                         if (inimigo.vida >= 3) {
                             if (inimigo.tipo === 5) {
-                                // Lógica de Feno (Alvo) - Comportamento condicional
-                                inimigo.estaMorto = true;
-                                
-                                // Zera a física imediatamente para evitar recuo residual após o respawn
-                                inimigo.framesKnockbackRestante = 0;
-                                inimigo.velocidadeKnockback = 0;
-                                inimigo.velocidadeY = 0;
-
-                                if (window.isTraining) {
-                                    // MODO TREINO: Feno fica vermelho e aparece novamente no local origem
-                                    inimigo.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
-                                    // Remove do array para evitar duplicação
-                                    const indexBeforeDeath = window.inimigos.indexOf(inimigo);
-                                    if (indexBeforeDeath > -1) window.inimigos.splice(indexBeforeDeath, 1);
-                                    
-                                    setTimeout(() => {
-                                        inimigo.vida = 0;
-                                        inimigo.x = inimigo.startX;
-                                        inimigo.y = inimigo.startY;
-                                        inimigo.estaMorto = false;
-                                        inimigo.elemento.style.filter = 'none';
-                                        inimigo.elemento.style.left = inimigo.x + 'px';
-                                        inimigo.elemento.style.bottom = inimigo.y + 'px';
-                                        inimigo.noChao = false; // Reset estado de solo
-                                        inimigo.velocidadeY = 0; // Reset velocidade
-                                    }, 800);
-                                } else {
-                                    // MODO NORMAL: Feno mostra sprite destruído e desaparece para sempre
-                                    inimigo.elemento.src = '../../assets/personagem/feno_quebrado.png';
-                                    setTimeout(() => {
-                                        inimigo.elemento.remove();
-                                        // Remove do array de inimigos para não aparecer novamente
-                                        const index = window.inimigos.indexOf(inimigo);
-                                        if (index > -1) window.inimigos.splice(index, 1);
-                                    }, 800);
-                                }
+                                processarMorteFeno(inimigo);
                             } else {
-                                // Morte normal para outros inimigos
                                 removerInimigoDerrotado(inimigo);
                             }
                         }
@@ -2250,44 +1521,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
                             if (inimigo.vida >= 3) {
                                 if (inimigo.tipo === 5) {
-                                    // Lógica de Feno (Alvo) - Comportamento condicional
-                                    inimigo.estaMorto = true;
-
-                                    // Zera a física imediatamente para o dano por projétil também
-                                    inimigo.framesKnockbackRestante = 0;
-                                    inimigo.velocidadeKnockback = 0;
-                                    inimigo.velocidadeY = 0;
-
-                                    if (window.isTraining) {
-                                        // MODO TREINO: Feno fica vermelho e aparece novamente no local origem
-                                        inimigo.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
-                                        // Remove do array para evitar duplicação
-                                        const indexBeforeDeath = window.inimigos.indexOf(inimigo);
-                                        if (indexBeforeDeath > -1) window.inimigos.splice(indexBeforeDeath, 1);
-                                        
-                                        setTimeout(() => {
-                                            inimigo.vida = 0;
-                                            inimigo.x = inimigo.startX;
-                                            inimigo.y = inimigo.startY;
-                                            inimigo.estaMorto = false;
-                                            inimigo.elemento.style.filter = 'none';
-                                            inimigo.elemento.style.left = inimigo.x + 'px';
-                                            inimigo.elemento.style.bottom = inimigo.y + 'px';
-                                            inimigo.noChao = false; // Reset estado de solo
-                                            inimigo.velocidadeY = 0; // Reset velocidade
-                                        }, 800);
-                                    } else {
-                                        // MODO NORMAL: Feno mostra sprite destruído e desaparece para sempre
-                                        inimigo.elemento.src = '../../assets/personagem/feno_quebrado.png';
-                                        setTimeout(() => {
-                                            inimigo.elemento.remove();
-                                            // Remove do array de inimigos para não aparecer novamente
-                                            const index = window.inimigos.indexOf(inimigo);
-                                            if (index > -1) window.inimigos.splice(index, 1);
-                                        }, 800);
-                                    }
+                                    processarMorteFeno(inimigo);
                                 } else {
-                                    // Efeito visual apenas se NÃO for o golpe final
                                     if (typeof flashComVibacao === 'function') {
                                         flashComVibacao(inimigo.elemento);
                                     }
@@ -2568,145 +1803,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         elemento.style.bottom = controle.y + 'px';
         elemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
 
-        atualizarVisibilidadeEquipamentosCinto();
-
-        // Sincroniza a posição da arma com o jogador (mesma lógica do inimigo)
-        armaElemento.style.left = controle.x + 'px';
-        armaElemento.style.bottom = controle.y + 'px';
-
-        // Aplica rotação de 5 graus se estiver no estado de recuo (inclinando para cima)
-        const direcaoFator = controle.direcao === 'e' ? 1 : -1;
-        const emRecuo = armaElemento.dataset.recoil === 'true';
-        const anguloRecuo = emRecuo ? (15 * direcaoFator) : 0;
-        armaElemento.style.transform = (controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)') + ` rotate(${anguloRecuo}deg)`;
-
-        // Atualiza o sprite da arma baseado na munição
-        armaElemento.src = config.spriteArmaPlayer || '../../assets/personagem/revolver.png';
-        // Aplica filtro vermelho se estiver sem munição
-        armaElemento.style.filter = (controle.municao <= 0) ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
-
-        // Sincroniza a posição do escudo com o jogador
-        escudoElemento.style.left = controle.x + 'px';
-        escudoElemento.style.bottom = controle.y + 'px';
-        escudoElemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
-
-        // Sincroniza a posição do cinto com o jogador
-        if (controle.temCinto) {
-            sincronizarCintoComJogador();
-        }
-
-        // Sincroniza a posição e visibilidade da bota
-        if (controle.temBota && !controle.itensGuardadosNoCinto) {
-            botaElemento.style.left = controle.x + 'px';
-            botaElemento.style.bottom = controle.y + 'px';
-            // Garante que o espelhamento (lado para o qual olha) seja idêntico ao do personagem
-            botaElemento.style.transform = elemento.style.transform;
-            
-            // Melhoria da lógica de animação: a bota deve seguir o frame exato do personagem
-            if (controle.chutando) {
-                botaElemento.src = config.spriteBotaChutando || '../../assets/personagem/bota_chutando.png';
-            } else if (!controle.noChao) {
-                // Se estiver no ar, usa o sprite específico para o ar
-                botaElemento.src = config.spriteBotaNoAr || '../../assets/personagem/bota_no_ar.png';
-            } else if (controle.movendoHorizontal) {
-                // Se estiver andando no chão, sincroniza com o frameAtual (1 é o frame de caminhada)
-                botaElemento.src = (controle.frameAtual === 1)
-                    ? (config.spriteBotaAndando || '../../assets/personagem/bota_andando.png')
-                    : (config.spriteBotaParado || '../../assets/personagem/bota_parado.png');
-            } else {
-                // Totalmente parado
-                botaElemento.src = config.spriteBotaParado || '../../assets/personagem/bota_parado.png';
-            }
-        }
-
-        // Sincroniza a posição e visibilidade do Jetpack e do Fogo
-        if (controle.temJetpack && !controle.itensGuardadosNoCinto) {
-            jetpackElemento.style.display = 'block';
-            jetpackElemento.style.left = controle.x + 'px';
-            jetpackElemento.style.bottom = controle.y + 'px';
-            jetpackElemento.style.transform = elemento.style.transform;
-
-            // Indicação visual de recarga: Aplica um filtro CSS de cor vermelha para sinalizar que o Jetpack está em tempo de espera (cooldown) e indisponível para uso.
-            if (controle.cooldownVooJetpack > 0) {
-                jetpackElemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
-            } else {
-                jetpackElemento.style.filter = 'none';
-            }
-
-            // Lógica do Fogo: visível durante todo o tempo de uso do jetpack ativo.
-            // A intensidade do jato é representada pela frequência de cintilação (piscar):
-            //   - Subindo: jato forte → pisca rápido (período 3: 2 frames ON, 1 OFF)  ~67%
-            //   - Hover:   jato fraco → pisca lento  (período 5: 1 frame ON, 4 OFF)   ~20%
-            //   - Caindo:  jato muito fraco → pisca muito lento (período 8: 1 ON, 7 OFF) ~12%
-            const subindo = (controle.teclas['ArrowUp'] || controle.teclas['w'] || controle.teclas['W']);
-            let efeitoPisca;
-            if (subindo) {
-                efeitoPisca = (controle.timerVooRestante % 3 < 2); // Forte: 67% ligado
-            } else if (controle.jetpackHovering) {
-                efeitoPisca = (controle.timerVooRestante % 5 < 1); // Fraco: 20% ligado
-            } else {
-                efeitoPisca = (controle.timerVooRestante % 8 < 1); // Muito fraco: 12% ligado
-            }
-            const tremorFogo = (Math.random() * 3) - 1.5; // Pequeno tremor vertical para as chamas
-
-            if (controle.jetpackAtivo && efeitoPisca) {
-                jetFogoElemento.style.display = 'block';
-                jetFogoElemento.style.left = controle.x + 'px';
-                jetFogoElemento.style.bottom = (controle.y - 4 + tremorFogo) + 'px'; // Ajuste com tremor
-                jetFogoElemento.style.transform = elemento.style.transform;
-            } else {
-                jetFogoElemento.style.display = 'none';
-            }
-        } else {
-            jetpackElemento.style.display = 'none';
-            jetFogoElemento.style.display = 'none';
-        }
-
-        // Sincroniza a posição e visibilidade da Garra
-        if (controle.temGarra && !controle.itensGuardadosNoCinto) {
-            // Segurança: Re-anexa ao palco caso o limparCenario o tenha removido
-            if (!document.getElementById('player-claw') && elemento.parentElement) {
-                elemento.parentElement.appendChild(garraElemento);
-            }
-
-            garraElemento.style.display = 'block';
-            // Se não estiver animando, a garra fica colada no personagem
-            if (controle.garraAnimEstado === 'idle') {
-                garraElemento.style.left = controle.x + 'px';
-                garraElemento.style.bottom = controle.y + 'px';
-                garraElemento.style.transform = elemento.style.transform;
-            }
-        } else {
-            garraElemento.style.display = 'none';
-        }
-
-        // Sincroniza a posição e visibilidade do Paraquedas
-        if (controle.usandoParaquedas) {
-            // Segurança: Re-anexa ao palco caso o limpador de cenário o tenha removido
-            if (!document.getElementById('player-parachute') && elemento.parentElement) {
-                elemento.parentElement.appendChild(paraquedasElemento);
-            }
-
-            paraquedasElemento.style.display = 'block';
-            paraquedasElemento.style.left = controle.x + 'px';
-            paraquedasElemento.style.bottom = (controle.y + 32) + 'px';
-            console.log(`Paraquedas: Active. Player Y: ${controle.y}, Parachute Bottom: ${controle.y + 32}, Parachute Left: ${controle.x}. Display: ${paraquedasElemento.style.display}`);
-            
-            // Segue o espelhamento (direção) do personagem
-            paraquedasElemento.style.transform = elemento.style.transform;
-
-            // O paraquedas some assim que o jogador toca o chão (plataforma)
-            if (controle.noChao) {
-                console.log("Mecânica: Player pousou. Removendo paraquedas.");
-                controle.usandoParaquedas = false;
-                paraquedasElemento.style.display = 'none';
-            }
-        } else {
-            if (paraquedasElemento.style.display !== 'none') {
-                paraquedasElemento.style.display = 'none';
-                console.log("Paraquedas: Inactive. Display set to none.");
-            }
-        }
+        sincronizarVisuaisEquipamentos();
 
         // ATUALIZAÇÃO DA CÂMERA: Mantém o jogador centralizado
         if (typeof window.atualizarCamera === 'function') {
