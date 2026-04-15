@@ -39,6 +39,13 @@
             controle.garraBracos = [];
         }
 
+        function sincronizarEquipamentoNoJogador(equipamento) {
+            if (!equipamento) return;
+            equipamento.style.left = controle.x + 'px';
+            equipamento.style.bottom = controle.y + 'px';
+            equipamento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+        }
+
         function acionarGarra() {
             if (controle.temGarra && !controle.itensGuardadosNoCinto && controle.garraAnimEstado === 'idle') {
                 controle.garraAnimEstado = 'prep';
@@ -74,22 +81,28 @@
                 if (item.tipo === 'revolver') {
                     if (itemData.spriteEquipado) armaElemento.src = itemData.spriteEquipado;
                     armaElemento.style.display = 'block';
+                    sincronizarEquipamentoNoJogador(armaElemento);
                 } else if (item.tipo === 'escudo') {
                     if (itemData.spriteEquipado) escudoElemento.src = itemData.spriteEquipado;
                     escudoElemento.style.display = 'block';
+                    sincronizarEquipamentoNoJogador(escudoElemento);
                     atualizarVisualEscudo();
                 } else if (item.tipo === 'bota') {
                     if (itemData.spriteEquipado) botaElemento.src = itemData.spriteEquipado;
                     botaElemento.style.display = 'block';
+                    sincronizarEquipamentoNoJogador(botaElemento);
                 } else if (item.tipo === 'jetpack') {
                     if (itemData.spriteEquipado) jetpackElemento.src = itemData.spriteEquipado;
                     jetpackElemento.style.display = 'block';
+                    sincronizarEquipamentoNoJogador(jetpackElemento);
                 } else if (item.tipo === 'garra') {
                     if (itemData.spriteEquipado) garraElemento.src = itemData.spriteEquipado;
                     garraElemento.style.display = 'block';
+                    sincronizarEquipamentoNoJogador(garraElemento);
                 } else if (item.tipo === 'cinto') {
                     if (itemData.spriteEquipado) cintoElemento.src = itemData.spriteEquipado;
                     cintoElemento.style.display = 'block';
+                    sincronizarEquipamentoNoJogador(cintoElemento);
                 }
 
                 if (!controle.inventario.includes(item.tipo) && item.tipo !== 'airdrop' && item.tipo !== 'restauracao') {
@@ -105,25 +118,30 @@
                 controle.escudoProtegido = item.escudoProtegido || 0;
                 if (!controle.inventario.includes('escudo')) controle.inventario.push('escudo');
                 escudoElemento.style.display = 'block';
+                sincronizarEquipamentoNoJogador(escudoElemento);
                 atualizarVisualEscudo();
             } else if (item.tipo === 'bota') {
                 controle.temBota = true;
                 if (!controle.inventario.includes('bota')) controle.inventario.push('bota');
                 botaElemento.style.display = 'block';
+                sincronizarEquipamentoNoJogador(botaElemento);
             } else if (item.tipo === 'jetpack') {
                 controle.temJetpack = true;
                 if (!controle.inventario.includes('jetpack')) controle.inventario.push('jetpack');
                 controle.timerVooRestante = config.jetpackDuracaoVoo || 360;
                 controle.cooldownVooJetpack = 0;
                 jetpackElemento.style.display = 'block';
+                sincronizarEquipamentoNoJogador(jetpackElemento);
             } else if (item.tipo === 'garra') {
                 controle.temGarra = true;
                 if (!controle.inventario.includes('garra')) controle.inventario.push('garra');
                 garraElemento.style.display = 'block';
+                sincronizarEquipamentoNoJogador(garraElemento);
             } else if (item.tipo === 'cinto') {
                 controle.temCinto = true;
                 if (!controle.inventario.includes('cinto')) controle.inventario.push('cinto');
                 cintoElemento.style.display = 'block';
+                sincronizarEquipamentoNoJogador(cintoElemento);
             } else if (item.tipo === 'airdrop') {
                 const conteudos = config.airdrop1?.conteudos || ['xp'];
                 const sorteio = conteudos[Math.floor(Math.random() * conteudos.length)];
@@ -137,6 +155,7 @@
                     controle.municao = config.maxMunicao || 5;
                     controle.escudoProtegido = 0;
                     controle.escudoVermelho = false;
+                    controle.dano = Math.max(0, (controle.dano || 0) - 1);
                     if (controle.inventario.includes('escudo')) {
                         controle.temEscudo = true;
                     }
@@ -154,7 +173,7 @@
                         }
                     }
                 } else if (sorteio === 'item') {
-                    const itensDisponiveis = ['revolver', 'escudo', 'bota', 'jetpack', 'garra'];
+                    const itensDisponiveis = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto'];
                     const itemSorteado = itensDisponiveis[Math.floor(Math.random() * itensDisponiveis.length)];
 
                     if (itemSorteado === 'escudo') {

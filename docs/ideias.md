@@ -21,3 +21,4 @@ capacete
 plant and defuse bomb
 resgatar cachorro
 colete ( medico, combate)
+sistema de peso - se tiver com equipamentos ele fica pesado

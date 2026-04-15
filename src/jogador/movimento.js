@@ -47,6 +47,14 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         throw new Error('Erro ao carregar dano-estacas.js: sistema de dano por estacas indisponível.');
     }
 
+    if (typeof window.criarSistemaJetpackJogador !== 'function') {
+        throw new Error('Erro ao carregar jetpack.js: sistema de jetpack indisponível.');
+    }
+
+    if (typeof window.criarSistemaAcoesEspeciaisJogador !== 'function') {
+        throw new Error('Erro ao carregar acoes-especiais.js: sistema de ações especiais indisponível.');
+    }
+
     if (typeof window.criarSistemaCombateCorpoACorpoJogador !== 'function') {
         throw new Error('Erro ao carregar combate-corpo-a-corpo.js: sistema de combate corpo a corpo indisponível.');
     }
@@ -115,97 +123,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             }
         }
     }
-
-    function dispararSinalizador() {
-        const xPartida = controle.x + 12; // Centralizado no personagem
-        const yPartida = controle.y + 32;
-        const alturaSubida = 150; // Definimos a altura como constante para sincronia
-
-        // 1. Cria o projétil do sinalizador
-        const sinalizador = document.createElement('img');
-        sinalizador.src = config.spriteProjetil;
-        sinalizador.style.cssText = `
-            position: absolute;
-            width: ${config.PROJETIL_LARGURA}px;
-            height: ${config.PROJETIL_ALTURA}px;
-            left: ${xPartida}px;
-            bottom: ${yPartida}px;
-            image-rendering: pixelated;
-            transform: translateY(0) rotate(-90deg);
-            transition: transform 1.0s linear;
-        `;
-        
-        adicionarAoLayer(sinalizador, window.LAYERS.EFEITOS);
-
-        // Inicia a subida usando transform para fluidez via GPU
-        requestAnimationFrame(() => {
-            sinalizador.style.transform = `translateY(-${alturaSubida}px) rotate(-90deg)`;
-        });
-
-        // 2. Lógica da Explosão
-        setTimeout(() => {
-            const posX = xPartida;
-            const posY = yPartida + alturaSubida; // Calculamos a posição final real
-            sinalizador.remove();
-
-            const explosao = document.createElement('img');
-            explosao.src = '../../assets/personagem/explosao.png';
-            explosao.style.position = 'absolute';
-            explosao.style.width = '32px';
-            explosao.style.height = '32px';
-            explosao.style.left = (posX - 12) + 'px';
-            explosao.style.bottom = (posY - 12) + 'px';
-            explosao.style.imageRendering = 'pixelated';
-            explosao.style.pointerEvents = 'none';
-            explosao.style.transform = 'scale(0.1)';
-            explosao.style.transition = 'transform 0.8s ease-out, opacity 0.8s ease-out';
-            
-            adicionarAoLayer(explosao, window.LAYERS.EFEITOS);
-
-            // Double requestAnimationFrame garante que o navegador processe o scale(0.1) antes de aplicar o scale(4)
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    explosao.style.transform = 'scale(4)'; // Estica a explosão
-                    explosao.style.opacity = '0';
-                });
-            });
-
-            // Remove o elemento após a animação
-            setTimeout(() => {
-            explosao.remove();
-        }, 800);
-
-    }, 1050); 
-
-    // Lógica do AirDrop: Após o tempo configurado, o suprimento cai do céu
-    const tempoEspera = (config.airdrop1?.espera || 10) * 1000;
-    setTimeout(() => {
-        // Agora escolhe uma coluna baseada na largura total do mundo atual
-        const colunasTotais = Math.floor(window.mundoLargura / 32);
-        const colAleatoria = Math.floor(Math.random() * colunasTotais);
-        const xFinal = colAleatoria * 32;
-        const yFinal = 448; // Linha "o" no sistema de grid (14 * 32px)
-
-        const airdropImg = document.createElement('img');
-        airdropImg.src = '../../assets/personagem/airdrop.png';
-        airdropImg.style.position = 'absolute';
-        airdropImg.style.width = '32px';
-        airdropImg.style.height = '32px';
-        airdropImg.style.left = xFinal + 'px';
-        airdropImg.style.bottom = yFinal + 'px';
-        airdropImg.style.imageRendering = 'pixelated';
-        
-        adicionarAoLayer(airdropImg, window.LAYERS.ITENS);
-        window.itensColetaveis.push({
-            x: xFinal,
-            y: yFinal,
-            elemento: airdropImg,
-            velocidadeY: 0, // Começa parado e a gravidade configurada assume
-            tipo: 'airdrop'
-        });
-        console.log(`AirDrop: Suprimentos detectados na coluna ${colAleatoria + 1}!`);
-    }, tempoEspera);
-}
 
     function atualizarVisualEscudo() {
         if ((controle.temEscudo || controle.escudoVermelho) && !controle.itensGuardadosNoCinto) {
@@ -478,7 +395,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         flashComVibacao: typeof flashComVibacao === 'function' ? flashComVibacao : undefined
     });
 
-    const { acionarGarra, atualizarAnimacaoGarra } = sistemaGarra;
+    const { acionarGarra, coletarItemGarra, atualizarAnimacaoGarra } = sistemaGarra;
 
     function podeAgacharSemBloqueio() {
         return controle.itensGuardadosNoCinto || obterEquipamentosDoCinto().length === 0;
@@ -631,6 +548,37 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     const { teclaEhAcao, acaoAtiva, consumirAcao } = sistemaControles;
     await sistemaControles.inicializar();
 
+    const sistemaAcoesEspeciais = window.criarSistemaAcoesEspeciaisJogador({
+        controle,
+        config,
+        elemento,
+        armaElemento,
+        escudoElemento,
+        botaElemento,
+        jetpackElemento,
+        jetFogoElemento,
+        garraElemento,
+        cintoElemento,
+        atualizarVisualEscudo,
+        salvarInventario,
+        acaoAtiva,
+        consumirAcao
+    });
+
+    const { processarAcoesEspeciais } = sistemaAcoesEspeciais;
+
+    const sistemaJetpack = window.criarSistemaJetpackJogador({
+        controle,
+        config,
+        acaoAtiva,
+        aplicarFisica
+    });
+
+    const {
+        atualizarCooldownJetpack,
+        atualizarJetpack
+    } = sistemaJetpack;
+
     const sistemaCombateCorpoACorpo = window.criarSistemaCombateCorpoACorpoJogador({
         controle,
         config,
@@ -684,110 +632,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             }
         }
 
-        // Lógica da Skill "AirDrop" (Combo: Cima + I)
-        const segurandoCima = acaoAtiva('cima');
-        const apertouI = acaoAtiva('tiro');
-
-        // Log de teste para debug (remova ou comente após testar)
-        if (apertouI) {
-            // console.log("Teclas detectadas: Cima:", segurandoCima, "| I:", apertouI, "| Skill 'skilla2' possui?", window.playerSkills?.includes('skilla2'), "| Já usado?", controle.airdropUsadoNoNivel);
-        }
-
-        // Alterado de 'airdrop' para 'skilla2' para coincidir com o ID no skillsData.json
-        if (segurandoCima && apertouI && window.playerSkills?.includes('skilla2') && !controle.airdropUsadoNoNivel) {
-            dispararSinalizador();
-            controle.airdropUsadoNoNivel = true;
-            console.log("Skill AirDrop: Suporte aéreo solicitado!");
-            
-            // Consome a tecla para evitar que o personagem atire no mesmo frame
-            consumirAcao('tiro');
-        }
-
-        // Lógica da Skill "Vender" (Combo: Baixo + I)
-        const segurandoBaixoVenda = acaoAtiva('baixo');
-        const apertouVenda = acaoAtiva('tiro');
-
-        // Debug de teclas combinadas (Vender)
-        if (segurandoBaixoVenda && apertouVenda) {
-            // console.log("Debug: Tentativa de Venda detectada. Skill Vender ativa?", window.playerSkills?.includes('skilla1'));
-        }
-
-        if (window.playerSkills?.includes('skilla1') && segurandoBaixoVenda && apertouVenda && !controle.vendaEmCurso && controle.inventario.length > 0) {
-            const tipo = controle.inventario.pop();
-            controle.vendaEmCurso = true;
-            controle.vendaTimer = 0;
-            controle.vendaTipo = tipo;
-
-            // Remove visualmente do jogador
-            if (tipo === 'revolver') { controle.temArma = false; armaElemento.style.display = 'none'; }
-            else if (tipo === 'escudo') { controle.temEscudo = false; atualizarVisualEscudo(); }
-            else if (tipo === 'bota') { controle.temBota = false; botaElemento.style.display = 'none'; }
-            else if (tipo === 'jetpack') { 
-                controle.temJetpack = false; 
-                controle.jetpackAtivo = false;
-                jetpackElemento.style.display = 'none'; 
-                garraElemento.style.display = 'none';
-                jetFogoElemento.style.display = 'none';
-            }
-
-            // Cria o item flutuante
-            const visual = document.createElement('img');
-            visual.style = `position: absolute; width: 32px; height: 32px; z-index: 20; image-rendering: pixelated;`;
-            if (tipo === 'revolver') visual.src = config.spriteItemRevolver || '../../assets/personagem/revolver_pegavel.png';
-            else if (tipo === 'escudo') visual.src = config.spriteItemEscudo || '../../assets/personagem/escudo_pegavel.png';
-            else if (tipo === 'bota') visual.src = config.spriteItemBota || '../../assets/personagem/bota_pegavel.png';
-            else if (tipo === 'jetpack') visual.src = config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
-            else if (tipo === 'garra') visual.src = config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
-            
-            elemento.parentElement.appendChild(visual);
-            controle.vendaVisual = visual;
-            salvarInventario();
-        }
-
-        // Processamento da Venda
-        if (controle.vendaEmCurso) {
-            controle.vendaTimer++;
-            
-            // Mantém sobre o jogador
-            controle.vendaVisual.style.left = controle.x + 'px';
-            controle.vendaVisual.style.bottom = (controle.y + 40) + 'px';
-
-            // Fase 2: Fica verde após 1 segundo (60 frames)
-            if (controle.vendaTimer > 60) {
-                controle.vendaVisual.style.filter = 'sepia(1) saturate(10) hue-rotate(90deg)';
-            }
-
-            // Cancelamento por Pulo
-            if (acaoAtiva('pulo')) {
-                // console.log("Venda cancelada pelo pulo!");
-                controle.inventario.push(controle.vendaTipo);
-                // Devolve os itens logicamente
-                if (controle.vendaTipo === 'revolver') { controle.temArma = true; armaElemento.style.display = 'block'; }
-                else if (controle.vendaTipo === 'escudo') { controle.temEscudo = true; atualizarVisualEscudo(); }
-                else if (controle.vendaTipo === 'bota') { controle.temBota = true; botaElemento.style.display = 'block'; }
-                else if (controle.vendaTipo === 'jetpack') { 
-                    controle.temJetpack = true; 
-                    jetpackElemento.style.display = 'block'; 
-                }
-                else if (controle.vendaTipo === 'garra') {
-                    controle.temGarra = true;
-                    garraElemento.style.display = 'block';
-                }
-                
-                controle.vendaVisual.remove();
-                controle.vendaEmCurso = false;
-                salvarInventario();
-            } 
-            // Conclusão da Venda (2 segundos = 120 frames)
-            else if (controle.vendaTimer >= 120) {
-                if (typeof window.ganharXP === 'function') window.ganharXP(1);
-                controle.vendaVisual.remove();
-                controle.vendaEmCurso = false;
-                // console.log("Item vendido por 1 XP!");
-            }
-            
+        if (processarAcoesEspeciais()) {
+            atualizarHUD();
             requestAnimationFrame(atualizar);
-            return; // Bloqueia outras ações enquanto vende
+            return;
         }
 
         atualizarAnimacaoGarra();
@@ -932,10 +780,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.cooldownPulo--;
         }
 
-        // Diminui o cooldown do Jetpack
-        if (controle.cooldownVooJetpack > 0) {
-            controle.cooldownVooJetpack--;
-        }
+        atualizarCooldownJetpack();
 
         // 📍 RASTREAMENTO DE DIREÇÃO PARA CÂMERA GRANDE
         // Calcula em qual direção o jogador se moveu este frame
@@ -1056,78 +901,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             console.log("Habilidade Salto: Pulo duplo rápido executado!");
         }
 
-        // Lógica de Ativação do Jetpack
-        if (controle.temJetpack && !controle.itensGuardadosNoCinto) {
-            const segurandoCimaAtivacao = acaoAtiva('cima');
-            
-            // Ativação Instantânea: Cima + Pulo (Apenas se não houver cooldown)
-            if (segurandoCimaAtivacao && puloAcabouDeSerPressionado && !controle.jetpackAtivo && controle.cooldownVooJetpack === 0) {
-                controle.jetpackAtivo = true;
-                // Só reseta o combustível se ele estiver zerado (início de um novo ciclo)
-                if (controle.timerVooRestante <= 0) {
-                    controle.timerVooRestante = config.jetpackDuracaoVoo || 360;
-                }
-                controle.framesVoando = 0; // Reseta o tempo de decolagem
-                controle.timerAtivacaoJetpack = 0;
-            } 
-            // Ativação por tempo (Segurar Espaço por 2 segundos) (Apenas se não houver cooldown)
-            else if (acaoAtiva('pulo') && controle.cooldownVooJetpack === 0) {
-                controle.timerAtivacaoJetpack++;
-                if (controle.timerAtivacaoJetpack >= (config.jetpackTempoAtivacao || 120) && !controle.jetpackAtivo) {
-                    controle.jetpackAtivo = true;
-                    if (controle.timerVooRestante <= 0) {
-                        controle.timerVooRestante = config.jetpackDuracaoVoo || 360;
-                    }
-                    controle.framesVoando = 0;
-                }
-            } else {
-                controle.timerAtivacaoJetpack = 0;
-            }
-        }
-
-        // Gerenciamento de Física e Voo
-        if (controle.jetpackAtivo && !controle.itensGuardadosNoCinto) {
-            controle.timerVooRestante--;
-            controle.framesVoando++;
-
-            const subindo = controle.teclas['ArrowUp'] || controle.teclas['w'] || controle.teclas['W'];
-
-            // 1. Controle de Voo: Subir ou Toggle do Hover (Pairar)
-            if (subindo) {
-                controle.velocidadeY = config.jetpackForcaVoo || 2;
-                controle.jetpackHovering = false; // Subir cancela o estado de pairar automaticamente
-            } else if (puloAcabouDeSerPressionado) {
-                controle.jetpackHovering = !controle.jetpackHovering; // Alterna o estado (ON/OFF)
-            }
-
-            // 2. Aplica a física baseada no estado de pairar ou descida lenta
-            if (controle.jetpackHovering) {
-                controle.velocidadeY = 0; // Fica parado no ar
-            } else if (!subindo) {
-                controle.velocidadeY = -1; // Descida lenta padrão
-            }
-
-            controle.y += controle.velocidadeY;
-
-            // Lógica de Desativação 1: Esgotamento de Combustível.
-            // Quando o timer zera, o motor desliga forçadamente e entra em estado de recarga (cooldown), ativando o filtro visual vermelho.
-            if (controle.timerVooRestante <= 0) {
-                controle.jetpackAtivo = false;
-                controle.jetpackHovering = false; // Reseta o pairar ao acabar o combustível
-                controle.velocidadeY = 0;
-                controle.cooldownVooJetpack = config.jetpackCooldown || 180;// Inicia o cooldown ao terminar o voo
-            }
-
-        } else {
-            // Aplica gravidade e pulo normal (definido em fisica.js)
-            aplicarFisica(
-                controle, 
-                { ...controle.teclas, ' ': teclaPuloAtiva }, 
-                forcaPuloFinal, 
-                config.inimigoGravidade, 
-                config.inimigoPuloCooldown
-            );
-        }
+        atualizarJetpack({
+            teclaPuloAtiva,
+            puloAcabouDeSerPressionado,
+            forcaPuloFinal
+        });
 
         // Mecânica de Super Descida e Paraquedas
         if (!controle.noChao && controle.velocidadeY < 0 && acaoAtiva('pulo') && !controle.usandoParaquedas && controle.pulosRealizados === 2) {
@@ -1473,145 +1251,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     item.elemento.remove();
                     window.itensColetaveis.splice(i, 1);
 
-                    // Processa o efeito do item baseado no tipo
-                    if (item.tipo === 'escudo') {
-                        // console.log("Jogador coletou o escudo!");
-                        controle.temEscudo = true;
-                        controle.escudoVermelho = item.escudoVermelho || false;
-                        controle.escudoProtegido = item.escudoProtegido || 0;
-                        if (!controle.inventario.includes('escudo')) controle.inventario.push('escudo');
-                        escudoElemento.style.display = 'block';
-                        atualizarVisualEscudo();
-                        salvarInventario();
-                    } else if (item.tipo === 'bota') {
-                        console.log("Jogador coletou as botas!");
-                        controle.temBota = true;
-                        if (!controle.inventario.includes('bota')) controle.inventario.push('bota');
-                        botaElemento.style.display = 'block';
-                        salvarInventario();
-                    } else if (item.tipo === 'jetpack') {
-                        controle.temJetpack = true;
-                        if (!controle.inventario.includes('jetpack')) controle.inventario.push('jetpack');
-                        // Refinamento: Garante que o item coletado venha com carga e pronto para uso
-                        controle.timerVooRestante = config.jetpackDuracaoVoo || 360;
-                        controle.cooldownVooJetpack = 0;
-                        
-                        // Sincroniza a posição IMEDIATAMENTE para evitar o "fantasma" no chão
-                        jetpackElemento.style.left = controle.x + 'px';
-                        jetpackElemento.style.bottom = controle.y + 'px';
-                        jetpackElemento.style.display = 'block';
-                        salvarInventario();
-                    } else if (item.tipo === 'garra') {
-                        console.log("Jogador coletou a garra!");
-                        controle.temGarra = true;
-                        if (!controle.inventario.includes('garra')) controle.inventario.push('garra');
-                        garraElemento.style.left = controle.x + 'px';
-                        garraElemento.style.bottom = controle.y + 'px';
-                        garraElemento.style.display = 'block';
-                        salvarInventario();
-                    } else if (item.tipo === 'cinto') {
-                        controle.temCinto = true;
-                        if (!controle.inventario.includes('cinto')) controle.inventario.push('cinto');
-                        cintoElemento.style.left = controle.x + 'px';
-                        cintoElemento.style.bottom = controle.y + 'px';
-                        cintoElemento.style.display = 'block';
-                        salvarInventario();
-                    } else if (item.tipo === 'airdrop') {
-                    } else if (item.tipo === 'airdrop') {
-                        // Lógica de Recompensa Aleatória baseada no JSON
-                        const conteudos = config.airdrop1?.conteudos || ['xp'];
-                        const sorteio = conteudos[Math.floor(Math.random() * conteudos.length)];
-                        console.log("AirDrop resgatado pela garra! Conteúdo: " + sorteio);
-
-                        if (sorteio === 'skillpoint') {
-                            window.skillPoints += 1;
-                        } else if (sorteio === 'xp') {
-                            if (typeof window.ganharXP === 'function') window.ganharXP(6);
-                        } else if (sorteio === 'restauracao') {
-                            // Restaura todos os equipamentos do jogador
-                            controle.municao = config.maxMunicao || 5; 
-                            controle.escudoProtegido = 0;
-                            controle.escudoVermelho = false;
-                            controle.dano = Math.max(0, (controle.dano || 0) - 1);
-                            if (controle.inventario.includes('escudo')) {
-                                controle.temEscudo = true;
-                            }
-                            atualizarVisualEscudo();
-                        } else if (sorteio === 'skill') {
-                            // Sorteia uma skill que o jogador ainda não tenha
-                            if (window.skillsData && Object.keys(window.skillsData).length > 0) {
-                                const disponiveis = Object.keys(window.skillsData).filter(s => !window.playerSkills.includes(s) && window.skillsData[s].parent === null); // Apenas skills raiz para simplificar
-                                if (disponiveis.length > 0) {
-                                    const skillSorteada = disponiveis[Math.floor(Math.random() * disponiveis.length)];
-                                    window.playerSkills.push(skillSorteada);
-                                    if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
-                                    console.log(`Nova Skill Desbloqueada: ${window.skillsData[skillSorteada].nome}`);
-                                } else {
-                                    if (typeof window.ganharXP === 'function') window.ganharXP(5); // Fallback se já tiver todas
-                                }
-                            }
-                        } else if (sorteio === 'item') {
-                            // Sorteio de item físico
-                            const itensDisponiveis = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto']; // Inclui garra
-                            const itemSorteado = itensDisponiveis[Math.floor(Math.random() * itensDisponiveis.length)];
-
-                            if (itemSorteado === 'escudo') { 
-                                controle.temEscudo = true; 
-                                controle.escudoVermelho = false; 
-                                controle.escudoProtegido = 0; 
-                                if (!controle.inventario.includes('escudo')) controle.inventario.push('escudo'); // Garante que o item seja adicionado ao inventário
-                                atualizarVisualEscudo(); 
-                            }
-                            else if (itemSorteado === 'bota') { 
-                                controle.temBota = true; 
-                                if (!controle.inventario.includes('bota')) controle.inventario.push('bota'); // Garante que o item seja adicionado ao inventário
-                                botaElemento.style.display = 'block';
-                            }
-                            else if (itemSorteado === 'jetpack') { // Adiciona tratamento explícito para jetpack
-                                controle.temJetpack = true;
-                                if (!controle.inventario.includes('jetpack')) controle.inventario.push('jetpack'); // Garante que o item seja adicionado ao inventário
-                                jetpackElemento.style.display = 'block';
-                            } else if (itemSorteado === 'garra') {
-                                controle.temGarra = true;
-                                if (!controle.inventario.includes('garra')) controle.inventario.push('garra');
-                                garraElemento.style.display = 'block';
-                            } else if (itemSorteado === 'revolver') { // Tratamento explícito para revolver
-                                controle.temArma = true; 
-                                controle.municao = config.maxMunicao || 5; 
-                                if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver'); // Garante que o item seja adicionado ao inventário
-                                armaElemento.style.display = 'block';
-                            } else if (itemSorteado === 'cinto') {
-                                controle.temCinto = true; 
-                                if (!controle.inventario.includes('cinto')) controle.inventario.push('cinto'); // Garante que o item seja adicionado ao inventário
-                                cintoElemento.style.display = 'block';
-                            }
-                        }
-                        salvarInventario();
-                    } else if (item.tipo === 'revolver') { // Este bloco é para coleta de revólver *não* via airdrop
-                        // console.log("Jogador coletou o revólver!");
-                        
-                        // Se já tem a arma, apenas soma a munição (até o limite)
-                        const novaMunicao = item.municao !== undefined ? item.municao : (config.maxMunicao || 5);
-                        controle.municao = Math.min((controle.municao || 0) + novaMunicao, (config.maxMunicao || 5) * 2);
-                        
-                        controle.temArma = true;
-                        if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
-                        armaElemento.style.display = 'block';
-                        salvarInventario();
-                    }
-                    else if (item.tipo === 'restauracao') { // NEW: Direct collection of restoration item
-                        // console.log("Jogador coletou o item de restauração!");
-                        controle.municao = config.maxMunicao || 5; 
-                        controle.escudoProtegido = 0;
-                        controle.escudoVermelho = false;
-                        controle.dano = Math.max(0, (controle.dano || 0) - 1);
-                        if (controle.inventario.includes('escudo')) {
-                            controle.temEscudo = true;
-                        }
-                        atualizarVisualEscudo();
-                        salvarInventario();
-                    }
-
+                    coletarItemGarra(item);
                     continue; // Pula para o próximo item, já que este foi coletado
                 }
 
