@@ -37,10 +37,6 @@ const btnClear = document.getElementById('btn-clear');
 const output = document.getElementById('json-output');
 const proportionSelect = document.getElementById('proportion-select'); // Novo elemento necessário no HTML
 
-// Referências para os novos elementos que serão criados via JS
-let fillBottomCheckbox;
-let blockTypeSelect;
-
 // Elementos de Configuração
 const spawnRandomCheck = document.getElementById('spawn-random');
 const randomDiffSelect = document.getElementById('random-diff');
@@ -49,6 +45,7 @@ const randomTypeSelect = document.getElementById('random-type');
 let tooltipElement;
 let renderizadorEditor;
 let persistenciaEditor;
+let uiEditor;
 
 function obterLegendaCoord(coord) {
     for (const def of [...PLATFORM_DEFS, ...ENEMY_DEFS]) {
@@ -79,6 +76,26 @@ window.onload = async () => {
         getItemDefinitions: () => itemDefinitions
     });
 
+    uiEditor = window.criarUIEditor({
+        stage,
+        palette: document.getElementById('palette'),
+        proportionSelect,
+        spawnRandomCheck,
+        randomDiffSelect,
+        randomTypeSelect,
+        getFaseData: () => faseData,
+        setFaseData: (novoEstado) => { faseData = novoEstado; },
+        atualizarTamanhoStage,
+        atualizarVisual,
+        adicionarElemento,
+        removerElemento,
+        setItemSelecionado: (tipo) => { itemSelecionado = tipo; },
+        getItemDefinitions: () => itemDefinitions,
+        tileSize: TILE_SIZE,
+        pointToCoord,
+        getLegendaCoord: obterLegendaCoord
+    });
+
     persistenciaEditor = window.criarPersistenciaEditor({
         output,
         getFaseData: () => faseData,
@@ -98,11 +115,14 @@ window.onload = async () => {
         }
     });
 
-    configurarControlesDimensoes();
+    uiEditor.configurarControlesDimensoes();
     atualizarTamanhoStage();
-    configurarPaletaDinamicaItens();
-    configurarStage();
-    configurarFerramentasAutomaticas();
+    uiEditor.configurarPaletaDinamicaItens();
+    uiEditor.configurarStage();
+    uiEditor.configurarFerramentasAutomaticas();
+    uiEditor.configurarSpawnAleatorio();
+    uiEditor.configurarTooltip();
+    uiEditor.configurarTeclasGlobais();
 
     btnExport.onclick = () => persistenciaEditor.exportarJSON();
     btnImport.onclick = () => persistenciaEditor.importarJSON();
@@ -118,39 +138,6 @@ window.onload = async () => {
         }
     };
 
-    window.addEventListener('keydown', (e) => {
-        if (e.key.toLowerCase() === 'g') {
-            gradeVisivel = !gradeVisivel;
-            document.getElementById('grade-auxiliar').style.display = gradeVisivel ? 'block' : 'none';
-        }
-    });
-
-    spawnRandomCheck.onchange = (e) => {
-        document.getElementById('random-config-fields').style.opacity = e.target.checked ? "1" : "0.3";
-        document.getElementById('random-config-fields').style.pointerEvents = e.target.checked ? "auto" : "none";
-    };
-
-    tooltipElement = document.createElement('div');
-    tooltipElement.id = 'editor-tooltip';
-    document.body.appendChild(tooltipElement);
-
-    stage.addEventListener('mousemove', (e) => {
-        const rect = stage.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = rect.bottom - e.clientY;
-        const coord = pointToCoord(x, y, TILE_SIZE);
-        const legenda = obterLegendaCoord(coord);
-
-        if (legenda) {
-            tooltipElement.innerText = legenda;
-            tooltipElement.style.display = 'block';
-            tooltipElement.style.left = (e.clientX + 15) + 'px';
-            tooltipElement.style.top = (e.clientY + 15) + 'px';
-        } else {
-            tooltipElement.style.display = 'none';
-        }
-    });
-    stage.addEventListener('mouseleave', () => tooltipElement.style.display = 'none');
 };
 
 // Carrega todos os arquivos JSON de config/items/ e popula itemDefinitions
@@ -169,45 +156,6 @@ async function carregarItemDefinitions() {
     }
 }
 
-// Monta a paleta de itens dinamicamente
-function configurarPaletaDinamicaItens() {
-    const palette = document.getElementById('palette');
-    if (!palette) return;
-
-    // Remove itens antigos
-    const oldItens = palette.querySelectorAll('.palette-item[data-type^="item_"]');
-    oldItens.forEach(el => el.remove());
-
-    // Adiciona cada item da definição
-    const catItens = Array.from(palette.querySelectorAll('.category')).find(cat => {
-        const texto = cat.querySelector('h4')?.innerText.trim().toLowerCase();
-        return texto === 'itens' || texto === 'items';
-    });
-
-    if (catItens) {
-        for (const tipo in itemDefinitions) {
-            const def = itemDefinitions[tipo];
-            const img = document.createElement('img');
-            img.src = def.spriteColetavel;
-            img.className = 'palette-item';
-            img.setAttribute('data-type', 'item_' + def.id);
-            img.title = def.nome || def.id;
-            catItens.appendChild(img);
-        }
-    }
-
-    // Reconfigura seleção
-    configurarPaleta();
-}
-
-function configurarControlesDimensoes() {
-    if (!proportionSelect) return;
-    
-    proportionSelect.onchange = (e) => {
-        faseData.proporcao = e.target.value;
-        atualizarTamanhoStage();
-    };
-}
 
 function atualizarTamanhoStage() {
     const [hMult, wMult] = faseData.proporcao.split('x').map(Number);
@@ -231,66 +179,6 @@ function configurarGrade() {
     renderizadorEditor.configurarGrade(COLS, ROWS, gradeVisivel);
 }
 
-function configurarFerramentasAutomaticas() {
-    const palette = document.getElementById('palette');
-    if (!palette) return;
-
-    const toolsContainer = document.createElement('div');
-    toolsContainer.className = 'editor-tools';
-    toolsContainer.innerHTML = `
-        <strong>Automação</strong>
-        <label>
-            <input type="checkbox" id="fill-bottom-checkbox"> Preencher Chão (Linha A)
-        </label>
-        <label>
-            Bloco:
-            <select id="block-type-select">
-                <option value="padrao">Padrão (Grama)</option>
-                <option value="neve">Neve</option>
-                <option value="terraInferior">Terra Inferior</option>
-                <option value="terraSuperior">Terra Superior</option>
-            </select>
-        </label>
-    `;
-    palette.appendChild(toolsContainer);
-
-    fillBottomCheckbox = document.getElementById('fill-bottom-checkbox');
-    blockTypeSelect = document.getElementById('block-type-select');
-
-    // Sincroniza estado inicial
-    fillBottomCheckbox.checked = faseData.plataformas.some(c => c.startsWith('a'));
-
-    fillBottomCheckbox.onchange = (e) => {
-        fillBottomLayer(e.target.checked);
-        atualizarVisual();
-    };
-}
-
-function configurarPaleta() {
-    const items = document.querySelectorAll('.palette-item');
-    items.forEach(item => {
-        item.onclick = () => {
-            items.forEach(i => i.classList.remove('selected'));
-            item.classList.add('selected');
-            itemSelecionado = item.getAttribute('data-type');
-        };
-    });
-}
-
-function configurarStage() {
-    stage.addEventListener('mousedown', (e) => {
-        const rect = stage.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = rect.bottom - e.clientY;
-
-        const coord = pointToCoord(x, y, TILE_SIZE);
-
-        if (e.button === 0) adicionarElemento(coord);
-        else if (e.button === 2) removerElemento(coord);
-        atualizarVisual();
-    });
-    stage.oncontextmenu = (e) => e.preventDefault();
-}
 
 function adicionarElemento(coord) {
     removerElemento(coord);
@@ -332,38 +220,4 @@ function atualizarVisual() {
  * Adiciona ou remove blocos da linha inferior (chão).
  * @param {boolean} fill - Se true, preenche; se false, remove.
  */
-function fillBottomLayer(fill) {
-    const bottomRowCoords = [];
-    for (let c = 1; c <= COLS; c++) {
-        bottomRowCoords.push('a' + c);
-    }
-
-    if (fill) {
-        addBlocks(bottomRowCoords);
-    } else {
-        removeBlocks(bottomRowCoords);
-    }
-}
-
-function addBlocks(coordsArray) {
-    const tipo = blockTypeSelect.value;
-    coordsArray.forEach(coord => {
-        if (tipo === 'neve') {
-            if (!faseData.plataformasNeve.includes(coord)) faseData.plataformasNeve.push(coord);
-        } else if (tipo === 'terraInferior') {
-            if (!faseData.plataformasTerraInferior.includes(coord)) faseData.plataformasTerraInferior.push(coord);
-        } else if (tipo === 'terraSuperior') {
-            if (!faseData.plataformasTerraSuperior.includes(coord)) faseData.plataformasTerraSuperior.push(coord);
-        } else {
-            if (!faseData.plataformas.includes(coord)) faseData.plataformas.push(coord);
-        }
-    });
-}
-
-function removeBlocks(coordsArray) {
-    faseData.plataformas = faseData.plataformas.filter(coord => !coordsArray.includes(coord));
-    faseData.plataformasNeve = faseData.plataformasNeve.filter(coord => !coordsArray.includes(coord));
-    faseData.plataformasTerraInferior = faseData.plataformasTerraInferior.filter(coord => !coordsArray.includes(coord));
-    faseData.plataformasTerraSuperior = faseData.plataformasTerraSuperior.filter(coord => !coordsArray.includes(coord));
-}
 
