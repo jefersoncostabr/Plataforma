@@ -20,6 +20,8 @@ const {
 
 let COLS = 20; 
 let ROWS = 15; 
+const PHASES_BASE_PATH = '../../config/fases/';
+const PHASE_DISCOVERY_CANDIDATES = ['treino.json', ...Array.from({ length: 50 }, (_, i) => `fase${i + 1}.json`)];
 
 // Estado da fase
 let faseData = createEmptyFaseData();
@@ -123,6 +125,11 @@ window.onload = async () => {
     uiEditor.configurarSpawnAleatorio();
     uiEditor.configurarTooltip();
     uiEditor.configurarTeclasGlobais();
+    uiEditor.configurarSeletorFases({
+        persistencia: persistenciaEditor,
+        basePath: PHASES_BASE_PATH,
+        arquivosCandidatos: PHASE_DISCOVERY_CANDIDATES
+    });
 
     btnExport.onclick = () => persistenciaEditor.exportarJSON();
     btnImport.onclick = () => persistenciaEditor.importarJSON();

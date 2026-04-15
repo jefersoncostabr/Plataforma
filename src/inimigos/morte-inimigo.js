@@ -37,6 +37,20 @@
         }
         inimigo.garraBracos = [];
 
+        if (inimigo.cintoAnimTimeout) {
+            clearTimeout(inimigo.cintoAnimTimeout);
+            inimigo.cintoAnimTimeout = null;
+        }
+
+        if (Array.isArray(inimigo.cintoAnimClones)) {
+            inimigo.cintoAnimClones.forEach((clone) => {
+                if (clone && typeof clone.remove === 'function') clone.remove();
+            });
+        }
+        inimigo.cintoAnimClones = [];
+        inimigo.cintoAnimando = false;
+        inimigo.itensGuardadosNoCinto = false;
+
         inimigo.temArma = false;
         inimigo.temBota = false;
         inimigo.temEscudo = false;

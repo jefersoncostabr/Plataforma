@@ -314,6 +314,10 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         ,garraDist: 0
         ,garraBracos: []
         ,garraItemCarregado: null
+        ,itensGuardadosNoCinto: false
+        ,cintoAnimando: false
+        ,cintoAnimTimeout: null
+        ,cintoAnimClones: []
     };
     
     window.inimigos.push(novoInimigo);

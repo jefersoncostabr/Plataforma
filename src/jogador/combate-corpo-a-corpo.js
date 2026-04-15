@@ -20,11 +20,29 @@
             throw new Error('detectarColisaoHitbox é obrigatório para o sistema de combate corpo a corpo.');
         }
 
+        function cancelarChuteSeAgachado() {
+            if (!controle.estaAgachado) return false;
+
+            controle.tempoChute = 0;
+            controle.chutando = false;
+            controle.framesImpulsoRestante = 0;
+            controle.velocidadeDash = 0;
+            return true;
+        }
+
         function atualizarEstadoChute() {
+            if (cancelarChuteSeAgachado()) {
+                return;
+            }
+
             controle.chutando = (controle.tempoChute || 0) > 0;
         }
 
         function iniciarChute(inimigos = window.inimigos) {
+            if (cancelarChuteSeAgachado()) {
+                return false;
+            }
+
             controle.tempoChute = Number(config.tempoChute ?? 0);
             controle.cooldownChute = Number(config.cooldownChute ?? 0);
 
@@ -40,17 +58,23 @@
             }
 
             atualizarEstadoChute();
+            return true;
         }
 
         function processarEntradaChute(inimigos = window.inimigos) {
+            if (controle.estaAgachado) {
+                cancelarChuteSeAgachado();
+                return false;
+            }
+
             if (acaoAtiva('chute') && (controle.cooldownChute || 0) === 0) {
-                iniciarChute(inimigos);
-                return true;
+                return iniciarChute(inimigos);
             }
             return false;
         }
 
         function aplicarImpulsoChute() {
+            if (cancelarChuteSeAgachado()) return;
             if ((controle.framesImpulsoRestante || 0) <= 0) return;
 
             const direcaoDash = controle.direcao === 'd' ? 1 : -1;
@@ -103,7 +127,7 @@
             const direcaoKnockback = controle.direcao === 'd' ? 1 : -1;
             let valorKnockbackInimigo = Number(obterKnockback(config, 'playerChute') || 0);
 
-            if (inimigo.temEscudo && !inimigo.escudoVermelho) {
+            if (inimigo.temEscudo && !inimigo.escudoVermelho && !inimigo.itensGuardadosNoCinto) {
                 valorKnockbackInimigo *= Number(config.escudoKnockbackMultiplicador ?? 0.5);
             }
 

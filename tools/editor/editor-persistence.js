@@ -70,16 +70,18 @@
             alert('JSON copiado!');
         }
 
-        function importarJSON() {
-            const jsonStr = output.value.trim();
-            if (!jsonStr) return null;
+        function carregarJSONTexto(jsonStr, opcoes = {}) {
+            const { mostrarMensagem = true, mensagemSucesso = 'Fase carregada com sucesso!' } = opcoes;
+            const texto = String(jsonStr || '').trim();
+            if (!texto) return null;
 
             try {
-                const data = JSON.parse(jsonStr);
+                const data = JSON.parse(texto);
                 const normalized = normalizeFaseData(data);
                 setFaseData(normalized);
                 if (typeof aplicarEstadoUI === 'function') aplicarEstadoUI(normalized);
-                alert('Fase carregada com sucesso!');
+                output.value = JSON.stringify(normalized, null, 4);
+                if (mostrarMensagem) alert(mensagemSucesso);
                 return normalized;
             } catch (e) {
                 alert('Erro ao importar JSON: Verifique se o código está correto.\n' + e.message);
@@ -87,9 +89,14 @@
             }
         }
 
+        function importarJSON() {
+            return carregarJSONTexto(output.value.trim(), { mostrarMensagem: true });
+        }
+
         return {
             exportarJSON,
-            importarJSON
+            importarJSON,
+            carregarJSONTexto
         };
     }
 

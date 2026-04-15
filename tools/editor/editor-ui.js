@@ -203,6 +203,107 @@
             };
         }
 
+        async function configurarSeletorFases(opcoes = {}) {
+            const {
+                persistencia,
+                basePath = '../../config/fases/',
+                arquivosCandidatos = []
+            } = opcoes;
+
+            const phaseList = document.getElementById('phase-list');
+            const refreshButton = document.getElementById('btn-refresh-phases');
+            if (!phaseList || !persistencia) return [];
+
+            const formatarNome = (arquivo) => {
+                const semExt = String(arquivo || '').replace(/\.json$/i, '');
+                if (semExt.toLowerCase() === 'treino') return 'Treino';
+                return semExt.replace(/fase(\d+)/i, 'Fase $1');
+            };
+
+            const marcarAtiva = (arquivoAtivo) => {
+                phaseList.querySelectorAll('.phase-entry').forEach((botao) => {
+                    botao.classList.toggle('active', botao.dataset.phaseFile === arquivoAtivo);
+                });
+            };
+
+            const carregarFaseArquivo = async (arquivo) => {
+                try {
+                    const resp = await fetch(`${basePath}${arquivo}`, { cache: 'no-store' });
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+                    const texto = await resp.text();
+                    const carregado = persistencia.carregarJSONTexto(texto, {
+                        mostrarMensagem: false
+                    });
+
+                    if (!carregado) {
+                        throw new Error('Falha ao aplicar os dados da fase.');
+                    }
+
+                    marcarAtiva(arquivo);
+                    alert(`${formatarNome(arquivo)} carregada com sucesso!`);
+                } catch (erro) {
+                    alert(`Erro ao carregar ${formatarNome(arquivo)}: ${erro.message}`);
+                }
+            };
+
+            const verificarArquivoExiste = async (arquivo) => {
+                const url = `${basePath}${arquivo}`;
+
+                try {
+                    const respostaHead = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+                    if (respostaHead.ok) return true;
+                    if (![405, 501].includes(respostaHead.status)) return false;
+                } catch (e) {
+                    // tenta fallback abaixo
+                }
+
+                try {
+                    const respostaGet = await fetch(url, { cache: 'no-store' });
+                    return respostaGet.ok;
+                } catch (e) {
+                    return false;
+                }
+            };
+
+            const detectarExistentes = async () => {
+                phaseList.innerHTML = '<div class="phase-list-empty">Detectando fases existentes...</div>';
+
+                const encontrados = [];
+                for (const arquivo of arquivosCandidatos) {
+                    const existe = await verificarArquivoExiste(arquivo);
+                    if (existe) {
+                        encontrados.push(arquivo);
+                    }
+                }
+
+                phaseList.innerHTML = '';
+
+                if (encontrados.length === 0) {
+                    phaseList.innerHTML = '<div class="phase-list-empty">Nenhuma fase detectada.</div>';
+                    return encontrados;
+                }
+
+                encontrados.forEach((arquivo) => {
+                    const botao = document.createElement('button');
+                    botao.type = 'button';
+                    botao.className = 'phase-entry';
+                    botao.dataset.phaseFile = arquivo;
+                    botao.textContent = formatarNome(arquivo);
+                    botao.onclick = () => carregarFaseArquivo(arquivo);
+                    phaseList.appendChild(botao);
+                });
+
+                return encontrados;
+            };
+
+            if (refreshButton) {
+                refreshButton.onclick = () => detectarExistentes();
+            }
+
+            return detectarExistentes();
+        }
+
         return {
             configurarPaleta,
             configurarPaletaDinamicaItens,
@@ -212,6 +313,7 @@
             configurarStage,
             configurarTeclasGlobais,
             configurarSpawnAleatorio,
+            configurarSeletorFases,
             fillBottomLayer
         };
     }

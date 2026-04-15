@@ -70,6 +70,264 @@ function criarElementosSuporteEquipamentos(opcoes = {}) {
     return { cintoElemento, paraquedasElemento };
 }
 
+function obterEquipamentosCintoPortador(portador, elementos = {}) {
+    if (!portador) return [];
+
+    const {
+        armaElemento,
+        escudoElemento,
+        botaElemento,
+        jetpackElemento,
+        garraElemento
+    } = elementos;
+
+    return [
+        { tipo: 'revolver', possui: !!portador.temArma, elemento: armaElemento },
+        { tipo: 'escudo', possui: !!portador.temEscudo || !!portador.escudoVermelho, elemento: escudoElemento },
+        { tipo: 'bota', possui: !!portador.temBota, elemento: botaElemento },
+        { tipo: 'jetpack', possui: !!portador.temJetpack, elemento: jetpackElemento },
+        { tipo: 'garra', possui: !!portador.temGarra, elemento: garraElemento }
+    ].filter(item => item.possui && item.elemento);
+}
+
+function atualizarVisibilidadeEquipamentosCintoPortador(portador, elementos = {}, opcoes = {}) {
+    if (!portador) return;
+
+    const {
+        armaElemento,
+        escudoElemento,
+        botaElemento,
+        jetpackElemento,
+        jetFogoElemento,
+        garraElemento
+    } = elementos;
+    const { atualizarVisualEscudo = null } = opcoes;
+    const guardados = !!portador.itensGuardadosNoCinto;
+
+    if (armaElemento) {
+        armaElemento.style.display = (portador.temArma && !guardados) ? 'block' : 'none';
+    }
+
+    if (escudoElemento) {
+        escudoElemento.style.display = ((portador.temEscudo || portador.escudoVermelho) && !guardados) ? 'block' : 'none';
+    }
+
+    if (botaElemento) {
+        botaElemento.style.display = (portador.temBota && !guardados) ? 'block' : 'none';
+    }
+
+    if (jetpackElemento) {
+        jetpackElemento.style.display = (portador.temJetpack && !guardados) ? 'block' : 'none';
+    }
+
+    if (jetFogoElemento && (!portador.temJetpack || guardados || !portador.jetpackAtivo)) {
+        jetFogoElemento.style.display = 'none';
+    }
+
+    if (garraElemento) {
+        if (guardados) {
+            garraElemento.style.display = 'none';
+        } else if (portador.temGarra && (!portador.garraAnimEstado || portador.garraAnimEstado === 'idle')) {
+            garraElemento.style.display = 'block';
+        } else if (!portador.temGarra) {
+            garraElemento.style.display = 'none';
+        }
+    }
+
+    if (typeof atualizarVisualEscudo === 'function') {
+        atualizarVisualEscudo();
+    }
+}
+
+function alternarItensNoCintoPortador(opcoes = {}) {
+    const {
+        portador,
+        elementoBase,
+        cintoElemento,
+        armaElemento,
+        escudoElemento,
+        botaElemento,
+        jetpackElemento,
+        jetFogoElemento,
+        garraElemento,
+        atualizarVisualEscudo = () => {},
+        tentarLevantar = () => true,
+        flashElement,
+        guardar
+    } = opcoes;
+
+    if (!portador?.temCinto || !elementoBase?.parentElement || !cintoElemento) return false;
+
+    inicializarEstadoCinto(portador);
+
+    if (portador.cintoAnimando || portador.vendaEmCurso || portador.stunned) return false;
+    if (portador.garraAnimEstado && portador.garraAnimEstado !== 'idle') return false;
+    if (portador.garraItemCarregado) return false;
+
+    const equipamentos = obterEquipamentosCintoPortador(portador, {
+        armaElemento,
+        escudoElemento,
+        botaElemento,
+        jetpackElemento,
+        garraElemento
+    });
+
+    const guardando = typeof guardar === 'boolean' ? guardar : !portador.itensGuardadosNoCinto;
+    if (guardando === !!portador.itensGuardadosNoCinto) return false;
+    if (!guardando && portador.estaAgachado && !tentarLevantar()) {
+        if (typeof flashElement === 'function') {
+            flashElement(cintoElemento, 140, 5);
+        }
+        return false;
+    }
+    if (!guardando && equipamentos.length === 0) {
+        portador.itensGuardadosNoCinto = false;
+        return false;
+    }
+    if (guardando && equipamentos.length === 0) return false;
+
+    const removerClones = () => {
+        if (!Array.isArray(portador.cintoAnimClones)) return;
+        portador.cintoAnimClones.forEach((clone) => {
+            if (clone?.parentElement) clone.remove();
+        });
+        portador.cintoAnimClones = [];
+    };
+
+    const limparTemporizador = () => {
+        if (portador.cintoAnimTimeout) {
+            clearTimeout(portador.cintoAnimTimeout);
+            portador.cintoAnimTimeout = null;
+        }
+    };
+
+    const obterOffsetAnimacao = (tipo, indice = 0) => {
+        const direcao = portador.direcao === 'e' ? -1 : 1;
+        switch (tipo) {
+            case 'revolver': return { x: 12 * direcao, y: 10 + (indice * 2) };
+            case 'escudo': return { x: -12 * direcao, y: 8 + (indice * 2) };
+            case 'bota': return { x: 0, y: -6 };
+            case 'jetpack': return { x: -8 * direcao, y: 12 };
+            case 'garra': return { x: 14 * direcao, y: 2 };
+            default: return { x: 0, y: 4 };
+        }
+    };
+
+    const obterPosicaoCinto = (tipo, indice = 0) => {
+        const { x: offsetX, y: offsetY } = obterOffsetAnimacao(tipo, indice);
+        return {
+            x: portador.x + (offsetX * 0.35),
+            y: portador.y + offsetY,
+            transform: `${elementoBase.style.transform || 'scaleX(1)'} scale(0.2)`
+        };
+    };
+
+    const obterTransformAtualEquipamento = (item) => {
+        const baseTransform = elementoBase.style.transform || 'scaleX(1)';
+        if (item?.tipo === 'revolver' && armaElemento?.dataset?.recoil === 'true') {
+            const direcaoFator = portador.direcao === 'e' ? 1 : -1;
+            return `${baseTransform} rotate(${15 * direcaoFator}deg)`;
+        }
+        return baseTransform;
+    };
+
+    const sincronizarEquipamento = (item) => {
+        if (!item?.elemento) return;
+        item.elemento.style.left = portador.x + 'px';
+        item.elemento.style.bottom = portador.y + 'px';
+        item.elemento.style.transform = obterTransformAtualEquipamento(item);
+    };
+
+    const criarCloneAnimacao = (item, indice = 0) => {
+        if (!item?.elemento) return null;
+
+        const clone = item.elemento.cloneNode(true);
+        const origem = guardando
+            ? { x: portador.x, y: portador.y, transform: obterTransformAtualEquipamento(item) }
+            : obterPosicaoCinto(item.tipo, indice);
+        const destino = guardando
+            ? obterPosicaoCinto(item.tipo, indice)
+            : { x: portador.x, y: portador.y, transform: obterTransformAtualEquipamento(item) };
+
+        clone.removeAttribute('id');
+        clone.style.position = 'absolute';
+        clone.style.pointerEvents = 'none';
+        clone.style.display = 'block';
+        clone.style.opacity = guardando ? '1' : '0.2';
+        clone.style.left = origem.x + 'px';
+        clone.style.bottom = origem.y + 'px';
+        clone.style.transform = origem.transform;
+        clone.style.transition = 'left 220ms ease, bottom 220ms ease, transform 220ms ease, opacity 220ms ease';
+        clone.style.zIndex = String(Number(item.elemento.style.zIndex || 10) + 20);
+        elementoBase.parentElement.appendChild(clone);
+
+        requestAnimationFrame(() => {
+            clone.style.left = destino.x + 'px';
+            clone.style.bottom = destino.y + 'px';
+            clone.style.opacity = guardando ? '0.15' : '1';
+            clone.style.transform = destino.transform;
+        });
+
+        return clone;
+    };
+
+    portador.cintoAnimando = true;
+    portador.jetpackAtivo = false;
+    portador.jetpackHovering = false;
+    if (jetFogoElemento) jetFogoElemento.style.display = 'none';
+
+    limparTemporizador();
+    removerClones();
+
+    if (typeof flashElement === 'function') {
+        flashElement(cintoElemento, 180, 6);
+    }
+
+    equipamentos.forEach((item, indice) => {
+        const clone = criarCloneAnimacao(item, indice);
+        if (clone) portador.cintoAnimClones.push(clone);
+    });
+
+    if (guardando) {
+        portador.itensGuardadosNoCinto = true;
+        atualizarVisibilidadeEquipamentosCintoPortador(portador, {
+            armaElemento,
+            escudoElemento,
+            botaElemento,
+            jetpackElemento,
+            jetFogoElemento,
+            garraElemento
+        }, { atualizarVisualEscudo });
+    }
+
+    portador.cintoAnimTimeout = setTimeout(() => {
+        removerClones();
+
+        if (!guardando) {
+            equipamentos.forEach((item) => sincronizarEquipamento(item));
+            portador.itensGuardadosNoCinto = false;
+        }
+
+        atualizarVisibilidadeEquipamentosCintoPortador(portador, {
+            armaElemento,
+            escudoElemento,
+            botaElemento,
+            jetpackElemento,
+            jetFogoElemento,
+            garraElemento
+        }, { atualizarVisualEscudo });
+
+        portador.cintoAnimando = false;
+        portador.cintoAnimTimeout = null;
+    }, 320);
+
+    return true;
+}
+
+window.obterEquipamentosCintoPortador = obterEquipamentosCintoPortador;
+window.atualizarVisibilidadeEquipamentosCintoPortador = atualizarVisibilidadeEquipamentosCintoPortador;
+window.alternarItensNoCintoPortador = alternarItensNoCintoPortador;
+
 function criarSistemaVisuaisEquipamentos(opcoes = {}) {
     const {
         controle,

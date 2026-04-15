@@ -414,7 +414,7 @@
                         const direcaoKnockback = (controle.direcao === 'd' ? 1 : -1);
                         let valorKnockbackInimigo = obterKnockback(config, 'playerChute');
 
-                        if (inimigoAtingido.temEscudo && !inimigoAtingido.escudoVermelho) {
+                        if (inimigoAtingido.temEscudo && !inimigoAtingido.escudoVermelho && !inimigoAtingido.itensGuardadosNoCinto) {
                             valorKnockbackInimigo *= Number(config.escudoKnockbackMultiplicador ?? 0.5);
                         }
 

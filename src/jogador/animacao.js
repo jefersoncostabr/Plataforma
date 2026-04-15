@@ -4,12 +4,6 @@
  */
 function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spriteNoAr, spriteAgachado, spriteAgachadoAndando) {
     //console.log('[ANIMACAO] Função chamada - tempo chute:', controle.tempoChute, 'chutando:', controle.chutando);
-    
-    // Se o personagem estiver chutando, não altera o sprite aqui para evitar conflitos
-    if (controle.chutando || (controle.tempoChute > 0)) {
-        //console.log('[ANIMACAO] ❌ Ignorando - personagem chutando');
-        return;
-    }
 
     // Inicializa contadores se não existirem
     if (controle.contadorAnimacao === undefined) {
@@ -38,6 +32,12 @@ function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spri
             elemento.src = controle.frameAtual === 0 ? agachadoParado : agachadoAndando;
             controle.contadorAnimacao = 0;
         }
+        return;
+    }
+
+    // Se o personagem estiver chutando, não altera o sprite aqui para evitar conflitos
+    if (controle.chutando || (controle.tempoChute > 0)) {
+        //console.log('[ANIMACAO] ❌ Ignorando - personagem chutando');
         return;
     }
 

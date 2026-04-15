@@ -43,7 +43,9 @@
         "h3", "h9"
     ],
     "plataformasNeve": [],
-    "plataformasTerraInferior": [],
+    "plataformasTerraInferior": [
+        "b19"
+    ],
     "plataformasTerraSuperior": [],
     "plataformasTerraInferior2": [],
     "plataformasTerraSuperior2": [],

@@ -1113,7 +1113,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             inimigo.estaColetando = false;
                             inimigo.timerColeta = 0;
 
-                            if (inimigo.temEscudo && !inimigo.escudoVermelho) {
+                            if (inimigo.temEscudo && !inimigo.escudoVermelho && !inimigo.itensGuardadosNoCinto) {
                                 inimigo.escudoProtegido = (inimigo.escudoProtegido || 0) + 1;
                                 const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
                                 

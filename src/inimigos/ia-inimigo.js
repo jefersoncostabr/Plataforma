@@ -526,6 +526,19 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 const xAlvo = itemInteresse ? itemInteresse.x : playerX;
                 const yAlvo = itemInteresse ? itemInteresse.y : playerY;
 
+                if (typeof window.inicializarEstadoCinto === 'function') {
+                    window.inicializarEstadoCinto(inimigo);
+                }
+
+                const elementosEquipamentoInimigo = {
+                    armaElemento: inimigo.armaElemento,
+                    escudoElemento: inimigo.escudoElemento,
+                    botaElemento: inimigo.botaElemento,
+                    jetpackElemento: inimigo.jetpackElemento,
+                    jetFogoElemento: inimigo.jetFogoElemento,
+                    garraElemento: inimigo.garraElemento
+                };
+
                 // Lógica de IA: agacha quando já está sob teto baixo OU quando detecta passagem baixa à frente.
                 const alturaAgachado = Number(config.agachadoHitboxAltura ?? 16);
                 const alturaEmPe = Number(inimigo.alturaEmPe || config.HITBOX_ALTURA || 30);
@@ -568,8 +581,54 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     precisaAgacharAFrente = !!bloqueioEmPeFrente && !bloqueioAgachadoFrente;
                 }
 
+                const contarEquipamentosVisiveis = () => {
+                    let total = 0;
+                    if (inimigo.temArma) total++;
+                    if (inimigo.temEscudo || inimigo.escudoVermelho) total++;
+                    if (inimigo.temBota) total++;
+                    if (inimigo.temJetpack) total++;
+                    if (inimigo.temGarra) total++;
+                    return total;
+                };
+
+                const precisaPassagemBaixa = precisaAgacharAgora || precisaAgacharAFrente;
+
+                if (inimigo.temCinto && typeof window.alternarItensNoCintoPortador === 'function') {
+                    if (precisaPassagemBaixa && contarEquipamentosVisiveis() > 0 && !inimigo.itensGuardadosNoCinto && !inimigo.cintoAnimando) {
+                        window.alternarItensNoCintoPortador({
+                            portador: inimigo,
+                            elementoBase: inimigo.elemento,
+                            cintoElemento: inimigo.cintoElemento,
+                            ...elementosEquipamentoInimigo,
+                            flashElement: (typeof flashElement === 'function') ? flashElement : undefined,
+                            guardar: true
+                        });
+                    } else if (!precisaPassagemBaixa && inimigo.itensGuardadosNoCinto && !inimigo.cintoAnimando) {
+                        window.alternarItensNoCintoPortador({
+                            portador: inimigo,
+                            elementoBase: inimigo.elemento,
+                            cintoElemento: inimigo.cintoElemento,
+                            ...elementosEquipamentoInimigo,
+                            flashElement: (typeof flashElement === 'function') ? flashElement : undefined,
+                            guardar: false
+                        });
+                    }
+                }
+
+                if (typeof window.atualizarVisibilidadeEquipamentosCintoPortador === 'function') {
+                    window.atualizarVisibilidadeEquipamentosCintoPortador(inimigo, elementosEquipamentoInimigo);
+                }
+
+                const temEquipamentoVisivelBloqueandoAgachamento = contarEquipamentosVisiveis() > 0 && !inimigo.itensGuardadosNoCinto;
                 inimigo.precisaAgacharPassagem = precisaAgacharAFrente;
-                inimigo.estaAgachado = precisaAgacharAgora || precisaAgacharAFrente;
+                inimigo.estaAgachado = precisaPassagemBaixa && !temEquipamentoVisivelBloqueandoAgachamento;
+
+                if (inimigo.estaAgachado && (inimigo.tempoChute || 0) > 0) {
+                    inimigo.tempoChute = 0;
+                    inimigo.framesImpulsoRestante = 0;
+                    inimigo.velocidadeDash = 0;
+                    inimigo.jaAtacouNesteChute = true;
+                }
                 
                 // Ajusta a hitbox de acordo com o estado agachado (ANTES das colisões, como o player)
                 inimigo.altura = inimigo.estaAgachado
@@ -585,7 +644,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 }
                 
                 // Penalidade de velocidade para o escudo ativo (igual ao player)
-                if (inimigo.temEscudo && !inimigo.escudoVermelho) {
+                if (inimigo.temEscudo && !inimigo.escudoVermelho && !inimigo.itensGuardadosNoCinto) {
                     const penalidade = Number(config.escudoVelocidadeReduzida ?? 2);
                     velAtiva = Math.max(0.5, velAtiva - penalidade); // Garante no mínimo 0.5 de velocidade
                 }
@@ -1053,7 +1112,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 // Executa o pulo ou VOO se o timer chegou a zero e foi agendado
                 if (!iaBloqueadaPorStun && inimigo.puloTimer === 0 && inimigo.jumpQueued) {
-                    if (inimigo.temJetpack && !inimigo.jetpackAtivo && inimigo.cooldownVooJetpack === 0) {
+                    if (inimigo.temJetpack && !inimigo.itensGuardadosNoCinto && !inimigo.jetpackAtivo && inimigo.cooldownVooJetpack === 0) {
                         inimigo.jetpackAtivo = true;
                         if (inimigo.timerVooRestante <= 0) {
                             inimigo.timerVooRestante = config.jetpackDuracaoVoo || 360;
@@ -1304,21 +1363,21 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 // Ações que dependem da ativação (movimento e ataque) - só se não estiver afastando, coletando ou usando a garra
                 if (!iaBloqueadaPorStun && inimigo.perseguindo && !inimigo.afastando && !inimigo.estaColetando) {
                     // Lógica para INICIAR o chute
-                    if (distanciaAtual <= config.distanciaAtaqueInimigo && inimigo.cooldownChute === 0) {
+                    if (!inimigo.estaAgachado && distanciaAtual <= config.distanciaAtaqueInimigo && inimigo.cooldownChute === 0) {
                         inimigo.tempoChute = config.tempoChute;
                         inimigo.cooldownChute = config.cooldownChute;
                         inimigo.jaAtacouNesteChute = false;
 
                         // Dash do inimigo (Suave e com bônus de bota)
                         const duracaoDash = 10;
-                        const multiplicadorChute = inimigo.temBota ? 2 : 1;
+                        const multiplicadorChute = (inimigo.temBota && !inimigo.itensGuardadosNoCinto) ? 2 : 1;
                         
                         inimigo.framesImpulsoRestante = duracaoDash;
                         inimigo.velocidadeDash = (config.impulsoChute * multiplicadorChute) / duracaoDash;
                     }
 
                     // Lógica para INICIAR o disparo
-                    if (inimigo.temArma && distanciaAtual <= alcanceTiro && distanciaAtual > config.distanciaAtaqueInimigo && inimigo.cooldownTiro === 0 && inimigo.municao > 0) {
+                    if (inimigo.temArma && !inimigo.itensGuardadosNoCinto && distanciaAtual <= alcanceTiro && distanciaAtual > config.distanciaAtaqueInimigo && inimigo.cooldownTiro === 0 && inimigo.municao > 0) {
                         inimigo.cooldownTiro = config.cooldownTiro;
                         inimigo.municao--;
                         
@@ -1405,7 +1464,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     }
 
                     // Lógica para INICIAR a Garra (se tiver e estiver no alcance)
-                    if (inimigo.temGarra && inimigo.garraAnimEstado === 'idle' && inimigo.cooldownGarra === 0 && distanciaAtual <= (config.garraAlcanceInimigo || 160)) {
+                    if (inimigo.temGarra && !inimigo.itensGuardadosNoCinto && inimigo.garraAnimEstado === 'idle' && inimigo.cooldownGarra === 0 && distanciaAtual <= (config.garraAlcanceInimigo || 160)) {
                         inimigo.garraAnimEstado = 'prep';
                         inimigo.garraTimer = 18;
                         inimigo.garraDirecaoAnim = (inimigo.x < playerX) ? 'd' : 'e';
