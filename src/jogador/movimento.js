@@ -19,82 +19,17 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     if (!resposta.ok) throw new Error(`Erro ao carregar configuracoes.json: ${resposta.statusText}`);
     const config = await resposta.json();
 
-    const CONTROLES_STORAGE_KEY = 'plataformaControles';
-    const CONTROLES_PADRAO = {
-        esquerda: ['ArrowLeft', 'a', 'A'],
-        direita: ['ArrowRight', 'd', 'D'],
-        cima: ['ArrowUp', 'w', 'W'],
-        baixo: ['ArrowDown', 's', 'S'],
-        pulo: [' '],
-        chute: ['k', 'K'],
-        tiro: ['i', 'I'],
-        garra: ['j', 'J'],
-        cinto: ['l', 'L']
-    };
-
-    function normalizarControles(raw) {
-        const base = { ...CONTROLES_PADRAO };
-        if (!raw || typeof raw !== 'object') return base;
-
-        Object.keys(base).forEach((acao) => {
-            const valor = raw[acao];
-            if (Array.isArray(valor) && valor.length > 0) {
-                base[acao] = valor.map(v => String(v));
-            }
-        });
-
-        return base;
+    if (typeof window.criarSistemaInventarioJogador !== 'function') {
+        throw new Error('Erro ao carregar inventario.js: sistema de inventário indisponível.');
     }
 
-    async function carregarControles() {
-        let doArquivo = {};
-        try {
-            const resp = await fetch('../../config/controles.json');
-            if (resp.ok) doArquivo = await resp.json();
-        } catch (_) {
-            doArquivo = {};
-        }
-
-        let doStorage = {};
-        try {
-            const raw = localStorage.getItem(CONTROLES_STORAGE_KEY);
-            if (raw) doStorage = JSON.parse(raw);
-        } catch (_) {
-            doStorage = {};
-        }
-
-        window.controlesConfig = normalizarControles({ ...doArquivo, ...doStorage });
+    if (typeof window.criarSistemaControlesJogador !== 'function') {
+        throw new Error('Erro ao carregar controles.js: sistema de controles indisponível.');
     }
 
-    function getBinds(acao) {
-        const cfg = window.controlesConfig || CONTROLES_PADRAO;
-        const binds = cfg[acao];
-        return Array.isArray(binds) ? binds : [];
+    if (typeof window.criarSistemaHUDJogador !== 'function') {
+        throw new Error('Erro ao carregar hud.js: sistema de HUD indisponível.');
     }
-
-    function teclaEhAcao(tecla, acao) {
-        if (!tecla) return false;
-        const key = String(tecla);
-        return getBinds(acao).some(k => key === k || key.toLowerCase() === String(k).toLowerCase());
-    }
-
-    function acaoAtiva(acao) {
-        return getBinds(acao).some(k => {
-            const key = String(k);
-            return !!(controle.teclas[key] || controle.teclas[key.toLowerCase()] || controle.teclas[key.toUpperCase()]);
-        });
-    }
-
-    function consumirAcao(acao) {
-        getBinds(acao).forEach((k) => {
-            const key = String(k);
-            controle.teclas[key] = false;
-            controle.teclas[key.toLowerCase()] = false;
-            controle.teclas[key.toUpperCase()] = false;
-        });
-    }
-
-    await carregarControles();
 
     function obterKnockback(config, fonte = 'default') {
         const base = Number(config.knockbackBase ?? config.knockbackInimigo ?? 150);
@@ -221,7 +156,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
     }
 
-    const INVENTARIO_STORAGE_KEY = 'plataformaInventario';
     const spriteAgachado = '../../assets/personagem/per_agachado.png';
     const spriteAgachado2 = '../../assets/personagem/per_agachado2.png';
 
@@ -356,147 +290,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     }, tempoEspera);
 }
 
-    function droparItemJogador() {
-        if (!window.playerSkills || !window.playerSkills.includes('skilla')) {
-            console.log("Habilidade 'Dropar' não adquirida.");
-            return;
-        }
-        if (!controle.inventario || controle.inventario.length === 0) return;
-        const tipo = controle.inventario.pop();
-        // Novo sistema: se itemDefinitions existir e tiver o item, usa o novo fluxo
-        if (window.itemDefinitions && window.itemDefinitions[tipo]) {
-            const itemData = window.itemDefinitions[tipo];
-            // Atualiza estado do jogador conforme efeitos do JSON
-            if (itemData.efeitos && itemData.efeitos.jogador) {
-                for (const [chave, valor] of Object.entries(itemData.efeitos.jogador)) {
-                    if (chave === 'inventarioAdd' && Array.isArray(controle.inventario)) {
-                        // já removido do inventário
-                    } else {
-                        controle[chave] = valor;
-                    }
-                }
-            }
-            // Oculta visual se aplicável
-            if (tipo === 'revolver') {
-                armaElemento.style.display = 'none';
-            } else if (tipo === 'escudo') {
-                atualizarVisualEscudo();
-            } else if (tipo === 'bota') {
-                botaElemento.style.display = 'none';
-            } else if (tipo === 'jetpack') {
-                jetpackElemento.style.display = 'none';
-                jetFogoElemento.style.display = 'none';
-            } else if (tipo === 'garra') {
-                garraElemento.style.display = 'none';
-            } else if (tipo === 'cinto') {
-                cintoElemento.style.display = 'none';
-            }
-            // Posição do drop
-            const direcaoFace = controle.direcao === 'd' ? 1 : -1;
-            let dropX = controle.x + (64 * direcaoFace);
-            if (typeof limitarPosicaoAoPalco === 'function') {
-                const posFinal = limitarPosicaoAoPalco(dropX, controle.y, 32, 32);
-                dropX = posFinal.x;
-            }
-            window.itensColetaveis.push(window.criarItemColetavel(itemData, dropX, controle.y));
-            if (typeof salvarInventario === 'function') salvarInventario();
-            return;
-        }
-        // Fallback: sistema antigo
-        const itemImg = document.createElement('img');
-        let dadosItem = { tipo: tipo, x: 0, y: controle.y, velocidadeY: 5 };
-        if (tipo === 'revolver') {
-            itemImg.src = config.spriteItemRevolver || '../../assets/personagem/revolver_pegavel.png';
-            dadosItem.municao = controle.municao;
-            controle.temArma = false;
-            armaElemento.style.display = 'none';
-        } else if (tipo === 'escudo') {
-            itemImg.src = config.spriteItemEscudo || '../../assets/personagem/escudo_pegavel.png';
-            if (controle.escudoVermelho) itemImg.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
-            dadosItem.escudoProtegido = controle.escudoProtegido;
-            dadosItem.escudoVermelho = controle.escudoVermelho;
-            controle.temEscudo = false;
-            controle.escudoVermelho = false;
-            atualizarVisualEscudo();
-        } else if (tipo === 'bota') {
-            itemImg.src = config.spriteItemBota || '../../assets/personagem/bota_pegavel.png';
-            controle.temBota = false;
-            botaElemento.style.display = 'none';
-        } else if (tipo === 'jetpack') {
-            itemImg.src = config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
-            controle.temJetpack = false;
-            controle.jetpackAtivo = false;
-            controle.timerAtivacaoJetpack = 0;
-            jetpackElemento.style.display = 'none';
-            jetFogoElemento.style.display = 'none';
-        } else if (tipo === 'garra') {
-            itemImg.src = config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
-            controle.temGarra = false;
-            garraElemento.style.display = 'none';
-        } else if (tipo === 'cinto') {
-            itemImg.src = config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
-            controle.temCinto = false;
-            cintoElemento.style.display = 'none';
-        }
-        itemImg.style.position = 'absolute';
-        itemImg.style.width = '32px';
-        itemImg.style.height = '32px';
-        itemImg.style.imageRendering = 'pixelated';
-        adicionarAoLayer(itemImg, window.LAYERS.ITENS);
-        const direcaoFace = controle.direcao === 'd' ? 1 : -1;
-        let dropX = controle.x + (64 * direcaoFace);
-        if (typeof limitarPosicaoAoPalco === 'function') {
-            const posFina = limitarPosicaoAoPalco(dropX, controle.y, 32, 32);
-            dropX = posFina.x;
-        }
-        dadosItem.x = dropX;
-        dadosItem.elemento = itemImg;
-        window.itensColetaveis.push(dadosItem);
-        salvarInventario();
-    }
-
-    function droparItensInimigo(inimigo) {
-        if (!inimigo.inventario) return;
-        
-        // Lógica LIFO: Inverte a ordem para dropar o último item pego primeiro
-        const itensParaDropar = [...inimigo.inventario].reverse();
-        itensParaDropar.forEach((tipo, index) => {
-            const itemImg = document.createElement('img');
-            if (tipo === 'revolver') itemImg.src = config.spriteItemRevolver || '../../assets/personagem/revolver_pegavel.png';
-            else if (tipo === 'escudo') itemImg.src = config.spriteItemEscudo || '../../assets/personagem/escudo_pegavel.png';
-            else if (tipo === 'bota') itemImg.src = config.spriteItemBota || '../../assets/personagem/bota_pegavel.png';
-            else if (tipo === 'jetpack') itemImg.src = config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
-            else if (tipo === 'garra') itemImg.src = config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
-            else if (tipo === 'cinto') itemImg.src = config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
-
-            itemImg.style.position = 'absolute';
-            itemImg.style.width = '32px';
-            itemImg.style.height = '32px';
-            itemImg.style.imageRendering = 'pixelated';
-            adicionarAoLayer(itemImg, window.LAYERS.ITENS);
-
-            let dropX = inimigo.x;
-            let tentativa = 0;
-            const estaOcupado = (checkX) => window.itensColetaveis.some(it => 
-                Math.abs(it.x - checkX) < 20 && Math.abs(it.y - inimigo.y) < 20
-            );
-
-            // Busca a próxima posição adjacente livre (32px para cada lado)
-            while (estaOcupado(dropX)) {
-                tentativa++;
-                const direcao = tentativa % 2 === 0 ? -1 : 1;
-                const multiplier = Math.ceil(tentativa / 2);
-                dropX = inimigo.x + (32 * multiplier * direcao);
-            }
-
-            window.itensColetaveis.push({
-                x: dropX, y: inimigo.y,
-                elemento: itemImg, velocidadeY: 5,
-                tipo: tipo
-            });
-        });
-    }
-
     function limparEquipamentosVisuaisInimigo(inimigo) {
         if (!inimigo) return;
 
@@ -567,45 +360,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             window.inimigos.splice(index, 1);
         }
     }
-
-    function carregarInventarioSalvo() {
-        try {
-            const raw = localStorage.getItem(INVENTARIO_STORAGE_KEY);
-            if (!raw) return null;
-            return JSON.parse(raw);
-        } catch (error) {
-            console.error('Erro ao ler inventário salvo:', error);
-            return null;
-        }
-    }
-
-    function salvarInventario() {
-        try {
-            const estado = {
-                temEscudo: controle.temEscudo,
-                escudoVermelho: controle.escudoVermelho,
-                escudoProtegido: controle.escudoProtegido,
-                temArma: controle.temArma,
-                municao: controle.municao,
-                temBota: controle.temBota,
-                temJetpack: controle.temJetpack,
-                temCinto: controle.temCinto,
-                temGarra: controle.temGarra,
-                inventario: controle.inventario
-            };
-            localStorage.setItem(INVENTARIO_STORAGE_KEY, JSON.stringify(estado));
-        } catch (error) {
-            console.error('Erro ao salvar inventário:', error);
-        }
-    }
-
-    function limparInventarioSalvo() {
-        localStorage.removeItem(INVENTARIO_STORAGE_KEY);
-    }
-
-    window.salvarInventario = salvarInventario;
-    window.limparInventarioSalvo = limparInventarioSalvo;
-    window.carregarInventarioSalvo = carregarInventarioSalvo;
 
     function atualizarVisualEscudo() {
         if ((controle.temEscudo || controle.escudoVermelho) && !controle.itensGuardadosNoCinto) {
@@ -689,27 +443,29 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         teclas: {}
     };
 
-    const inventarioSalvo = carregarInventarioSalvo();
-    if (inventarioSalvo && typeof inventarioSalvo === 'object') {
-        controle.temEscudo = !!inventarioSalvo.temEscudo;
-        controle.escudoVermelho = !!inventarioSalvo.escudoVermelho;
-        controle.escudoProtegido = Number(inventarioSalvo.escudoProtegido || 0);
-        controle.temArma = !!inventarioSalvo.temArma;
-        controle.municao = Number(inventarioSalvo.municao || 0);
-        controle.temBota = !!inventarioSalvo.temBota;
-        controle.temJetpack = !!inventarioSalvo.temJetpack;
-        controle.temCinto = !!inventarioSalvo.temCinto;
-        controle.temGarra = !!inventarioSalvo.temGarra;
-        controle.inventario = Array.isArray(inventarioSalvo.inventario) ? [...inventarioSalvo.inventario] : [];
+    const inventarioSistema = window.criarSistemaInventarioJogador({
+        controle,
+        config,
+        atualizarVisualEscudo,
+        getElementos: () => ({
+            armaElemento,
+            botaElemento,
+            jetpackElemento,
+            jetFogoElemento,
+            garraElemento,
+            cintoElemento
+        })
+    });
 
-        // Compatibilidade com saves antigos baseados apenas no inventário.
-        if (controle.inventario.includes('revolver')) controle.temArma = true;
-        if (controle.inventario.includes('escudo')) controle.temEscudo = true;
-        if (controle.inventario.includes('bota')) controle.temBota = true;
-        if (controle.inventario.includes('jetpack')) controle.temJetpack = true;
-        if (controle.inventario.includes('garra')) controle.temGarra = true;
-        if (controle.inventario.includes('cinto')) controle.temCinto = true;
-    }
+    const {
+        salvarInventario,
+        limparInventarioSalvo,
+        droparItemJogador,
+        droparItensInimigo,
+        aplicarInventarioSalvo
+    } = inventarioSistema;
+
+    aplicarInventarioSalvo();
 
     // Variáveis específicas da animação da garra
     controle.garraAnimEstado = 'idle'; // idle, prep, esticando, catching, voltando
@@ -1257,63 +1013,19 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         console.error("ERRO: Não foi possível carregar a imagem do paraquedas em '../../assets/personagem/paraquedas.png'. Verifique o caminho e o arquivo.");
     };
 
-    // Elemento do HUD (Skill Visão)
-    const hudElemento = document.createElement('div');
-    hudElemento.id = 'player-hud';
-    hudElemento.style.position = 'absolute';
-    hudElemento.style.top = '10px';
-    hudElemento.style.left = '10px';
-    hudElemento.style.display = 'none';
-    hudElemento.style.gap = '5px';
-    hudElemento.style.alignItems = 'center';
-    hudElemento.style.zIndex = '100';
-    
-    // FIX: Anexa ao jogo-container (fixo) e não ao game-stage (móvel)
-    const containerFixo = document.getElementById('jogo-container') || elemento.parentElement;
-    containerFixo.appendChild(hudElemento);
+    const hudSistema = window.criarSistemaHUDJogador({
+        controle,
+        elemento,
+        config,
+        temEscudoAtivo
+    });
 
-    function atualizarHUD() {
-        if (!window.playerSkills || !window.playerSkills.includes('skillb')) {
-            hudElemento.style.display = 'none';
-            return;
-        }
-        hudElemento.style.display = 'flex';
-        hudElemento.innerHTML = ''; // Limpa para redesenhar
+    const { atualizarHUD } = hudSistema;
 
-        // Círculos de Vida
-        const vidaAtual = (controle.maxVida || 3) - (controle.dano || 0);
-        for (let i = 0; i < (controle.maxVida || 3); i++) {
-            const circulo = document.createElement('div');
-            circulo.className = 'hud-circle';
-            circulo.style.backgroundColor = (i < vidaAtual) ? 'red' : 'white';
-            hudElemento.appendChild(circulo);
-        }
-
-        // Quadrados de Escudo
-        if (temEscudoAtivo()) {
-            const slotsRestantes = (config.escudoTirosProtegidos || 3) - (controle.escudoProtegido || 0);
-            for (let i = 0; i < slotsRestantes; i++) {
-                const quadrado = document.createElement('div');
-                quadrado.className = 'hud-square';
-                hudElemento.appendChild(quadrado);
-            }
-        }
-    }
-
-    window.debugInimigoTeclas = {}; // Inicializa o objeto para teclas de debug do inimigo
-
-    // Detecta teclas pressionadas
-    window.addEventListener('keydown', (e) => {
-        // Log para confirmar o valor de e.key para a barra de espaço
-        // if (e.key === ' ') console.log("Movimentação: KeyDown capturado -> Barra de Espaço");
-        controle.teclas[e.key] = true;
-
-        // Agachar só é permitido quando o personagem está "leve".
-        if (!e.repeat) {
-            const apertouBaixo = teclaEhAcao(e.key, 'baixo');
-            const apertouCima = teclaEhAcao(e.key, 'cima');
-
-            if (apertouBaixo) {
+    const sistemaControles = window.criarSistemaControlesJogador({
+        controle,
+        callbacks: {
+            onAgachar: () => {
                 if (controle.estaAgachado) {
                     tentarLevantarJogador();
                 } else if (podeAgacharSemBloqueio()) {
@@ -1321,99 +1033,84 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 } else if (typeof flashElement === 'function') {
                     flashElement(elemento, 120, 4);
                 }
-            } else if (apertouCima) {
+            },
+            onLevantar: () => {
                 tentarLevantarJogador();
-            }
-        }
-
-        // Atalho para Menu de Pause (ESC ou Pause/Break)
-        if (e.key === 'Pause' || e.key === 'Break' || e.key === 'Escape' || e.key === 'Esc') {
-            if (typeof window.togglePauseMenu === 'function') {
-                window.togglePauseMenu();
-            } else {
-                console.error("Menu: Erro! A função window.togglePauseMenu não foi encontrada.");
-            }
-        }
-
-        // Atalho de Debug: Ganhar 5 de XP
-        if (e.key === '5') {
-            if (typeof window.ganharXP === 'function') window.ganharXP(5);
-        }
-
-        // Atalho para abrir árvore de habilidades
-        if (e.key === '6') {
-            // console.log("Comando: Tecla 6 detectada.");
-            if (typeof window.toggleSkillMenu === 'function' && !window.isPaused) {
-                window.toggleSkillMenu();
-            } else if (typeof window.toggleSkillMenu !== 'function') {
-                console.error("Erro: A função 'toggleSkillMenu' não foi encontrada. Verifique se o arquivo skills.js foi carregado corretamente.");
-            }
-        }
-
-        if (e.key === '7' && typeof criarInimigoAleatorio === 'function' && window.plataformas) {
-            const coordsArray = Object.keys(window.plataformas);
-            const tipoAleatorio = Math.floor(Math.random() * 3); // Sorteia entre 0, 1 e 2
-            criarInimigoAleatorio(coordsArray, tipoAleatorio);
-        }
-
-        if (e.key === '8') {
-            window.debugInimigoTeclas[' '] = true;
-        }
-
-        // Acionamento da Garra com a tecla J
-        if (teclaEhAcao(e.key, 'garra') && controle.temGarra && !controle.itensGuardadosNoCinto && controle.garraAnimEstado === 'idle') {
-            controle.garraAnimEstado = 'prep';
-            controle.garraTimer = 18; // ~0.3s a 60fps
-            controle.garraDirecaoAnim = controle.direcao;
-        }
-
-        if (!e.repeat && teclaEhAcao(e.key, 'cinto')) {
-            alternarItensNoCinto();
-        }
-
-        if (e.key === '0') {
-            limparInventarioSalvo();
-            console.log('Inventário salvo zerado.');
-            controle.temEscudo = false;
-            controle.escudoVermelho = false;
-            controle.escudoProtegido = 0;
-            controle.temArma = false;
-            controle.municao = 0;
-            controle.temBota = false;
-            controle.framesKnockbackRestante = 0;
-            controle.velocidadeKnockback = 0;
-            controle.temGarra = false;
-            botaElemento.style.display = 'none';
-            controle.inventario = [];
-            // Novas linhas para remover o Jetpack
-            controle.temJetpack = false;
-            controle.jetpackAtivo = false;
-            garraElemento.style.display = 'none';
-            controle.temCinto = false;
-            cintoElemento.style.display = 'none';
-            controle.timerAtivacaoJetpack = 0;
-            controle.timerVooRestante = 0;
-            controle.cooldownVooJetpack = 0;
-            atualizarVisualEscudo();
-            if (typeof armaElemento !== 'undefined') {
-                armaElemento.style.display = 'none';
-            }
-        }
-
-        if (e.key === '9' && window.inimigos) {
-            for (let i = window.inimigos.length - 1; i >= 0; i--) {
-                const inimigo = window.inimigos[i];
-                removerInimigoDerrotado(inimigo);
+            },
+            onTogglePauseMenu: () => {
+                if (typeof window.togglePauseMenu === 'function') {
+                    window.togglePauseMenu();
+                } else {
+                    console.error("Menu: Erro! A função window.togglePauseMenu não foi encontrada.");
+                }
+            },
+            onGanharXP: (valor) => {
+                if (typeof window.ganharXP === 'function') window.ganharXP(valor);
+            },
+            onToggleSkillMenu: () => {
+                if (typeof window.toggleSkillMenu === 'function' && !window.isPaused) {
+                    window.toggleSkillMenu();
+                } else if (typeof window.toggleSkillMenu !== 'function') {
+                    console.error("Erro: A função 'toggleSkillMenu' não foi encontrada. Verifique se o arquivo skills.js foi carregado corretamente.");
+                }
+            },
+            onCriarInimigoAleatorio: () => {
+                if (typeof criarInimigoAleatorio === 'function' && window.plataformas) {
+                    const coordsArray = Object.keys(window.plataformas);
+                    const tipoAleatorio = Math.floor(Math.random() * 3);
+                    criarInimigoAleatorio(coordsArray, tipoAleatorio);
+                }
+            },
+            onAcionarGarra: () => {
+                if (controle.temGarra && !controle.itensGuardadosNoCinto && controle.garraAnimEstado === 'idle') {
+                    controle.garraAnimEstado = 'prep';
+                    controle.garraTimer = 18;
+                    controle.garraDirecaoAnim = controle.direcao;
+                }
+            },
+            onAlternarCinto: () => {
+                alternarItensNoCinto();
+            },
+            onResetDebug: () => {
+                limparInventarioSalvo();
+                console.log('Inventário salvo zerado.');
+                controle.temEscudo = false;
+                controle.escudoVermelho = false;
+                controle.escudoProtegido = 0;
+                controle.temArma = false;
+                controle.municao = 0;
+                controle.temBota = false;
+                controle.framesKnockbackRestante = 0;
+                controle.velocidadeKnockback = 0;
+                controle.temGarra = false;
+                botaElemento.style.display = 'none';
+                controle.inventario = [];
+                controle.temJetpack = false;
+                controle.jetpackAtivo = false;
+                garraElemento.style.display = 'none';
+                controle.temCinto = false;
+                cintoElemento.style.display = 'none';
+                controle.timerAtivacaoJetpack = 0;
+                controle.timerVooRestante = 0;
+                controle.cooldownVooJetpack = 0;
+                atualizarVisualEscudo();
+                if (typeof armaElemento !== 'undefined') {
+                    armaElemento.style.display = 'none';
+                }
+            },
+            onEliminarInimigos: () => {
+                if (window.inimigos) {
+                    for (let i = window.inimigos.length - 1; i >= 0; i--) {
+                        const inimigo = window.inimigos[i];
+                        removerInimigoDerrotado(inimigo);
+                    }
+                }
             }
         }
     });
 
-    window.addEventListener('keyup', (e) => {
-        controle.teclas[e.key] = false;
-        if (e.key === '8') {
-            window.debugInimigoTeclas[' '] = false;
-        }
-    });
+    const { teclaEhAcao, acaoAtiva, consumirAcao } = sistemaControles;
+    await sistemaControles.inicializar();
 
     function atualizar() {
         // Lógica de Stun do Jogador (quando capturado pela garra inimiga)
