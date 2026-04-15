@@ -2,6 +2,21 @@
     "proporcao": "2x2",
     "posicaoInicialJogador": "b2",
     "objetivo": "f40",
+    "itens": [
+        {
+            "tipo": "restauracao",
+            "pos": "m30"
+        },
+        {
+            "tipo": "restauracao",
+            "pos": "b19"
+        },
+        {
+            "tipo": "restauracao",
+            "pos": "b26"
+        }
+    ],
+    "inimigoAleatorio": [1, 0],
     "plataformas": [],
     "plataformasNeve": [
         "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
@@ -18,7 +33,7 @@
         "l14", "l30",
         "m15", "m29",
         "n16", "n29",
-        "o17", "o29",
+        "o29",
         "p18", "p28",
         "q18", "q28",
         "r18", "r28",
@@ -32,7 +47,8 @@
     "plataformasTerraSuperior": [],
     "plataformasTerraInferior2": [],
     "plataformasTerraSuperior2": [
-        "b8", "b33"
+        "b8", "b33",
+        "o17"
     ],
     "plataformasEstacaSup": [
         "b16"
@@ -42,44 +58,10 @@
     "plataformasEstacaBaixo": [],
     "inimigos0": [],
     "inimigos1": ["b21", "b22", "b23", "b24"],
-    "inimigos2": ["b13", "b32"],
+    "inimigos2": ["b13", "b32", "v25"],
     "inimigos3": [],
     "inimigos4": [],
     "inimigos5": ["v19", "v26"],
-    "inimigos6": ["v23"],
-    "itens": [
-        {
-            "tipo": "restauracao",
-            "pos": "m30"
-        },
-        {
-            "tipo": "restauracao",
-            "pos": "b19"
-        },
-        {
-            "tipo": "restauracao",
-            "pos": "b26"
-        },
-        {
-            "tipo": "jetpack",
-            "pos": "v24"
-        },
-        {
-            "tipo": "revolver",
-            "pos": "v22"
-        },
-        {
-            "tipo": "escudo",
-            "pos": "v21"
-        },
-        {
-            "tipo": "bota",
-            "pos": "v25"
-        },
-        {
-            "tipo": "garra",
-            "pos": "e22"
-        }
-    ],
-    "inimigoAleatorio": [1, 0]
+    "inimigos6": [],
+    "inimigos7": []
 }

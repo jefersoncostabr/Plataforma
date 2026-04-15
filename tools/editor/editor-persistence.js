@@ -35,8 +35,12 @@
             });
 
             const formatarPlataformas = (match, key, content) => {
-                const items = content.split('\n').map(l => l.trim()).filter(l => l !== '').map(v => v.replace(/,/g, ''));
+                const items = Array.from(content.matchAll(/"[^"]+"/g), (resultado) => resultado[0]);
                 if (items.length === 0) return `"${key}": []`;
+
+                if (/^inimigos\d+$/.test(key)) {
+                    return `"${key}": [${items.join(', ')}]`;
+                }
 
                 const rows = [];
                 let currentLine = [];

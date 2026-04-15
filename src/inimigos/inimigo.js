@@ -3,6 +3,34 @@
  */
 window.inimigos = [];
 
+function letrasParaIndiceGridInimigo(letras) {
+    const texto = String(letras || '').trim().toLowerCase();
+    if (!texto) return 0;
+
+    let indice = 0;
+    for (const char of texto) {
+        const codigo = char.charCodeAt(0);
+        if (codigo < 97 || codigo > 122) continue;
+        indice = (indice * 26) + (codigo - 96);
+    }
+
+    return Math.max(0, indice - 1);
+}
+
+function parseCoordGridInimigo(coord) {
+    const match = String(coord || '').trim().toLowerCase().match(/^([a-z]+)(\d+)$/);
+    if (!match) return null;
+
+    const numero = parseInt(match[2], 10);
+    if (Number.isNaN(numero) || numero <= 0) return null;
+
+    return {
+        letras: match[1],
+        row: letrasParaIndiceGridInimigo(match[1]),
+        col: numero - 1
+    };
+}
+
 /**
  * Cria um inimigo no palco baseado em coordenadas do grid.
  * 
@@ -16,25 +44,14 @@ function criarInimigo(idPalco, imagemPath, coord, direcao = 'e', tipo = 1) {
     const palco = document.getElementById(idPalco);
     if (!palco) return;
 
-    // Converte coordenada (ex: "b10") para pixels
-    const coordLimpa = coord.trim().toLowerCase();
-    const match = coordLimpa.match(/^([a-z]+)(\d+)$/);
-    if (!match) return;
-
-    const letras = match[1];
-    const col = parseInt(match[2]) - 1;
-    
-    let row = 0;
-    if (letras.length === 1) {
-        row = letras.charCodeAt(0) - 'a'.charCodeAt(0);
-    } else {
-        row = (letras.charCodeAt(0) - 'a'.charCodeAt(0) + 1) * 26 + (letras.charCodeAt(1) - 'a'.charCodeAt(0));
-    }
+    // Converte coordenada (ex: "b10" ou "ab20") para pixels
+    const partes = parseCoordGridInimigo(coord);
+    if (!partes) return;
 
     const tamanhoTile = 32;
 
-    const x = col * tamanhoTile;
-    const y = row * tamanhoTile;
+    const x = partes.col * tamanhoTile;
+    const y = partes.row * tamanhoTile;
 
     const inimigoImg = document.createElement('img');
     inimigoImg.src = imagemPath;
@@ -82,25 +99,14 @@ function criarInimigo(idPalco, imagemPath, coord, direcao = 'e', tipo = 1) {
  * @returns {object} Objeto com x e y em pixels.
  */
 window.gridParaPixels = function(coord) {
-    const coordLimpa = coord.trim().toLowerCase();
-    const match = coordLimpa.match(/^([a-z]+)(\d+)$/);
-    if (!match) return {x:0, y:0, coord: coord};
-
-    const letras = match[1];
-    const col = parseInt(match[2]) - 1;
-
-    let row = 0;
-    if (letras.length === 1) {
-        row = letras.charCodeAt(0) - 'a'.charCodeAt(0);
-    } else {
-        row = (letras.charCodeAt(0) - 'a'.charCodeAt(0) + 1) * 26 + (letras.charCodeAt(1) - 'a'.charCodeAt(0));
-    }
+    const partes = parseCoordGridInimigo(coord);
+    if (!partes) return {x:0, y:0, coord: coord};
 
     const tamanhoTile = 32;
     
     return {
-        x: col * tamanhoTile,
-        y: row * tamanhoTile,
+        x: partes.col * tamanhoTile,
+        y: partes.row * tamanhoTile,
         coord: coord
     };
 }
@@ -167,15 +173,12 @@ function gerarPosicaoAleatoria(plataformas) {
     for (let i = 0; i < maxTentativas; i++) {
         // Escolhe uma plataforma aleatória
         const coordAleatoria = plataformas[Math.floor(Math.random() * plataformas.length)];
-        const coordLimpa = coordAleatoria.trim().toLowerCase();
-        const letra = coordLimpa[0];
-        const numero = parseInt(coordLimpa.substring(1));
+        const partes = parseCoordGridInimigo(coordAleatoria);
+        if (!partes) continue;
         
         // Posição base da plataforma
-        const row = letra.charCodeAt(0) - 'a'.charCodeAt(0);
-        const col = numero - 1;
-        const x = col * tamanhoTile;
-        const baseY = row * tamanhoTile;
+        const x = partes.col * tamanhoTile;
+        const baseY = partes.row * tamanhoTile;
         
         // Tenta colocar o inimigo em diferentes posições acima da plataforma
         for (let offset = 1; offset <= 5; offset++) {
@@ -192,14 +195,11 @@ function gerarPosicaoAleatoria(plataformas) {
     
     // Segundo: se não encontrar aleatoriamente, tenta todas as plataformas
     for (let coordAleatoria of plataformas) {
-        const coordLimpa = coordAleatoria.trim().toLowerCase();
-        const letra = coordLimpa[0];
-        const numero = parseInt(coordLimpa.substring(1));
+        const partes = parseCoordGridInimigo(coordAleatoria);
+        if (!partes) continue;
         
-        const row = letra.charCodeAt(0) - 'a'.charCodeAt(0);
-        const col = numero - 1;
-        const x = col * tamanhoTile;
-        const baseY = row * tamanhoTile;
+        const x = partes.col * tamanhoTile;
+        const baseY = partes.row * tamanhoTile;
         
         // Tenta colocar em posições acima da plataforma
         for (let offset = 1; offset <= 5; offset++) {

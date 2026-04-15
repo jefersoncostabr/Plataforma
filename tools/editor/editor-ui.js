@@ -142,16 +142,22 @@
             };
         }
 
+        function obterCoordEventoStage(e) {
+            const rect = stage.getBoundingClientRect();
+            const scrollLeft = stage.parentElement?.scrollLeft || 0;
+            const scrollTop = stage.parentElement?.scrollTop || 0;
+            const x = (e.clientX - rect.left) + scrollLeft;
+            const y = (rect.bottom - e.clientY) + scrollTop;
+            return pointToCoord(x, y, tileSize);
+        }
+
         function configurarTooltip() {
             tooltipElement = document.createElement('div');
             tooltipElement.id = 'editor-tooltip';
             document.body.appendChild(tooltipElement);
 
             stage.addEventListener('mousemove', (e) => {
-                const rect = stage.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = rect.bottom - e.clientY;
-                const coord = pointToCoord(x, y, tileSize);
+                const coord = obterCoordEventoStage(e);
                 const legenda = getLegendaCoord(coord);
 
                 if (legenda) {
@@ -171,10 +177,7 @@
 
         function configurarStage() {
             stage.addEventListener('mousedown', (e) => {
-                const rect = stage.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = rect.bottom - e.clientY;
-                const coord = pointToCoord(x, y, tileSize);
+                const coord = obterCoordEventoStage(e);
 
                 if (e.button === 0) adicionarElemento(coord);
                 else if (e.button === 2) removerElemento(coord);

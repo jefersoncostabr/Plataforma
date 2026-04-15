@@ -2,6 +2,8 @@
     "proporcao": "1x1",
     "posicaoInicialJogador": "b2",
     "objetivo": "f19",
+    "itens": [],
+    "inimigoAleatorio": [1, 0],
     "plataformas": [
         "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a18", "a19", "a20",
         "b6", "b10", "b14", "b16",
@@ -18,9 +20,11 @@
         "g4", "g5"
     ],
     "plataformasTerraSuperior": [
-        "c2"
+        "c2",
+        "k4", "k10"
     ],
     "plataformasTerraInferior2": [
+        "d6", "d13",
         "h6", "h7", "h8",
         "l12", "l13"
     ],
@@ -45,15 +49,14 @@
     "plataformasEstacaBaixo": [
         "c1",
         "j6", "j7", "j8",
-        "k4", "k5", "k9", "k10"
+        "k5", "k9"
     ],
-    "inimigos0": [],
+    "inimigos0": ["b12", "b13", "c18", "j11", "l7"],
     "inimigos1": [],
     "inimigos2": [],
     "inimigos3": [],
     "inimigos4": [],
     "inimigos5": [],
     "inimigos6": [],
-    "itens": [],
-    "inimigoAleatorio": [1, 0]
+    "inimigos7": []
 }

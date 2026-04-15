@@ -1,63 +1,42 @@
 {
+    "proporcao": "2x1",
     "posicaoInicialJogador": "b2",
-    "objetivo": "f19",
-    "plataformas": [
-        "a1",
-        "a2",
-        "a3",
-        "a4",
-        "a5",
-        "a6",
-        "a7",
-        "a8",
-        "a9",
-        "a10",
-        "a11",
-        "a12",
-        "a13",
-        "a14",
-        "a15",
-        "a16",
-        "a17",
-        "a18",
-        "a19",
-        "a20",
-        "b4",
-        "b10",
-        "b16",
-        "l5",
-        "l17"
+    "objetivo": "ab20",
+    "itens": [
+        {
+            "tipo": "revolver",
+            "pos": "t15"
+        },
+        {
+            "tipo": "revolver",
+            "pos": "x6"
+        }
     ],
-    "inimigos0": [],
+    "inimigoAleatorio": [1, 0],
+    "plataformas": [
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20",
+        "g4", "g5",
+        "l9", "l10",
+        "s14", "s15",
+        "w5", "w6",
+        "aa1", "aa2",
+        "ab10", "ab11"
+    ],
+    "plataformasNeve": [],
+    "plataformasTerraInferior": [],
+    "plataformasTerraSuperior": [],
+    "plataformasTerraInferior2": [],
+    "plataformasTerraSuperior2": [],
+    "plataformasEstacaSup": [],
+    "plataformasEstacaDir": [],
+    "plataformasEstacaEsq": [],
+    "plataformasEstacaBaixo": [],
+    "inimigos0": ["b9", "b12", "b16", "b18", "b20"],
     "inimigos1": [],
     "inimigos2": [],
     "inimigos3": [],
-    "inimigos4": [
-        "m5"
-    ],
-    "inimigos5": [
-        "c4"
-    ],
-    "inimigos6": [
-        "c10",
-        "c16"
-    ],
-    "itens": [
-        {
-            "tipo": "restauracao",
-            "pos": "m17"
-        },
-        {
-            "tipo": "bota",
-            "pos": "b11"
-        },
-        {
-            "tipo": "bota",
-            "pos": "b17"
-        }
-    ],
-    "inimigoAleatorio": [
-        1,
-        0
-    ]
-}
+    "inimigos4": ["b14", "v15", "x5"],
+    "inimigos5": [],
+    "inimigos6": [],
+    "inimigos7": []
+}   

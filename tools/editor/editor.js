@@ -33,6 +33,7 @@ let itemSelecionado = 'plataforma';
 let gradeVisivel = true;
 
 const stage = document.getElementById('game-stage');
+const stageArea = document.getElementById('stage-area');
 const btnExport = document.getElementById('btn-export');
 const btnImport = document.getElementById('btn-import');
 const btnClear = document.getElementById('btn-clear');
@@ -176,6 +177,11 @@ function atualizarTamanhoStage() {
     if (output) {
         output.style.width = larguraCalculada;
         output.style.boxSizing = 'border-box'; // Garante que a largura total inclua bordas
+    }
+
+    if (stageArea) {
+        stageArea.scrollTop = 0;
+        stageArea.scrollLeft = 0;
     }
 
     configurarGrade();

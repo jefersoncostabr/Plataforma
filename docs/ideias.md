@@ -16,7 +16,7 @@ parte do jogo que é melhor sem os itens
 
 
 *Novas mecanicas
-ficar abaixado e toda game play que virá
+salvar jogo
 capacete
 plant and defuse bomb
 resgatar cachorro

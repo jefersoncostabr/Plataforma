@@ -294,6 +294,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 y: pos.y,
                 startX: pos.x,
                 startY: pos.y,
+                spriteBase: inimigoImg.src,
                 largura: config.HITBOX_LARGURA,
                 altura: config.HITBOX_ALTURA,
                 alturaEmPe: config.HITBOX_ALTURA,
@@ -457,7 +458,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 
                 // Lógica especial para o Alvo de Feno (Tipo 5)
                 if (inimigo.tipo === 5) {
-                    // Se estiver no processo de reset (vermelho), não processa física
+                    // Durante destruição/respawn, o alvo fica fora da física.
                     if (inimigo.estaMorto) {
                         continue;
                     }
@@ -1184,33 +1185,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     }
                     if (morreuPorEspinho) {
                         if (inimigo.tipo === 5) {
-                            inimigo.estaMorto = true;
-                            inimigo.framesKnockbackRestante = 0;
-                            inimigo.velocidadeKnockback = 0;
-                            inimigo.velocidadeY = 0;
-
-                            if (window.isTraining) {
-                                inimigo.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
-                                window.inimigos.splice(i, 1);
-                                setTimeout(() => {
-                                    inimigo.vida = 0;
-                                    inimigo.x = inimigo.startX;
-                                    inimigo.y = inimigo.startY;
-                                    inimigo.estaMorto = false;
-                                    inimigo.elemento.style.filter = 'none';
-                                    inimigo.elemento.style.left = inimigo.x + 'px';
-                                    inimigo.elemento.style.bottom = inimigo.y + 'px';
-                                    inimigo.noChao = false;
-                                    inimigo.velocidadeY = 0;
-                                    inimigo.cooldownDanoEspinho = 0;
-                                    window.inimigos.push(inimigo);
-                                }, 800);
-                            } else {
-                                inimigo.elemento.src = '../../assets/personagem/feno_quebrado.png';
-                                window.inimigos.splice(i, 1);
-                                setTimeout(() => {
-                                    inimigo.elemento.remove();
-                                }, 800);
+                            if (typeof window.processarMorteFeno === 'function') {
+                                window.processarMorteFeno(inimigo);
                             }
                         } else {
                             limparVisuaisInimigo(inimigo);

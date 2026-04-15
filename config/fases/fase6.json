@@ -1,23 +1,56 @@
 {
+    "proporcao": "1x1",
     "posicaoInicialJogador": "b2",
     "objetivo": "f19",
-    "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", 
-        "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20",
-        "c10", "d9", "f7", "g6", "g19", "g20", "e8",
-        "j5", "k6", "k7", "k8", "k9", "k11", "k12", "k13", "k14", "k15", "k16", "k17", "k18", "k19",
-        "h1", "h2", "h3", "h4", "h5"
-    ],
-    "inimigos1": ["b19", "b20", "o19", "l6", "h6", "f8", "e9", "i19", "i20"],
     "itens": [
-        { "tipo": "escudo", "pos": "l13" },
-        { "tipo": "revolver", "pos": "l17" },
-        { "tipo": "revolver", "pos": "g7" },
-        { "tipo": "restauracao", "pos": "b8" },
-        { "tipo": "jetpack", "pos": "h19" },
-        { "tipo": "jetpack", "pos": "h20" },
-        { "tipo": "bota", "pos": "l15" }
+        {
+            "tipo": "escudo",
+            "pos": "l13"
+        },
+        {
+            "tipo": "revolver",
+            "pos": "g7"
+        },
+        {
+            "tipo": "restauracao",
+            "pos": "b8"
+        },
+        {
+            "tipo": "bota",
+            "pos": "l15"
+        },
+        {
+            "tipo": "bota",
+            "pos": "h19"
+        }
     ],
-    
-    "inimigoAleatorio": [1, 0]
+    "inimigoAleatorio": [1, 0],
+    "plataformas": [
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20",
+        "c10",
+        "d9",
+        "e8",
+        "f7",
+        "g6", "g19", "g20",
+        "h1", "h2", "h3", "h4", "h5",
+        "j5",
+        "k6", "k7", "k8", "k9", "k11", "k12", "k13", "k14", "k15", "k16", "k17", "k18", "k19"
+    ],
+    "plataformasNeve": [],
+    "plataformasTerraInferior": [],
+    "plataformasTerraSuperior": [],
+    "plataformasTerraInferior2": [],
+    "plataformasTerraSuperior2": [],
+    "plataformasEstacaSup": [],
+    "plataformasEstacaDir": [],
+    "plataformasEstacaEsq": [],
+    "plataformasEstacaBaixo": [],
+    "inimigos0": ["f8", "h6"],
+    "inimigos1": ["b19", "b20", "e9", "i19", "i20", "l14"],
+    "inimigos2": [],
+    "inimigos3": [],
+    "inimigos4": [],
+    "inimigos5": [],
+    "inimigos6": [],
+    "inimigos7": []
 }

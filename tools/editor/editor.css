@@ -63,9 +63,12 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     background: #111;
     position: relative;
+    overflow: auto;
+    padding: 10px 12px;
+    box-sizing: border-box;
 }
 
 #game-stage {
@@ -77,6 +80,8 @@ body {
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     cursor: crosshair;
     overflow: hidden;
+    flex-shrink: 0;
+    margin-bottom: 10px;
 }
 
 #json-output {

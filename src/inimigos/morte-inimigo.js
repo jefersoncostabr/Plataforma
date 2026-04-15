@@ -60,6 +60,32 @@
         inimigo.jetpackAtivo = false;
     }
 
+    function restaurarFenoNaOrigem(inimigo, spriteOriginal) {
+        if (!inimigo) return;
+
+        inimigo.vida = 0;
+        inimigo.x = inimigo.startX ?? inimigo.x;
+        inimigo.y = inimigo.startY ?? inimigo.y;
+        inimigo.estaMorto = false;
+        inimigo.noChao = false;
+        inimigo.velocidadeY = 0;
+        inimigo.framesKnockbackRestante = 0;
+        inimigo.velocidadeKnockback = 0;
+        inimigo.cooldownDanoEspinho = 0;
+
+        if (inimigo.elemento) {
+            inimigo.elemento.src = spriteOriginal;
+            inimigo.elemento.style.filter = 'none';
+            inimigo.elemento.style.display = 'block';
+            inimigo.elemento.style.left = inimigo.x + 'px';
+            inimigo.elemento.style.bottom = inimigo.y + 'px';
+        }
+
+        if (Array.isArray(window.inimigos) && !window.inimigos.includes(inimigo)) {
+            window.inimigos.push(inimigo);
+        }
+    }
+
     function processarMorteFeno(inimigo, opcoes = {}) {
         if (!inimigo || inimigo.tipo !== 5) return false;
 
@@ -68,49 +94,40 @@
             spriteDestruido = '../../assets/personagem/feno_quebrado.png'
         } = opcoes;
 
+        const spriteOriginal = inimigo.spriteBase || window.config?.spriteAlvoFeno || '../../assets/personagem/alvoFeno.png';
+
         inimigo.estaMorto = true;
         inimigo.framesKnockbackRestante = 0;
         inimigo.velocidadeKnockback = 0;
         inimigo.velocidadeY = 0;
 
-        if (window.isTraining) {
-            if (inimigo.elemento) {
-                inimigo.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
-            }
+        if (inimigo.morteFenoTimeout) {
+            clearTimeout(inimigo.morteFenoTimeout);
+            inimigo.morteFenoTimeout = null;
+        }
 
-            removerDoArrayInimigos(inimigo);
-
-            setTimeout(() => {
-                inimigo.vida = 0;
-                inimigo.x = inimigo.startX ?? inimigo.x;
-                inimigo.y = inimigo.startY ?? inimigo.y;
-                inimigo.estaMorto = false;
-                inimigo.noChao = false;
-                inimigo.velocidadeY = 0;
-
-                if (inimigo.elemento) {
-                    inimigo.elemento.style.filter = 'none';
-                    inimigo.elemento.style.left = inimigo.x + 'px';
-                    inimigo.elemento.style.bottom = inimigo.y + 'px';
-                }
-
-                if (Array.isArray(window.inimigos) && !window.inimigos.includes(inimigo)) {
-                    window.inimigos.push(inimigo);
-                }
-            }, tempoMs);
-
-            return true;
+        if (typeof flashComVibacao === 'function' && inimigo.elemento) {
+            flashComVibacao(inimigo.elemento);
         }
 
         if (inimigo.elemento) {
+            inimigo.elemento.style.filter = 'none';
             inimigo.elemento.src = spriteDestruido;
         }
 
-        setTimeout(() => {
+        removerDoArrayInimigos(inimigo);
+
+        inimigo.morteFenoTimeout = setTimeout(() => {
+            inimigo.morteFenoTimeout = null;
+
+            if (window.isTraining) {
+                restaurarFenoNaOrigem(inimigo, spriteOriginal);
+                return;
+            }
+
             if (inimigo.elemento && typeof inimigo.elemento.remove === 'function') {
                 inimigo.elemento.remove();
             }
-            removerDoArrayInimigos(inimigo);
         }, tempoMs);
 
         return true;
@@ -157,4 +174,5 @@
     }
 
     window.criarSistemaMorteInimigo = criarSistemaMorteInimigo;
+    window.processarMorteFeno = processarMorteFeno;
 })();

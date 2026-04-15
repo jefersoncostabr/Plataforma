@@ -45,6 +45,48 @@ function limparCenario() {
     if (stage) stage.style.filter = 'none';
 }
 
+function letrasParaIndiceGrid(letras) {
+    const texto = String(letras || '').trim().toLowerCase();
+    if (!texto) return 0;
+
+    let indice = 0;
+    for (const char of texto) {
+        const codigo = char.charCodeAt(0);
+        if (codigo < 97 || codigo > 122) continue;
+        indice = (indice * 26) + (codigo - 96);
+    }
+
+    return Math.max(0, indice - 1);
+}
+
+function indiceParaLetrasGrid(indice) {
+    let valor = Math.max(0, Number(indice) || 0) + 1;
+    let resultado = '';
+
+    while (valor > 0) {
+        const resto = (valor - 1) % 26;
+        resultado = String.fromCharCode(97 + resto) + resultado;
+        valor = Math.floor((valor - 1) / 26);
+    }
+
+    return resultado || 'a';
+}
+
+function parseCoordGrid(coord) {
+    const match = String(coord || '').trim().toLowerCase().match(/^([a-z]+)(\d+)$/);
+    if (!match) return null;
+
+    const letras = match[1];
+    const numero = parseInt(match[2], 10);
+    if (Number.isNaN(numero) || numero <= 0) return null;
+
+    return {
+        letras,
+        row: letrasParaIndiceGrid(letras),
+        col: numero - 1
+    };
+}
+
 /**
  * Renderiza plataformas baseadas em um objeto de coordenadas.
  * Sistema: 'a1' -> Inferior Esquerdo (0,0). Letra cresce para cima, Número para direita.
@@ -63,19 +105,10 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         : Object.keys(plataformaData);
 
     coordenadas.forEach(coord => {
-        // Ajuste para ler coordenadas de 1 ou 2 letras (ex: "a1" ou "aa1")
-        const match = coord.trim().toLowerCase().match(/^([a-z]+)(\d+)$/);
-        if (!match) return;
+        const partes = parseCoordGrid(coord);
+        if (!partes) return;
 
-        const letras = match[1];
-        const col = parseInt(match[2]) - 1;
-        
-        let row = 0;
-        if (letras.length === 1) {
-            row = letras.charCodeAt(0) - 'a'.charCodeAt(0);
-        } else {
-            row = (letras.charCodeAt(0) - 'a'.charCodeAt(0) + 1) * 26 + (letras.charCodeAt(1) - 'a'.charCodeAt(0));
-        }
+        const { row, col } = partes;
 
         const tile = document.createElement('img');
         tile.src = imagemPath;
@@ -99,12 +132,13 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
  * @returns {Object} Objeto com {x, y}.
  */
 function gridParaPixels(coord, tileSize = 32) {
-    const coordLimpa = coord.trim().toLowerCase();
-    const letra = coordLimpa[0];
-    const numero = parseInt(coordLimpa.substring(1));
-    const row = letra.charCodeAt(0) - 'a'.charCodeAt(0);
-    const col = numero - 1;
-    return { x: col * tileSize, y: row * tileSize };
+    const partes = parseCoordGrid(coord);
+    if (!partes) return { x: 0, y: 0 };
+
+    return {
+        x: partes.col * tileSize,
+        y: partes.row * tileSize
+    };
 }
 
 /**
@@ -114,7 +148,7 @@ function gridParaPixels(coord, tileSize = 32) {
 function coordenadaParaGrid(x, y, tileSize = 32) {
     const col = Math.floor(x / tileSize) + 1;
     const row = Math.floor(y / tileSize);
-    const letra = String.fromCharCode('a'.charCodeAt(0) + row);
+    const letra = indiceParaLetrasGrid(row);
     return letra + col;
 }
 
@@ -129,12 +163,10 @@ function renderizarObjetivo(idPalco, imagemPath, coord) {
     const layerUI = obterLayer(window.LAYERS.UI);
     if (!layerUI) return;
 
-    // Limpa espaços e garante minúsculas para processar a coordenada
-    const coordLimpa = coord.trim().toLowerCase();
-    const letra = coordLimpa[0];
-    const numero = parseInt(coordLimpa.substring(1));
-    const row = letra.charCodeAt(0) - 'a'.charCodeAt(0);
-    const col = numero - 1;
+    const partes = parseCoordGrid(coord);
+    if (!partes) return;
+
+    const { row, col } = partes;
     const tamanhoTile = 32;
 
     const objImg = document.createElement('img');

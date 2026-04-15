@@ -58,8 +58,14 @@ window.ViewportUtils = {
             return { x: 0, y: 0 };
         }
 
-        const coluna = match[1].toLowerCase().charCodeAt(0) - 'a'.charCodeAt(0);
-        const linha = parseInt(match[2]) - 1;
+        const letras = match[1].toLowerCase();
+        let linha = 0;
+        for (const char of letras) {
+            linha = (linha * 26) + (char.charCodeAt(0) - 96);
+        }
+        linha = Math.max(0, linha - 1);
+
+        const coluna = parseInt(match[2], 10) - 1;
         const TILE_SIZE = 32;
 
         return {
@@ -76,9 +82,19 @@ window.ViewportUtils = {
      */
     pixelsParaGrid(x, y) {
         const TILE_SIZE = 32;
-        const coluna = String.fromCharCode('a'.charCodeAt(0) + Math.floor(x / TILE_SIZE));
-        const linha = Math.floor(y / TILE_SIZE) + 1;
-        return `${coluna}${linha}`;
+        const indiceLinha = Math.floor(y / TILE_SIZE);
+        const linha = indiceLinha + 1;
+
+        let valor = indiceLinha + 1;
+        let letras = '';
+        while (valor > 0) {
+            const resto = (valor - 1) % 26;
+            letras = String.fromCharCode('a'.charCodeAt(0) + resto) + letras;
+            valor = Math.floor((valor - 1) / 26);
+        }
+
+        const coluna = Math.floor(x / TILE_SIZE) + 1;
+        return `${letras}${coluna}`;
     },
 
     /**
