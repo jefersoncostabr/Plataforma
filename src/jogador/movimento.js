@@ -1061,6 +1061,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
                 if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
                 if (inimigo.garraElemento) inimigo.garraElemento.remove();
+                if (inimigo.cintoElemento) inimigo.cintoElemento.remove();
                 if (inimigo.garraBracos) inimigo.garraBracos.forEach(b => b.remove());
                 inimigo.elemento.remove();
                 window.inimigos.splice(i, 1);
@@ -2150,6 +2151,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                 if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
                                 if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
                                 if (inimigo.garraElemento) inimigo.garraElemento.remove();
+                                if (inimigo.cintoElemento) inimigo.cintoElemento.remove();
                                 if (inimigo.garraBracos) inimigo.garraBracos.forEach(b => b.remove());
                                 inimigo.elemento.remove();
                                 window.inimigos.splice(i, 1);
@@ -2283,6 +2285,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                     if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
                                     if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
                                     if (inimigo.garraElemento) inimigo.garraElemento.remove();
+                                    if (inimigo.cintoElemento) inimigo.cintoElemento.remove();
                                     if (inimigo.garraBracos) inimigo.garraBracos.forEach(b => b.remove());
                                     inimigo.elemento.remove();
                                     window.inimigos.splice(j, 1);

@@ -76,7 +76,6 @@ window.criarItemColetavel = function(itemData, x, y) {
  * @param {Array<object>} itensFase - Um array de objetos de item, cada um com 'tipo' e 'pos'.
  */
 window.resetarItens = function(itensFase) {
-    console.log("Resetando itens. Itens na fase:", itensFase);
     // Remove todos os elementos visuais dos itens antigos
     window.itensColetaveis.forEach(item => {
         if (item.elemento && item.elemento.parentNode) {

@@ -412,6 +412,10 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
 
     // Cria elemento de cinto se necessário
     if (temCinto) {
+        // Remove cintos antigos do palco se existirem (defensivo)
+        if (novoInimigo.cintoElemento && novoInimigo.cintoElemento.parentElement) {
+            novoInimigo.cintoElemento.remove();
+        }
         const cintoImg = document.createElement('img');
         cintoImg.src = window.config?.spriteCintoPlayer || '../../assets/personagem/cinto.png';
         cintoImg.style.position = 'absolute';
@@ -420,6 +424,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         cintoImg.style.zIndex = '6';
         cintoImg.style.imageRendering = 'pixelated';
         cintoImg.style.pointerEvents = 'none';
+        // Sempre usa adicionarAoLayer se disponível
         if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
             adicionarAoLayer(cintoImg, window.LAYERS.INIMIGOS);
         } else {

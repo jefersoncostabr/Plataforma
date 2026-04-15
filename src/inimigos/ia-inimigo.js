@@ -1153,6 +1153,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.jetpackElemento) inimigo.jetpackElemento.remove();
                     if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.remove();
                     if (inimigo.garraElemento) inimigo.garraElemento.remove();
+                    if (inimigo.cintoElemento) inimigo.cintoElemento.remove();
                     if (inimigo.garraBracos) inimigo.garraBracos.forEach(b => b.remove());
                     inimigo.elemento.remove();
                     window.inimigos.splice(i, 1);
