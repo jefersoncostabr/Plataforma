@@ -43,115 +43,20 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         throw new Error('Erro ao carregar animacoes-equipamento.js: sistema visual de equipamentos indisponível.');
     }
 
+    if (typeof window.criarSistemaDanoEstacasJogador !== 'function') {
+        throw new Error('Erro ao carregar dano-estacas.js: sistema de dano por estacas indisponível.');
+    }
+
+    if (typeof window.criarSistemaCombateCorpoACorpoJogador !== 'function') {
+        throw new Error('Erro ao carregar combate-corpo-a-corpo.js: sistema de combate corpo a corpo indisponível.');
+    }
+
     function obterKnockback(config, fonte = 'default') {
         const base = Number(config.knockbackBase ?? config.knockbackInimigo ?? 150);
         const ajuste = Number(config.knockbackAjustes?.[fonte] ?? 0);
         return base + ajuste;
     }
 
-    function temEscudoAtivo() {
-        return controle.temEscudo && !controle.escudoVermelho && !controle.itensGuardadosNoCinto;
-    }
-
-    function aplicarDanoEspinho(colisaoEstaca) {
-        if (!colisaoEstaca || colisaoEstaca.tipo !== 'estaca') return;
-
-        // Permite passar agachado por baixo da estaca para baixo sem sofrer dano.
-        if (
-            controle.estaAgachado &&
-            colisaoEstaca.direcao === 'baixo' &&
-            typeof colisaoEstaca.baseReal === 'number'
-        ) {
-            const topoJogador = controle.y + controle.altura;
-            const tolerancia = Number(config.toleranciaPassarAgachadoEspinho ?? 1);
-            if (topoJogador <= colisaoEstaca.baseReal + tolerancia) {
-                return;
-            }
-        }
-
-        if ((controle.cooldownDanoEspinho || 0) > 0) return;
-
-        controle.cooldownDanoEspinho = Number(config.cooldownDanoEspinho ?? 24);
-
-        // Knockback sempre acontece ao tocar espinho, mesmo com escudo.
-        if (colisaoEstaca.direcao === 'cima') {
-            const impulsoVertical = Number(config.knockbackEspinhoUpY ?? 8);
-            controle.velocidadeY = Math.max(controle.velocidadeY || 0, impulsoVertical);
-        }
-
-        if (colisaoEstaca.esquerdaReal !== undefined && colisaoEstaca.direitaReal !== undefined) {
-            const centroEstaca = (colisaoEstaca.esquerdaReal + colisaoEstaca.direitaReal) / 2;
-            const centroPlayer = controle.x + (controle.offsetX || 0) + ((controle.largura || 0) / 2);
-            const direcaoKnock = centroPlayer < centroEstaca ? -1 : 1;
-            const valorKnock = Number(config.knockbackEspinho ?? 90);
-            const duracaoKnock = 10;
-            controle.framesKnockbackRestante = Math.max(controle.framesKnockbackRestante || 0, duracaoKnock);
-            controle.velocidadeKnockback = (valorKnock / duracaoKnock) * direcaoKnock;
-        }
-
-        if (temEscudoAtivo()) {
-            controle.escudoProtegido = (controle.escudoProtegido || 0) + 1;
-            const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
-
-            const quebrouEscudoAgora = controle.escudoProtegido >= tirosProtegidos;
-            if (quebrouEscudoAgora) {
-                controle.escudoVermelho = true;
-            } else if (typeof flashElement === 'function' && escudoElemento) {
-                flashElement(escudoElemento, 120, 6);
-            }
-
-            atualizarVisualEscudo();
-            salvarInventario();
-            return;
-        }
-
-        const dano = Number(config.danoEspinho ?? 1);
-        controle.dano = (controle.dano || 0) + dano;
-
-        if (typeof flashComVibacao === 'function') {
-            flashComVibacao(elemento);
-        }
-
-        const limiteVida = controle.maxVida || 3;
-        if (controle.dano >= limiteVida) {
-            controle.dano = 0;
-            alert('Game Over! Você foi derrotado pelos espinhos.');
-            if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
-        }
-    }
-
-    function detectarContatoEspinho() {
-        if (typeof verificarColisaoComTiles !== 'function') return null;
-
-        const xBase = controle.x + (controle.offsetX || 0);
-        const yBase = controle.y;
-        const largura = controle.largura;
-        const altura = controle.altura;
-
-        // 1) Sobreposição direta da hitbox atual
-        const hitDireto = verificarColisaoComTiles(xBase, yBase, largura, altura, window.plataformas);
-        if (hitDireto && hitDireto.tipo === 'estaca') return hitDireto;
-
-        // 2) Probes de contato nas bordas para detectar toque sem penetração
-        const pontos = [
-            { x: xBase + 1, y: yBase - 1 },
-            { x: xBase + largura - 1, y: yBase - 1 },
-            { x: xBase - 1, y: yBase + Math.floor(altura / 2) },
-            { x: xBase + largura + 1, y: yBase + Math.floor(altura / 2) },
-            { x: xBase - 1, y: yBase + Math.max(2, altura - 2) },
-            { x: xBase + largura + 1, y: yBase + Math.max(2, altura - 2) },
-            { x: xBase + Math.floor(largura / 2), y: yBase + altura + 1 }
-        ];
-
-        for (const p of pontos) {
-            const hitProbe = verificarColisaoComTiles(p.x, p.y, 1, 1, window.plataformas);
-            if (hitProbe && hitProbe.tipo === 'estaca') {
-                return hitProbe;
-            }
-        }
-
-        return null;
-    }
 
     function virarFenoParaFonteDano(inimigo, fonteX) {
         if (!inimigo || inimigo.tipo !== 5 || !inimigo.elemento) return;
@@ -470,6 +375,22 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     escudoElemento.style.imageRendering = 'pixelated';
     escudoElemento.style.pointerEvents = 'none';
     elemento.parentElement.appendChild(escudoElemento);
+
+    const sistemaDanoEstacas = window.criarSistemaDanoEstacasJogador({
+        controle,
+        config,
+        elemento,
+        escudoElemento,
+        atualizarVisualEscudo,
+        salvarInventario
+    });
+
+    const {
+        temEscudoAtivo,
+        aplicarDanoEspinho,
+        detectarContatoEspinho
+    } = sistemaDanoEstacas;
+
     atualizarVisualEscudo();
 
     // Elemento da bota
@@ -710,6 +631,26 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     const { teclaEhAcao, acaoAtiva, consumirAcao } = sistemaControles;
     await sistemaControles.inicializar();
 
+    const sistemaCombateCorpoACorpo = window.criarSistemaCombateCorpoACorpoJogador({
+        controle,
+        config,
+        acaoAtiva,
+        detectarColisaoHitbox,
+        obterKnockback,
+        animarDanoAlvo,
+        virarFenoParaFonteDano,
+        processarMorteFeno,
+        removerInimigoDerrotado
+    });
+
+    const {
+        atualizarEstadoChute: atualizarEstadoChuteCorpoACorpo,
+        processarEntradaChute,
+        aplicarImpulsoChute,
+        processarAcertoChuteEmInimigo,
+        atualizarTemporizadores: atualizarTemporizadoresCorpoACorpo
+    } = sistemaCombateCorpoACorpo;
+
     function atualizar() {
         // Lógica de Stun do Jogador (quando capturado pela garra inimiga)
         if (controle.stunned) {
@@ -881,7 +822,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             : controle.alturaEmPe;
         
         // Sincroniza o estado de chute com o timer
-        controle.chutando = controle.tempoChute > 0;
+        atualizarEstadoChuteCorpoACorpo();
 
         controle.movendoHorizontal = false;
         const xAnterior = controle.x;
@@ -914,29 +855,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.movendoHorizontal = true;
         }
 
-        // Lógica de Chute (tecla K)
-        if (acaoAtiva('chute') && controle.cooldownChute === 0) {
-            controle.tempoChute = config.tempoChute;      // duração da animação → "tempoChute"
-            controle.cooldownChute = config.cooldownChute; // espera até o próximo chute → "cooldownChute"
-
-            // Configura o deslocamento suave em vez de teleporte
-            const duracaoDash = 10; // O avanço levará 10 frames para completar
-            const multiplicadorChute = (controle.temBota && !controle.itensGuardadosNoCinto) ? 2 : 1;
-            
-            controle.framesImpulsoRestante = duracaoDash;
-            // Distância total do avanço → "impulsoChute" (dobra com bota)
-            controle.velocidadeDash = (config.impulsoChute * multiplicadorChute) / duracaoDash;
-
-            // Reseta o estado de "atingido" de todos os inimigos para este novo chute
-            if (window.inimigos) window.inimigos.forEach(inimigo => inimigo.foiAtingidoNesteChute = false);
-        }
-
-        // Aplica o impulso físico do dash durante o chute
-        if (controle.framesImpulsoRestante > 0) {
-            const direcaoDash = (controle.direcao === 'd' ? 1 : -1);
-            controle.x += controle.velocidadeDash * direcaoDash;
-            controle.framesImpulsoRestante--;
-        }
+        // Sistema de combate corpo a corpo
+        processarEntradaChute(window.inimigos);
+        aplicarImpulsoChute();
 
         // Aplica knockback se o jogador foi atingido (executa o movimento calculado)
         if (controle.framesKnockbackRestante > 0) {
@@ -995,15 +916,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             // console.log(`Jogador disparou! Munição restante: ${controle.municao}`);
         }
 
-        // Diminui o cooldown global do chute
-        if (controle.cooldownChute > 0) {
-            controle.cooldownChute--;
-        }
-
-        // Diminui o tempo ativo do chute
-        if (controle.tempoChute > 0) {
-            controle.tempoChute--;
-        }
+        atualizarTemporizadoresCorpoACorpo();
 
         // Diminui o cooldown do tiro
         if (controle.cooldownTiro > 0) {
@@ -1382,69 +1295,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 // Ignora inimigos que estão no processo de reset (Alvo de Feno morto)
                 if (inimigo.estaMorto) continue;
 
-                // 2. Attackbox (Ativa apenas durante o chute)
-                if (controle.chutando) {
-                    // Hitbox de ataque — ajuste em configuracoes.json:
-                    // "ATAQUE_OFFSET_X" → distância da borda do sprite até a hitbox (menor = começa mais perto)
-                    // "ATAQUE_LARGURA"  → largura da hitbox (maior = alcance maior)
-                    // "ATAQUE_OFFSET_Y" → deslocamento vertical da hitbox
-                    // "ATAQUE_ALTURA"   → altura da hitbox
-                    let ataqueX = (controle.direcao === 'd') 
-                        ? controle.x + config.ATAQUE_OFFSET_X 
-                        : controle.x + (32 - config.ATAQUE_OFFSET_X - config.ATAQUE_LARGURA);
-
-                    const hitboxAtaque = {
-                        x: ataqueX,
-                        y: controle.y + config.ATAQUE_OFFSET_Y,
-                        largura: config.ATAQUE_LARGURA,
-                        altura: config.ATAQUE_ALTURA
-                    };
-
-                    const hitboxInimigo = {
-                        x: inimigo.x + (inimigo.offsetX || 0),
-                        y: inimigo.y,
-                        largura: inimigo.largura,
-                        altura: inimigo.altura
-                    };
-
-                    // Só aplica o dano se o inimigo ainda não foi atingido por este chute específico
-                    if (!inimigo.foiAtingidoNesteChute && detectarColisaoHitbox(hitboxAtaque, hitboxInimigo, 0, 0, 0)) {
-                        inimigo.foiAtingidoNesteChute = true;
-                        
-                        // Interrompe a coleta de item se levar um golpe
-                        inimigo.estaColetando = false;
-                        inimigo.timerColeta = 0;
-                        
-                        inimigo.vida = (inimigo.vida || 0) + 1;
-                        if (inimigo.vida < 3) animarDanoAlvo(inimigo);
-                        // Inimigo tipo 5 é Feno (alvo de treino) - você verá dano no comportamento
-
-                        // Knockback: Lança o inimigo para trás com base na direção do jogador
-                        const direcaoKnockback = (controle.direcao === 'd' ? 1 : -1);
-                        let valorKnockbackInimigo = obterKnockback(config, 'playerChute');
-                        
-                        // Reduz knockback do inimigo se ele estiver com escudo ativo
-                        if (inimigo.temEscudo && !inimigo.escudoVermelho) {
-                            valorKnockbackInimigo *= Number(config.escudoKnockbackMultiplicador ?? 0.5);
-                        }
-
-                        const duracaoRecuoInimigo = 15; // Duração do recuo em frames
-                        inimigo.framesKnockbackRestante = duracaoRecuoInimigo;
-                        inimigo.velocidadeKnockback = (valorKnockbackInimigo / duracaoRecuoInimigo) * direcaoKnockback;
-                        virarFenoParaFonteDano(inimigo, controle.x + ((controle.largura || 32) / 2));
-
-                        // console.log(`Ataque: Inimigo atingido! Vida restante: ${3 - inimigo.vida}`);
-
-                        // Se atingir 3 golpes, o inimigo morre e desaparece
-                        if (inimigo.vida >= 3) {
-                            if (inimigo.tipo === 5) {
-                                processarMorteFeno(inimigo);
-                            } else {
-                                removerInimigoDerrotado(inimigo);
-                            }
-                        }
-                    }
-                }
+                processarAcertoChuteEmInimigo(inimigo);
             }
         }
 
