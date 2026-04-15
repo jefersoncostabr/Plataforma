@@ -7,6 +7,115 @@ function obterFiltroFlashBrancoInterno() {
     return 'brightness(0) saturate(0) invert(1) brightness(1.25) contrast(1.1)';
 }
 
+function ehFiltroTemporarioDeFlash(filter) {
+    if (!filter) return false;
+
+    const valor = String(filter).trim();
+    return valor === obterFiltroFlashBrancoInterno()
+        || valor.includes('drop-shadow(0 0 10px rgba(255, 255, 255, 0.9))')
+        || valor.includes('brightness(2)');
+}
+
+function obterEstadoEfeitoTemporario(elemento) {
+    if (!elemento) return null;
+
+    if (!elemento.__efeitoTemporarioEstado) {
+        elemento.__efeitoTemporarioEstado = {
+            timeouts: [],
+            intervals: [],
+            baseFilter: elemento.style.filter || 'none',
+            baseTransform: elemento.style.transform || ''
+        };
+    }
+
+    return elemento.__efeitoTemporarioEstado;
+}
+
+function removerTimerRegistrado(lista, timerId) {
+    if (!Array.isArray(lista)) return;
+
+    const indice = lista.indexOf(timerId);
+    if (indice !== -1) {
+        lista.splice(indice, 1);
+    }
+}
+
+function limparColecaoTimers(lista, limpador) {
+    if (!Array.isArray(lista)) return;
+
+    lista.forEach(timerId => limpador(timerId));
+    lista.length = 0;
+}
+
+function prepararEfeitoTemporario(elemento) {
+    const estado = obterEstadoEfeitoTemporario(elemento);
+    if (!estado) return null;
+
+    const filtroAtual = elemento.style.filter || 'none';
+    const transformAtual = elemento.style.transform || '';
+
+    if (!ehFiltroTemporarioDeFlash(filtroAtual)) {
+        estado.baseFilter = filtroAtual;
+    }
+
+    if (!transformAtual.includes('translate(')) {
+        estado.baseTransform = transformAtual;
+    }
+
+    limparColecaoTimers(estado.timeouts, clearTimeout);
+    limparColecaoTimers(estado.intervals, clearInterval);
+
+    elemento.style.filter = estado.baseFilter || 'none';
+    elemento.style.transform = estado.baseTransform || '';
+
+    return estado;
+}
+
+function agendarTimeoutEfeito(elemento, callback, delay) {
+    const estado = obterEstadoEfeitoTemporario(elemento);
+    if (!estado) return null;
+
+    let timeoutId = null;
+    timeoutId = setTimeout(() => {
+        removerTimerRegistrado(estado.timeouts, timeoutId);
+        callback();
+    }, delay);
+
+    estado.timeouts.push(timeoutId);
+    return timeoutId;
+}
+
+function registrarIntervaloEfeito(elemento, intervalId) {
+    const estado = obterEstadoEfeitoTemporario(elemento);
+    if (!estado) return intervalId;
+
+    estado.intervals.push(intervalId);
+    return intervalId;
+}
+
+function limparEfeitosTemporarios(elemento, opcoes = {}) {
+    if (!elemento) return;
+
+    const { restaurarFiltro = true, restaurarTransform = true } = opcoes;
+    const estado = obterEstadoEfeitoTemporario(elemento);
+    if (!estado) return;
+
+    limparColecaoTimers(estado.timeouts, clearTimeout);
+    limparColecaoTimers(estado.intervals, clearInterval);
+
+    if (restaurarFiltro) {
+        elemento.style.filter = estado.baseFilter || 'none';
+    }
+
+    if (restaurarTransform) {
+        elemento.style.transform = estado.baseTransform || '';
+    }
+
+    elemento.style.transition = '';
+}
+
+window.limparEfeitosTemporarios = limparEfeitosTemporarios;
+
 /**
  * Faz um elemento piscar com um flash branco.
  * Cria um efeito visual de impacto/dano.
@@ -18,31 +127,35 @@ function obterFiltroFlashBrancoInterno() {
 function flashElement(elemento, duracao = 200, velocidade = 5) {
     if (!elemento) return;
 
-    // Salva o filter original
-    const filterOriginal = elemento.style.filter;
-
-    // Duração de cada piscada em ms
+    const estado = prepararEfeitoTemporario(elemento);
+    const filterOriginal = estado?.baseFilter || 'none';
     const tempoIntervalo = 1000 / velocidade;
     const totalPiscadas = Math.ceil((duracao / tempoIntervalo) / 2);
     let contador = 0;
 
     const intervalo = setInterval(() => {
+        if (!elemento.isConnected) {
+            clearInterval(intervalo);
+            removerTimerRegistrado(estado?.intervals, intervalo);
+            return;
+        }
+
         contador++;
 
         if (contador % 2 === 1) {
-            // Aplica um flash branco interno no sprite, sem brilho externo.
             elemento.style.filter = obterFiltroFlashBrancoInterno();
         } else {
-            // Remove o efeito
             elemento.style.filter = filterOriginal || 'none';
         }
 
-        // Para o intervalo após atingir o número de piscadas
         if (contador >= totalPiscadas * 2) {
             clearInterval(intervalo);
-            elemento.style.filter = filterOriginal || 'none'; // Garante que volta ao normal
+            removerTimerRegistrado(estado?.intervals, intervalo);
+            elemento.style.filter = filterOriginal || 'none';
         }
     }, tempoIntervalo);
+
+    registrarIntervaloEfeito(elemento, intervalo);
 }
 
 /**
@@ -54,12 +167,12 @@ function flashElement(elemento, duracao = 200, velocidade = 5) {
 function flashRapido(elemento) {
     if (!elemento) return;
 
-    const filterOriginal = elemento.style.filter;
+    const estado = prepararEfeitoTemporario(elemento);
+    const filterOriginal = estado?.baseFilter || 'none';
 
-    // Flash branco por 100ms
     elemento.style.filter = 'brightness(2) drop-shadow(0 0 10px rgba(255, 255, 255, 0.9))';
 
-    setTimeout(() => {
+    agendarTimeoutEfeito(elemento, () => {
         elemento.style.filter = filterOriginal || 'none';
     }, 100);
 }
@@ -73,15 +186,15 @@ function flashRapido(elemento) {
 function piscaLeve(elemento) {
     if (!elemento) return;
 
-    const filterOriginal = elemento.style.filter;
+    const estado = prepararEfeitoTemporario(elemento);
+    const filterOriginal = estado?.baseFilter || 'none';
 
-    // 3 piscadas rápidas
     for (let i = 0; i < 3; i++) {
-        setTimeout(() => {
+        agendarTimeoutEfeito(elemento, () => {
             elemento.style.filter = obterFiltroFlashBrancoInterno();
         }, i * 60);
 
-        setTimeout(() => {
+        agendarTimeoutEfeito(elemento, () => {
             elemento.style.filter = filterOriginal || 'none';
         }, (i * 60) + 30);
     }
@@ -96,22 +209,20 @@ function piscaLeve(elemento) {
 function flashComVibacao(elemento) {
     if (!elemento) return;
 
-    const posOriginal = elemento.style.transform || '';
-    const filterOriginal = elemento.style.filter;
+    const estado = prepararEfeitoTemporario(elemento);
+    const posOriginal = estado?.baseTransform || '';
+    const filterOriginal = estado?.baseFilter || 'none';
 
-    // Flash com vibração
     for (let i = 0; i < 4; i++) {
-        setTimeout(() => {
-            // Flash branco interno
+        agendarTimeoutEfeito(elemento, () => {
             elemento.style.filter = obterFiltroFlashBrancoInterno();
 
-            // Vibração pequena
             const offsetX = (Math.random() - 0.5) * 4;
             const offsetY = (Math.random() - 0.5) * 4;
             elemento.style.transform = `translate(${offsetX}px, ${offsetY}px) ${posOriginal}`;
         }, i * 50);
 
-        setTimeout(() => {
+        agendarTimeoutEfeito(elemento, () => {
             elemento.style.filter = filterOriginal || 'none';
             elemento.style.transform = posOriginal;
         }, (i * 50) + 25);

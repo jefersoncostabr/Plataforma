@@ -21,9 +21,14 @@ function limparAnimacaoDanoJogador() {
     const playerEl = document.getElementById('player');
     if (!playerEl) return;
 
+    if (typeof window.limparEfeitosTemporarios === 'function') {
+        window.limparEfeitosTemporarios(playerEl, { restaurarFiltro: true, restaurarTransform: false });
+    }
+
     // Remove qualquer resíduo visual de flash/vibração de dano.
     playerEl.style.filter = 'none';
     playerEl.style.transition = '';
+    playerEl.style.opacity = '1';
 
     // Reaplica apenas o espelhamento padrão do sprite.
     const direcao = window.playerControle?.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
@@ -245,6 +250,9 @@ async function carregarFase(nomeArquivo) {
         if (typeof window.atualizarCamera === 'function') {
             window.atualizarCamera(centroSnapX, centroSnapY, window.mundoLargura, window.mundoAltura);
         }
+
+        // Garante visual limpo do jogador após reposicionamento no spawn.
+        limparAnimacaoDanoJogador();
     }
 
     // Carrega inimigos da fase
