@@ -73,9 +73,18 @@ window.criarItemColetavel = function(itemData, x, y) {
 /**
  * Limpa todos os itens coletáveis existentes no palco e cria novos baseados nos dados da fase.
  *
- * @param {Array<object>} itensFase - Um array de objetos de item, cada um com 'tipo' e 'pos'.
+ * @param {Array<object>|Object<string, string|string[]>} itensFase - Estrutura legada ou mapa por tipo de item.
  */
 window.resetarItens = function(itensFase) {
+    const itensNormalizados = Array.isArray(itensFase)
+        ? itensFase
+            .filter(item => item && item.tipo && item.pos)
+            .map(item => ({ tipo: item.tipo, pos: item.pos }))
+        : Object.entries(itensFase || {}).flatMap(([tipo, posicoes]) => {
+            const lista = Array.isArray(posicoes) ? posicoes : [posicoes];
+            return lista.filter(Boolean).map((pos) => ({ tipo, pos }));
+        });
+
     // Remove todos os elementos visuais dos itens antigos
     window.itensColetaveis.forEach(item => {
         if (item.elemento && item.elemento.parentNode) {
@@ -85,7 +94,7 @@ window.resetarItens = function(itensFase) {
     window.itensColetaveis = []; // Limpa o array de itens
 
     // Cria novos itens baseados nos dados da fase
-    itensFase.forEach(itemDataFase => {
+    itensNormalizados.forEach(itemDataFase => {
         const itemDef = window.itemDefinitions[itemDataFase.tipo];
         if (itemDef) {
             const posPixels = window.gridParaPixels(itemDataFase.pos);

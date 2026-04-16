@@ -1,6 +1,6 @@
 (function () {
     const { COORD_ARRAY_KEYS = [] } = window.EditorConfig || {};
-    const { sortCoords, normalizeFaseData } = window.EditorUtils || {};
+    const { sortCoords, normalizeFaseData, exportarItensData = (itens) => itens } = window.EditorUtils || {};
 
     function criarPersistenciaEditor(opcoes = {}) {
         const {
@@ -16,7 +16,7 @@
         }
 
         function exportarJSON() {
-            const faseData = getFaseData();
+            const faseData = normalizeFaseData(getFaseData());
             const randomConfig = typeof getRandomConfig === 'function' ? getRandomConfig() : { enabled: true, diff: 1, type: 0 };
             faseData.inimigoAleatorio = randomConfig.enabled ? [randomConfig.diff, randomConfig.type] : [0, 0];
 
@@ -24,7 +24,12 @@
                 faseData[key] = (faseData[key] || []).sort(sortCoords);
             });
 
-            let jsonStr = JSON.stringify(faseData, null, 4);
+            const dadosExportacao = {
+                ...faseData,
+                itens: exportarItensData(faseData.itens)
+            };
+
+            let jsonStr = JSON.stringify(dadosExportacao, null, 4);
 
             const enemyKeys = COORD_ARRAY_KEYS.filter((key) => key.startsWith('inimigo_'));
             const condensedKeys = [...enemyKeys, 'inimigoAleatorio'];
@@ -88,7 +93,10 @@
                 const normalized = normalizeFaseData(data);
                 setFaseData(normalized);
                 if (typeof aplicarEstadoUI === 'function') aplicarEstadoUI(normalized);
-                output.value = JSON.stringify(normalized, null, 4);
+                output.value = JSON.stringify({
+                    ...normalized,
+                    itens: exportarItensData(normalized.itens)
+                }, null, 4);
                 if (mostrarMensagem) alert(mensagemSucesso);
                 return normalized;
             } catch (e) {

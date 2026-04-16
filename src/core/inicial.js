@@ -286,7 +286,7 @@ async function carregarFase(nomeArquivo) {
 
     // Carrega itens iniciais da fase
     if (typeof window.resetarItens === 'function') {
-        window.resetarItens(fase.itens || []);
+        window.resetarItens(fase.itens || {});
     }
 
     // Configura spawn de inimigos aleatórios

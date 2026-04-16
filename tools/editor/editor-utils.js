@@ -62,6 +62,49 @@
         return uniqueCoords(coords).sort(sortCoords);
     }
 
+    function normalizeItensData(itens = {}) {
+        const normalized = {};
+
+        if (Array.isArray(itens)) {
+            itens
+                .filter(item => item && item.tipo && item.pos)
+                .forEach((item) => {
+                    if (!Array.isArray(normalized[item.tipo])) normalized[item.tipo] = [];
+                    normalized[item.tipo].push(item.pos);
+                });
+        } else if (itens && typeof itens === 'object') {
+            Object.entries(itens).forEach(([tipo, posicoes]) => {
+                const lista = Array.isArray(posicoes) ? posicoes : [posicoes];
+                const coords = normalizeCoordList(lista.filter(Boolean));
+                if (coords.length > 0) normalized[tipo] = coords;
+            });
+        }
+
+        Object.keys(normalized).forEach((tipo) => {
+            normalized[tipo] = normalizeCoordList(normalized[tipo]);
+            if (normalized[tipo].length === 0) delete normalized[tipo];
+        });
+
+        return normalized;
+    }
+
+    function iterarItensData(itens = {}) {
+        return Object.entries(normalizeItensData(itens)).flatMap(([tipo, coords]) => {
+            return coords.map((pos) => ({ tipo, pos }));
+        });
+    }
+
+    function exportarItensData(itens = {}) {
+        const exported = {};
+
+        Object.entries(normalizeItensData(itens)).forEach(([tipo, coords]) => {
+            if (coords.length === 1) exported[tipo] = coords[0];
+            else if (coords.length > 1) exported[tipo] = coords;
+        });
+
+        return exported;
+    }
+
     function normalizeFaseData(data = {}) {
         const defaults = createEmptyFaseData();
         const merged = { ...defaults, ...data };
@@ -70,11 +113,7 @@
             merged[key] = normalizeCoordList(merged[key] || []);
         });
 
-        merged.itens = Array.isArray(merged.itens)
-            ? merged.itens
-                .filter(item => item && item.tipo && item.pos)
-                .map(item => ({ tipo: item.tipo, pos: item.pos }))
-            : [];
+        merged.itens = normalizeItensData(merged.itens);
 
         merged.inimigoAleatorio = Array.isArray(merged.inimigoAleatorio) && merged.inimigoAleatorio.length >= 2
             ? [Number(merged.inimigoAleatorio[0] || 0), Number(merged.inimigoAleatorio[1] || 0)]
@@ -92,6 +131,9 @@
         sortCoords,
         uniqueCoords,
         normalizeCoordList,
+        normalizeItensData,
+        iterarItensData,
+        exportarItensData,
         normalizeFaseData
     };
 })();

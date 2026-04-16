@@ -15,7 +15,8 @@ const {
     pointToCoord = () => 'a1',
     coordToParts = () => null,
     sortCoords = () => 0,
-    normalizeFaseData = (data) => data
+    normalizeFaseData = (data) => data,
+    iterarItensData = () => []
 } = window.EditorUtils || {};
 
 let COLS = 20; 
@@ -59,7 +60,7 @@ function obterLegendaCoord(coord) {
         if (faseData[def.stateKey] === coord) return def.label;
     }
 
-    const item = (faseData.itens || []).find(i => i.pos === coord);
+    const item = iterarItensData(faseData.itens).find(i => i.pos === coord);
     if (item) {
         const nome = itemDefinitions[item.tipo]?.nome || item.tipo;
         return 'Item: ' + nome;
@@ -210,7 +211,12 @@ function adicionarElemento(coord) {
 
     if (itemSelecionado.startsWith('item_')) {
         const tipoReal = itemSelecionado.replace('item_', '');
-        faseData.itens.push({ tipo: tipoReal, pos: coord });
+        if (!faseData.itens || typeof faseData.itens !== 'object' || Array.isArray(faseData.itens)) {
+            faseData.itens = {};
+        }
+        if (!Array.isArray(faseData.itens[tipoReal])) faseData.itens[tipoReal] = [];
+        faseData.itens[tipoReal].push(coord);
+        faseData.itens[tipoReal] = [...new Set(faseData.itens[tipoReal])].sort(sortCoords);
     }
 }
 
@@ -219,7 +225,16 @@ function removerElemento(coord) {
         faseData[key] = (faseData[key] || []).filter(c => c !== coord);
     });
 
-    faseData.itens = (faseData.itens || []).filter(i => i.pos !== coord);
+    if (!faseData.itens || typeof faseData.itens !== 'object' || Array.isArray(faseData.itens)) {
+        faseData.itens = {};
+    }
+
+    Object.keys(faseData.itens).forEach((tipo) => {
+        const posicoes = Array.isArray(faseData.itens[tipo]) ? faseData.itens[tipo] : [faseData.itens[tipo]];
+        const filtradas = posicoes.filter((pos) => pos !== coord);
+        if (filtradas.length === 0) delete faseData.itens[tipo];
+        else faseData.itens[tipo] = filtradas;
+    });
 
     if (faseData.posicaoInicialJogador === coord) faseData.posicaoInicialJogador = '';
     if (faseData.objetivo === coord) faseData.objetivo = '';

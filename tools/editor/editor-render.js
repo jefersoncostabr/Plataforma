@@ -5,7 +5,7 @@
         ENEMY_DEFS = [],
         SYSTEM_DEFS = []
     } = window.EditorConfig || {};
-    const { coordToParts, rowToLetters } = window.EditorUtils || {};
+    const { coordToParts, rowToLetters, iterarItensData = () => [] } = window.EditorUtils || {};
 
     function criarRenderizadorEditor(opcoes = {}) {
         const { stage, getFaseData, getItemDefinitions } = opcoes;
@@ -78,7 +78,7 @@
                 });
             });
 
-            (faseData.itens || []).forEach((item) => {
+            iterarItensData(faseData.itens).forEach((item) => {
                 let src = '../../assets/personagem/revolver_pegavel.png';
                 if (itemDefinitions[item.tipo]?.spriteColetavel) {
                     src = itemDefinitions[item.tipo].spriteColetavel;

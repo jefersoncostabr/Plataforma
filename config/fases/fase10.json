@@ -13,6 +13,6 @@
     "inimigo_feno": ["b11", "b30"],
     "inimigo_garra": [],
     "inimigo_cinto": [],
-    "itens": [],
+    "itens": {},
     "inimigoAleatorio": [1, 0]
 }

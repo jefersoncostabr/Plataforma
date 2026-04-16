@@ -2,20 +2,9 @@
     "proporcao": "2x2",
     "posicaoInicialJogador": "b2",
     "objetivo": "f40",
-    "itens": [
-        {
-            "tipo": "restauracao",
-            "pos": "m30"
-        },
-        {
-            "tipo": "restauracao",
-            "pos": "b19"
-        },
-        {
-            "tipo": "restauracao",
-            "pos": "b26"
-        }
-    ],
+    "itens": {
+        "restauracao": ["b19", "b26", "m30"]
+    },
     "inimigoAleatorio": [1, 0],
     "plataformas": [],
     "plataformasNeve": [

@@ -39,7 +39,7 @@
             proporcao: DEFAULT_PROPORTION,
             posicaoInicialJogador: 'b2',
             objetivo: 'f19',
-            itens: [],
+            itens: {},
             inimigoAleatorio: [1, 0]
         };
 

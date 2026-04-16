@@ -43,20 +43,10 @@
         "c16"
     ],
     "inimigo_cinto": [],
-    "itens": [
-        {
-            "tipo": "restauracao",
-            "pos": "m17"
-        },
-        {
-            "tipo": "bota",
-            "pos": "b11"
-        },
-        {
-            "tipo": "bota",
-            "pos": "b17"
-        }
-    ],
+    "itens": {
+        "restauracao": "m17",
+        "bota": ["b11", "b17"]
+    },
     "inimigoAleatorio": [
         1,
         0

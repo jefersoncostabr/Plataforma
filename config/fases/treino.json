@@ -2,40 +2,15 @@
     "proporcao": "1x1",
     "posicaoInicialJogador": "b2",
     "objetivo": "f19",
-    "itens": [
-        {
-            "tipo": "revolver",
-            "pos": "f1"
-        },
-        {
-            "tipo": "escudo",
-            "pos": "f4"
-        },
-        {
-            "tipo": "bota",
-            "pos": "f7"
-        },
-        {
-            "tipo": "jetpack",
-            "pos": "f10"
-        },
-        {
-            "tipo": "garra",
-            "pos": "f13"
-        },
-        {
-            "tipo": "cinto",
-            "pos": "f16"
-        },
-        {
-            "tipo": "restauracao",
-            "pos": "i9"
-        },
-        {
-            "tipo": "restauracao",
-            "pos": "i3"
-        }
-    ],
+    "itens": {
+        "revolver": "f1",
+        "escudo": "f4",
+        "bota": "f7",
+        "jetpack": "f10",
+        "garra": "f13",
+        "cinto": "f16",
+        "restauracao": ["i3", "i9"]
+    },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
         "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20",
