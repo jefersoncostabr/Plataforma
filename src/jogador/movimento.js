@@ -67,7 +67,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
 
     function virarFenoParaFonteDano(inimigo, fonteX) {
-        if (!inimigo || inimigo.tipo !== 5 || !inimigo.elemento) return;
+        if (!inimigo || inimigo.tipo !== window.GAME_CONSTANTS.INIMIGO_FENO_ID || !inimigo.elemento) return;
         const centroX = inimigo.x + ((inimigo.largura || 32) / 2);
         inimigo.elemento.style.transform = fonteX <= centroX ? 'scaleX(1)' : 'scaleX(-1)';
     }
@@ -1149,7 +1149,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             inimigo.elemento.style.left = inimigo.x + 'px';
 
                             if (inimigo.vida >= 3) {
-                                if (inimigo.tipo === 5) {
+                                if (inimigo.tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID) {
                                     processarMorteFeno(inimigo);
                                 } else {
                                     if (typeof flashComVibacao === 'function') {

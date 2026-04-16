@@ -269,7 +269,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             
             const inimigoImg = document.createElement('img'); // Variável correta para o elemento imagem do inimigo
             const tipo = dado.tipo !== undefined ? dado.tipo : 1;
-            if (tipo === 5) {
+            if (tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID) {
                 // Tenta pegar da config local, depois da global, e por fim o caminho fixo
                 inimigoImg.src = config.spriteAlvoFeno || window.config?.spriteAlvoFeno || '../../assets/personagem/alvoFeno.png';
             } else {
@@ -302,12 +302,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 elemento: inimigoImg,
                 perseguindo: false,
                 tipo: tipo,
-                temArma: (tipo === 1),
-                temEscudo: (tipo === 2),
-                temBota: (tipo === 3),
-                temJetpack: (tipo === 4),
-                temGarra: (tipo === 6),
-                temCinto: (tipo === 7),
+                ...window.GAME_CONSTANTS.TIPOS_INIMIGO[tipo],
                 framesKnockbackRestante: 0,
                 velocidadeKnockback: 0,
                 puloTimer: 0,
@@ -457,7 +452,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 const inimigo = window.inimigos[i];
                 
                 // Lógica especial para o Alvo de Feno (Tipo 5)
-                if (inimigo.tipo === 5) {
+                if (inimigo.tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID) {
                     // Durante destruição/respawn, o alvo fica fora da física.
                     if (inimigo.estaMorto) {
                         continue;
@@ -640,7 +635,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 // Unificação da velocidade: tratamos como número e aplicamos bônus se for tipo 3
                 let velAtiva = velAtivaBase;
-                if (inimigo.tipo === 3) {
+                if (inimigo.tipo === window.GAME_CONSTANTS.TIPOS_INIMIGO[3].id) {
                     velAtiva += Number(config.bonusVelocidadeBota ?? 2);
                 }
                 
@@ -664,12 +659,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.timerColeta = 0;
                     inimigo.municao = config.maxMunicao || 5;
                     inimigo.direcao = 'e';
-                    inimigo.temArma = (inimigo.tipo === 1);
-                    inimigo.temEscudo = (inimigo.tipo === 2);
-                    inimigo.temBota = (inimigo.tipo === 3);
-                    inimigo.temJetpack = (inimigo.tipo === 4);
-                    inimigo.temGarra = (inimigo.tipo === 6);
-                    inimigo.temCinto = (inimigo.tipo === 7);
+                    // Propriedades já foram definidas via spread do TIPOS_INIMIGO no objeto
                     inimigo.jetpackAtivo = false;
                     inimigo.timerVooRestante = 0;
                     inimigo.framesVoando = 0;
@@ -1094,7 +1084,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 // Unificação da força de pulo: todos os tipos usam a mesma base numérica
                 let forcaPuloInimigo = Number(config.inimigoForcaPulo ?? 12);
-                if (inimigo.tipo === 3) {
+                if (inimigo.tipo === window.GAME_CONSTANTS.TIPOS_INIMIGO[3].id) {
                     forcaPuloInimigo += Number(config.bonusPuloBota ?? 1.5);
                 }
 
@@ -1184,7 +1174,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         }
                     }
                     if (morreuPorEspinho) {
-                        if (inimigo.tipo === 5) {
+                        if (inimigo.tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID) {
                             if (typeof window.processarMorteFeno === 'function') {
                                 window.processarMorteFeno(inimigo);
                             }

@@ -87,7 +87,7 @@
     }
 
     function processarMorteFeno(inimigo, opcoes = {}) {
-        if (!inimigo || inimigo.tipo !== 5) return false;
+        if (!inimigo || inimigo.tipo !== window.GAME_CONSTANTS.INIMIGO_FENO_ID) return false;
 
         const {
             tempoMs = 800,

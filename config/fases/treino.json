@@ -53,14 +53,14 @@
     "plataformasEstacaDir": [],
     "plataformasEstacaEsq": [],
     "plataformasEstacaBaixo": [],
-    "inimigos0": [],
-    "inimigos1": [],
-    "inimigos2": [],
-    "inimigos3": [],
-    "inimigos4": [],
-    "inimigos5": [
+    "inimigo_comum": [],
+    "inimigo_revolver": [],
+    "inimigo_escudo": [],
+    "inimigo_bota": [],
+    "inimigo_jetpack": [],
+    "inimigo_feno": [
         "b5"
     ],
-    "inimigos6": [],
-    "inimigos7": []
+    "inimigo_garra": [],
+    "inimigo_cinto": []
 }

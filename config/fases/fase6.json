@@ -45,12 +45,12 @@
     "plataformasEstacaDir": [],
     "plataformasEstacaEsq": [],
     "plataformasEstacaBaixo": [],
-    "inimigos0": ["f8", "h6"],
-    "inimigos1": ["b19", "b20", "e9", "i19", "i20", "l14"],
-    "inimigos2": [],
-    "inimigos3": [],
-    "inimigos4": [],
-    "inimigos5": [],
-    "inimigos6": [],
-    "inimigos7": []
+    "inimigo_comum": ["f8", "h6"],
+    "inimigo_revolver": ["b19", "b20", "e9", "i19", "i20", "l14"],
+    "inimigo_escudo": [],
+    "inimigo_bota": [],
+    "inimigo_jetpack": [],
+    "inimigo_feno": [],
+    "inimigo_garra": [],
+    "inimigo_cinto": []
 }

@@ -51,12 +51,12 @@
         "j6", "j7", "j8",
         "k5", "k9"
     ],
-    "inimigos0": ["b12", "b13", "c18", "j11", "l7"],
-    "inimigos1": [],
-    "inimigos2": [],
-    "inimigos3": [],
-    "inimigos4": [],
-    "inimigos5": [],
-    "inimigos6": [],
-    "inimigos7": []
+    "inimigo_comum": ["b12", "b13", "c18", "j11", "l7"],
+    "inimigo_revolver": [],
+    "inimigo_escudo": [],
+    "inimigo_bota": [],
+    "inimigo_jetpack": [],
+    "inimigo_feno": [],
+    "inimigo_garra": [],
+    "inimigo_cinto": []
 }

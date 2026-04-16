@@ -270,14 +270,16 @@ async function carregarFase(nomeArquivo) {
     // Carrega inimigos da fase
     if (typeof resetarInimigos === 'function') {
         const inimigosParaReset = [];
-        if (fase.inimigos1) fase.inimigos1.forEach(p => inimigosParaReset.push({tipo: 1, pos: p}));
-        if (fase.inimigos0) fase.inimigos0.forEach(p => inimigosParaReset.push({tipo: 0, pos: p}));
-        if (fase.inimigos2) fase.inimigos2.forEach(p => inimigosParaReset.push({tipo: 2, pos: p}));
-        if (fase.inimigos3) fase.inimigos3.forEach(p => inimigosParaReset.push({tipo: 3, pos: p}));
-        if (fase.inimigos4) fase.inimigos4.forEach(p => inimigosParaReset.push({tipo: 4, pos: p}));
-        if (fase.inimigos5) fase.inimigos5.forEach(p => inimigosParaReset.push({tipo: 5, pos: p}));
-        if (fase.inimigos6) fase.inimigos6.forEach(p => inimigosParaReset.push({tipo: 6, pos: p}));
-        if (fase.inimigos7) fase.inimigos7.forEach(p => inimigosParaReset.push({tipo: 7, pos: p}));
+        
+        // Itera sobre todos os tipos de inimigos definidos em constantes
+        Object.entries(window.GAME_CONSTANTS.TIPOS_INIMIGO).forEach(([tipoId, tipoConfig]) => {
+            const chaveJSON = tipoConfig.chaveJSON;
+            if (fase[chaveJSON]) {
+                fase[chaveJSON].forEach(p => {
+                    inimigosParaReset.push({tipo: parseInt(tipoId), pos: p});
+                });
+            }
+        });
         
         resetarInimigos(inimigosParaReset);
     }

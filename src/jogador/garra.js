@@ -424,7 +424,7 @@
                         virarFenoParaFonteDano(inimigoAtingido, controle.x + ((controle.largura || 32) / 2));
 
                         if (inimigoAtingido.vida >= 3) {
-                            if (inimigoAtingido.tipo === 5) {
+                            if (inimigoAtingido.tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID) {
                                 processarMorteFeno(inimigoAtingido);
                             } else {
                                 if (typeof flashComVibacao === 'function') {

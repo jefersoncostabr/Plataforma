@@ -28,20 +28,21 @@
         "l5",
         "l17"
     ],
-    "inimigos0": [],
-    "inimigos1": [],
-    "inimigos2": [],
-    "inimigos3": [],
-    "inimigos4": [
+    "inimigo_comum": [],
+    "inimigo_revolver": [],
+    "inimigo_escudo": [],
+    "inimigo_bota": [],
+    "inimigo_jetpack": [
         "m5"
     ],
-    "inimigos5": [
+    "inimigo_feno": [
         "c4"
     ],
-    "inimigos6": [
+    "inimigo_garra": [
         "c10",
         "c16"
     ],
+    "inimigo_cinto": [],
     "itens": [
         {
             "tipo": "restauracao",

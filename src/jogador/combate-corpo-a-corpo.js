@@ -141,7 +141,7 @@
             virarFenoParaFonteDano(inimigo, controle.x + ((controle.largura || 32) / 2));
 
             if (inimigo.vida >= 3) {
-                if (inimigo.tipo === 5) {
+                if (inimigo.tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID) {
                     processarMorteFeno(inimigo);
                 } else {
                     removerInimigoDerrotado(inimigo);
