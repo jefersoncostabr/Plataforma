@@ -3,8 +3,14 @@
     "posicaoInicialJogador": "b2",
     "objetivo": "ab20",
     "itens": {
-        "revolver": ["t15", "x6"],
-        "jetpack": ["m10", "ab2"],
+        "revolver": [
+            "t15",
+            "x6"
+        ],
+        "jetpack": [
+            "m10",
+            "ab2"
+        ],
         "restauracao": "m15"
     },
     "inimigoAleatorio": [1, 0],
@@ -17,21 +23,6 @@
         "aa1", "aa2",
         "ab10", "ab11"
     ],
-    "plataformasNeve": [],
-    "plataformasTerraInferior": [],
-    "plataformasTerraSuperior": [],
-    "plataformasTerraInferior2": [],
-    "plataformasTerraSuperior2": [],
-    "plataformasEstacaSup": [],
-    "plataformasEstacaDir": [],
-    "plataformasEstacaEsq": [],
-    "plataformasEstacaBaixo": [],
     "inimigo_comum": ["b9", "b12", "b16", "b18", "b20"],
-    "inimigo_revolver": [],
-    "inimigo_escudo": [],
-    "inimigo_bota": [],
-    "inimigo_jetpack": ["b14", "v15", "x5"],
-    "inimigo_feno": [],
-    "inimigo_garra": [],
-    "inimigo_cinto": []
+    "inimigo_jetpack": ["b14", "v15", "x5"]
 }

@@ -1,6 +1,6 @@
 (function () {
     const { COORD_ARRAY_KEYS = [] } = window.EditorConfig || {};
-    const { sortCoords, normalizeFaseData, exportarItensData = (itens) => itens } = window.EditorUtils || {};
+    const { sortCoords, normalizeFaseData, exportarItensData = (itens) => itens, limparCamposVazios = (data) => data } = window.EditorUtils || {};
 
     function criarPersistenciaEditor(opcoes = {}) {
         const {
@@ -24,10 +24,10 @@
                 faseData[key] = (faseData[key] || []).sort(sortCoords);
             });
 
-            const dadosExportacao = {
+            const dadosExportacao = limparCamposVazios({
                 ...faseData,
                 itens: exportarItensData(faseData.itens)
-            };
+            });
 
             let jsonStr = JSON.stringify(dadosExportacao, null, 4);
 
@@ -93,10 +93,10 @@
                 const normalized = normalizeFaseData(data);
                 setFaseData(normalized);
                 if (typeof aplicarEstadoUI === 'function') aplicarEstadoUI(normalized);
-                output.value = JSON.stringify({
+                output.value = JSON.stringify(limparCamposVazios({
                     ...normalized,
                     itens: exportarItensData(normalized.itens)
-                }, null, 4);
+                }), null, 4);
                 if (mostrarMensagem) alert(mensagemSucesso);
                 return normalized;
             } catch (e) {

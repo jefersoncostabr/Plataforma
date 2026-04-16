@@ -43,10 +43,6 @@
             inimigoAleatorio: [1, 0]
         };
 
-        COORD_ARRAY_KEYS.forEach((key) => {
-            base[key] = [];
-        });
-
         return { ...base, ...overrides };
     }
 

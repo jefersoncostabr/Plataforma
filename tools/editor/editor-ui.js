@@ -67,15 +67,24 @@
         function addBlocks(coordsArray) {
             const faseData = getFaseData();
             const tipo = blockTypeSelect?.value;
+            const garantirArray = (chave) => {
+                if (!Array.isArray(faseData[chave])) faseData[chave] = [];
+                return faseData[chave];
+            };
+
             coordsArray.forEach(coord => {
                 if (tipo === 'neve') {
-                    if (!faseData.plataformasNeve.includes(coord)) faseData.plataformasNeve.push(coord);
+                    const lista = garantirArray('plataformasNeve');
+                    if (!lista.includes(coord)) lista.push(coord);
                 } else if (tipo === 'terraInferior') {
-                    if (!faseData.plataformasTerraInferior.includes(coord)) faseData.plataformasTerraInferior.push(coord);
+                    const lista = garantirArray('plataformasTerraInferior');
+                    if (!lista.includes(coord)) lista.push(coord);
                 } else if (tipo === 'terraSuperior') {
-                    if (!faseData.plataformasTerraSuperior.includes(coord)) faseData.plataformasTerraSuperior.push(coord);
+                    const lista = garantirArray('plataformasTerraSuperior');
+                    if (!lista.includes(coord)) lista.push(coord);
                 } else {
-                    if (!faseData.plataformas.includes(coord)) faseData.plataformas.push(coord);
+                    const lista = garantirArray('plataformas');
+                    if (!lista.includes(coord)) lista.push(coord);
                 }
             });
             setFaseData(faseData);
@@ -83,10 +92,11 @@
 
         function removeBlocks(coordsArray) {
             const faseData = getFaseData();
-            faseData.plataformas = faseData.plataformas.filter(coord => !coordsArray.includes(coord));
-            faseData.plataformasNeve = faseData.plataformasNeve.filter(coord => !coordsArray.includes(coord));
-            faseData.plataformasTerraInferior = faseData.plataformasTerraInferior.filter(coord => !coordsArray.includes(coord));
-            faseData.plataformasTerraSuperior = faseData.plataformasTerraSuperior.filter(coord => !coordsArray.includes(coord));
+            ['plataformas', 'plataformasNeve', 'plataformasTerraInferior', 'plataformasTerraSuperior'].forEach((key) => {
+                const filtradas = (faseData[key] || []).filter(coord => !coordsArray.includes(coord));
+                if (filtradas.length > 0) faseData[key] = filtradas;
+                else delete faseData[key];
+            });
             setFaseData(faseData);
         }
 
@@ -125,7 +135,7 @@
             fillBottomCheckbox = document.getElementById('fill-bottom-checkbox');
             blockTypeSelect = document.getElementById('block-type-select');
 
-            fillBottomCheckbox.checked = getFaseData().plataformas.some(c => c.startsWith('a'));
+            fillBottomCheckbox.checked = (getFaseData().plataformas || []).some(c => c.startsWith('a'));
             fillBottomCheckbox.onchange = (e) => {
                 fillBottomLayer(e.target.checked);
                 atualizarVisual();

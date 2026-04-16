@@ -105,21 +105,54 @@
         return exported;
     }
 
+    function limparCamposVazios(data) {
+        if (Array.isArray(data)) {
+            return data
+                .map(limparCamposVazios)
+                .filter((item) => {
+                    if (Array.isArray(item)) return item.length > 0;
+                    if (item && typeof item === 'object') return Object.keys(item).length > 0;
+                    return item !== undefined && item !== null;
+                });
+        }
+
+        if (data && typeof data === 'object') {
+            const limpo = {};
+
+            Object.entries(data).forEach(([key, value]) => {
+                const valorLimpo = limparCamposVazios(value);
+                const ehArrayVazio = Array.isArray(valorLimpo) && valorLimpo.length === 0;
+                const ehObjetoVazio = valorLimpo && typeof valorLimpo === 'object' && !Array.isArray(valorLimpo) && Object.keys(valorLimpo).length === 0;
+
+                if (!ehArrayVazio && !ehObjetoVazio && valorLimpo !== undefined) {
+                    limpo[key] = valorLimpo;
+                }
+            });
+
+            return limpo;
+        }
+
+        return data;
+    }
+
     function normalizeFaseData(data = {}) {
         const defaults = createEmptyFaseData();
         const merged = { ...defaults, ...data };
 
         COORD_ARRAY_KEYS.forEach((key) => {
-            merged[key] = normalizeCoordList(merged[key] || []);
+            const coords = normalizeCoordList(merged[key] || []);
+            if (coords.length > 0) merged[key] = coords;
+            else delete merged[key];
         });
 
         merged.itens = normalizeItensData(merged.itens);
+        if (Object.keys(merged.itens).length === 0) delete merged.itens;
 
         merged.inimigoAleatorio = Array.isArray(merged.inimigoAleatorio) && merged.inimigoAleatorio.length >= 2
             ? [Number(merged.inimigoAleatorio[0] || 0), Number(merged.inimigoAleatorio[1] || 0)]
             : [1, 0];
 
-        return merged;
+        return limparCamposVazios(merged);
     }
 
     window.EditorUtils = {
@@ -134,6 +167,7 @@
         normalizeItensData,
         iterarItensData,
         exportarItensData,
+        limparCamposVazios,
         normalizeFaseData
     };
 })();

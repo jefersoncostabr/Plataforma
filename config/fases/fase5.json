@@ -2,35 +2,83 @@
     "proporcao": "1x1",
     "posicaoInicialJogador": "b2",
     "objetivo": "f19",
-    "itens": {},
-    "inimigoAleatorio": [1, 0],
-    "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a18", "a19", "a20",
-        "b6", "b10", "b14", "b16",
-        "c5", "c9", "c11", "c14",
-        "d1", "d2", "d3",
-        "i3", "i4", "i5", "i6", "i7", "i8", "i9", "i10", "i11",
-        "k6", "k7", "k8",
-        "l4", "l5", "l9", "l10"
+    "inimigoAleatorio": [
+        1,
+        0
     ],
-    "plataformasNeve": [],
+    "plataformas": [
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8",
+        "a9",
+        "a10",
+        "a11",
+        "a12",
+        "a13",
+        "a14",
+        "a15",
+        "a16",
+        "a18",
+        "a19",
+        "a20",
+        "b6",
+        "b10",
+        "b14",
+        "b16",
+        "c5",
+        "c9",
+        "c11",
+        "c14",
+        "d1",
+        "d2",
+        "d3",
+        "i3",
+        "i4",
+        "i5",
+        "i6",
+        "i7",
+        "i8",
+        "i9",
+        "i10",
+        "i11",
+        "k6",
+        "k7",
+        "k8",
+        "l4",
+        "l5",
+        "l9",
+        "l10"
+    ],
     "plataformasTerraInferior": [
         "b18",
         "e2",
-        "g4", "g5"
+        "g4",
+        "g5"
     ],
     "plataformasTerraSuperior": [
         "c2",
-        "k4", "k10"
+        "k4",
+        "k10"
     ],
     "plataformasTerraInferior2": [
-        "d6", "d13",
-        "h6", "h7", "h8",
-        "l12", "l13"
+        "d6",
+        "d13",
+        "h6",
+        "h7",
+        "h8",
+        "l12",
+        "l13"
     ],
     "plataformasTerraSuperior2": [
-        "i12", "i13",
-        "k12", "k13"
+        "i12",
+        "i13",
+        "k12",
+        "k13"
     ],
     "plataformasEstacaSup": [
         "a17",
@@ -43,20 +91,23 @@
         "c6"
     ],
     "plataformasEstacaEsq": [
-        "b5", "b9",
+        "b5",
+        "b9",
         "c13"
     ],
     "plataformasEstacaBaixo": [
         "c1",
-        "j6", "j7", "j8",
-        "k5", "k9"
+        "j6",
+        "j7",
+        "j8",
+        "k5",
+        "k9"
     ],
-    "inimigo_comum": ["b12", "b13", "c18", "j11", "l7"],
-    "inimigo_revolver": [],
-    "inimigo_escudo": [],
-    "inimigo_bota": [],
-    "inimigo_jetpack": [],
-    "inimigo_feno": [],
-    "inimigo_garra": [],
-    "inimigo_cinto": []
+    "inimigo_comum": [
+        "b12",
+        "b13",
+        "c18",
+        "j11",
+        "l7"
+    ]
 }
