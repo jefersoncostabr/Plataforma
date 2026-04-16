@@ -8,6 +8,7 @@ window.aplicarEfeitosSkills = () => {
     // Define os valores base (padrão) antes de aplicar bônus
     controle.maxVida = 3;
     controle.danoProjetil = 1; // Dano base do projétil
+    controle.multiplicadorCooldownChute = 1;
 
     // Percorre todas as habilidades que o jogador já possui
     window.playerSkills.forEach(skillId => {
@@ -20,6 +21,11 @@ window.aplicarEfeitosSkills = () => {
             case 'skill2':
                 // Habilidade Atirador: aumenta o dano do tiro em +1 (Total 2)
                 controle.danoProjetil += 1;
+                break;
+
+            case 'skillc':
+                // Habilidade Kickboxing: reduz o cooldown do chute pela metade
+                controle.multiplicadorCooldownChute = 0.5;
                 break;
             
             case 'skilla':

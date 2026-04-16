@@ -2,7 +2,7 @@
     "playerStats": {
         "xp": 0,
         "skillPoints": 0,
-        "acquired": []
+        "acquired": ["skillc"]
     },
     "skills": {
         "skill1": {
@@ -12,6 +12,11 @@
         "skill2": {
             "nome": "Atirador",
             "parent": null
+        },
+
+        "skillc": {
+            "nome": "kickboxing",
+            "parent": "skill2"
         },
 
         "skilla": {

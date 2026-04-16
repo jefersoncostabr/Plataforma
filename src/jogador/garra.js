@@ -399,7 +399,7 @@
                         const inimigoAtingido = controle.garraItemCarregado;
 
                         controle.tempoChute = config.tempoChute;
-                        controle.cooldownChute = config.cooldownChute;
+                        controle.cooldownChute = Number(config.cooldownChute ?? 0);
                         controle.framesImpulsoRestante = 0;
                         controle.velocidadeDash = 0;
 

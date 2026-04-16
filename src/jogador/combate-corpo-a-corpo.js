@@ -44,7 +44,11 @@
             }
 
             controle.tempoChute = Number(config.tempoChute ?? 0);
-            controle.cooldownChute = Number(config.cooldownChute ?? 0);
+            const cooldownBaseChute = Number(config.cooldownChute ?? 0);
+            const multiplicadorCooldownChute = Number(controle.multiplicadorCooldownChute ?? 1);
+            controle.cooldownChute = cooldownBaseChute > 0
+                ? Math.max(1, Math.round(cooldownBaseChute * multiplicadorCooldownChute))
+                : 0;
 
             const duracaoDash = 10;
             const multiplicadorChute = (controle.temBota && !controle.itensGuardadosNoCinto) ? 2 : 1;
