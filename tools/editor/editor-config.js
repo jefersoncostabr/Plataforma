@@ -16,14 +16,14 @@
     ];
 
     const ENEMY_DEFS = [
-        { type: 'inimigos0', stateKey: 'inimigos0', sprite: '../../assets/personagem/Personagem_parado.png', label: 'Inimigo Melee', className: 'enemy-marker', kind: 'array' },
-        { type: 'inimigos1', stateKey: 'inimigos1', sprite: '../../assets/personagem/revolver_pegavel.png', label: 'Inimigo Atirador', className: 'enemy-marker', kind: 'array' },
-        { type: 'inimigos2', stateKey: 'inimigos2', sprite: '../../assets/personagem/escudo_pegavel.png', label: 'Inimigo Escudado', className: 'enemy-marker', kind: 'array' },
-        { type: 'inimigos3', stateKey: 'inimigos3', sprite: '../../assets/personagem/bota_pegavel.png', label: 'Inimigo Rápido (Botas)', className: 'enemy-marker', kind: 'array' },
-        { type: 'inimigos4', stateKey: 'inimigos4', sprite: '../../assets/personagem/jetpack_pegavel.png', label: 'Inimigo Voador (Jetpack)', className: 'enemy-marker', kind: 'array' },
-        { type: 'inimigos5', stateKey: 'inimigos5', sprite: '../../assets/personagem/alvoFeno.png', label: 'Alvo de Feno (Treino)', className: 'enemy-marker', kind: 'array' },
-        { type: 'inimigos6', stateKey: 'inimigos6', sprite: '../../assets/personagem/garra_coletavel.png', label: 'Inimigo com Garra', className: 'enemy-marker', kind: 'array' },
-        { type: 'inimigos7', stateKey: 'inimigos7', sprite: '../../assets/personagem/cinto_coletavel.png', label: 'Inimigo com Cinto', className: 'enemy-marker', kind: 'array' }
+        { type: 'inimigo_comum', stateKey: 'inimigo_comum', sprite: '../../assets/personagem/Personagem_parado.png', label: 'Inimigo Melee', className: 'enemy-marker', kind: 'array' },
+        { type: 'inimigo_revolver', stateKey: 'inimigo_revolver', sprite: '../../assets/personagem/revolver_pegavel.png', label: 'Inimigo Atirador', className: 'enemy-marker', kind: 'array' },
+        { type: 'inimigo_escudo', stateKey: 'inimigo_escudo', sprite: '../../assets/personagem/escudo_pegavel.png', label: 'Inimigo Escudado', className: 'enemy-marker', kind: 'array' },
+        { type: 'inimigo_bota', stateKey: 'inimigo_bota', sprite: '../../assets/personagem/bota_pegavel.png', label: 'Inimigo Rápido (Botas)', className: 'enemy-marker', kind: 'array' },
+        { type: 'inimigo_jetpack', stateKey: 'inimigo_jetpack', sprite: '../../assets/personagem/jetpack_pegavel.png', label: 'Inimigo Voador (Jetpack)', className: 'enemy-marker', kind: 'array' },
+        { type: 'inimigo_feno', stateKey: 'inimigo_feno', sprite: '../../assets/personagem/alvoFeno.png', label: 'Alvo de Feno (Treino)', className: 'enemy-marker', kind: 'array' },
+        { type: 'inimigo_garra', stateKey: 'inimigo_garra', sprite: '../../assets/personagem/garra_coletavel.png', label: 'Inimigo com Garra', className: 'enemy-marker', kind: 'array' },
+        { type: 'inimigo_cinto', stateKey: 'inimigo_cinto', sprite: '../../assets/personagem/cinto_coletavel.png', label: 'Inimigo com Cinto', className: 'enemy-marker', kind: 'array' }
     ];
 
     const SYSTEM_DEFS = [

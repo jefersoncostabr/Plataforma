@@ -26,7 +26,11 @@
 
             let jsonStr = JSON.stringify(faseData, null, 4);
 
-            jsonStr = jsonStr.replace(/"(inimigos\d|inimigoAleatorio)":\s*\[\s*([\s\S]*?)\s*\]/g, (match, key, content) => {
+            const enemyKeys = COORD_ARRAY_KEYS.filter((key) => key.startsWith('inimigo_'));
+            const condensedKeys = [...enemyKeys, 'inimigoAleatorio'];
+            const condensedPattern = new RegExp(`"(${condensedKeys.join('|')})":\\s*\\[\\s*([\\s\\S]*?)\\s*\\]`, 'g');
+
+            jsonStr = jsonStr.replace(condensedPattern, (match, key, content) => {
                 const condensed = content.split('\n')
                     .map(l => l.trim().replace(/,$/, ''))
                     .filter(l => l !== '')
@@ -38,7 +42,7 @@
                 const items = Array.from(content.matchAll(/"[^"]+"/g), (resultado) => resultado[0]);
                 if (items.length === 0) return `"${key}": []`;
 
-                if (/^inimigos\d+$/.test(key)) {
+                if (key.startsWith('inimigo_')) {
                     return `"${key}": [${items.join(', ')}]`;
                 }
 
