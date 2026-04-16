@@ -10,6 +10,18 @@ window.isTraining = false; // Flag para identificar se o jogador está no modo t
 window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para inimigo aleatório
 window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro inimigo
 
+function obterIndiceFaseInicial(valorFaseInicial) {
+    const faseNumero = Number(valorFaseInicial);
+
+    if (!Number.isFinite(faseNumero) || faseNumero < 1) {
+        console.warn('faseInicial inválida. Usando fase 1 como padrão.');
+        return 0;
+    }
+
+    const indiceNormalizado = Math.floor(faseNumero) - 1;
+    return Math.max(0, Math.min(indiceNormalizado, window.niveis.length - 1));
+}
+
 // ⭐ Escala atual do jogo
 window.escalaAtual = 1;
 
@@ -417,8 +429,8 @@ window.reiniciarJogo = async function(porMorte = true) {
         await window.resetarProgressoParaJson();
     }
 
-    // Retorna à fase inicial
-    window.nivelAtual = (window.config && window.config.faseInicial !== undefined) ? window.config.faseInicial : 0;
+    // Retorna à fase inicial usando numeração humana na configuração (1 = fase 1)
+    window.nivelAtual = obterIndiceFaseInicial(window.config?.faseInicial);
     await carregarFase(window.niveis[window.nivelAtual]);
     
     // Atualiza visual dos itens
@@ -435,7 +447,7 @@ async function iniciarJogo() {
     const respostaConfig = await fetch('../../config/configuracoes.json');
     const config = await respostaConfig.json();
     window.config = config;
-    window.nivelAtual = (config.faseInicial !== undefined) ? config.faseInicial : 0;
+    window.nivelAtual = obterIndiceFaseInicial(config.faseInicial);
 
     // Carrega as definições de itens para o jogo usar os sprites dos JSONs
     if (typeof window.carregarItemDefinitions === 'function') await window.carregarItemDefinitions();
