@@ -179,6 +179,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         temCinto: false,
         temBota: false, // Inicia sem bota
         temJetpack: false,
+        temColete: false,
         jetpackAtivo: false,
         timerAtivacaoJetpack: 0,
         framesVoando: 0,
@@ -213,6 +214,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         getElementos: () => ({
             armaElemento,
             botaElemento,
+            coleteElemento,
             jetpackElemento,
             jetFogoElemento,
             garraElemento,
@@ -323,6 +325,19 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     botaElemento.style.pointerEvents = 'none';
     elemento.parentElement.appendChild(botaElemento);
 
+    // Elemento do Colete
+    const coleteElemento = document.createElement('img');
+    coleteElemento.id = 'player-vest';
+    coleteElemento.src = config.spriteColeteParado || '../../assets/personagem/colete.png';
+    coleteElemento.style.position = 'absolute';
+    coleteElemento.style.width = '32px';
+    coleteElemento.style.height = '32px';
+    coleteElemento.style.zIndex = '6';
+    coleteElemento.style.display = controle.temColete ? 'block' : 'none';
+    coleteElemento.style.imageRendering = 'pixelated';
+    coleteElemento.style.pointerEvents = 'none';
+    elemento.parentElement.appendChild(coleteElemento);
+
     // Elemento do Jetpack (Equipado)
     const jetpackElemento = document.createElement('img');
     jetpackElemento.id = 'player-jetpack';
@@ -385,6 +400,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         botaElemento,
         jetpackElemento,
         cintoElemento,
+        coleteElemento,
         atualizarVisualEscudo,
         salvarInventario,
         animarDanoAlvo,
@@ -439,6 +455,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         jetFogoElemento,
         garraElemento,
         cintoElemento,
+        coleteElemento,
         paraquedasElemento,
         atualizarVisualEscudo,
         tentarLevantarJogador,
@@ -520,6 +537,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 controle.velocidadeKnockback = 0;
                 controle.temGarra = false;
                 botaElemento.style.display = 'none';
+                controle.temColete = false;
+                if (coleteElemento) coleteElemento.style.display = 'none';
                 controle.inventario = [];
                 controle.temJetpack = false;
                 controle.jetpackAtivo = false;
@@ -559,6 +578,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         jetFogoElemento,
         garraElemento,
         cintoElemento,
+        coleteElemento,
         atualizarVisualEscudo,
         salvarInventario,
         acaoAtiva,

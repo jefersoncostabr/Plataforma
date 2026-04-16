@@ -1,0 +1,11 @@
+{
+    "id": "colete",
+    "nome": "Colete",
+    "spriteColetavel": "../../assets/personagem/colete_coletavel.png",
+    "spriteEquipado": "../../assets/personagem/colete.png",
+    "efeitos": {
+        "jogador": {
+            "temColete": true
+        }
+    }
+}

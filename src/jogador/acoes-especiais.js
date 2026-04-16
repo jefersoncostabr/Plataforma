@@ -11,6 +11,7 @@
             jetFogoElemento,
             garraElemento,
             cintoElemento,
+            coleteElemento,
             atualizarVisualEscudo = () => {},
             salvarInventario = () => {},
             acaoAtiva = () => false,
@@ -28,6 +29,7 @@
             if (tipo === 'jetpack') return config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
             if (tipo === 'garra') return config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
             if (tipo === 'cinto') return config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
+            if (tipo === 'colete') return config.spriteItemColete || '../../assets/personagem/colete_coletavel.png';
             return '';
         }
 
@@ -139,6 +141,9 @@
             } else if (tipo === 'cinto') {
                 controle.temCinto = false;
                 cintoElemento.style.display = 'none';
+            } else if (tipo === 'colete') {
+                controle.temColete = false;
+                if (coleteElemento) coleteElemento.style.display = 'none';
             }
 
             const visual = document.createElement('img');
@@ -172,6 +177,9 @@
             } else if (controle.vendaTipo === 'cinto') {
                 controle.temCinto = true;
                 cintoElemento.style.display = 'block';
+            } else if (controle.vendaTipo === 'colete') {
+                controle.temColete = true;
+                if (coleteElemento) coleteElemento.style.display = 'block';
             }
 
             if (controle.vendaVisual?.remove) controle.vendaVisual.remove();

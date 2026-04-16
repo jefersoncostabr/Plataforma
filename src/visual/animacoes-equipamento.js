@@ -336,6 +336,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
         armaElemento,
         escudoElemento,
         botaElemento,
+        coleteElemento,
         jetpackElemento,
         jetFogoElemento,
         garraElemento,
@@ -376,6 +377,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
 
         armaElemento.style.display = (controle.temArma && !guardados) ? 'block' : 'none';
         botaElemento.style.display = (controle.temBota && !guardados) ? 'block' : 'none';
+        if (coleteElemento) coleteElemento.style.display = controle.temColete ? 'block' : 'none';
         jetpackElemento.style.display = (controle.temJetpack && !guardados) ? 'block' : 'none';
 
         if (!controle.temJetpack || guardados || !controle.jetpackAtivo) {
@@ -559,6 +561,26 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
 
         if (controle.temCinto) {
             sincronizarCintoComJogador();
+        }
+
+        if (coleteElemento) {
+            if (controle.temColete) {
+                const offsetColeteY = controle.estaAgachado ? -5 : 0;
+                coleteElemento.style.display = 'block';
+                coleteElemento.style.left = controle.x + 'px';
+                coleteElemento.style.bottom = (controle.y + offsetColeteY) + 'px';
+                coleteElemento.style.transform = elemento.style.transform;
+
+                if (controle.chutando) {
+                    coleteElemento.src = config.spriteColeteChutando || '../../assets/personagem/colete_chutando.png';
+                } else if (controle.movendoHorizontal) {
+                    coleteElemento.src = config.spriteColeteAndando || config.spriteColeteParado || '../../assets/personagem/colete.png';
+                } else {
+                    coleteElemento.src = config.spriteColeteParado || '../../assets/personagem/colete.png';
+                }
+            } else {
+                coleteElemento.style.display = 'none';
+            }
         }
 
         if (controle.temBota && !controle.itensGuardadosNoCinto) {

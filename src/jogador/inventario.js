@@ -25,6 +25,7 @@
                 temJetpack: controle.temJetpack,
                 temCinto: controle.temCinto,
                 temGarra: controle.temGarra,
+                temColete: controle.temColete,
                 inventario: Array.isArray(controle.inventario) ? [...controle.inventario] : []
             };
             localStorage.setItem(INVENTARIO_STORAGE_KEY, JSON.stringify(estado));
@@ -49,6 +50,7 @@
         controle.temJetpack = !!inventarioSalvo.temJetpack;
         controle.temCinto = !!inventarioSalvo.temCinto;
         controle.temGarra = !!inventarioSalvo.temGarra;
+        controle.temColete = !!inventarioSalvo.temColete;
         controle.inventario = Array.isArray(inventarioSalvo.inventario) ? [...inventarioSalvo.inventario] : [];
 
         if (controle.inventario.includes('revolver')) controle.temArma = true;
@@ -57,6 +59,7 @@
         if (controle.inventario.includes('jetpack')) controle.temJetpack = true;
         if (controle.inventario.includes('garra')) controle.temGarra = true;
         if (controle.inventario.includes('cinto')) controle.temCinto = true;
+        if (controle.inventario.includes('colete')) controle.temColete = true;
     }
 
     function obterSpriteItem(tipo, config) {
@@ -66,6 +69,7 @@
         if (tipo === 'jetpack') return config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
         if (tipo === 'garra') return config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
         if (tipo === 'cinto') return config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
+        if (tipo === 'colete') return config.spriteItemColete || '../../assets/personagem/colete_coletavel.png';
         return '';
     }
 
@@ -102,7 +106,8 @@
                 jetpackElemento,
                 jetFogoElemento,
                 garraElemento,
-                cintoElemento
+                cintoElemento,
+                coleteElemento
             } = getElementos();
 
             const tipo = controle.inventario.pop();
@@ -130,6 +135,9 @@
                     garraElemento.style.display = 'none';
                 } else if (tipo === 'cinto' && cintoElemento) {
                     cintoElemento.style.display = 'none';
+                } else if (tipo === 'colete' && coleteElemento) {
+                    controle.temColete = false;
+                    coleteElemento.style.display = 'none';
                 }
 
                 const direcaoFace = controle.direcao === 'd' ? 1 : -1;
@@ -176,6 +184,9 @@
             } else if (tipo === 'cinto') {
                 controle.temCinto = false;
                 if (cintoElemento) cintoElemento.style.display = 'none';
+            } else if (tipo === 'colete') {
+                controle.temColete = false;
+                if (coleteElemento) coleteElemento.style.display = 'none';
             }
 
             itemImg.style.position = 'absolute';

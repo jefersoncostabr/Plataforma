@@ -10,6 +10,7 @@
             botaElemento,
             jetpackElemento,
             cintoElemento,
+            coleteElemento,
             atualizarVisualEscudo = () => {},
             salvarInventario = () => {},
             animarDanoAlvo = () => {},
@@ -41,8 +42,9 @@
 
         function sincronizarEquipamentoNoJogador(equipamento) {
             if (!equipamento) return;
+            const offsetY = equipamento.id === 'player-vest' && controle.estaAgachado ? -5 : 0;
             equipamento.style.left = controle.x + 'px';
-            equipamento.style.bottom = controle.y + 'px';
+            equipamento.style.bottom = (controle.y + offsetY) + 'px';
             equipamento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
         }
 
@@ -103,6 +105,12 @@
                     if (itemData.spriteEquipado) cintoElemento.src = itemData.spriteEquipado;
                     cintoElemento.style.display = 'block';
                     sincronizarEquipamentoNoJogador(cintoElemento);
+                } else if (item.tipo === 'colete') {
+                    if (itemData.spriteEquipado && coleteElemento) coleteElemento.src = itemData.spriteEquipado;
+                    if (coleteElemento) {
+                        coleteElemento.style.display = 'block';
+                        sincronizarEquipamentoNoJogador(coleteElemento);
+                    }
                 }
 
                 if (!controle.inventario.includes(item.tipo) && item.tipo !== 'airdrop' && item.tipo !== 'restauracao') {
@@ -142,6 +150,13 @@
                 if (!controle.inventario.includes('cinto')) controle.inventario.push('cinto');
                 cintoElemento.style.display = 'block';
                 sincronizarEquipamentoNoJogador(cintoElemento);
+            } else if (item.tipo === 'colete') {
+                controle.temColete = true;
+                if (!controle.inventario.includes('colete')) controle.inventario.push('colete');
+                if (coleteElemento) {
+                    coleteElemento.style.display = 'block';
+                    sincronizarEquipamentoNoJogador(coleteElemento);
+                }
             } else if (item.tipo === 'airdrop') {
                 const conteudos = config.airdrop1?.conteudos || ['xp'];
                 const sorteio = conteudos[Math.floor(Math.random() * conteudos.length)];

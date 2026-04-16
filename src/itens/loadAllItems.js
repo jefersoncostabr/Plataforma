@@ -12,6 +12,7 @@ export async function loadAllItems() {
     'bota',
     'jetpack',
     'garra',
+    'colete',
     'restauracao'
     // Adicione novos ids aqui conforme criar novos arquivos JSON
   ];
