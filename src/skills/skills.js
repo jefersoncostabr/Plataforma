@@ -7,9 +7,71 @@ window.isSkillMenuOpen = false;
 window.playerXP = 0;
 window.skillPoints = 0;
 window.skillsData = null;
+window.SKILLS = Object.freeze({
+    VIDA: 'Vida',
+    ATIRADOR: 'Atirador',
+    KICKBOXING: 'kickboxing',
+    DROPAR: 'Dropar',
+    VISAO: 'Visão',
+    AIRDROP: 'Airdrop',
+    VENDER: 'Vender',
+    SALTO: 'Salto',
+    RESGATE: 'Resgate'
+});
+window.temSkill = (nomeSkill) => Array.isArray(window.playerSkills) && window.playerSkills.includes(String(nomeSkill || ''));
 let selectedSkillId = null;
 let skillsLevelMap = {}; 
 let skillButtonsMap = {};
+
+function normalizarEstruturaSkills(skills = {}) {
+    if (!skills || typeof skills !== 'object') return {};
+
+    const entries = Object.entries(skills);
+    const usaFormatoAntigo = entries.some(([, valor]) => valor && typeof valor === 'object' && ('nome' in valor || 'parent' in valor));
+
+    if (!usaFormatoAntigo) {
+        return entries.reduce((acc, [nome, parent]) => {
+            acc[nome] = {
+                nome,
+                parent: parent == null ? null : String(parent)
+            };
+            return acc;
+        }, {});
+    }
+
+    const idParaNome = entries.reduce((acc, [id, skill]) => {
+        if (skill && typeof skill === 'object') {
+            acc[id] = String(skill.nome || id);
+        }
+        return acc;
+    }, {});
+
+    return entries.reduce((acc, [id, skill]) => {
+        if (!skill || typeof skill !== 'object') return acc;
+
+        const nome = idParaNome[id] || String(skill.nome || id);
+        const parent = skill.parent == null ? null : (idParaNome[skill.parent] || String(skill.parent));
+
+        acc[nome] = { nome, parent };
+        return acc;
+    }, {});
+}
+
+function normalizarSkillsAdquiridas(acquired = [], skillsNormalizadas = {}, skillsOriginais = {}) {
+    if (!Array.isArray(acquired)) return [];
+
+    const nomesValidos = new Set(Object.keys(skillsNormalizadas));
+    const idParaNome = Object.entries(skillsOriginais).reduce((acc, [id, skill]) => {
+        if (skill && typeof skill === 'object' && skill.nome) {
+            acc[id] = String(skill.nome);
+        }
+        return acc;
+    }, {});
+
+    return [...new Set(acquired
+        .map((skill) => idParaNome[skill] || skill)
+        .filter((skill) => nomesValidos.size === 0 || nomesValidos.has(skill)))];
+}
 
 // Funções globais de gerenciamento
 window.ganharXP = (quantidade = 1) => {
@@ -35,12 +97,16 @@ window.carregarDadosSkills = async (forçarReset = false) => {
     try {
         const resposta = await fetch('../../config/skills-dados.json');
         const dados = await resposta.json();
-        window.skillsData = dados.skills;
+        const skillsOriginais = dados.skills || {};
+        const skillsNormalizadas = normalizarEstruturaSkills(skillsOriginais);
+        window.skillsData = skillsNormalizadas;
 
         if (forçarReset || window.playerSkills.length === 0) {
-            window.playerXP = dados.playerStats.xp;
-            window.skillPoints = dados.playerStats.skillPoints;
-            window.playerSkills = dados.playerStats.acquired || [];
+            window.playerXP = Number(dados.playerStats?.xp || 0);
+            window.skillPoints = Number(dados.playerStats?.skillPoints || 0);
+            window.playerSkills = normalizarSkillsAdquiridas(dados.playerStats?.acquired || [], skillsNormalizadas, skillsOriginais);
+        } else {
+            window.playerSkills = normalizarSkillsAdquiridas(window.playerSkills, skillsNormalizadas, skillsOriginais);
         }
 
         if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();

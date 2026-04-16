@@ -90,7 +90,7 @@
         }
 
         function droparItemJogador() {
-            if (!window.playerSkills || !window.playerSkills.includes('skilla')) {
+            if (!window.temSkill?.((window.SKILLS || {}).DROPAR)) {
                 console.log("Habilidade 'Dropar' não adquirida.");
                 return;
             }

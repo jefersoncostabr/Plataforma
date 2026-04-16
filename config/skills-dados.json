@@ -2,48 +2,17 @@
     "playerStats": {
         "xp": 0,
         "skillPoints": 0,
-        "acquired": ["skillc"]
+        "acquired": ["kickboxing", "Salto"]
     },
     "skills": {
-        "skill1": {
-            "nome": "Vida",
-            "parent": null
-        },
-        "skill2": {
-            "nome": "Atirador",
-            "parent": null
-        },
-
-        "skillc": {
-            "nome": "kickboxing",
-            "parent": "skill2"
-        },
-
-        "skilla": {
-            "nome": "Dropar",
-            "parent": "skill1"
-        },
-        "skillb": {
-            "nome": "Visão",
-            "parent": "skill1"
-        },
-
-        "skilla2": {
-            "nome": "Airdrop",
-            "parent": "skilla"
-        },
-        "skilla1": {
-            "nome": "Vender",
-            "parent": "skilla"
-        },
-
-        "skillb2": {
-            "nome": "Salto",
-            "parent": "skillb"
-        },
-        "skillb1": {
-            "nome": "Resgate",
-            "parent": "skillb"
-        }
+        "Vida": null,
+        "Atirador": null,
+        "kickboxing": "Atirador",
+        "Dropar": "Vida",
+        "Visão": "Vida",
+        "Airdrop": "Dropar",
+        "Vender": "Dropar",
+        "Salto": "Visão",
+        "Resgate": "Visão"
     }
 }

@@ -27,7 +27,7 @@
         }
 
         function atualizarHUD() {
-            if (!window.playerSkills || !window.playerSkills.includes('skillb')) {
+            if (!window.temSkill?.((window.SKILLS || {}).VISAO)) {
                 hudElemento.style.display = 'none';
                 return;
             }

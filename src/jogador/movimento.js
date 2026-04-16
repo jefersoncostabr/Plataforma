@@ -874,7 +874,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // Decrementa o cooldown pós Super Descida
         if (controle.cooldownPosSuperDescida > 0) controle.cooldownPosSuperDescida--;
 
-        // Lógica da Skill Passiva "Salto" (skillb2) - Pulo Duplo
+        // Lógica da Skill Passiva "Salto" - Pulo Duplo
         const teclaPuloAtiva = acaoAtiva('pulo') && controle.cooldownPosSuperDescida === 0;
         const puloAcabouDeSerPressionado = teclaPuloAtiva && !controle.espacoPressionado;
         controle.espacoPressionado = !!teclaPuloAtiva;
@@ -893,7 +893,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 controle.pulosRealizados = 0;
                 // O cooldown do pulo duplo não é resetado aqui, ele deve contar até o fim.
             }
-        } else if (puloAcabouDeSerPressionado && window.playerSkills?.includes('skillb2') && controle.pulosRealizados === 1 && controle.timerPuloDuplo > 0 && controle.cooldownPuloDuplo === 0) {
+        } else if (puloAcabouDeSerPressionado && window.temSkill?.((window.SKILLS || {}).SALTO) && controle.pulosRealizados === 1 && controle.timerPuloDuplo > 0 && controle.cooldownPuloDuplo === 0) {
             // Segundo salto: agora com 1.25x da força (um quarto a mais) e com timing mais exigente
             controle.velocidadeY = forcaPuloFinal * 1.25;
             controle.pulosRealizados = 2; // Consome o segundo salto até tocar o chão novamente
@@ -1002,8 +1002,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Condição de Game Over por queda (buraco)
         if (controle.y < -64) {
-            // Transforma em Skill Passiva: Verifica se o player possui a skill 'skillb1' (Resgate)
-            if (window.playerSkills?.includes('skillb1')) {
+            // Transforma em Skill Passiva: Verifica se o player possui a skill Resgate
+            if (window.temSkill?.((window.SKILLS || {}).RESGATE)) {
                 console.log("Habilidade Passiva: Resgate Ativado!");
                 const larguraPalco = window.mundoLargura || 640;
                 const alturaPalco = window.mundoAltura || 480;

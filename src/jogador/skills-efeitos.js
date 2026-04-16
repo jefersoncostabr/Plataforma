@@ -10,30 +10,32 @@ window.aplicarEfeitosSkills = () => {
     controle.danoProjetil = 1; // Dano base do projétil
     controle.multiplicadorCooldownChute = 1;
 
+    const skills = window.SKILLS || {};
+
     // Percorre todas as habilidades que o jogador já possui
-    window.playerSkills.forEach(skillId => {
-        switch (skillId) {
-            case 'skill1':
+    window.playerSkills.forEach((skillNome) => {
+        switch (skillNome) {
+            case skills.VIDA:
                 // Habilidade Vida: aumenta a resistência máxima em +1
                 controle.maxVida += 1;
                 break;
             
-            case 'skill2':
+            case skills.ATIRADOR:
                 // Habilidade Atirador: aumenta o dano do tiro em +1 (Total 2)
                 controle.danoProjetil += 1;
                 break;
 
-            case 'skillc':
-                // Habilidade Kickboxing: reduz o cooldown do chute pela metade
+            case skills.KICKBOXING:
+                // Habilidade kickboxing: reduz o cooldown do chute pela metade
                 controle.multiplicadorCooldownChute = 0.5;
                 break;
             
-            case 'skilla':
-                // Exemplo futuro: aumentar dano ou knockback
+            case skills.DROPAR:
+                // Espaço reservado para efeitos futuros
                 break;
 
-            case 'skillb':
-                // Exemplo futuro: bônus de agilidade
+            case skills.VISAO:
+                // Espaço reservado para efeitos futuros
                 break;
         }
     });

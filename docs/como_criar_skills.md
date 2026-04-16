@@ -1,6 +1,6 @@
-# Guia de Configuração de Habilidades (`skillsData.json`)
+# Guia de Configuração de Habilidades (skills-dados.json)
 
-Este documento explica como configurar o arquivo `skillsData.json`, que controla o progresso do jogador e a estrutura visual da árvore de habilidades. O posicionamento dos botões no menu de habilidades é **automático**, baseado na hierarquia definida.
+Este documento explica como configurar o arquivo de habilidades, que controla o progresso do jogador e a estrutura visual da árvore de habilidades. O posicionamento dos botões no menu de habilidades é automático, baseado na hierarquia definida.
 
 ## Sumário
 
@@ -19,16 +19,16 @@ Este documento explica como configurar o arquivo `skillsData.json`, que controla
 | :--- | :--- |
 | `xp` | Experiência inicial do jogador. |
 | `skillPoints` | Quantidade de pontos disponíveis para gastar ao iniciar. |
-| `acquired` | Lista de IDs de habilidades que o jogador já possui ao começar. |
+| `acquired` | Lista com os nomes explícitos das habilidades que o jogador já possui ao começar. |
  
 ## 2. Definição de Habilidades (`skills`)
 
-Cada entrada dentro do objeto `skills` representa um nó na árvore.
+Cada entrada dentro do objeto skills representa um nó na árvore.
 
-### Campos por Skill:
-*   **ID (Chave):** Identificador único (ex: `skill1`, `skilla`).
-*   **`nome`:** O texto que aparecerá dentro do botão no menu.
-*   **`parent`:** O ID da habilidade anterior necessária. Use `null` para a habilidade raiz (base).
+### Formato por Skill:
+*   A chave é o nome explícito da habilidade.
+*   O valor é o nome da habilidade pai.
+*   Use null para uma habilidade raiz.
 
 ---
 
@@ -36,8 +36,8 @@ Você não precisa definir coordenadas X e Y. O motor de jogo calcula a posiçã
 
 1.  **Altura (Eixo Y):** Definida pela profundidade na árvore. A raiz (`parent: null`) fica no topo. Habilidades filhas ficam na linha de baixo.
 2.  **Largura (Eixo X):** O jogo agrupa todas as habilidades do mesmo nível e as distribui igualmente pela largura do menu.
-3.  **Ordem:** A ordem da esquerda para a direita é definida pela ordem alfabética dos IDs.
-    *   Exemplo: `skilla` ficará à esquerda de `skillb`.
+3.  **Ordem:** A ordem da esquerda para a direita é definida pela ordem alfabética dos nomes das skills.
+    *   Exemplo: Airdrop ficará à esquerda de Vender.
 
 ---
 
@@ -46,22 +46,24 @@ Você não precisa definir coordenadas X e Y. O motor de jogo calcula a posiçã
     "playerStats": {
         "xp": 0,
         "skillPoints": 0,
-        "acquired": ["skill1"]
+        "acquired": ["Vida"]
     },
     "skills": {
-        "skill1": { "nome": "Vida", "parent": null },
-        "skilla": { "nome": "Ataque", "parent": "skill1" },
-        "skillb": { "nome": "Velocidade", "parent": "skill1" },
-        "skilla2": { "nome": "Impacto", "parent": "skilla" }
+        "Vida": null,
+        "Atirador": null,
+        "kickboxing": "Atirador",
+        "Dropar": "Vida",
+        "Visão": "Vida",
+        "Airdrop": "Dropar"
     }
 }
 ```
 
 ## 5. Vinculando Efeitos
 
-Para que uma skill tenha um efeito real no jogo (ex: aumentar vida), você deve adicionar o ID dela no arquivo `skillsEfeitos.js` dentro da função `switch`.
+Para que uma skill tenha um efeito real no jogo, você deve adicionar a verificação do nome dela no sistema de efeitos e nos pontos do gameplay que dependem dessa habilidade.
 
-*   **skill1:** Aumenta `maxVida` em +1.
-*   **skilla:** Habilita o comando de **Drop de Item**.
+*   Vida: aumenta maxVida em +1.
+*   Dropar: habilita o comando de drop de item.
 
 ---

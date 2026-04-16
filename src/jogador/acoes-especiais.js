@@ -184,7 +184,7 @@
             const segurandoCima = acaoAtiva('cima');
             const apertouTiro = acaoAtiva('tiro');
 
-            if (segurandoCima && apertouTiro && window.playerSkills?.includes('skilla2') && !controle.airdropUsadoNoNivel) {
+            if (segurandoCima && window.temSkill?.((window.SKILLS || {}).AIRDROP) && apertouTiro && !controle.airdropUsadoNoNivel) {
                 dispararSinalizador();
                 controle.airdropUsadoNoNivel = true;
                 console.log('Skill AirDrop: Suporte aéreo solicitado!');
@@ -194,7 +194,7 @@
 
             const segurandoBaixoVenda = acaoAtiva('baixo');
             if (
-                window.playerSkills?.includes('skilla1') &&
+                window.temSkill?.((window.SKILLS || {}).VENDER) &&
                 segurandoBaixoVenda &&
                 apertouTiro &&
                 !controle.vendaEmCurso &&
