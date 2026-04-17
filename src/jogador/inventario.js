@@ -53,6 +53,31 @@
         return Math.max(1, Number(window.coleteConfig?.capacidade ?? COLETE_CONFIG_PADRAO.capacidade));
     }
 
+    function normalizarEntradaArmazenada(slot = null) {
+        if (!slot) return null;
+        if (typeof slot === 'string') {
+            return {
+                tipo: slot,
+                nome: slot,
+                spriteColetavel: '',
+                spriteEquipado: '',
+                consumivel: false,
+                usarSoSePrecisar: false,
+                dados: {}
+            };
+        }
+
+        return {
+            tipo: slot.tipo || slot.id || null,
+            nome: slot.nome || slot.tipo || 'Item',
+            spriteColetavel: slot.spriteColetavel || '',
+            spriteEquipado: slot.spriteEquipado || '',
+            consumivel: !!slot.consumivel,
+            usarSoSePrecisar: !!slot.usarSoSePrecisar,
+            dados: (slot.dados && typeof slot.dados === 'object') ? { ...slot.dados } : {}
+        };
+    }
+
     function normalizarSlotsColete(slots = null) {
         const capacidade = obterCapacidadeColete();
         const base = Array.isArray(slots) ? [...slots] : [];
@@ -61,21 +86,7 @@
             base.push(null);
         }
 
-        return base.slice(0, capacidade).map((slot) => {
-            if (!slot) return null;
-            if (typeof slot === 'string') {
-                return { tipo: slot, nome: slot, dados: {} };
-            }
-            return {
-                tipo: slot.tipo || slot.id || null,
-                nome: slot.nome || slot.tipo || 'Item',
-                spriteColetavel: slot.spriteColetavel || '',
-                spriteEquipado: slot.spriteEquipado || '',
-                consumivel: !!slot.consumivel,
-                usarSoSePrecisar: !!slot.usarSoSePrecisar,
-                dados: (slot.dados && typeof slot.dados === 'object') ? { ...slot.dados } : {}
-            };
-        });
+        return base.slice(0, capacidade).map((slot) => normalizarEntradaArmazenada(slot));
     }
 
     function obterRegraColete(tipo) {
@@ -130,7 +141,8 @@
                 temGarra: controle.temGarra,
                 temColete: controle.temColete,
                 inventario: Array.isArray(controle.inventario) ? [...controle.inventario] : [],
-                coleteSlots: normalizarSlotsColete(controle.coleteSlots)
+                coleteSlots: normalizarSlotsColete(controle.coleteSlots),
+                cintoSlot: normalizarEntradaArmazenada(controle.cintoSlot)
             };
             localStorage.setItem(INVENTARIO_STORAGE_KEY, JSON.stringify(estado));
         } catch (error) {
@@ -157,6 +169,7 @@
         controle.temColete = !!inventarioSalvo.temColete;
         controle.inventario = Array.isArray(inventarioSalvo.inventario) ? [...inventarioSalvo.inventario] : [];
         controle.coleteSlots = normalizarSlotsColete(inventarioSalvo.coleteSlots);
+        controle.cintoSlot = normalizarEntradaArmazenada(inventarioSalvo.cintoSlot);
 
         if (controle.inventario.includes('revolver')) controle.temArma = true;
         if (controle.inventario.includes('escudo')) controle.temEscudo = true;
@@ -192,8 +205,10 @@
         }
 
         controle.coleteSlots = normalizarSlotsColete(controle.coleteSlots);
+        controle.cintoSlot = normalizarEntradaArmazenada(controle.cintoSlot);
         carregarConfigColete().then(() => {
             controle.coleteSlots = normalizarSlotsColete(controle.coleteSlots);
+            controle.cintoSlot = normalizarEntradaArmazenada(controle.cintoSlot);
             if (window.isMochilaMenuOpen && typeof window.atualizarMochilaUI === 'function') {
                 window.atualizarMochilaUI(controle);
             }
@@ -378,6 +393,179 @@
             return true;
         }
 
+        function obterDadosExtrasDoItemAtivo(tipo) {
+            if (tipo === 'revolver') {
+                return { municao: controle.municao };
+            }
+            if (tipo === 'escudo') {
+                return {
+                    escudoProtegido: controle.escudoProtegido,
+                    escudoVermelho: controle.escudoVermelho
+                };
+            }
+            return {};
+        }
+
+        function removerItemDoCorpoSemDropar(tipo) {
+            const {
+                armaElemento,
+                escudoElemento,
+                botaElemento,
+                jetpackElemento,
+                jetFogoElemento,
+                garraElemento,
+                cintoElemento,
+                coleteElemento
+            } = obterElementos();
+
+            if (tipo === 'revolver') {
+                controle.temArma = false;
+                controle.municao = 0;
+                if (armaElemento) armaElemento.style.display = 'none';
+                return true;
+            }
+            if (tipo === 'escudo') {
+                controle.temEscudo = false;
+                controle.escudoVermelho = false;
+                controle.escudoProtegido = 0;
+                atualizarVisualEscudo();
+                if (escudoElemento) escudoElemento.style.display = 'none';
+                return true;
+            }
+            if (tipo === 'bota') {
+                controle.temBota = false;
+                if (botaElemento) botaElemento.style.display = 'none';
+                return true;
+            }
+            if (tipo === 'jetpack') {
+                controle.temJetpack = false;
+                controle.jetpackAtivo = false;
+                controle.timerAtivacaoJetpack = 0;
+                controle.timerVooRestante = 0;
+                controle.cooldownVooJetpack = 0;
+                if (jetpackElemento) jetpackElemento.style.display = 'none';
+                if (jetFogoElemento) jetFogoElemento.style.display = 'none';
+                return true;
+            }
+            if (tipo === 'garra') {
+                controle.temGarra = false;
+                if (garraElemento) garraElemento.style.display = 'none';
+                return true;
+            }
+            if (tipo === 'cinto') {
+                if (obterSlotCinto()) {
+                    console.log('Cinto: esvazie o slot central antes de consumir o cinto.');
+                    return false;
+                }
+                controle.temCinto = false;
+                if (cintoElemento) cintoElemento.style.display = 'none';
+                return true;
+            }
+            if (tipo === 'colete') {
+                if (coleteTemConteudo()) {
+                    console.log('Colete: esvazie os slots antes de guardar no cinto.');
+                    return false;
+                }
+                controle.temColete = false;
+                if (coleteElemento) coleteElemento.style.display = 'none';
+                return true;
+            }
+            return false;
+        }
+
+        function obterItensDisponiveisNoCinto() {
+            const itens = [];
+            const adicionar = (tipo, ativo) => {
+                if (!ativo) return;
+                if (tipo === 'colete' && coleteTemConteudo()) return;
+                const itemData = window.itemDefinitions?.[tipo] || null;
+                itens.push(criarEntradaColete({ tipo, ...obterDadosExtrasDoItemAtivo(tipo) }, itemData));
+            };
+
+            adicionar('revolver', controle.temArma);
+            adicionar('escudo', controle.temEscudo || controle.escudoVermelho);
+            adicionar('bota', controle.temBota);
+            adicionar('jetpack', controle.temJetpack);
+            adicionar('garra', controle.temGarra);
+            adicionar('colete', controle.temColete);
+            return itens;
+        }
+
+        function obterSlotCinto() {
+            controle.cintoSlot = normalizarEntradaArmazenada(controle.cintoSlot);
+            return controle.cintoSlot;
+        }
+
+        function guardarItemNoCinto(item, itemData = null) {
+            if (!controle.temCinto) return false;
+            if (!item?.tipo) return false;
+            if (!itemPodeIrParaColete(item.tipo)) return false;
+
+            controle.cintoSlot = normalizarEntradaArmazenada(controle.cintoSlot);
+            if (controle.cintoSlot) return false;
+
+            controle.cintoSlot = criarEntradaColete(item, itemData);
+            salvarInventario();
+            atualizarMochilaUI();
+            return true;
+        }
+
+        function guardarEquipamentoNoCinto(tipo) {
+            if (!controle.temCinto || !tipo) return false;
+            controle.cintoSlot = normalizarEntradaArmazenada(controle.cintoSlot);
+            if (controle.cintoSlot) return false;
+            if (!itemJaAtivoNoCorpo(tipo)) return false;
+
+            const itemData = window.itemDefinitions?.[tipo] || null;
+            const extras = obterDadosExtrasDoItemAtivo(tipo);
+            if (!removerItemDoCorpoSemDropar(tipo)) return false;
+
+            controle.cintoSlot = criarEntradaColete({ tipo, ...extras }, itemData);
+            salvarInventario();
+            atualizarMochilaUI();
+            return true;
+        }
+
+        function droparItemDoCinto() {
+            controle.cintoSlot = normalizarEntradaArmazenada(controle.cintoSlot);
+            const slot = controle.cintoSlot;
+            if (!slot) return false;
+
+            const dropou = droparTipoNoMundo(slot.tipo, slot.dados || {});
+            if (!dropou) return false;
+
+            controle.cintoSlot = null;
+            salvarInventario();
+            atualizarMochilaUI();
+            return true;
+        }
+
+        function usarItemDoCinto() {
+            controle.cintoSlot = normalizarEntradaArmazenada(controle.cintoSlot);
+            const slot = controle.cintoSlot;
+            if (!slot) return false;
+            if (!precisaDeItemAgora(slot.tipo)) return false;
+
+            const itemData = window.itemDefinitions?.[slot.tipo] || null;
+            const aplicou = aplicarItemNoCorpo(slot.tipo, itemData, slot.dados || {});
+            if (!aplicou) return false;
+
+            controle.cintoSlot = null;
+            salvarInventario();
+            atualizarMochilaUI();
+            return true;
+        }
+
+        function usarOuDroparItemDoCinto() {
+            if (usarItemDoCinto()) {
+                return { acao: 'usado' };
+            }
+            if (droparItemDoCinto()) {
+                return { acao: 'dropado' };
+            }
+            return { acao: 'nenhum' };
+        }
+
         function droparTipoNoMundo(tipo, extras = {}) {
             if (!tipo) return false;
 
@@ -480,14 +668,14 @@
                     atualizarMochilaUI();
                     return true;
                 }
-                return guardarItemNoColete(item, itemData);
+                return guardarItemNoColete(item, itemData) || guardarItemNoCinto(item, itemData);
             }
 
             if (!itemJaAtivoNoCorpo(item.tipo)) {
                 return aplicarItemNoCorpo(item.tipo, itemData, item);
             }
 
-            return guardarItemNoColete(item, itemData);
+            return guardarItemNoColete(item, itemData) || guardarItemNoCinto(item, itemData);
         }
 
         function droparItemJogador() {
@@ -512,9 +700,20 @@
                 console.log('Colete: esvazie a mochila antes de dropar o colete.');
                 return;
             }
+            if (tipo === 'cinto' && obterSlotCinto()) {
+                console.log('Cinto: esvazie o slot central antes de dropar o cinto.');
+                return;
+            }
 
+            const slotCintoAtual = obterSlotCinto();
             controle.inventario.pop();
-            const extras = {};
+            const extras = (slotCintoAtual?.tipo === tipo)
+                ? { ...(slotCintoAtual.dados || {}) }
+                : {};
+
+            if (slotCintoAtual?.tipo === tipo) {
+                controle.cintoSlot = null;
+            }
 
             if (tipo === 'revolver') {
                 extras.municao = controle.municao;
@@ -596,11 +795,22 @@
         window.limparInventarioSalvo = limparInventarioSalvo;
         window.carregarInventarioSalvo = carregarInventarioSalvo;
         window.tentarColetarItemJogador = tentarColetarItemJogador;
+        window.removerItemDoCorpoSemDropar = removerItemDoCorpoSemDropar;
         window.usarOuDroparItemColete = usarOuDroparItemDoColete;
         window.droparItemColete = droparItemDoColete;
         window.obterSlotsColete = obterSlotsColete;
+        window.obterSlotCinto = obterSlotCinto;
+        window.obterItensDisponiveisNoCinto = obterItensDisponiveisNoCinto;
+        window.guardarItemNoCinto = guardarItemNoCinto;
+        window.guardarEquipamentoNoCinto = guardarEquipamentoNoCinto;
+        window.usarOuDroparItemCinto = usarOuDroparItemDoCinto;
+        window.droparItemCinto = droparItemDoCinto;
         window.itemColetePodeSerUsadoAgora = (slotOuIndice) => {
             const slot = typeof slotOuIndice === 'number' ? obterSlotsColete()[slotOuIndice] : slotOuIndice;
+            return !!slot && precisaDeItemAgora(slot.tipo);
+        };
+        window.itemCintoPodeSerUsadoAgora = () => {
+            const slot = obterSlotCinto();
             return !!slot && precisaDeItemAgora(slot.tipo);
         };
 

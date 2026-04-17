@@ -222,7 +222,8 @@ function gerarPosicaoAleatoria(plataformas) {
  * O inimigo será colocado sempre ACIMA de uma plataforma, nunca dentro.
  * 
  * @param {array} plataformas - Lista de coordenadas das plataformas.
- * @param {number} tipoEquipamento - Tipo de equipamento do inimigo (0=sem, 1=revólver, 2=escudo, 3=bota, 4=jetpack, 5=feno, 6=garra, 7=cinto
+ * @param {number} tipoEquipamento - Tipo de equipamento do inimigo (0=sem, 1=revólver, 2=escudo, 3=bota, 4=jetpack, 5=feno, 6=garra, 7=cinto)
+ */
 function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     const posicao = gerarPosicaoAleatoria(plataformas);
     
@@ -440,7 +441,8 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         novoInimigo.cintoElemento = cintoImg;
     }
 
-
+    // Cria elemento de colete se necessário
+    if (temColete) {
         const coleteImg = document.createElement('img');
         coleteImg.src = window.config?.spriteColeteParado || '../../assets/personagem/colete.png';
         coleteImg.style.position = 'absolute';

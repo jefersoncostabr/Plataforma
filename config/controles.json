@@ -9,6 +9,7 @@
     "garra": ["j", "J"],
     "cinto": ["l", "L"],
     "mochila": ["Enter"],
+    "interagir": ["e", "E"],
     "debugPuloInimigo": ["8"],
     "debugKillInimigos": ["9"]
 }

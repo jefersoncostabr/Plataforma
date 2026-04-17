@@ -19,7 +19,8 @@ const CONTROLES_PADRAO = {
     tiro: ['i', 'I'],
     garra: ['j', 'J'],
     cinto: ['l', 'L'],
-    mochila: ['Enter']
+    mochila: ['Enter'],
+    interagir: ['e', 'E']
 };
 
 const CONTROLES_MENU_ITEMS = [
@@ -32,7 +33,8 @@ const CONTROLES_MENU_ITEMS = [
     { id: 'tiro', label: 'Atirar/Acao' },
     { id: 'garra', label: 'Garra' },
     { id: 'cinto', label: 'Cinto' },
-    { id: 'mochila', label: 'Slots do Colete' }
+    { id: 'mochila', label: 'Slots do Cinto e Colete' },
+    { id: 'interagir', label: 'Interagir / Craft' }
 ];
 
 function normalizarControles(raw) {
@@ -98,6 +100,33 @@ carregarControlesDoStorage();
  * Retorna a lista de opcoes do menu, ajustando o comportamento para o inicio do jogo.
  */
 const getActiveMenuOptions = () => {
+    const temColete = !!window.playerControle?.temColete;
+    const coleleOption = temColete ? {
+        label: 'COLETE', action: () => {
+            window.togglePauseMenu();
+            if (typeof window.toggleMochilaMenu === 'function') {
+                window.toggleMochilaMenu(window.playerControle);
+            }
+        }
+    } : null;
+
+    const controlesOption = {
+        label: 'CONTROLES', action: () => {
+            menuMode = 'controls';
+            controlsSelectedIndex = 0;
+            controlsBindingAction = null;
+            renderMenuUI();
+        }
+    };
+
+    const reiniciarOption = {
+        label: 'REINICIAR', action: () => {
+            window.isFirstStart = false;
+            window.togglePauseMenu();
+            if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
+        }
+    };
+
     const baseOptions = [
         {
             label: 'RETORNAR', action: () => {
@@ -111,14 +140,8 @@ const getActiveMenuOptions = () => {
                 window.toggleSkillMenu();
             }
         },
-        {
-            label: 'CONTROLES', action: () => {
-                menuMode = 'controls';
-                controlsSelectedIndex = 0;
-                controlsBindingAction = null;
-                renderMenuUI();
-            }
-        },
+        ...(coleleOption ? [coleleOption] : []),
+        controlesOption,
         {
             label: 'TREINO', action: () => {
                 window.isTraining = true;
@@ -126,13 +149,7 @@ const getActiveMenuOptions = () => {
                 if (typeof carregarFase === 'function') carregarFase('../../config/fases/treino.json');
             }
         },
-        {
-            label: 'REINICIAR', action: () => {
-                window.isFirstStart = false;
-                window.togglePauseMenu();
-                if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
-            }
-        },
+        reiniciarOption,
         {
             label: 'SAIR', action: () => {
                 if (confirm('Deseja realmente sair do jogo?')) {
@@ -156,8 +173,8 @@ const getActiveMenuOptions = () => {
                     }
                 }
             },
-            baseOptions[2],
-            baseOptions[4]
+            controlesOption,
+            reiniciarOption
         ];
     }
 

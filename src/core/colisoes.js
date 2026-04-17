@@ -209,6 +209,54 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
 }
 
 /**
+ * Verifica se uma área 32x32 está livre para preview ou colocação de craft.
+ */
+function verificarAreaTotalmenteLivre(x, y, largura = 32, altura = 32) {
+    if (verificarColisaoComTiles(x, y, largura, altura, window.plataformas)) {
+        return false;
+    }
+
+    if (Array.isArray(window.inimigos)) {
+        const ocupadoPorInimigo = window.inimigos.some((inimigo) => {
+            if (!inimigo || inimigo.estaMorto) return false;
+            const larguraInimigo = inimigo.largura || 32;
+            const alturaInimigo = inimigo.altura || 32;
+            return x < inimigo.x + larguraInimigo
+                && x + largura > inimigo.x
+                && y < inimigo.y + alturaInimigo
+                && y + altura > inimigo.y;
+        });
+        if (ocupadoPorInimigo) return false;
+    }
+
+    if (Array.isArray(window.itensColetaveis)) {
+        const ocupadoPorItem = window.itensColetaveis.some((item) => {
+            if (!item) return false;
+            return x < (item.x || 0) + 32
+                && x + largura > (item.x || 0)
+                && y < (item.y || 0) + 32
+                && y + altura > (item.y || 0);
+        });
+        if (ocupadoPorItem) return false;
+    }
+
+    if (Array.isArray(window.craftsAtivos)) {
+        const ocupadoPorCraft = window.craftsAtivos.some((craft) => {
+            if (!craft) return false;
+            return x < craft.x + (craft.largura || 32)
+                && x + largura > craft.x
+                && y < craft.y + (craft.altura || 32)
+                && y + altura > craft.y;
+        });
+        if (ocupadoPorCraft) return false;
+    }
+
+    return true;
+}
+
+window.verificarAreaTotalmenteLivre = verificarAreaTotalmenteLivre;
+
+/**
  * ⚠️ FUNÇÃO CENTRALIZADA DE SNAP - Alternativa 2
  * Remove duplicação de código em movimentacao.js
  * 

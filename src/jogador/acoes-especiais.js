@@ -1,4 +1,48 @@
 (function () {
+    const FILTRO_PREVIEW_VISUAL = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
+
+    function obterSpritePreviewItemGlobal(tipo, config = window.config || {}) {
+        if (tipo === 'revolver') return config.spriteItemRevolver || '../../assets/personagem/revolver_pegavel.png';
+        if (tipo === 'escudo') return config.spriteItemEscudo || '../../assets/personagem/escudo_pegavel.png';
+        if (tipo === 'bota') return config.spriteItemBota || '../../assets/personagem/bota_pegavel.png';
+        if (tipo === 'jetpack') return config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
+        if (tipo === 'garra') return config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
+        if (tipo === 'cinto') return config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
+        if (tipo === 'colete') return config.spriteItemColete || '../../assets/personagem/colete_coletavel.png';
+        if (tipo === 'restauracao') return '../../assets/personagem/restauracao.png';
+        return window.itemDefinitions?.[tipo]?.spriteColetavel || window.itemDefinitions?.[tipo]?.spriteEquipado || '';
+    }
+
+    function criarVisualFantasma(opcoes = {}) {
+        const {
+            src = '',
+            x = 0,
+            y = 0,
+            width = 32,
+            height = 32,
+            zIndex = 20,
+            filter = FILTRO_PREVIEW_VISUAL,
+            layer = null,
+            parentElement = document.getElementById('game-stage') || document.getElementById('jogo-container')
+        } = opcoes;
+
+        const visual = document.createElement('img');
+        visual.src = src;
+        visual.style.cssText = `position: absolute; width: ${width}px; height: ${height}px; left: ${x}px; bottom: ${y}px; z-index: ${zIndex}; image-rendering: pixelated; pointer-events: none; filter: ${filter};`;
+
+        if (typeof adicionarAoLayer === 'function' && layer) {
+            adicionarAoLayer(visual, layer);
+        } else if (parentElement) {
+            parentElement.appendChild(visual);
+        }
+
+        return visual;
+    }
+
+    window.FILTRO_VISUAL_PREVIEW = FILTRO_PREVIEW_VISUAL;
+    window.obterSpritePreviewItem = obterSpritePreviewItemGlobal;
+    window.criarVisualFantasma = criarVisualFantasma;
+
     function criarSistemaAcoesEspeciaisJogador(opcoes = {}) {
         const {
             controle,
@@ -23,14 +67,7 @@
         }
 
         function obterSpriteVisualItem(tipo) {
-            if (tipo === 'revolver') return config.spriteItemRevolver || '../../assets/personagem/revolver_pegavel.png';
-            if (tipo === 'escudo') return config.spriteItemEscudo || '../../assets/personagem/escudo_pegavel.png';
-            if (tipo === 'bota') return config.spriteItemBota || '../../assets/personagem/bota_pegavel.png';
-            if (tipo === 'jetpack') return config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
-            if (tipo === 'garra') return config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
-            if (tipo === 'cinto') return config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
-            if (tipo === 'colete') return config.spriteItemColete || '../../assets/personagem/colete_coletavel.png';
-            return '';
+            return obterSpritePreviewItemGlobal(tipo, config);
         }
 
         function dispararSinalizador() {
@@ -151,11 +188,13 @@
                 if (coleteElemento) coleteElemento.style.display = 'none';
             }
 
-            const visual = document.createElement('img');
-            visual.style.cssText = 'position: absolute; width: 32px; height: 32px; z-index: 20; image-rendering: pixelated;';
-            visual.src = obterSpriteVisualItem(tipo);
-            elemento.parentElement.appendChild(visual);
-            controle.vendaVisual = visual;
+            controle.vendaVisual = criarVisualFantasma({
+                src: obterSpriteVisualItem(tipo),
+                x: controle.x,
+                y: controle.y + 40,
+                parentElement: elemento.parentElement,
+                zIndex: 20
+            });
             salvarInventario();
             return true;
         }

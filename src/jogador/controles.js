@@ -10,7 +10,8 @@
         tiro: ['i', 'I'],
         garra: ['j', 'J'],
         cinto: ['l', 'L'],
-        mochila: ['Enter']
+        mochila: ['Enter'],
+        interagir: ['e', 'E']
     };
 
     function normalizarControles(raw) {
@@ -62,6 +63,8 @@
 
     function acaoAtiva(controle, acao) {
         if (!controle?.teclas) return false;
+        if (controle.acoesDiscretas?.[acao]) return true;
+
         return getBinds(acao).some(k => {
             const key = String(k);
             return !!(controle.teclas[key] || controle.teclas[key.toLowerCase()] || controle.teclas[key.toUpperCase()]);
@@ -70,6 +73,10 @@
 
     function consumirAcao(controle, acao) {
         if (!controle?.teclas) return;
+        if (controle.acoesDiscretas) {
+            controle.acoesDiscretas[acao] = false;
+        }
+
         getBinds(acao).forEach((k) => {
             const key = String(k);
             controle.teclas[key] = false;
@@ -86,6 +93,11 @@
 
         const handleKeyDown = (e) => {
             controle.teclas[e.key] = true;
+            controle.acoesDiscretas = controle.acoesDiscretas || {};
+
+            if (!e.repeat && teclaEhAcao(e.key, 'interagir')) {
+                controle.acoesDiscretas.interagir = true;
+            }
 
             if (!e.repeat) {
                 const apertouBaixo = teclaEhAcao(e.key, 'baixo');

@@ -55,6 +55,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         throw new Error('Erro ao carregar acoes-especiais.js: sistema de ações especiais indisponível.');
     }
 
+    if (typeof window.criarSistemaCraftingJogador !== 'function') {
+        throw new Error('Erro ao carregar crafting.js: sistema de crafting indisponível.');
+    }
+
     if (typeof window.criarSistemaCombateCorpoACorpoJogador !== 'function') {
         throw new Error('Erro ao carregar combate-corpo-a-corpo.js: sistema de combate corpo a corpo indisponível.');
     }
@@ -199,9 +203,15 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         vendaVisual: null,
         inventario: [],
         coleteSlots: Array.from({ length: 6 }, () => null),
+        cintoSlot: null,
+        craftPreviewAtivo: false,
+        craftPreviewVisual: null,
+        craftPreviewPosicao: null,
+        craftPreviewTipo: null,
         airdropUsadoNoNivel: false,
         estaAgachado: false,
-        teclas: {}
+        teclas: {},
+        acoesDiscretas: {}
     };
 
     if (typeof window.inicializarEstadoCinto === 'function') {
@@ -528,7 +538,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             },
             onToggleMochila: () => {
                 if (typeof window.toggleMochilaMenu !== 'function') return;
-                if (!controle.temColete && !window.isMochilaMenuOpen) return;
+                const temUtilidades = !!controle.temColete || !!controle.temCinto || !!controle.cintoSlot;
+                if (!temUtilidades && !window.isMochilaMenuOpen) return;
                 if ((window.isMenuOpen || window.isSkillMenuOpen) && !window.isMochilaMenuOpen) return;
                 if (controle.stunned || controle.vendaEmCurso) return;
                 window.toggleMochilaMenu(controle);
@@ -550,6 +561,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 if (coleteElemento) coleteElemento.style.display = 'none';
                 controle.inventario = [];
                 controle.coleteSlots = Array.from({ length: 6 }, () => null);
+                controle.cintoSlot = null;
+                controle.craftPreviewAtivo = false;
+                controle.craftPreviewPosicao = null;
+                controle.craftPreviewTipo = null;
+                limparPreviewCraft?.();
+                removerTodosCrafts?.();
                 controle.temJetpack = false;
                 controle.jetpackAtivo = false;
                 garraElemento.style.display = 'none';
@@ -596,6 +613,22 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     });
 
     const { processarAcoesEspeciais } = sistemaAcoesEspeciais;
+
+    const sistemaCrafting = window.criarSistemaCraftingJogador({
+        controle,
+        config,
+        elemento,
+        salvarInventario,
+        acaoAtiva,
+        consumirAcao,
+        flashElement: typeof flashElement === 'function' ? flashElement : undefined
+    });
+
+    const {
+        processarInteracaoCraft,
+        limparPreviewCraft,
+        removerTodosCrafts
+    } = sistemaCrafting;
 
     const sistemaJetpack = window.criarSistemaJetpackJogador({
         controle,
@@ -681,6 +714,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             return;
         }
 
+        processarInteracaoCraft();
         atualizarAnimacaoGarra();
 
         // Detecta combinação de Drop: S ou Seta Baixo + Pulo
