@@ -79,13 +79,18 @@
         return celulas;
     }
 
+    function obterSpriteSlot(slot) {
+        return slot?.spriteColetavel || slot?.spriteEquipado || '';
+    }
+
     function formatarSlotColete(slot, indice) {
         if (!slot) {
             return {
                 titulo: `SLOT ${indice + 1}`,
                 subtitulo: 'Vazio',
                 dica: 'Aguardando item',
-                cor: '#9a9a9a'
+                cor: '#9a9a9a',
+                sprite: ''
             };
         }
 
@@ -97,7 +102,8 @@
             titulo: String(slot.nome || slot.tipo || `SLOT ${indice + 1}`),
             subtitulo: podeUsar ? 'Pronto para usar' : 'Enter usa ou larga',
             dica: teclaEhAcaoMenu('k', 'chute') ? 'Chute larga direto' : 'Item guardado',
-            cor: slot.consumivel ? '#7bd4ff' : '#9be28f'
+            cor: slot.consumivel ? '#7bd4ff' : '#9be28f',
+            sprite: obterSpriteSlot(slot)
         };
     }
 
@@ -107,7 +113,8 @@
                 titulo: '---',
                 subtitulo: 'Sem item',
                 dica: 'Espaço livre',
-                cor: '#7b7b7b'
+                cor: '#7b7b7b',
+                sprite: ''
             };
         }
 
@@ -116,7 +123,8 @@
                 titulo: String(celula.item?.nome || celula.item?.tipo || 'Item'),
                 subtitulo: 'No jogador',
                 dica: 'Enter guarda no cinto',
-                cor: '#8fd6ff'
+                cor: '#8fd6ff',
+                sprite: obterSpriteSlot(celula.item)
             };
         }
 
@@ -125,7 +133,8 @@
                 titulo: 'SLOT DO CINTO',
                 subtitulo: 'Vazio',
                 dica: 'Guarda 1 item do corpo',
-                cor: '#f7e27b'
+                cor: '#f7e27b',
+                sprite: ''
             };
         }
 
@@ -137,7 +146,8 @@
             titulo: String(celula.item.nome || celula.item.tipo || 'Item'),
             subtitulo: podeUsar ? 'Pronto para usar' : 'Enter usa ou larga',
             dica: teclaEhAcaoMenu('k', 'chute') ? 'Chute larga direto' : 'Item guardado',
-            cor: celula.item.consumivel ? '#7bd4ff' : '#9be28f'
+            cor: celula.item.consumivel ? '#7bd4ff' : '#9be28f',
+            sprite: obterSpriteSlot(celula.item)
         };
     }
 
@@ -216,6 +226,7 @@
             const ehPlaceholder = cintoLinhaAtual[indice]?.tipoUI === 'placeholder';
             slotEl.style.opacity = ehPlaceholder ? '0.45' : '1';
             slotEl.innerHTML = `
+                ${info.sprite ? `<img src="${info.sprite}" alt="${info.titulo}" style="width: 28px; height: 28px; image-rendering: pixelated; margin-bottom: 6px;">` : ''}
                 <div style="font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #f2f2f2; text-transform: uppercase; text-align: center;">${info.titulo}</div>
                 <div style="font-size: 10px; color: ${info.cor}; margin-top: 6px; text-align: center;">${info.subtitulo}</div>
                 <div style="font-size: 9px; color: #a8a8a8; margin-top: 4px; text-align: center;">${info.dica}</div>
@@ -226,6 +237,7 @@
             if (!slotEl) return;
             const info = formatarSlotColete(slots[indice], indice);
             slotEl.innerHTML = `
+                ${info.sprite ? `<img src="${info.sprite}" alt="${info.titulo}" style="width: 30px; height: 30px; image-rendering: pixelated; margin-bottom: 6px;">` : ''}
                 <div style="font-size: 12px; font-weight: bold; letter-spacing: 1px; color: #f2f2f2; text-transform: uppercase; text-align: center;">${info.titulo}</div>
                 <div style="font-size: 11px; color: ${info.cor}; margin-top: 8px; text-align: center;">${info.subtitulo}</div>
                 <div style="font-size: 10px; color: #a8a8a8; margin-top: 6px; text-align: center;">${info.dica}</div>

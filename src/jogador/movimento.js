@@ -162,6 +162,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         tempoChute: 0,
         framesImpulsoRestante: 0,
         velocidadeDash: 0,
+        dashSolicitado: null,
+        dashDirecao: 'd',
+        dashFramesRestantes: 0,
+        velocidadeDashSkill: 0,
+        cooldownDash: 0,
+        ultimoToqueDash: { e: 0, d: 0 },
         framesKnockbackRestante: 0,
         velocidadeKnockback: 0,
         usandoParaquedas: false,
@@ -565,6 +571,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 controle.craftPreviewAtivo = false;
                 controle.craftPreviewPosicao = null;
                 controle.craftPreviewTipo = null;
+                controle.dashSolicitado = null;
+                controle.dashFramesRestantes = 0;
+                controle.velocidadeDashSkill = 0;
+                controle.cooldownDash = 0;
                 limparPreviewCraft?.();
                 removerTodosCrafts?.();
                 controle.temJetpack = false;
@@ -768,6 +778,17 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             velAtiva *= Math.max(0, multiplicadorAgachado);
         }
 
+        const dashDisponivel = !!controle.dashHabilitado && window.temSkill?.((window.SKILLS || {}).DASH);
+        if (dashDisponivel && controle.dashSolicitado && (controle.cooldownDash || 0) === 0) {
+            const duracaoDash = Math.max(1, Number(controle.dashDuracao ?? 8));
+            const distanciaDash = Math.max(0, Number(controle.distanciaDash ?? 64));
+            controle.dashDirecao = controle.dashSolicitado;
+            controle.dashFramesRestantes = duracaoDash;
+            controle.velocidadeDashSkill = distanciaDash / duracaoDash;
+            controle.cooldownDash = Math.max(1, Number(controle.cooldownDashMax ?? 45));
+            controle.dashSolicitado = null;
+        }
+
         // Movimentação Horizontal
         if (acaoAtiva('esquerda')) {
             controle.x -= velAtiva;
@@ -778,6 +799,14 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             controle.x += velAtiva;
             if (!controle.chutando) controle.direcao = 'd';
             controle.movendoHorizontal = true;
+        }
+
+        if ((controle.dashFramesRestantes || 0) > 0) {
+            const direcaoDashSkill = controle.dashDirecao === 'd' ? 1 : -1;
+            controle.x += (controle.velocidadeDashSkill || 0) * direcaoDashSkill;
+            if (!controle.chutando) controle.direcao = controle.dashDirecao;
+            controle.movendoHorizontal = true;
+            controle.dashFramesRestantes--;
         }
 
         // Sistema de combate corpo a corpo
@@ -850,6 +879,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         if (controle.cooldownDanoEspinho > 0) {
             controle.cooldownDanoEspinho--;
+        }
+
+        if ((controle.cooldownDash || 0) > 0) {
+            controle.cooldownDash--;
         }
 
         // Diminui o cooldown do pulo

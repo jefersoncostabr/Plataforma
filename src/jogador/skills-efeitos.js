@@ -9,6 +9,11 @@ window.aplicarEfeitosSkills = () => {
     controle.maxVida = 3;
     controle.danoProjetil = 1; // Dano base do projétil
     controle.multiplicadorCooldownChute = 1;
+    controle.dashHabilitado = false;
+    controle.cooldownDashMax = 0;
+    controle.dashDuracao = 0;
+    controle.distanciaDash = 0;
+    controle.janelaDuploToqueDash = 250;
 
     const skills = window.SKILLS || {};
 
@@ -28,6 +33,15 @@ window.aplicarEfeitosSkills = () => {
             case skills.KICKBOXING:
                 // Habilidade kickboxing: reduz o cooldown do chute pela metade
                 controle.multiplicadorCooldownChute = 0.5;
+                break;
+
+            case skills.DASH:
+                // Habilidade Dash: duplo toque para frente com impulso e cooldown
+                controle.dashHabilitado = true;
+                controle.cooldownDashMax = 45;
+                controle.dashDuracao = 8;
+                controle.distanciaDash = 128;
+                controle.janelaDuploToqueDash = 250;
                 break;
             
             case skills.DROPAR:

@@ -99,6 +99,38 @@
                 controle.acoesDiscretas.interagir = true;
             }
 
+            if (!e.repeat && window.temSkill?.((window.SKILLS || {}).DASH)) {
+                const apertouEsquerda = teclaEhAcao(e.key, 'esquerda');
+                const apertouDireita = teclaEhAcao(e.key, 'direita');
+
+                if (apertouEsquerda || apertouDireita) {
+                    const direcaoDash = apertouEsquerda ? 'e' : 'd';
+                    const agora = (typeof performance !== 'undefined' && typeof performance.now === 'function')
+                        ? performance.now()
+                        : Date.now();
+
+                    controle.ultimoToqueDash = controle.ultimoToqueDash || { e: 0, d: 0 };
+                    const ultimaBatida = Number(controle.ultimoToqueDash[direcaoDash] || 0);
+                    const janelaDash = Number(controle.janelaDuploToqueDash ?? 250);
+                    controle.ultimoToqueDash[direcaoDash] = agora;
+
+                    const podeSolicitarDash = !window.isPaused
+                        && !window.isMenuOpen
+                        && !window.isSkillMenuOpen
+                        && !window.isMochilaMenuOpen
+                        && !controle.estaAgachado
+                        && !controle.stunned
+                        && !controle.vendaEmCurso
+                        && (controle.cooldownDash || 0) === 0
+                        && (agora - ultimaBatida) > 0
+                        && (agora - ultimaBatida) <= janelaDash;
+
+                    if (podeSolicitarDash) {
+                        controle.dashSolicitado = direcaoDash;
+                    }
+                }
+            }
+
             if (!e.repeat) {
                 const apertouBaixo = teclaEhAcao(e.key, 'baixo');
                 const apertouCima = teclaEhAcao(e.key, 'cima');

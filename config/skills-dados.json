@@ -2,12 +2,13 @@
     "playerStats": {
         "xp": 0,
         "skillPoints": 0,
-        "acquired": ["kickboxing", "Salto"]
+        "acquired": ["kickboxing", "Salto", "Dash"]
     },
     "skills": {
         "Vida": null,
         "Atirador": null,
         "kickboxing": "Atirador",
+        "Dash": "Atirador",
         "Dropar": "Vida",
         "Visão": "Vida",
         "Airdrop": "Dropar",

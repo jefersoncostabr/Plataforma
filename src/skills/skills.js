@@ -11,6 +11,7 @@ window.SKILLS = Object.freeze({
     VIDA: 'Vida',
     ATIRADOR: 'Atirador',
     KICKBOXING: 'kickboxing',
+    DASH: 'Dash',
     DROPAR: 'Dropar',
     VISAO: 'Visão',
     AIRDROP: 'Airdrop',
@@ -95,7 +96,7 @@ window.ganharXP = (quantidade = 1) => {
  */
 window.carregarDadosSkills = async (forçarReset = false) => {
     try {
-        const resposta = await fetch('../../config/skills-dados.json');
+        const resposta = await fetch('../../config/skills-dados.json?v=20260417-dash-skill');
         const dados = await resposta.json();
         const skillsOriginais = dados.skills || {};
         const skillsNormalizadas = normalizarEstruturaSkills(skillsOriginais);
@@ -261,8 +262,28 @@ function abrirMenuSkillsUI() {
         levels[depth].push(id);
     });
 
-    // Ordenar IDs em cada nível para manter a ordem consistente (a antes de b, 1 antes de 2)
-    Object.keys(levels).forEach(d => levels[d].sort());
+    // Ordena por grupo de pai, preservando a ordem do JSON para controlar melhor o layout visual da árvore.
+    const ordemOrigemSkills = Object.keys(window.skillsData);
+    Object.keys(levels).forEach((d) => {
+        const depth = Number(d);
+        levels[d].sort((a, b) => {
+            if (depth === 0) {
+                return a.localeCompare(b, 'pt-BR');
+            }
+
+            const parentA = window.skillsData[a]?.parent ?? '';
+            const parentB = window.skillsData[b]?.parent ?? '';
+            const nivelPais = levels[depth - 1] || [];
+            const parentIndexA = nivelPais.indexOf(parentA);
+            const parentIndexB = nivelPais.indexOf(parentB);
+
+            if (parentIndexA !== parentIndexB) {
+                return parentIndexA - parentIndexB;
+            }
+
+            return ordemOrigemSkills.indexOf(a) - ordemOrigemSkills.indexOf(b);
+        });
+    });
     skillsLevelMap = levels;
 
     // Seleciona a primeira skill (raiz) se nada estiver selecionado
