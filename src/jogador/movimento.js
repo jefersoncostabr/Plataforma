@@ -168,6 +168,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         velocidadeDashSkill: 0,
         cooldownDash: 0,
         ultimoToqueDash: { e: 0, d: 0 },
+        pesado: false,
         framesKnockbackRestante: 0,
         velocidadeKnockback: 0,
         usandoParaquedas: false,
@@ -276,6 +277,22 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     };
 
     window.playerControle = controle;
+
+    function atualizarEstadoPesoJogador() {
+        const itensGuardadosNoCinto = !!controle.itensGuardadosNoCinto;
+        const totalEquipamentosAtivos = [
+            !!controle.temArma && !itensGuardadosNoCinto,
+            !!(controle.temEscudo || controle.escudoVermelho) && !itensGuardadosNoCinto,
+            !!controle.temBota && !itensGuardadosNoCinto,
+            !!controle.temJetpack && !itensGuardadosNoCinto,
+            !!controle.temGarra && !itensGuardadosNoCinto
+        ].filter(Boolean).length;
+
+        controle.pesado = totalEquipamentosAtivos >= 3;
+        return controle.pesado;
+    }
+
+    atualizarEstadoPesoJogador();
 
     // Aplica os efeitos das skills agora que o objeto de controle foi criado
     if (typeof window.aplicarEfeitosSkills === 'function') {
@@ -778,14 +795,26 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             velAtiva *= Math.max(0, multiplicadorAgachado);
         }
 
+        atualizarEstadoPesoJogador();
+
         const dashDisponivel = !!controle.dashHabilitado && window.temSkill?.((window.SKILLS || {}).DASH);
         if (dashDisponivel && controle.dashSolicitado && (controle.cooldownDash || 0) === 0) {
             const duracaoDash = Math.max(1, Number(controle.dashDuracao ?? 8));
-            const distanciaDash = Math.max(0, Number(controle.distanciaDash ?? 64));
+            const distanciaDashBase = Math.max(0, Number(controle.distanciaDash ?? 64));
+            const distanciaDash = controle.pesado ? (distanciaDashBase / 2) : distanciaDashBase;
             controle.dashDirecao = controle.dashSolicitado;
             controle.dashFramesRestantes = duracaoDash;
             controle.velocidadeDashSkill = distanciaDash / duracaoDash;
             controle.cooldownDash = Math.max(1, Number(controle.cooldownDashMax ?? 45));
+            console.log('[Dash] Ativado', {
+                direcao: controle.dashDirecao,
+                pesado: !!controle.pesado,
+                itensGuardadosNoCinto: !!controle.itensGuardadosNoCinto,
+                distanciaDashBase,
+                distanciaDashAplicada: distanciaDash,
+                duracaoDash,
+                cooldownDash: controle.cooldownDash
+            });
             controle.dashSolicitado = null;
         }
 

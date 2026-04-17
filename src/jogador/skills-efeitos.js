@@ -15,6 +15,16 @@ window.aplicarEfeitosSkills = () => {
     controle.distanciaDash = 0;
     controle.janelaDuploToqueDash = 250;
 
+    const itensGuardadosNoCinto = !!controle.itensGuardadosNoCinto;
+    const totalEquipamentosAtivos = [
+        !!controle.temArma && !itensGuardadosNoCinto,
+        !!(controle.temEscudo || controle.escudoVermelho) && !itensGuardadosNoCinto,
+        !!controle.temBota && !itensGuardadosNoCinto,
+        !!controle.temJetpack && !itensGuardadosNoCinto,
+        !!controle.temGarra && !itensGuardadosNoCinto
+    ].filter(Boolean).length;
+    controle.pesado = totalEquipamentosAtivos >= 3;
+
     const skills = window.SKILLS || {};
 
     // Percorre todas as habilidades que o jogador já possui
