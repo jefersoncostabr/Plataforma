@@ -1,0 +1,46 @@
+{
+  "capacidade": 6,
+  "itens": {
+    "revolver": {
+      "permitidoNoColete": true,
+      "equipavel": true,
+      "usarSoSePrecisar": true
+    },
+    "escudo": {
+      "permitidoNoColete": true,
+      "equipavel": true,
+      "usarSoSePrecisar": true
+    },
+    "bota": {
+      "permitidoNoColete": true,
+      "equipavel": true,
+      "usarSoSePrecisar": true
+    },
+    "jetpack": {
+      "permitidoNoColete": true,
+      "equipavel": true,
+      "usarSoSePrecisar": true
+    },
+    "garra": {
+      "permitidoNoColete": true,
+      "equipavel": true,
+      "usarSoSePrecisar": true
+    },
+    "cinto": {
+      "permitidoNoColete": true,
+      "equipavel": true,
+      "usarSoSePrecisar": true
+    },
+    "colete": {
+      "permitidoNoColete": true,
+      "equipavel": true,
+      "usarSoSePrecisar": true
+    },
+    "restauracao": {
+      "permitidoNoColete": true,
+      "equipavel": false,
+      "consumivel": true,
+      "usarSoSePrecisar": true
+    }
+  }
+}

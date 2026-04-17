@@ -18,7 +18,8 @@ const CONTROLES_PADRAO = {
     chute: ['k', 'K'],
     tiro: ['i', 'I'],
     garra: ['j', 'J'],
-    cinto: ['l', 'L']
+    cinto: ['l', 'L'],
+    mochila: ['Enter']
 };
 
 const CONTROLES_MENU_ITEMS = [
@@ -30,7 +31,8 @@ const CONTROLES_MENU_ITEMS = [
     { id: 'chute', label: 'Chutar' },
     { id: 'tiro', label: 'Atirar/Acao' },
     { id: 'garra', label: 'Garra' },
-    { id: 'cinto', label: 'Cinto' }
+    { id: 'cinto', label: 'Cinto' },
+    { id: 'mochila', label: 'Slots do Colete' }
 ];
 
 function normalizarControles(raw) {
@@ -166,6 +168,18 @@ window.togglePauseMenu = () => {
     if (window.isSkillMenuOpen) {
         if (typeof fecharMenuSkillsUI === 'function') fecharMenuSkillsUI();
         window.isSkillMenuOpen = false;
+
+        window.isMenuOpen = true;
+        menuMode = 'main';
+        menuSelectedIndex = 0;
+        renderMenuUI();
+        window.addEventListener('keydown', handleMenuInput);
+        return;
+    }
+
+    if (window.isMochilaMenuOpen) {
+        if (typeof fecharMenuMochilaUI === 'function') fecharMenuMochilaUI();
+        window.isMochilaMenuOpen = false;
 
         window.isMenuOpen = true;
         menuMode = 'main';

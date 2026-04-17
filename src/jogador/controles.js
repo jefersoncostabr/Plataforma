@@ -9,7 +9,8 @@
         chute: ['k', 'K'],
         tiro: ['i', 'I'],
         garra: ['j', 'J'],
-        cinto: ['l', 'L']
+        cinto: ['l', 'L'],
+        mochila: ['Enter']
     };
 
     function normalizarControles(raw) {
@@ -98,7 +99,11 @@
             }
 
             if (e.key === 'Pause' || e.key === 'Break' || e.key === 'Escape' || e.key === 'Esc') {
-                callbacks.onTogglePauseMenu?.();
+                if (window.isMochilaMenuOpen) {
+                    callbacks.onToggleMochila?.();
+                } else {
+                    callbacks.onTogglePauseMenu?.();
+                }
             }
 
             if (e.key === '5') {
@@ -123,6 +128,10 @@
 
             if (!e.repeat && teclaEhAcao(e.key, 'cinto')) {
                 callbacks.onAlternarCinto?.();
+            }
+
+            if (!e.repeat && teclaEhAcao(e.key, 'mochila') && !window.isMochilaMenuOpen) {
+                callbacks.onToggleMochila?.();
             }
 
             if (e.key === '0') {

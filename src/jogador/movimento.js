@@ -198,6 +198,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         vendaTipo: null,
         vendaVisual: null,
         inventario: [],
+        coleteSlots: Array.from({ length: 6 }, () => null),
         airdropUsadoNoNivel: false,
         estaAgachado: false,
         teclas: {}
@@ -213,6 +214,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         atualizarVisualEscudo,
         getElementos: () => ({
             armaElemento,
+            escudoElemento,
             botaElemento,
             coleteElemento,
             jetpackElemento,
@@ -524,6 +526,13 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             onAlternarCinto: () => {
                 alternarItensNoCinto();
             },
+            onToggleMochila: () => {
+                if (typeof window.toggleMochilaMenu !== 'function') return;
+                if (!controle.temColete && !window.isMochilaMenuOpen) return;
+                if ((window.isMenuOpen || window.isSkillMenuOpen) && !window.isMochilaMenuOpen) return;
+                if (controle.stunned || controle.vendaEmCurso) return;
+                window.toggleMochilaMenu(controle);
+            },
             onResetDebug: () => {
                 limparInventarioSalvo();
                 console.log('Inventário salvo zerado.');
@@ -540,6 +549,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 controle.temColete = false;
                 if (coleteElemento) coleteElemento.style.display = 'none';
                 controle.inventario = [];
+                controle.coleteSlots = Array.from({ length: 6 }, () => null);
                 controle.temJetpack = false;
                 controle.jetpackAtivo = false;
                 garraElemento.style.display = 'none';
@@ -1280,12 +1290,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 // console.log(`[DEBUG ITEM] Player (x:${hitboxPlayerParaItem.x}, y:${hitboxPlayerParaItem.y}, w:${hitboxPlayerParaItem.largura}, h:${hitboxPlayerParaItem.altura})`);
                 // console.log(`[DEBUG ITEM] Item ${item.tipo} (x:${hitboxItem.x}, y:${hitboxItem.y}, w:${hitboxItem.largura}, h:${hitboxItem.altura})`);
                 if (typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(hitboxPlayerParaItem, hitboxItem, 0, 0, 0)) {
-                    // Remove o item do jogo IMEDIATAMENTE ao tocar
-                    item.elemento.remove();
-                    window.itensColetaveis.splice(i, 1);
-
-                    coletarItemGarra(item);
-                    continue; // Pula para o próximo item, já que este foi coletado
+                    const foiColetado = coletarItemGarra(item);
+                    if (foiColetado) {
+                        item.elemento.remove();
+                        window.itensColetaveis.splice(i, 1);
+                    }
+                    continue; // Pula para o próximo item após processar a tentativa de coleta
                 }
 
                 // Aplica Gravidade

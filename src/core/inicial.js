@@ -453,6 +453,7 @@ async function iniciarJogo() {
 
     // Carrega as definições de itens para o jogo usar os sprites dos JSONs
     if (typeof window.carregarItemDefinitions === 'function') await window.carregarItemDefinitions();
+    if (typeof window.carregarConfigColete === 'function') await window.carregarConfigColete();
 
     // Carrega dados de skills e progresso
     if (typeof window.carregarDadosSkills === 'function') {

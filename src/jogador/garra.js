@@ -57,7 +57,14 @@
         }
 
         function coletarItemGarra(item) {
-            if (!item) return;
+            if (!item) return false;
+
+            if (typeof window.tentarColetarItemJogador === 'function' && item.tipo !== 'airdrop') {
+                const coletadoPeloInventario = window.tentarColetarItemJogador(item);
+                if (typeof coletadoPeloInventario === 'boolean') {
+                    return coletadoPeloInventario;
+                }
+            }
 
             if (window.itemDefinitions && window.itemDefinitions[item.tipo]) {
                 const itemData = window.itemDefinitions[item.tipo];
@@ -117,7 +124,7 @@
                     controle.inventario.push(item.tipo);
                 }
                 salvarInventario();
-                return;
+                return true;
             }
 
             if (item.tipo === 'escudo') {
@@ -237,6 +244,7 @@
                 atualizarVisualEscudo();
             }
             salvarInventario();
+            return true;
         }
 
         function atualizarAnimacaoGarra() {
@@ -483,8 +491,13 @@
                             window.inimigos.push(inimigoAtingido);
                         }
                     } else {
-                        coletarItemGarra(controle.garraItemCarregado);
-                        controle.garraItemCarregado.elemento.remove();
+                        const foiColetado = coletarItemGarra(controle.garraItemCarregado);
+                        if (foiColetado) {
+                            controle.garraItemCarregado.elemento.remove();
+                        } else {
+                            controle.garraItemCarregado.velocidadeY = 0;
+                            window.itensColetaveis.push(controle.garraItemCarregado);
+                        }
                     }
                     controle.garraItemCarregado = null;
                     controle.garraAnimEstado = 'idle';

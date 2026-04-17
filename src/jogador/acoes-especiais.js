@@ -117,6 +117,11 @@
         }
 
         function iniciarVendaItem(tipo) {
+            if (tipo === 'colete' && Array.isArray(controle.coleteSlots) && controle.coleteSlots.some(Boolean)) {
+                console.log('Colete: esvazie a mochila antes de vender o colete.');
+                return false;
+            }
+
             controle.vendaEmCurso = true;
             controle.vendaTimer = 0;
             controle.vendaTipo = tipo;
@@ -152,6 +157,7 @@
             elemento.parentElement.appendChild(visual);
             controle.vendaVisual = visual;
             salvarInventario();
+            return true;
         }
 
         function cancelarVendaItem() {
@@ -210,7 +216,10 @@
                 controle.inventario.length > 0
             ) {
                 const tipo = controle.inventario.pop();
-                iniciarVendaItem(tipo);
+                const iniciouVenda = iniciarVendaItem(tipo);
+                if (!iniciouVenda) {
+                    controle.inventario.push(tipo);
+                }
             }
         }
 
