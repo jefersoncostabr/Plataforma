@@ -381,25 +381,57 @@
                     carried.y = parseInt(garraElemento.style.bottom);
 
                     if (carried.isEnemy) {
-                        if (carried.armaElemento) {
-                            carried.armaElemento.style.left = garraElemento.style.left;
-                            carried.armaElemento.style.bottom = garraElemento.style.bottom;
-                            carried.armaElemento.style.transform = carried.elemento.style.transform;
-                        }
-                        if (carried.botaElemento) {
-                            carried.botaElemento.style.left = garraElemento.style.left;
-                            carried.botaElemento.style.bottom = garraElemento.style.bottom;
-                            carried.botaElemento.style.transform = carried.elemento.style.transform;
-                        }
-                        if (carried.escudoElemento) {
-                            carried.escudoElemento.style.left = garraElemento.style.left;
-                            carried.escudoElemento.style.bottom = garraElemento.style.bottom;
-                            carried.escudoElemento.style.transform = carried.elemento.style.transform;
-                        }
-                        if (carried.jetpackElemento) {
-                            carried.jetpackElemento.style.left = garraElemento.style.left;
-                            carried.jetpackElemento.style.bottom = garraElemento.style.bottom;
-                            carried.jetpackElemento.style.transform = carried.elemento.style.transform;
+                        if (typeof window.sincronizarAcessoriosPortador === 'function') {
+                            window.sincronizarAcessoriosPortador(carried, carried.elemento, {
+                                armaElemento: carried.armaElemento,
+                                escudoElemento: carried.escudoElemento,
+                                botaElemento: carried.botaElemento,
+                                jetpackElemento: carried.jetpackElemento,
+                                garraElemento: carried.garraElemento,
+                                cintoElemento: carried.cintoElemento,
+                                coleteElemento: carried.coleteElemento
+                            }, {
+                                x: carried.x,
+                                y: carried.y,
+                                transform: carried.elemento.style.transform,
+                                sincronizarGarraAnimando: true
+                            });
+                        } else {
+                            if (carried.armaElemento) {
+                                carried.armaElemento.style.left = garraElemento.style.left;
+                                carried.armaElemento.style.bottom = garraElemento.style.bottom;
+                                carried.armaElemento.style.transform = carried.elemento.style.transform;
+                            }
+                            if (carried.botaElemento) {
+                                carried.botaElemento.style.left = garraElemento.style.left;
+                                carried.botaElemento.style.bottom = garraElemento.style.bottom;
+                                carried.botaElemento.style.transform = carried.elemento.style.transform;
+                            }
+                            if (carried.escudoElemento) {
+                                carried.escudoElemento.style.left = garraElemento.style.left;
+                                carried.escudoElemento.style.bottom = garraElemento.style.bottom;
+                                carried.escudoElemento.style.transform = carried.elemento.style.transform;
+                            }
+                            if (carried.jetpackElemento) {
+                                carried.jetpackElemento.style.left = garraElemento.style.left;
+                                carried.jetpackElemento.style.bottom = garraElemento.style.bottom;
+                                carried.jetpackElemento.style.transform = carried.elemento.style.transform;
+                            }
+                            if (carried.garraElemento) {
+                                carried.garraElemento.style.left = garraElemento.style.left;
+                                carried.garraElemento.style.bottom = garraElemento.style.bottom;
+                                carried.garraElemento.style.transform = carried.elemento.style.transform;
+                            }
+                            if (carried.cintoElemento) {
+                                carried.cintoElemento.style.left = garraElemento.style.left;
+                                carried.cintoElemento.style.bottom = garraElemento.style.bottom;
+                                carried.cintoElemento.style.transform = carried.elemento.style.transform;
+                            }
+                            if (carried.coleteElemento) {
+                                carried.coleteElemento.style.left = garraElemento.style.left;
+                                carried.coleteElemento.style.bottom = garraElemento.style.bottom;
+                                carried.coleteElemento.style.transform = carried.elemento.style.transform;
+                            }
                         }
                     }
                 }

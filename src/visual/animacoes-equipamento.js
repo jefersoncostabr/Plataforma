@@ -199,6 +199,49 @@ function atualizarVisibilidadeEquipamentosCintoPortador(portador, elementos = {}
     }
 }
 
+function sincronizarAcessoriosPortador(portador, elementoBase, elementos = {}, opcoes = {}) {
+    if (!portador || !elementoBase) return;
+
+    const x = Number.isFinite(opcoes.x) ? opcoes.x : Number(portador.x || 0);
+    const y = Number.isFinite(opcoes.y) ? opcoes.y : Number(portador.y || 0);
+    const transform = opcoes.transform || elementoBase.style.transform || (portador.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)');
+    const sincronizarGarraAnimando = !!opcoes.sincronizarGarraAnimando;
+
+    const {
+        armaElemento,
+        escudoElemento,
+        botaElemento,
+        jetpackElemento,
+        jetFogoElemento,
+        garraElemento,
+        cintoElemento,
+        coleteElemento
+    } = elementos;
+
+    const aplicar = (el, offsetY = 0) => {
+        if (!el) return;
+        el.style.left = x + 'px';
+        el.style.bottom = (y + offsetY) + 'px';
+        el.style.transform = transform;
+    };
+
+    aplicar(armaElemento);
+    aplicar(escudoElemento);
+    aplicar(botaElemento);
+    aplicar(jetpackElemento);
+    aplicar(cintoElemento);
+    aplicar(coleteElemento, portador.estaAgachado ? -6 : 0);
+
+    if (!portador.garraAnimEstado || portador.garraAnimEstado === 'idle' || sincronizarGarraAnimando) {
+        aplicar(garraElemento);
+    }
+
+    if (jetFogoElemento && jetFogoElemento.style.display !== 'none') {
+        const fogoOffsetY = Number.isFinite(opcoes.jetFogoOffsetY) ? opcoes.jetFogoOffsetY : -4;
+        aplicar(jetFogoElemento, fogoOffsetY);
+    }
+}
+
 function alternarItensNoCintoPortador(opcoes = {}) {
     const {
         portador,
@@ -396,6 +439,7 @@ function alternarItensNoCintoPortador(opcoes = {}) {
 
 window.obterEquipamentosCintoPortador = obterEquipamentosCintoPortador;
 window.atualizarVisibilidadeEquipamentosCintoPortador = atualizarVisibilidadeEquipamentosCintoPortador;
+window.sincronizarAcessoriosPortador = sincronizarAcessoriosPortador;
 window.alternarItensNoCintoPortador = alternarItensNoCintoPortador;
 
 function criarSistemaVisuaisEquipamentos(opcoes = {}) {

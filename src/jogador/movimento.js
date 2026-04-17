@@ -634,13 +634,26 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 elemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
                 
                 // Sincroniza itens acessórios
-                const posStyle = { left: elemento.style.left, bottom: elemento.style.bottom, transform: elemento.style.transform };
-                if (armaElemento) Object.assign(armaElemento.style, posStyle);
-                if (escudoElemento) Object.assign(escudoElemento.style, posStyle);
-                if (botaElemento) Object.assign(botaElemento.style, posStyle);
-                if (jetpackElemento) Object.assign(jetpackElemento.style, posStyle);
-                if (garraElemento) Object.assign(garraElemento.style, posStyle);
-                if (cintoElemento && controle.temCinto) sincronizarCintoComJogador();
+                if (typeof window.sincronizarAcessoriosPortador === 'function') {
+                    window.sincronizarAcessoriosPortador(controle, elemento, {
+                        armaElemento,
+                        escudoElemento,
+                        botaElemento,
+                        jetpackElemento,
+                        garraElemento,
+                        cintoElemento,
+                        coleteElemento
+                    });
+                } else {
+                    const posStyle = { left: elemento.style.left, bottom: elemento.style.bottom, transform: elemento.style.transform };
+                    if (armaElemento) Object.assign(armaElemento.style, posStyle);
+                    if (escudoElemento) Object.assign(escudoElemento.style, posStyle);
+                    if (botaElemento) Object.assign(botaElemento.style, posStyle);
+                    if (jetpackElemento) Object.assign(jetpackElemento.style, posStyle);
+                    if (garraElemento) Object.assign(garraElemento.style, posStyle);
+                    if (coleteElemento) Object.assign(coleteElemento.style, posStyle);
+                    if (cintoElemento && controle.temCinto) sincronizarCintoComJogador();
+                }
 
                 // Mantém o HUD atualizado
                 atualizarHUD();

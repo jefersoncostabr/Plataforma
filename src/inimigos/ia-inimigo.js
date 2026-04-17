@@ -970,14 +970,37 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                             // If player is carried, update their associated elements too
                             if (inimigo.garraItemCarregado.id === 'player') {
-                                if (window.playerControle.armaElemento) window.playerControle.armaElemento.style.left = inimigo.garraElemento.style.left;
-                                if (window.playerControle.armaElemento) window.playerControle.armaElemento.style.bottom = inimigo.garraElemento.style.bottom;
-                                if (window.playerControle.escudoElemento) window.playerControle.escudoElemento.style.left = inimigo.garraElemento.style.left;
-                                if (window.playerControle.escudoElemento) window.playerControle.escudoElemento.style.bottom = inimigo.garraElemento.style.bottom;
-                                if (window.playerControle.botaElemento) window.playerControle.botaElemento.style.left = inimigo.garraElemento.style.left;
-                                if (window.playerControle.botaElemento) window.playerControle.botaElemento.style.bottom = inimigo.garraElemento.style.bottom;
-                                if (window.playerControle.jetpackElemento) window.playerControle.jetpackElemento.style.left = inimigo.garraElemento.style.left;
-                                if (window.playerControle.jetpackElemento) window.playerControle.jetpackElemento.style.bottom = inimigo.garraElemento.style.bottom;
+                                if (typeof window.sincronizarAcessoriosPortador === 'function') {
+                                    window.sincronizarAcessoriosPortador(window.playerControle, window.playerControle.elemento, {
+                                        armaElemento: window.playerControle.armaElemento,
+                                        escudoElemento: window.playerControle.escudoElemento,
+                                        botaElemento: window.playerControle.botaElemento,
+                                        jetpackElemento: window.playerControle.jetpackElemento,
+                                        garraElemento: window.playerControle.garraElemento,
+                                        cintoElemento: window.playerControle.cintoElemento,
+                                        coleteElemento: window.playerControle.coleteElemento
+                                    }, {
+                                        x: window.playerControle.x,
+                                        y: window.playerControle.y,
+                                        transform: window.playerControle.elemento?.style?.transform,
+                                        sincronizarGarraAnimando: true
+                                    });
+                                } else {
+                                    if (window.playerControle.armaElemento) window.playerControle.armaElemento.style.left = inimigo.garraElemento.style.left;
+                                    if (window.playerControle.armaElemento) window.playerControle.armaElemento.style.bottom = inimigo.garraElemento.style.bottom;
+                                    if (window.playerControle.escudoElemento) window.playerControle.escudoElemento.style.left = inimigo.garraElemento.style.left;
+                                    if (window.playerControle.escudoElemento) window.playerControle.escudoElemento.style.bottom = inimigo.garraElemento.style.bottom;
+                                    if (window.playerControle.botaElemento) window.playerControle.botaElemento.style.left = inimigo.garraElemento.style.left;
+                                    if (window.playerControle.botaElemento) window.playerControle.botaElemento.style.bottom = inimigo.garraElemento.style.bottom;
+                                    if (window.playerControle.jetpackElemento) window.playerControle.jetpackElemento.style.left = inimigo.garraElemento.style.left;
+                                    if (window.playerControle.jetpackElemento) window.playerControle.jetpackElemento.style.bottom = inimigo.garraElemento.style.bottom;
+                                    if (window.playerControle.garraElemento) window.playerControle.garraElemento.style.left = inimigo.garraElemento.style.left;
+                                    if (window.playerControle.garraElemento) window.playerControle.garraElemento.style.bottom = inimigo.garraElemento.style.bottom;
+                                    if (window.playerControle.cintoElemento) window.playerControle.cintoElemento.style.left = inimigo.garraElemento.style.left;
+                                    if (window.playerControle.cintoElemento) window.playerControle.cintoElemento.style.bottom = inimigo.garraElemento.style.bottom;
+                                    if (window.playerControle.coleteElemento) window.playerControle.coleteElemento.style.left = inimigo.garraElemento.style.left;
+                                    if (window.playerControle.coleteElemento) window.playerControle.coleteElemento.style.bottom = inimigo.garraElemento.style.bottom;
+                                }
                             }
                         }
                         if (inimigo.garraDist % 32 < velGarra && inimigo.garraBracos.length > 0) {
