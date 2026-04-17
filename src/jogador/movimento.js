@@ -803,25 +803,25 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         atualizarCooldownJetpack();
 
         // 📍 RASTREAMENTO DE DIREÇÃO PARA CÂMERA GRANDE
-        // Calcula em qual direção o jogador se moveu este frame
-        // Usado pela câmera grande para adicionar viés (offset) apropriado
+        // Mantém a última direção horizontal ao parar e ignora microvariações,
+        // evitando o leve balanço da câmera quando o personagem fica imóvel.
         const movimentoFrameX = controle.x - xAnterior;
         const movimentoFrameY = controle.y - yAnterior;
+        const LIMIAR_CAMERA_X = 0.1;
+        const LIMIAR_CAMERA_Y = 0.1;
         
-        if (movimentoFrameX > 0) {
+        if (movimentoFrameX > LIMIAR_CAMERA_X) {
             window.ultimaDirecaoX = 1; // Movendo para direita
-        } else if (movimentoFrameX < 0) {
+        } else if (movimentoFrameX < -LIMIAR_CAMERA_X) {
             window.ultimaDirecaoX = -1; // Movendo para esquerda
-        } else {
-            window.ultimaDirecaoX = 0; // Sem movimento horizontal
         }
         
-        if (movimentoFrameY > 0) {
+        if (movimentoFrameY > LIMIAR_CAMERA_Y) {
             window.ultimaDirecaoY = 1; // Movendo para cima
-        } else if (movimentoFrameY < 0) {
+        } else if (movimentoFrameY < -LIMIAR_CAMERA_Y) {
             window.ultimaDirecaoY = -1; // Movendo para baixo
         } else {
-            window.ultimaDirecaoY = 0; // Sem movimento vertical
+            window.ultimaDirecaoY = 0; // Sem movimento vertical relevante
         }
 
         // ITEM 6: Limites do Palco (Horizontal) - Aplicar antes da colisão com tiles

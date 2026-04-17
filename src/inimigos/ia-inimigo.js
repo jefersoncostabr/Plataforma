@@ -1784,7 +1784,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 // Sincroniza o colete com o inimigo
                 if (inimigo.coleteElemento && inimigo.temColete) {
-                    const offsetY = inimigo.estaAgachado ? -5 : 0;
+                    const offsetY = inimigo.estaAgachado ? -6 : 0;
                     inimigo.coleteElemento.style.left = inimigo.x + 'px';
                     inimigo.coleteElemento.style.bottom = (inimigo.y + offsetY) + 'px';
                     inimigo.coleteElemento.style.transform = inimigo.elemento.style.transform;

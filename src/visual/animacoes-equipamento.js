@@ -21,6 +21,48 @@ function coleteRecolhivelNoCinto(config = window.config || {}) {
     return !!config?.coleteRecolhivelNoCinto;
 }
 
+function animarCloneSeguindoPortador(opcoes = {}) {
+    const {
+        clone,
+        obterOrigem,
+        obterDestino,
+        duracao = 220,
+        opacidadeInicial = 1,
+        opacidadeFinal = 0.15
+    } = opcoes;
+
+    if (!clone || typeof obterOrigem !== 'function' || typeof obterDestino !== 'function') return;
+
+    const lerp = (inicio, fim, t) => inicio + ((fim - inicio) * t);
+    const inicioAnim = (window.performance?.now?.() ?? Date.now());
+
+    const atualizar = () => {
+        if (!clone.parentElement) return;
+
+        const agora = (window.performance?.now?.() ?? Date.now());
+        const bruto = Math.min(1, Math.max(0, (agora - inicioAnim) / duracao));
+        const t = 1 - Math.pow(1 - bruto, 2);
+
+        const origem = obterOrigem();
+        const destino = obterDestino();
+
+        clone.style.left = lerp(origem.x, destino.x, t) + 'px';
+        clone.style.bottom = lerp(origem.y, destino.y, t) + 'px';
+        clone.style.opacity = String(lerp(opacidadeInicial, opacidadeFinal, t));
+        clone.style.transform = t < 0.5 ? origem.transform : destino.transform;
+
+        if (bruto < 1) {
+            clone.__cintoAnimFrame = requestAnimationFrame(atualizar);
+        }
+    };
+
+    if (clone.__cintoAnimFrame) {
+        cancelAnimationFrame(clone.__cintoAnimFrame);
+    }
+
+    clone.__cintoAnimFrame = requestAnimationFrame(atualizar);
+}
+
 function inicializarEstadoCinto(controle) {
     if (!controle) return controle;
 
@@ -263,12 +305,13 @@ function alternarItensNoCintoPortador(opcoes = {}) {
         if (!item?.elemento) return null;
 
         const clone = item.elemento.cloneNode(true);
-        const origem = guardando
+        const obterOrigem = () => guardando
             ? { x: portador.x, y: portador.y, transform: obterTransformAtualEquipamento(item) }
             : obterPosicaoCinto(item.tipo, indice);
-        const destino = guardando
+        const obterDestino = () => guardando
             ? obterPosicaoCinto(item.tipo, indice)
             : { x: portador.x, y: portador.y, transform: obterTransformAtualEquipamento(item) };
+        const origem = obterOrigem();
 
         clone.removeAttribute('id');
         clone.style.position = 'absolute';
@@ -278,15 +321,17 @@ function alternarItensNoCintoPortador(opcoes = {}) {
         clone.style.left = origem.x + 'px';
         clone.style.bottom = origem.y + 'px';
         clone.style.transform = origem.transform;
-        clone.style.transition = 'left 220ms ease, bottom 220ms ease, transform 220ms ease, opacity 220ms ease';
+        clone.style.transition = 'none';
         clone.style.zIndex = String(Number(item.elemento.style.zIndex || 10) + 20);
         elementoBase.parentElement.appendChild(clone);
 
-        requestAnimationFrame(() => {
-            clone.style.left = destino.x + 'px';
-            clone.style.bottom = destino.y + 'px';
-            clone.style.opacity = guardando ? '0.15' : '1';
-            clone.style.transform = destino.transform;
+        animarCloneSeguindoPortador({
+            clone,
+            obterOrigem,
+            obterDestino,
+            duracao: 220,
+            opacidadeInicial: guardando ? 1 : 0.2,
+            opacidadeFinal: guardando ? 0.15 : 1
         });
 
         return clone;
@@ -386,7 +431,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
 
     function obterOffsetVisualCinto() {
         let offsetY = 0;
-        if (controle.estaAgachado) offsetY -= 4;
+        if (controle.estaAgachado) offsetY -= 5;
         if (controle.chutando) offsetY -= 2;
         return { x: 0, y: offsetY };
     }
@@ -494,10 +539,9 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
         if (!item?.elemento || !elemento.parentElement) return null;
 
         const clone = item.elemento.cloneNode(true);
-        const posEquipamento = obterPosicaoAtualEquipamento(item);
-        const posCinto = obterPosicaoAtualCinto(item.tipo, indice);
-        const inicio = guardando ? posEquipamento : posCinto;
-        const fim = guardando ? posCinto : posEquipamento;
+        const obterOrigem = () => guardando ? obterPosicaoAtualEquipamento(item) : obterPosicaoAtualCinto(item.tipo, indice);
+        const obterDestino = () => guardando ? obterPosicaoAtualCinto(item.tipo, indice) : obterPosicaoAtualEquipamento(item);
+        const inicio = obterOrigem();
 
         clone.removeAttribute('id');
         clone.style.position = 'absolute';
@@ -506,16 +550,18 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
         clone.style.opacity = guardando ? '1' : '0.2';
         clone.style.left = inicio.x + 'px';
         clone.style.bottom = inicio.y + 'px';
-        clone.style.transform = guardando ? posEquipamento.transform : posCinto.transform;
-        clone.style.transition = 'left 220ms ease, bottom 220ms ease, transform 220ms ease, opacity 220ms ease';
+        clone.style.transform = inicio.transform;
+        clone.style.transition = 'none';
         clone.style.zIndex = String(Number(item.elemento.style.zIndex || 10) + 20);
         elemento.parentElement.appendChild(clone);
 
-        requestAnimationFrame(() => {
-            clone.style.left = fim.x + 'px';
-            clone.style.bottom = fim.y + 'px';
-            clone.style.opacity = guardando ? '0.15' : '1';
-            clone.style.transform = guardando ? posCinto.transform : posEquipamento.transform;
+        animarCloneSeguindoPortador({
+            clone,
+            obterOrigem,
+            obterDestino,
+            duracao: 220,
+            opacidadeInicial: guardando ? 1 : 0.2,
+            opacidadeFinal: guardando ? 0.15 : 1
         });
 
         return clone;
@@ -596,7 +642,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
         if (coleteElemento) {
             const permiteRecolherColete = coleteRecolhivelNoCinto(config);
             if (controle.temColete && (!controle.itensGuardadosNoCinto || !permiteRecolherColete)) {
-                const offsetColeteY = controle.estaAgachado ? -5 : 0;
+                const offsetColeteY = controle.estaAgachado ? -6 : 0;
                 coleteElemento.style.display = 'block';
                 coleteElemento.style.left = controle.x + 'px';
                 coleteElemento.style.bottom = (controle.y + offsetColeteY) + 'px';
