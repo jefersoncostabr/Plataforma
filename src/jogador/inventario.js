@@ -110,7 +110,11 @@
             dados: {
                 municao: Number.isFinite(Number(item?.municao)) ? Number(item.municao) : undefined,
                 escudoProtegido: Number.isFinite(Number(item?.escudoProtegido)) ? Number(item.escudoProtegido) : undefined,
-                escudoVermelho: !!item?.escudoVermelho
+                escudoVermelho: !!item?.escudoVermelho,
+                botaUsosDash: Number.isFinite(Number(item?.botaUsosDash)) ? Number(item.botaUsosDash) : undefined,
+                botaVermelha: !!item?.botaVermelha,
+                garraImpactosSolidos: Number.isFinite(Number(item?.garraImpactosSolidos)) ? Number(item.garraImpactosSolidos) : undefined,
+                garraVermelha: !!item?.garraVermelha
             }
         };
     }
@@ -136,9 +140,13 @@
                 temArma: controle.temArma,
                 municao: controle.municao,
                 temBota: controle.temBota,
+                botaVermelha: controle.botaVermelha,
+                botaUsosDash: controle.botaUsosDash,
                 temJetpack: controle.temJetpack,
                 temCinto: controle.temCinto,
                 temGarra: controle.temGarra,
+                garraVermelha: controle.garraVermelha,
+                garraImpactosSolidos: controle.garraImpactosSolidos,
                 temColete: controle.temColete,
                 inventario: Array.isArray(controle.inventario) ? [...controle.inventario] : [],
                 coleteSlots: normalizarSlotsColete(controle.coleteSlots),
@@ -163,9 +171,13 @@
         controle.temArma = !!inventarioSalvo.temArma;
         controle.municao = Number(inventarioSalvo.municao || 0);
         controle.temBota = !!inventarioSalvo.temBota;
+        controle.botaVermelha = !!inventarioSalvo.botaVermelha;
+        controle.botaUsosDash = Number(inventarioSalvo.botaUsosDash || 0);
         controle.temJetpack = !!inventarioSalvo.temJetpack;
         controle.temCinto = !!inventarioSalvo.temCinto;
         controle.temGarra = !!inventarioSalvo.temGarra;
+        controle.garraVermelha = !!inventarioSalvo.garraVermelha;
+        controle.garraImpactosSolidos = Number(inventarioSalvo.garraImpactosSolidos || 0);
         controle.temColete = !!inventarioSalvo.temColete;
         controle.inventario = Array.isArray(inventarioSalvo.inventario) ? [...inventarioSalvo.inventario] : [];
         controle.coleteSlots = normalizarSlotsColete(inventarioSalvo.coleteSlots);
@@ -254,6 +266,10 @@
             return (controle.dano || 0) > 0
                 || !!controle.escudoVermelho
                 || ((controle.temEscudo || controle.escudoVermelho) && (controle.escudoProtegido || 0) > 0)
+                || !!controle.botaVermelha
+                || ((controle.temBota || controle.botaVermelha) && Number(controle.botaUsosDash || 0) > 0)
+                || !!controle.garraVermelha
+                || ((controle.temGarra || controle.garraVermelha) && Number(controle.garraImpactosSolidos || 0) > 0)
                 || (controle.temArma && (controle.municao || 0) < maxMunicao);
         }
 
@@ -270,6 +286,12 @@
 
         function precisaDeItemAgora(tipo) {
             if (tipo === 'restauracao') return precisaRestauracaoAgora();
+            if (tipo === 'bota') {
+                return !controle.temBota || !!controle.botaVermelha || Number(controle.botaUsosDash || 0) > 0;
+            }
+            if (tipo === 'garra') {
+                return !controle.temGarra || !!controle.garraVermelha || Number(controle.garraImpactosSolidos || 0) > 0;
+            }
             return !itemJaAtivoNoCorpo(tipo);
         }
 
@@ -277,11 +299,24 @@
             controle.municao = Number(config?.maxMunicao ?? 5);
             controle.escudoProtegido = 0;
             controle.escudoVermelho = false;
+            controle.botaUsosDash = 0;
+            controle.botaVermelha = false;
+            controle.garraImpactosSolidos = 0;
+            controle.garraVermelha = false;
             controle.dano = Math.max(0, (controle.dano || 0) - 1);
             if (controle.inventario.includes('escudo')) {
                 controle.temEscudo = true;
             }
+            if (controle.inventario.includes('garra')) {
+                controle.temGarra = true;
+            }
             atualizarVisualEscudo();
+            if (typeof window.atualizarVisualBota === 'function') {
+                window.atualizarVisualBota();
+            }
+            if (typeof window.atualizarVisualGarra === 'function') {
+                window.atualizarVisualGarra();
+            }
         }
 
         function aplicarItemNoCorpo(tipo, itemData = null, extras = {}) {
@@ -323,10 +358,15 @@
                 atualizarVisualEscudo();
             } else if (tipo === 'bota') {
                 controle.temBota = true;
+                controle.botaUsosDash = Number(extras?.botaUsosDash || 0);
+                controle.botaVermelha = !!extras?.botaVermelha;
                 if (botaElemento) {
                     if (itemData?.spriteEquipado) botaElemento.src = itemData.spriteEquipado;
                     botaElemento.style.display = 'block';
                     sincronizarElementoComJogador(botaElemento);
+                }
+                if (typeof window.atualizarVisualBota === 'function') {
+                    window.atualizarVisualBota();
                 }
             } else if (tipo === 'jetpack') {
                 controle.temJetpack = true;
@@ -340,10 +380,15 @@
                 if (jetFogoElemento) jetFogoElemento.style.display = 'none';
             } else if (tipo === 'garra') {
                 controle.temGarra = true;
+                controle.garraImpactosSolidos = Number(extras?.garraImpactosSolidos || 0);
+                controle.garraVermelha = !!extras?.garraVermelha;
                 if (garraElemento) {
                     if (itemData?.spriteEquipado) garraElemento.src = itemData.spriteEquipado;
                     garraElemento.style.display = 'block';
                     sincronizarElementoComJogador(garraElemento);
+                }
+                if (typeof window.atualizarVisualGarra === 'function') {
+                    window.atualizarVisualGarra();
                 }
             } else if (tipo === 'cinto') {
                 controle.temCinto = true;
@@ -403,6 +448,18 @@
                     escudoVermelho: controle.escudoVermelho
                 };
             }
+            if (tipo === 'bota') {
+                return {
+                    botaUsosDash: Number(controle.botaUsosDash || 0),
+                    botaVermelha: !!controle.botaVermelha
+                };
+            }
+            if (tipo === 'garra') {
+                return {
+                    garraImpactosSolidos: Number(controle.garraImpactosSolidos || 0),
+                    garraVermelha: !!controle.garraVermelha
+                };
+            }
             return {};
         }
 
@@ -434,7 +491,12 @@
             }
             if (tipo === 'bota') {
                 controle.temBota = false;
+                controle.botaUsosDash = 0;
+                controle.botaVermelha = false;
                 if (botaElemento) botaElemento.style.display = 'none';
+                if (typeof window.atualizarVisualBota === 'function') {
+                    window.atualizarVisualBota();
+                }
                 return true;
             }
             if (tipo === 'jetpack') {
@@ -449,7 +511,12 @@
             }
             if (tipo === 'garra') {
                 controle.temGarra = false;
+                controle.garraImpactosSolidos = 0;
+                controle.garraVermelha = false;
                 if (garraElemento) garraElemento.style.display = 'none';
+                if (typeof window.atualizarVisualGarra === 'function') {
+                    window.atualizarVisualGarra();
+                }
                 return true;
             }
             if (tipo === 'cinto') {
@@ -671,7 +738,7 @@
                 return guardarItemNoColete(item, itemData) || guardarItemNoCinto(item, itemData);
             }
 
-            if (!itemJaAtivoNoCorpo(item.tipo)) {
+            if (!itemJaAtivoNoCorpo(item.tipo) || precisaDeItemAgora(item.tipo)) {
                 return aplicarItemNoCorpo(item.tipo, itemData, item);
             }
 
@@ -728,8 +795,15 @@
                 controle.escudoProtegido = 0;
                 atualizarVisualEscudo();
             } else if (tipo === 'bota') {
+                extras.botaUsosDash = Number(controle.botaUsosDash || 0);
+                extras.botaVermelha = !!controle.botaVermelha;
                 controle.temBota = false;
+                controle.botaUsosDash = 0;
+                controle.botaVermelha = false;
                 if (botaElemento) botaElemento.style.display = 'none';
+                if (typeof window.atualizarVisualBota === 'function') {
+                    window.atualizarVisualBota();
+                }
             } else if (tipo === 'jetpack') {
                 controle.temJetpack = false;
                 controle.jetpackAtivo = false;
@@ -737,8 +811,15 @@
                 if (jetpackElemento) jetpackElemento.style.display = 'none';
                 if (jetFogoElemento) jetFogoElemento.style.display = 'none';
             } else if (tipo === 'garra') {
+                extras.garraImpactosSolidos = Number(controle.garraImpactosSolidos || 0);
+                extras.garraVermelha = !!controle.garraVermelha;
                 controle.temGarra = false;
+                controle.garraImpactosSolidos = 0;
+                controle.garraVermelha = false;
                 if (garraElemento) garraElemento.style.display = 'none';
+                if (typeof window.atualizarVisualGarra === 'function') {
+                    window.atualizarVisualGarra();
+                }
             } else if (tipo === 'cinto') {
                 controle.temCinto = false;
                 if (cintoElemento) cintoElemento.style.display = 'none';
@@ -756,12 +837,74 @@
         }
 
         function droparItensInimigo(inimigo) {
-            if (!inimigo?.inventario) return;
+            if (!inimigo) return;
 
-            const itensParaDropar = [...inimigo.inventario].reverse();
-            itensParaDropar.forEach((tipo) => {
+            const itensParaDropar = [];
+            const tiposRegistrados = new Set();
+
+            const registrarDrop = (tipo, extras = {}) => {
+                if (!tipo) return;
+                itensParaDropar.push({ tipo, extras });
+                tiposRegistrados.add(tipo);
+            };
+
+            if (Array.isArray(inimigo.inventario)) {
+                [...inimigo.inventario].reverse().forEach((tipo) => {
+                    const extras = {};
+                    if (tipo === 'revolver') extras.municao = Number(inimigo.municao || config?.maxMunicao || 5);
+                    if (tipo === 'escudo') {
+                        extras.escudoProtegido = Number(inimigo.escudoProtegido || 0);
+                        extras.escudoVermelho = !!inimigo.escudoVermelho;
+                    }
+                    if (tipo === 'bota') {
+                        extras.botaUsosDash = Number(inimigo.botaUsosDash || 0);
+                        extras.botaVermelha = !!inimigo.botaVermelha;
+                    }
+                    if (tipo === 'garra') {
+                        extras.garraImpactosSolidos = Number(inimigo.garraImpactosSolidos || 0);
+                        extras.garraVermelha = !!inimigo.garraVermelha;
+                    }
+                    registrarDrop(tipo, extras);
+                });
+            }
+
+            if (Array.isArray(inimigo.coleteSlots)) {
+                inimigo.coleteSlots.forEach((slot) => {
+                    if (slot?.tipo) registrarDrop(slot.tipo, slot.dados || {});
+                });
+            }
+
+            if (inimigo.cintoSlot?.tipo) {
+                registrarDrop(inimigo.cintoSlot.tipo, inimigo.cintoSlot.dados || {});
+            }
+
+            const adicionarEquipamentoAtivo = (tipo, ativo, extras = {}) => {
+                if (!ativo || tiposRegistrados.has(tipo)) return;
+                registrarDrop(tipo, extras);
+            };
+
+            adicionarEquipamentoAtivo('revolver', !!inimigo.temArma, {
+                municao: Number(inimigo.municao || config?.maxMunicao || 5)
+            });
+            adicionarEquipamentoAtivo('escudo', !!(inimigo.temEscudo || inimigo.escudoVermelho), {
+                escudoProtegido: Number(inimigo.escudoProtegido || 0),
+                escudoVermelho: !!inimigo.escudoVermelho
+            });
+            adicionarEquipamentoAtivo('bota', !!inimigo.temBota, {
+                botaUsosDash: Number(inimigo.botaUsosDash || 0),
+                botaVermelha: !!inimigo.botaVermelha
+            });
+            adicionarEquipamentoAtivo('jetpack', !!inimigo.temJetpack);
+            adicionarEquipamentoAtivo('garra', !!inimigo.temGarra, {
+                garraImpactosSolidos: Number(inimigo.garraImpactosSolidos || 0),
+                garraVermelha: !!inimigo.garraVermelha
+            });
+            adicionarEquipamentoAtivo('cinto', !!inimigo.temCinto);
+            adicionarEquipamentoAtivo('colete', !!inimigo.temColete);
+
+            itensParaDropar.forEach(({ tipo, extras = {} }) => {
                 const itemImg = document.createElement('img');
-                itemImg.src = obterSpriteItem(tipo, config);
+                itemImg.src = window.itemDefinitions?.[tipo]?.spriteColetavel || obterSpriteItem(tipo, config);
                 itemImg.style.position = 'absolute';
                 itemImg.style.width = '32px';
                 itemImg.style.height = '32px';
@@ -786,7 +929,8 @@
                     y: inimigo.y,
                     elemento: itemImg,
                     velocidadeY: 5,
-                    tipo
+                    tipo,
+                    ...extras
                 });
             });
         }

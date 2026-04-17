@@ -1,4 +1,33 @@
 (function () {
+    function criarImpactoVerticalGarraGlobal(x, y) {
+        const palco = document.getElementById('game-stage') || document.body;
+        const impacto = document.createElement('img');
+        impacto.src = '../../assets/personagem/impacto.png';
+        impacto.style.position = 'absolute';
+        impacto.style.width = '32px';
+        impacto.style.height = '64px';
+        impacto.style.left = (x - 8) + 'px';
+        impacto.style.bottom = (y - 16) + 'px';
+        impacto.style.transform = 'rotate(90deg) scale(1)';
+        impacto.style.transformOrigin = 'center center';
+        impacto.style.imageRendering = 'pixelated';
+        impacto.style.pointerEvents = 'none';
+
+        if (typeof adicionarAoLayer === 'function' && window.LAYERS?.EFEITOS) {
+            adicionarAoLayer(impacto, window.LAYERS.EFEITOS);
+        } else {
+            palco.appendChild(impacto);
+        }
+
+        requestAnimationFrame(() => {
+            impacto.style.transform = 'rotate(90deg) scale(0.2)';
+            impacto.style.opacity = '0';
+        });
+        setTimeout(() => impacto.remove(), 400);
+    }
+
+    window.criarImpactoVerticalGarra = criarImpactoVerticalGarraGlobal;
+
     function criarSistemaGarraJogador(opcoes = {}) {
         const {
             controle,
@@ -31,6 +60,16 @@
         controle.garraBracos = Array.isArray(controle.garraBracos) ? controle.garraBracos : [];
         controle.garraDirecaoAnim = controle.garraDirecaoAnim || 'd';
         controle.garraItemCarregado = controle.garraItemCarregado || null;
+        controle.garraVermelha = !!controle.garraVermelha;
+        controle.garraImpactosSolidos = Number(controle.garraImpactosSolidos || 0);
+
+        function atualizarVisualEstadoGarra() {
+            if (typeof window.atualizarVisualGarra === 'function') {
+                window.atualizarVisualGarra();
+            } else if (garraElemento) {
+                garraElemento.style.filter = controle.garraVermelha ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
+            }
+        }
 
         function resetarVisualGarra() {
             garraElemento.src = config.spriteGarraPlayer || '../../assets/personagem/garra.png';
@@ -38,6 +77,7 @@
                 if (braco && typeof braco.remove === 'function') braco.remove();
             });
             controle.garraBracos = [];
+            atualizarVisualEstadoGarra();
         }
 
         function sincronizarEquipamentoNoJogador(equipamento) {
@@ -48,8 +88,29 @@
             equipamento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
         }
 
+        function criarImpactoVerticalGarra(x, y) {
+            if (typeof window.criarImpactoVerticalGarra === 'function') {
+                window.criarImpactoVerticalGarra(x, y);
+            }
+        }
+
+        function registrarImpactoSolidoGarra() {
+            if (!controle.temGarra || controle.itensGuardadosNoCinto || controle.garraVermelha) return;
+
+            const maxImpactos = Math.max(1, Number(config?.garraImpactosAteDanificar ?? window.config?.garraImpactosAteDanificar ?? 3));
+            controle.garraImpactosSolidos = Number(controle.garraImpactosSolidos || 0) + 1;
+
+            if (controle.garraImpactosSolidos >= maxImpactos) {
+                controle.garraImpactosSolidos = maxImpactos;
+                controle.garraVermelha = true;
+            }
+
+            atualizarVisualEstadoGarra();
+            salvarInventario();
+        }
+
         function acionarGarra() {
-            if (controle.temGarra && !controle.itensGuardadosNoCinto && controle.garraAnimEstado === 'idle') {
+            if (controle.temGarra && !controle.garraVermelha && !controle.itensGuardadosNoCinto && controle.garraAnimEstado === 'idle') {
                 controle.garraAnimEstado = 'prep';
                 controle.garraTimer = 18;
                 controle.garraDirecaoAnim = controle.direcao;
@@ -80,11 +141,20 @@
                     controle.municao = config.maxMunicao || 5;
                     controle.escudoProtegido = 0;
                     controle.escudoVermelho = false;
+                    controle.botaUsosDash = 0;
+                    controle.botaVermelha = false;
+                    controle.garraImpactosSolidos = 0;
+                    controle.garraVermelha = false;
                     controle.dano = Math.max(0, (controle.dano || 0) - 1);
                     if (controle.inventario.includes('escudo')) {
                         controle.temEscudo = true;
                     }
+                    if (controle.inventario.includes('garra')) {
+                        controle.temGarra = true;
+                    }
                     atualizarVisualEscudo();
+                    if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
+                    if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
                 }
 
                 if (item.tipo === 'revolver') {
@@ -105,9 +175,12 @@
                     jetpackElemento.style.display = 'block';
                     sincronizarEquipamentoNoJogador(jetpackElemento);
                 } else if (item.tipo === 'garra') {
+                    controle.garraImpactosSolidos = Number(item.garraImpactosSolidos || 0);
+                    controle.garraVermelha = !!item.garraVermelha;
                     if (itemData.spriteEquipado) garraElemento.src = itemData.spriteEquipado;
                     garraElemento.style.display = 'block';
                     sincronizarEquipamentoNoJogador(garraElemento);
+                    atualizarVisualEstadoGarra();
                 } else if (item.tipo === 'cinto') {
                     if (itemData.spriteEquipado) cintoElemento.src = itemData.spriteEquipado;
                     cintoElemento.style.display = 'block';
@@ -149,9 +222,12 @@
                 sincronizarEquipamentoNoJogador(jetpackElemento);
             } else if (item.tipo === 'garra') {
                 controle.temGarra = true;
+                controle.garraImpactosSolidos = Number(item.garraImpactosSolidos || 0);
+                controle.garraVermelha = !!item.garraVermelha;
                 if (!controle.inventario.includes('garra')) controle.inventario.push('garra');
                 garraElemento.style.display = 'block';
                 sincronizarEquipamentoNoJogador(garraElemento);
+                atualizarVisualEstadoGarra();
             } else if (item.tipo === 'cinto') {
                 controle.temCinto = true;
                 if (!controle.inventario.includes('cinto')) controle.inventario.push('cinto');
@@ -177,11 +253,20 @@
                     controle.municao = config.maxMunicao || 5;
                     controle.escudoProtegido = 0;
                     controle.escudoVermelho = false;
+                    controle.botaUsosDash = 0;
+                    controle.botaVermelha = false;
+                    controle.garraImpactosSolidos = 0;
+                    controle.garraVermelha = false;
                     controle.dano = Math.max(0, (controle.dano || 0) - 1);
                     if (controle.inventario.includes('escudo')) {
                         controle.temEscudo = true;
                     }
+                    if (controle.inventario.includes('garra')) {
+                        controle.temGarra = true;
+                    }
                     atualizarVisualEscudo();
+                    if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
+                    if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
                 } else if (sorteio === 'skill') {
                     if (window.skillsData && Object.keys(window.skillsData).length > 0) {
                         const disponiveis = Object.keys(window.skillsData).filter(s => !window.playerSkills.includes(s) && window.skillsData[s].parent === null);
@@ -214,8 +299,11 @@
                         jetpackElemento.style.display = 'block';
                     } else if (itemSorteado === 'garra') {
                         controle.temGarra = true;
+                        controle.garraImpactosSolidos = 0;
+                        controle.garraVermelha = false;
                         if (!controle.inventario.includes('garra')) controle.inventario.push('garra');
                         garraElemento.style.display = 'block';
+                        atualizarVisualEstadoGarra();
                     } else if (itemSorteado === 'revolver') {
                         controle.temArma = true;
                         controle.municao = config.maxMunicao || 5;
@@ -237,11 +325,20 @@
                 controle.municao = config.maxMunicao || 5;
                 controle.escudoProtegido = 0;
                 controle.escudoVermelho = false;
+                controle.botaUsosDash = 0;
+                controle.botaVermelha = false;
+                controle.garraImpactosSolidos = 0;
+                controle.garraVermelha = false;
                 controle.dano = Math.max(0, (controle.dano || 0) - 1);
                 if (controle.inventario.includes('escudo')) {
                     controle.temEscudo = true;
                 }
+                if (controle.inventario.includes('garra')) {
+                    controle.temGarra = true;
+                }
                 atualizarVisualEscudo();
+                if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
+                if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
             }
             salvarInventario();
             return true;
@@ -277,6 +374,8 @@
 
                 if (typeof verificarColisaoComTiles === 'function' &&
                     verificarColisaoComTiles(tipX, controle.y, 32, 32, window.plataformas)) {
+                    criarImpactoVerticalGarra(tipX, controle.y);
+                    registrarImpactoSolidoGarra();
                     controle.garraAnimEstado = 'catching';
                     controle.garraTimer = 18;
                     garraElemento.src = '../../assets/personagem/garra_catching.png';

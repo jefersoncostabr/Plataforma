@@ -495,6 +495,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
         if (cintoElemento) cintoElemento.style.display = controle.temCinto ? 'block' : 'none';
         armaElemento.style.display = (controle.temArma && !guardados) ? 'block' : 'none';
         botaElemento.style.display = (controle.temBota && !guardados) ? 'block' : 'none';
+        botaElemento.style.filter = controle.botaVermelha ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
         if (coleteElemento) coleteElemento.style.display = (controle.temColete && (!guardados || !permiteRecolherColete)) ? 'block' : 'none';
         jetpackElemento.style.display = (controle.temJetpack && !guardados) ? 'block' : 'none';
 
@@ -509,6 +510,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
         } else if (!controle.temGarra) {
             garraElemento.style.display = 'none';
         }
+        garraElemento.style.filter = controle.garraVermelha ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
 
         atualizarVisualEscudo();
     }
@@ -720,6 +722,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
             } else {
                 botaElemento.src = config.spriteBotaParado || '../../assets/personagem/bota_parado.png';
             }
+            botaElemento.style.filter = controle.botaVermelha ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
         }
 
         if (controle.temJetpack && !controle.itensGuardadosNoCinto) {

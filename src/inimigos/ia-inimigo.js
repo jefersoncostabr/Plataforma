@@ -877,6 +877,9 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         // Verifica colisão com o cenário antes de avançar
                         if (typeof verificarColisaoComTiles === 'function' && 
                             verificarColisaoComTiles(tipX, inimigo.y, 32, 32, window.plataformas)) {
+                            if (typeof window.criarImpactoVerticalGarra === 'function') {
+                                window.criarImpactoVerticalGarra(tipX, inimigo.y);
+                            }
                             inimigo.garraAnimEstado = 'catching';
                             inimigo.garraTimer = 18;
                             inimigo.garraElemento.src = '../../assets/personagem/garra_catching.png';

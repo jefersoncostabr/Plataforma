@@ -16,14 +16,15 @@ window.aplicarEfeitosSkills = () => {
     controle.janelaDuploToqueDash = 250;
 
     const itensGuardadosNoCinto = !!controle.itensGuardadosNoCinto;
-    const totalEquipamentosAtivos = [
+    const totalEquipamentosSemBota = [
         !!controle.temArma && !itensGuardadosNoCinto,
         !!(controle.temEscudo || controle.escudoVermelho) && !itensGuardadosNoCinto,
-        !!controle.temBota && !itensGuardadosNoCinto,
         !!controle.temJetpack && !itensGuardadosNoCinto,
         !!controle.temGarra && !itensGuardadosNoCinto
     ].filter(Boolean).length;
-    controle.pesado = totalEquipamentosAtivos >= 3;
+    const pesoTemporarioAtivo = Number(controle.pesoTemporarioSuperDescida || 0) > 0;
+    controle.pesado = totalEquipamentosSemBota >= 3 || pesoTemporarioAtivo;
+    controle.leveComBota = !!controle.temBota && !controle.botaVermelha && !itensGuardadosNoCinto && totalEquipamentosSemBota <= 1 && !controle.pesado;
 
     const skills = window.SKILLS || {};
 

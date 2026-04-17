@@ -51,7 +51,7 @@
                 : 0;
 
             const duracaoDash = 10;
-            const multiplicadorChute = (controle.temBota && !controle.itensGuardadosNoCinto) ? 2 : 1;
+            const multiplicadorChute = (controle.temBota && !controle.botaVermelha && !controle.itensGuardadosNoCinto) ? 2 : 1;
             controle.framesImpulsoRestante = duracaoDash;
             controle.velocidadeDash = (Number(config.impulsoChute ?? 0) * multiplicadorChute) / duracaoDash;
 

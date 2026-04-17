@@ -127,12 +127,6 @@
 
                     if (podeSolicitarDash) {
                         controle.dashSolicitado = direcaoDash;
-                        console.log('[Dash] Solicitação detectada', {
-                            direcao: direcaoDash,
-                            pesado: !!controle.pesado,
-                            itensGuardadosNoCinto: !!controle.itensGuardadosNoCinto,
-                            cooldownDash: Number(controle.cooldownDash || 0)
-                        });
                     }
                 }
             }

@@ -139,8 +139,34 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         escudoElemento.style.filter = controle.escudoVermelho ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
     }
 
+    function atualizarVisualBota() {
+        if (!botaElemento) return;
+
+        if (controle.temBota && !controle.itensGuardadosNoCinto) {
+            botaElemento.style.display = 'block';
+        } else {
+            botaElemento.style.display = 'none';
+        }
+
+        botaElemento.style.filter = controle.botaVermelha ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
+    }
+
+    function atualizarVisualGarra() {
+        if (!garraElemento) return;
+
+        if (!controle.temGarra || controle.itensGuardadosNoCinto) {
+            garraElemento.style.display = 'none';
+        } else if (!controle.garraAnimEstado || controle.garraAnimEstado === 'idle') {
+            garraElemento.style.display = 'block';
+        }
+
+        garraElemento.style.filter = controle.garraVermelha ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
+    }
+
     // Expose for restart
     window.atualizarVisualEscudo = atualizarVisualEscudo;
+    window.atualizarVisualBota = atualizarVisualBota;
+    window.atualizarVisualGarra = atualizarVisualGarra;
 
     const EPSILON = 0.01;
 
@@ -169,6 +195,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         cooldownDash: 0,
         ultimoToqueDash: { e: 0, d: 0 },
         pesado: false,
+        pesadoPorEquipamento: false,
+        pesoTemporarioSuperDescida: 0,
         framesKnockbackRestante: 0,
         velocidadeKnockback: 0,
         usandoParaquedas: false,
@@ -187,8 +215,12 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         temArma: false, // Inicia sem a capacidade de atirar
         temEscudo: false, // Inicia sem escudo
         temGarra: false,
+        garraVermelha: false,
+        garraImpactosSolidos: 0,
         temCinto: false,
         temBota: false, // Inicia sem bota
+        botaVermelha: false,
+        botaUsosDash: 0,
         temJetpack: false,
         temColete: false,
         jetpackAtivo: false,
@@ -229,6 +261,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         controle,
         config,
         atualizarVisualEscudo,
+        atualizarVisualBota,
         getElementos: () => ({
             armaElemento,
             escudoElemento,
@@ -280,15 +313,17 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
     function atualizarEstadoPesoJogador() {
         const itensGuardadosNoCinto = !!controle.itensGuardadosNoCinto;
-        const totalEquipamentosAtivos = [
+        const totalEquipamentosSemBota = [
             !!controle.temArma && !itensGuardadosNoCinto,
             !!(controle.temEscudo || controle.escudoVermelho) && !itensGuardadosNoCinto,
-            !!controle.temBota && !itensGuardadosNoCinto,
             !!controle.temJetpack && !itensGuardadosNoCinto,
             !!controle.temGarra && !itensGuardadosNoCinto
         ].filter(Boolean).length;
 
-        controle.pesado = totalEquipamentosAtivos >= 3;
+        controle.pesadoPorEquipamento = totalEquipamentosSemBota >= 3;
+        const pesoTemporarioAtivo = Number(controle.pesoTemporarioSuperDescida || 0) > 0;
+        controle.pesado = controle.pesadoPorEquipamento || pesoTemporarioAtivo;
+        controle.leveComBota = !!controle.temBota && !controle.botaVermelha && !itensGuardadosNoCinto && totalEquipamentosSemBota <= 1 && !controle.pesado;
         return controle.pesado;
     }
 
@@ -359,6 +394,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     botaElemento.style.imageRendering = 'pixelated';
     botaElemento.style.pointerEvents = 'none';
     elemento.parentElement.appendChild(botaElemento);
+    atualizarVisualBota();
 
     // Elemento do Colete
     const coleteElemento = document.createElement('img');
@@ -576,9 +612,13 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 controle.temArma = false;
                 controle.municao = 0;
                 controle.temBota = false;
+                controle.botaVermelha = false;
+                controle.botaUsosDash = 0;
                 controle.framesKnockbackRestante = 0;
                 controle.velocidadeKnockback = 0;
                 controle.temGarra = false;
+                controle.garraVermelha = false;
+                controle.garraImpactosSolidos = 0;
                 botaElemento.style.display = 'none';
                 controle.temColete = false;
                 if (coleteElemento) coleteElemento.style.display = 'none';
@@ -592,6 +632,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 controle.dashFramesRestantes = 0;
                 controle.velocidadeDashSkill = 0;
                 controle.cooldownDash = 0;
+                controle.pesoTemporarioSuperDescida = 0;
                 limparPreviewCraft?.();
                 removerTodosCrafts?.();
                 controle.temJetpack = false;
@@ -603,6 +644,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 controle.timerVooRestante = 0;
                 controle.cooldownVooJetpack = 0;
                 atualizarVisualEscudo();
+                atualizarVisualGarra();
                 if (typeof armaElemento !== 'undefined') {
                     armaElemento.style.display = 'none';
                 }
@@ -786,7 +828,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             : velBase;
 
         // Aplica o bônus de velocidade se estiver usando a bota
-        if (controle.temBota && !controle.itensGuardadosNoCinto) {
+        if (controle.temBota && !controle.botaVermelha && !controle.itensGuardadosNoCinto) {
             velAtiva += Number(config.bonusVelocidadeBota || 2);
         }
 
@@ -801,20 +843,28 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         if (dashDisponivel && controle.dashSolicitado && (controle.cooldownDash || 0) === 0) {
             const duracaoDash = Math.max(1, Number(controle.dashDuracao ?? 8));
             const distanciaDashBase = Math.max(0, Number(controle.distanciaDash ?? 64));
-            const distanciaDash = controle.pesado ? (distanciaDashBase / 2) : distanciaDashBase;
+            const multiplicadorDashBota = controle.leveComBota ? 2 : 1;
+            const distanciaDash = controle.pesado
+                ? (distanciaDashBase / 2)
+                : (distanciaDashBase * multiplicadorDashBota);
             controle.dashDirecao = controle.dashSolicitado;
             controle.dashFramesRestantes = duracaoDash;
             controle.velocidadeDashSkill = distanciaDash / duracaoDash;
             controle.cooldownDash = Math.max(1, Number(controle.cooldownDashMax ?? 45));
-            console.log('[Dash] Ativado', {
-                direcao: controle.dashDirecao,
-                pesado: !!controle.pesado,
-                itensGuardadosNoCinto: !!controle.itensGuardadosNoCinto,
-                distanciaDashBase,
-                distanciaDashAplicada: distanciaDash,
-                duracaoDash,
-                cooldownDash: controle.cooldownDash
-            });
+
+            if (controle.temBota && !controle.itensGuardadosNoCinto && !controle.botaVermelha) {
+                const maxUsosBota = Math.max(1, Number(config.botaDashsAteDesgastar ?? 3));
+                controle.botaUsosDash = Number(controle.botaUsosDash || 0) + 1;
+                if (controle.botaUsosDash >= maxUsosBota) {
+                    controle.botaUsosDash = maxUsosBota;
+                    controle.botaVermelha = true;
+                }
+                atualizarVisualBota();
+                if (typeof window.salvarInventario === 'function') {
+                    window.salvarInventario();
+                }
+            }
+
             controle.dashSolicitado = null;
         }
 
@@ -1000,7 +1050,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         }
 
         // Calcula a força do pulo final: se tiver a bota, soma o bônus definido nas configurações
-        const forcaPuloFinal = (controle.temBota && !controle.itensGuardadosNoCinto)
+        const forcaPuloFinal = (controle.temBota && !controle.botaVermelha && !controle.itensGuardadosNoCinto)
             ? (config.inimigoForcaPulo + (config.bonusPuloBota || 1.5)) 
             : config.inimigoForcaPulo;
 
@@ -1012,6 +1062,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Decrementa o cooldown pós Super Descida
         if (controle.cooldownPosSuperDescida > 0) controle.cooldownPosSuperDescida--;
+        if (controle.pesoTemporarioSuperDescida > 0) controle.pesoTemporarioSuperDescida--;
 
         // Lógica da Skill Passiva "Salto" - Pulo Duplo
         const teclaPuloAtiva = acaoAtiva('pulo') && controle.cooldownPosSuperDescida === 0;
@@ -1049,7 +1100,15 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // Mecânica de Super Descida e Paraquedas
         if (!controle.noChao && controle.velocidadeY < 0 && acaoAtiva('pulo') && !controle.usandoParaquedas && controle.pulosRealizados === 2) {
             controle.velocidadeY = -20; 
-            controle.superDescidaAtiva = true;
+            if (!controle.superDescidaAtiva) {
+                const jaEraPesado = !!controle.pesado;
+                controle.superDescidaAtiva = true;
+                if (!jaEraPesado) {
+                    controle.pesoTemporarioSuperDescida = Math.max(1, Number(config.tempoPesoSuperDescida ?? 60));
+                    controle.pesado = true;
+                    controle.leveComBota = false;
+                }
+            }
         }
         if (controle.usandoParaquedas && controle.velocidadeY < -1.5) {
             controle.velocidadeY = -1.5; 
