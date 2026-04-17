@@ -11,7 +11,10 @@
             "m10",
             "ab2"
         ],
-        "colete": "d2",
+        "colete": [
+            "d1",
+            "d7"
+        ],
         "restauracao": "m15"
     },
     "inimigoAleatorio": [1, 0],

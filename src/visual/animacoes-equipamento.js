@@ -17,6 +17,10 @@ function aplicarRecuoRevolver(elemento, duracao = 100) {
     }, duracao);
 }
 
+function coleteRecolhivelNoCinto(config = window.config || {}) {
+    return !!config?.coleteRecolhivelNoCinto;
+}
+
 function inicializarEstadoCinto(controle) {
     if (!controle) return controle;
 
@@ -78,15 +82,18 @@ function obterEquipamentosCintoPortador(portador, elementos = {}) {
         escudoElemento,
         botaElemento,
         jetpackElemento,
-        garraElemento
+        garraElemento,
+        coleteElemento
     } = elementos;
+    const permiteRecolherColete = coleteRecolhivelNoCinto();
 
     return [
         { tipo: 'revolver', possui: !!portador.temArma, elemento: armaElemento },
         { tipo: 'escudo', possui: !!portador.temEscudo || !!portador.escudoVermelho, elemento: escudoElemento },
         { tipo: 'bota', possui: !!portador.temBota, elemento: botaElemento },
         { tipo: 'jetpack', possui: !!portador.temJetpack, elemento: jetpackElemento },
-        { tipo: 'garra', possui: !!portador.temGarra, elemento: garraElemento }
+        { tipo: 'garra', possui: !!portador.temGarra, elemento: garraElemento },
+        { tipo: 'colete', possui: permiteRecolherColete && !!portador.temColete, elemento: coleteElemento }
     ].filter(item => item.possui && item.elemento);
 }
 
@@ -99,10 +106,17 @@ function atualizarVisibilidadeEquipamentosCintoPortador(portador, elementos = {}
         botaElemento,
         jetpackElemento,
         jetFogoElemento,
-        garraElemento
+        garraElemento,
+        coleteElemento,
+        cintoElemento
     } = elementos;
     const { atualizarVisualEscudo = null } = opcoes;
     const guardados = !!portador.itensGuardadosNoCinto;
+    const permiteRecolherColete = coleteRecolhivelNoCinto();
+
+    if (cintoElemento) {
+        cintoElemento.style.display = portador.temCinto ? 'block' : 'none';
+    }
 
     if (armaElemento) {
         armaElemento.style.display = (portador.temArma && !guardados) ? 'block' : 'none';
@@ -134,6 +148,10 @@ function atualizarVisibilidadeEquipamentosCintoPortador(portador, elementos = {}
         }
     }
 
+    if (coleteElemento) {
+        coleteElemento.style.display = (portador.temColete && (!guardados || !permiteRecolherColete)) ? 'block' : 'none';
+    }
+
     if (typeof atualizarVisualEscudo === 'function') {
         atualizarVisualEscudo();
     }
@@ -150,6 +168,7 @@ function alternarItensNoCintoPortador(opcoes = {}) {
         jetpackElemento,
         jetFogoElemento,
         garraElemento,
+        coleteElemento,
         atualizarVisualEscudo = () => {},
         tentarLevantar = () => true,
         flashElement,
@@ -169,7 +188,8 @@ function alternarItensNoCintoPortador(opcoes = {}) {
         escudoElemento,
         botaElemento,
         jetpackElemento,
-        garraElemento
+        garraElemento,
+        coleteElemento
     });
 
     const guardando = typeof guardar === 'boolean' ? guardar : !portador.itensGuardadosNoCinto;
@@ -209,6 +229,7 @@ function alternarItensNoCintoPortador(opcoes = {}) {
             case 'bota': return { x: 0, y: -6 };
             case 'jetpack': return { x: -8 * direcao, y: 12 };
             case 'garra': return { x: 14 * direcao, y: 2 };
+            case 'colete': return { x: 0, y: 6 + (indice * 2) };
             default: return { x: 0, y: 4 };
         }
     };
@@ -296,7 +317,9 @@ function alternarItensNoCintoPortador(opcoes = {}) {
             botaElemento,
             jetpackElemento,
             jetFogoElemento,
-            garraElemento
+            garraElemento,
+            coleteElemento,
+            cintoElemento
         }, { atualizarVisualEscudo });
     }
 
@@ -314,7 +337,9 @@ function alternarItensNoCintoPortador(opcoes = {}) {
             botaElemento,
             jetpackElemento,
             jetFogoElemento,
-            garraElemento
+            garraElemento,
+            coleteElemento,
+            cintoElemento
         }, { atualizarVisualEscudo });
 
         portador.cintoAnimando = false;
@@ -348,12 +373,14 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
     } = opcoes;
 
     function obterEquipamentosDoCinto() {
+        const permiteRecolherColete = coleteRecolhivelNoCinto(config);
         return [
             { tipo: 'revolver', possui: !!controle.temArma, elemento: armaElemento },
             { tipo: 'escudo', possui: !!controle.temEscudo || !!controle.escudoVermelho, elemento: escudoElemento },
             { tipo: 'bota', possui: !!controle.temBota, elemento: botaElemento },
             { tipo: 'jetpack', possui: !!controle.temJetpack, elemento: jetpackElemento },
-            { tipo: 'garra', possui: !!controle.temGarra, elemento: garraElemento }
+            { tipo: 'garra', possui: !!controle.temGarra, elemento: garraElemento },
+            { tipo: 'colete', possui: permiteRecolherColete && !!controle.temColete, elemento: coleteElemento }
         ].filter(item => item.possui && item.elemento);
     }
 
@@ -374,10 +401,12 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
 
     function atualizarVisibilidadeEquipamentosCinto() {
         const guardados = !!controle.itensGuardadosNoCinto;
+        const permiteRecolherColete = coleteRecolhivelNoCinto(config);
 
+        if (cintoElemento) cintoElemento.style.display = controle.temCinto ? 'block' : 'none';
         armaElemento.style.display = (controle.temArma && !guardados) ? 'block' : 'none';
         botaElemento.style.display = (controle.temBota && !guardados) ? 'block' : 'none';
-        if (coleteElemento) coleteElemento.style.display = controle.temColete ? 'block' : 'none';
+        if (coleteElemento) coleteElemento.style.display = (controle.temColete && (!guardados || !permiteRecolherColete)) ? 'block' : 'none';
         jetpackElemento.style.display = (controle.temJetpack && !guardados) ? 'block' : 'none';
 
         if (!controle.temJetpack || guardados || !controle.jetpackAtivo) {
@@ -418,6 +447,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
             case 'bota': return { x: 0, y: -6 };
             case 'jetpack': return { x: -8 * direcao, y: 12 };
             case 'garra': return { x: 14 * direcao, y: 2 };
+            case 'colete': return { x: 0, y: 6 + (indice * 2) };
             default: return { x: 0, y: 4 };
         }
     }
@@ -493,7 +523,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
 
     function alternarItensNoCinto() {
         if (!controle.temCinto || controle.cintoAnimando || controle.vendaEmCurso || controle.stunned) return;
-        if (controle.garraAnimEstado !== 'idle' || controle.garraItemCarregado) return;
+        if ((controle.garraAnimEstado && controle.garraAnimEstado !== 'idle') || controle.garraItemCarregado) return;
 
         const equipamentos = obterEquipamentosDoCinto();
         if (!controle.itensGuardadosNoCinto && equipamentos.length === 0) return;
@@ -564,7 +594,8 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
         }
 
         if (coleteElemento) {
-            if (controle.temColete) {
+            const permiteRecolherColete = coleteRecolhivelNoCinto(config);
+            if (controle.temColete && (!controle.itensGuardadosNoCinto || !permiteRecolherColete)) {
                 const offsetColeteY = controle.estaAgachado ? -5 : 0;
                 coleteElemento.style.display = 'block';
                 coleteElemento.style.left = controle.x + 'px';

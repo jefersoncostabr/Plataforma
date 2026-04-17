@@ -222,8 +222,7 @@ function gerarPosicaoAleatoria(plataformas) {
  * O inimigo será colocado sempre ACIMA de uma plataforma, nunca dentro.
  * 
  * @param {array} plataformas - Lista de coordenadas das plataformas.
- * @param {number} tipoEquipamento - Tipo de equipamento do inimigo (0=sem, 1=revólver, 2=escudo, 3=bota, 4=jetpack, 5=feno, 6=garra, 7=cinto).
- */
+ * @param {number} tipoEquipamento - Tipo de equipamento do inimigo (0=sem, 1=revólver, 2=escudo, 3=bota, 4=jetpack, 5=feno, 6=garra, 7=cinto
 function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     const posicao = gerarPosicaoAleatoria(plataformas);
     
@@ -266,6 +265,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     let temJetpack = false;
     let temGarra = false;
     let temCinto = false;
+    let temColete = false;
     
     if (tipoInimigo === 1) {
         temArma = true;
@@ -279,6 +279,8 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         temGarra = true;
     } else if (tipoInimigo === 7) {
         temCinto = true;
+    } else if (tipoInimigo === 8) {
+        temColete = true;
     }
     
     // Registra o inimigo na lista global
@@ -299,6 +301,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         temJetpack: temJetpack,
         temGarra: temGarra,
         temCinto: temCinto,
+        temColete: temColete,
         escudoVermelho: false,
         escudoProtegido: 0,
         stunned: false, // Adiciona propriedade de stun
@@ -437,5 +440,20 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         novoInimigo.cintoElemento = cintoImg;
     }
 
-    const equipamento = temArma ? 'revólver' : (temEscudo ? 'escudo' : (temBota ? 'botas' : (temJetpack ? 'jetpack' : (temGarra ? 'garra' : (temCinto ? 'cinto' : 'sem equipamento')))));
+
+        const coleteImg = document.createElement('img');
+        coleteImg.src = window.config?.spriteColeteParado || '../../assets/personagem/colete.png';
+        coleteImg.style.position = 'absolute';
+        coleteImg.style.width = tamanhoTile + 'px';
+        coleteImg.style.height = tamanhoTile + 'px';
+        coleteImg.style.zIndex = '6';
+        coleteImg.style.imageRendering = 'pixelated';
+        coleteImg.style.pointerEvents = 'none';
+        if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
+            adicionarAoLayer(coleteImg, window.LAYERS.INIMIGOS);
+        } else {
+            palco.appendChild(coleteImg);
+        }
+        novoInimigo.coleteElemento = coleteImg;
+    }
 }

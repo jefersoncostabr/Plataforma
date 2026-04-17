@@ -177,7 +177,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             'jetpackElemento',
             'jetFogoElemento',
             'garraElemento',
-            'cintoElemento'
+            'cintoElemento',
+            'coleteElemento'
         ];
 
         elementos.forEach((chave) => {
@@ -199,6 +200,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         inimigo.temJetpack = false;
         inimigo.temGarra = false;
         inimigo.temCinto = false;
+        inimigo.temColete = false;
         inimigo.jetpackAtivo = false;
     }
 
@@ -410,9 +412,23 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 }
                 inimigoObj.cintoElemento = cinto;
             }
+            if (inimigoObj.temColete) {
+                const colete = document.createElement('img');
+                colete.src = config.spriteColeteParado || '../../assets/personagem/colete.png';
+                colete.style.position = 'absolute';
+                colete.style.width = '32px'; colete.style.height = '32px';
+                colete.style.zIndex = '6'; colete.style.imageRendering = 'pixelated';
+                colete.style.pointerEvents = 'none';
+                if (typeof adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS) {
+                    adicionarAoLayer(colete, window.LAYERS.INIMIGOS);
+                } else {
+                    inimigoImg.parentElement.appendChild(colete);
+                }
+                inimigoObj.coleteElemento = colete;
+            }
 
             // Sincroniza posições iniciais
-            [inimigoObj.armaElemento, inimigoObj.escudoElemento, inimigoObj.botaElemento, inimigoObj.jetpackElemento, inimigoObj.garraElemento, inimigoObj.cintoElemento].forEach(el => {
+            [inimigoObj.armaElemento, inimigoObj.escudoElemento, inimigoObj.botaElemento, inimigoObj.jetpackElemento, inimigoObj.garraElemento, inimigoObj.cintoElemento, inimigoObj.coleteElemento].forEach(el => {
                 if (el) {
                     el.style.left = pos.x + 'px';
                     el.style.bottom = pos.y + 'px';
@@ -532,7 +548,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     botaElemento: inimigo.botaElemento,
                     jetpackElemento: inimigo.jetpackElemento,
                     jetFogoElemento: inimigo.jetFogoElemento,
-                    garraElemento: inimigo.garraElemento
+                    garraElemento: inimigo.garraElemento,
+                    coleteElemento: inimigo.coleteElemento
                 };
 
                 // Lógica de IA: agacha quando já está sob teto baixo OU quando detecta passagem baixa à frente.
@@ -579,11 +596,13 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 const contarEquipamentosVisiveis = () => {
                     let total = 0;
+                    const coleteBloqueiaAgachamento = !!config.coleteRecolhivelNoCinto;
                     if (inimigo.temArma) total++;
                     if (inimigo.temEscudo || inimigo.escudoVermelho) total++;
                     if (inimigo.temBota) total++;
                     if (inimigo.temJetpack) total++;
                     if (inimigo.temGarra) total++;
+                    if (inimigo.temColete && coleteBloqueiaAgachamento) total++;
                     return total;
                 };
 
@@ -681,6 +700,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.temJetpack) inimigo.inventario.push('jetpack');
                     if (inimigo.temGarra) inimigo.inventario.push('garra');
                     if (inimigo.temCinto) inimigo.inventario.push('cinto');
+                    if (inimigo.temColete) inimigo.inventario.push('colete');
                     inimigo.cooldownPulo = 0;
                     inimigo.velocidadeY = 0;
                     inimigo.cooldownVooJetpack = 0;
@@ -796,6 +816,21 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         cinto.style.display = inimigo.temCinto ? 'block' : 'none';
                         inimigo.elemento.parentElement.appendChild(cinto);
                         inimigo.cintoElemento = cinto;
+                    }
+
+                    // Cria o elemento visual do colete para o inimigo
+                    if (!inimigo.coleteElemento) {
+                        const colete = document.createElement('img');
+                        colete.src = config.spriteColeteParado || '../../assets/personagem/colete.png';
+                        colete.style.position = 'absolute';
+                        colete.style.width = '32px';
+                        colete.style.height = '32px';
+                        colete.style.zIndex = '6';
+                        colete.style.imageRendering = 'pixelated';
+                        colete.style.pointerEvents = 'none';
+                        colete.style.display = inimigo.temColete ? 'block' : 'none';
+                        inimigo.elemento.parentElement.appendChild(colete);
+                        inimigo.coleteElemento = colete;
                     }
                 }
                 // End of one-time initialization block
@@ -1223,7 +1258,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                  (item.tipo === 'bota' && inimigo.temBota) ||
                                  (item.tipo === 'jetpack' && inimigo.temJetpack) ||
                                  (item.tipo === 'cinto' && inimigo.temCinto) ||
-                                 (item.tipo === 'garra' && inimigo.temGarra))) continue;
+                                 (item.tipo === 'garra' && inimigo.temGarra) ||
+                                 (item.tipo === 'colete' && inimigo.temColete))) continue;
 
                             // Se for um item de restauração, o inimigo só coleta se precisar
                             if (item.tipo === 'restauracao') {
@@ -1264,6 +1300,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             else if (item.tipo === 'jetpack') { inimigo.temJetpack = true; if (inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block'; }
                             else if (item.tipo === 'garra') { inimigo.temGarra = true; if (inimigo.garraElemento) inimigo.garraElemento.style.display = 'block'; }
                             else if (item.tipo === 'cinto') { inimigo.temCinto = true; if (inimigo.cintoElemento) inimigo.cintoElemento.style.display = 'block'; }
+                            else if (item.tipo === 'colete') { inimigo.temColete = true; if (inimigo.coleteElemento) inimigo.coleteElemento.style.display = 'block'; }
                             else if (item.tipo === 'restauracao') { // NEW: Enemy collects restoration item
                                 inimigo.municao = config.maxMunicao || 5;
                                 inimigo.escudoProtegido = 0;
@@ -1303,6 +1340,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                     if (!inimigo.temJetpack) pendentes.push('jetpack');
                                     if (!inimigo.temGarra) pendentes.push('garra');
                                     if (!inimigo.temCinto) pendentes.push('cinto');
+                                    if (!inimigo.temColete) pendentes.push('colete');
 
                                     if (pendentes.length > 0) {
                                         const novo = pendentes[Math.floor(Math.random() * pendentes.length)];
@@ -1312,6 +1350,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                         else if (novo === 'jetpack') { inimigo.temJetpack = true; if (inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block'; }
                                         else if (novo === 'garra') { inimigo.temGarra = true; if (inimigo.garraElemento) inimigo.garraElemento.style.display = 'block'; }
                                         else if (novo === 'cinto') { inimigo.temCinto = true; if (inimigo.cintoElemento) inimigo.cintoElemento.style.display = 'block'; }
+                                        else if (novo === 'colete') { inimigo.temColete = true; if (inimigo.coleteElemento) inimigo.coleteElemento.style.display = 'block'; }
                                         inimigo.inventario.push(novo);
                                     }
                                 }
@@ -1741,6 +1780,14 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.cintoElemento.style.left = inimigo.x + 'px';
                     inimigo.cintoElemento.style.bottom = inimigo.y + 'px';
                     inimigo.cintoElemento.style.transform = inimigo.elemento.style.transform;
+                }
+
+                // Sincroniza o colete com o inimigo
+                if (inimigo.coleteElemento && inimigo.temColete) {
+                    const offsetY = inimigo.estaAgachado ? -5 : 0;
+                    inimigo.coleteElemento.style.left = inimigo.x + 'px';
+                    inimigo.coleteElemento.style.bottom = (inimigo.y + offsetY) + 'px';
+                    inimigo.coleteElemento.style.transform = inimigo.elemento.style.transform;
                 }
 
                 // Sincroniza a garra com o inimigo
