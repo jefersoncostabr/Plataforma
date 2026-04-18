@@ -249,6 +249,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         craftPreviewTipo: null,
         airdropUsadoNoNivel: false,
         estaAgachado: false,
+        debugVelocidadeAtivo: false,
+        ultimoLogVelocidadeMs: 0,
+        velocidadeXAtual: 0,
+        velocidadeTotalAtual: 0,
         teclas: {},
         acoesDiscretas: {}
     };
@@ -310,6 +314,31 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     };
 
     window.playerControle = controle;
+    window.logVelocidadePlayer = () => {
+        const velocidadeX = Number(controle.velocidadeXAtual || 0);
+        const velocidadeY = Number(controle.velocidadeY || 0);
+        const velocidadeTotal = Math.hypot(velocidadeX, velocidadeY);
+        console.log('[DEBUG PLAYER] Velocidade atual', {
+            posicaoX: Number(controle.x.toFixed(2)),
+            posicaoY: Number(controle.y.toFixed(2)),
+            velocidadeX: Number(velocidadeX.toFixed(2)),
+            velocidadeY: Number(velocidadeY.toFixed(2)),
+            velocidadeTotal: Number(velocidadeTotal.toFixed(2)),
+            temBota: !!controle.temBota,
+            bonusBotaAtivo: !!controle.temBota && !controle.botaVermelha && !controle.itensGuardadosNoCinto,
+            dashAtivo: Number(controle.dashFramesRestantes || 0) > 0
+        });
+        return velocidadeTotal;
+    };
+    window.toggleDebugVelocidadePlayer = (ativo = !controle.debugVelocidadeAtivo) => {
+        controle.debugVelocidadeAtivo = !!ativo;
+        controle.ultimoLogVelocidadeMs = 0;
+        console.log(`Debug de velocidade do player ${controle.debugVelocidadeAtivo ? 'ativado' : 'desativado'}.`);
+        if (controle.debugVelocidadeAtivo) {
+            window.logVelocidadePlayer();
+        }
+        return controle.debugVelocidadeAtivo;
+    };
 
     function atualizarEstadoPesoJogador() {
         const itensGuardadosNoCinto = !!controle.itensGuardadosNoCinto;
@@ -1484,6 +1513,18 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 // Atualiza visual do item
                 item.elemento.style.left = item.x + 'px';
                 item.elemento.style.bottom = item.y + 'px';
+            }
+        }
+
+        controle.velocidadeXAtual = Number((controle.x - xAnterior).toFixed(2));
+        controle.velocidadeTotalAtual = Number(Math.hypot(controle.velocidadeXAtual, Number(controle.velocidadeY || 0)).toFixed(2));
+        if (controle.debugVelocidadeAtivo) {
+            const agoraLog = (typeof performance !== 'undefined' && typeof performance.now === 'function')
+                ? performance.now()
+                : Date.now();
+            if (agoraLog - (controle.ultimoLogVelocidadeMs || 0) >= 120) {
+                controle.ultimoLogVelocidadeMs = agoraLog;
+                window.logVelocidadePlayer();
             }
         }
 

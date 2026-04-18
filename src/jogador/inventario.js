@@ -286,6 +286,13 @@
 
         function precisaDeItemAgora(tipo) {
             if (tipo === 'restauracao') return precisaRestauracaoAgora();
+            if (tipo === 'revolver') {
+                const maxMunicao = Number(config?.maxMunicao ?? window.config?.maxMunicao ?? 5);
+                return !controle.temArma || Number(controle.municao || 0) < maxMunicao;
+            }
+            if (tipo === 'escudo') {
+                return !controle.temEscudo || !!controle.escudoVermelho || Number(controle.escudoProtegido || 0) > 0;
+            }
             if (tipo === 'bota') {
                 return !controle.temBota || !!controle.botaVermelha || Number(controle.botaUsosDash || 0) > 0;
             }

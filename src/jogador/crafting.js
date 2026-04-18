@@ -242,7 +242,7 @@
                     }
                 }
 
-                const deslocamentoY = (nivel - 1) * 8;
+                const deslocamentoY = 0;
                 camada.src = obterSpriteCraftNivel(nivel, craft.tipoBase);
                 camada.style.left = `${craft.x}px`;
                 camada.style.bottom = `${craft.y + deslocamentoY}px`;
