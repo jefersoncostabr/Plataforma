@@ -22,7 +22,8 @@ const {
 let COLS = 20; 
 let ROWS = 15; 
 const PHASES_BASE_PATH = '../../config/fases/';
-const PHASE_DISCOVERY_CANDIDATES = ['treino.json', ...Array.from({ length: 50 }, (_, i) => `fase${i + 1}.json`)];
+const PHASES_MANIFEST_PATH = `${PHASES_BASE_PATH}index.json`;
+const PHASE_DISCOVERY_CANDIDATES = ['treino.json', ...Array.from({ length: 10 }, (_, i) => `fase${i + 1}.json`)];
 
 // Estado da fase
 let faseData = createEmptyFaseData();
@@ -36,8 +37,11 @@ let gradeVisivel = true;
 const stage = document.getElementById('game-stage');
 const stageArea = document.getElementById('stage-area');
 const btnExport = document.getElementById('btn-export');
+const btnLinkSave = document.getElementById('btn-link-save');
+const btnSavePhase = document.getElementById('btn-save-phase');
 const btnImport = document.getElementById('btn-import');
 const btnClear = document.getElementById('btn-clear');
+const saveStatus = document.getElementById('save-status');
 const output = document.getElementById('json-output');
 const proportionSelect = document.getElementById('proportion-select'); // Novo elemento necessário no HTML
 
@@ -50,6 +54,75 @@ let tooltipElement;
 let renderizadorEditor;
 let persistenciaEditor;
 let uiEditor;
+let arquivoFaseAtual = '';
+
+window.__EDITOR_DEBUG__ = window.__EDITOR_DEBUG__ || [];
+
+function registrarDebugEditor(evento, dados = {}) {
+    const entrada = {
+        ts: new Date().toISOString(),
+        evento,
+        ...dados
+    };
+
+    window.__EDITOR_DEBUG__.push(entrada);
+    if (window.__EDITOR_DEBUG__.length > 200) {
+        window.__EDITOR_DEBUG__.shift();
+    }
+
+    console.debug('[Editor]', evento, entrada);
+    return entrada;
+}
+
+function atualizarStatusSalvamento(status = {}) {
+    if (!saveStatus) return;
+
+    const { mensagem = 'aguardando fase ativa.', tipo = 'info' } = status;
+    const cores = {
+        success: '#28a745',
+        error: '#ff6b6b',
+        warning: '#ffc107',
+        info: '#9ec5fe'
+    };
+
+    saveStatus.innerHTML = `<p><strong>Auto-save</strong>: ${mensagem}</p>`;
+    saveStatus.style.color = cores[tipo] || cores.info;
+}
+
+function definirArquivoFaseAtual(arquivo = '') {
+    arquivoFaseAtual = String(arquivo || '').trim();
+
+    if (persistenciaEditor && typeof persistenciaEditor.setArquivoFaseAtual === 'function') {
+        persistenciaEditor.setArquivoFaseAtual(arquivoFaseAtual);
+    }
+
+    if (btnLinkSave) {
+        btnLinkSave.textContent = arquivoFaseAtual
+            ? `Vincular Arquivo (${arquivoFaseAtual.replace(/\.json$/i, '')})`
+            : 'Vincular Arquivo';
+    }
+}
+
+function aplicarFaseDataEditor(novoEstado, opcoes = {}) {
+    faseData = normalizeFaseData(novoEstado || createEmptyFaseData());
+
+    registrarDebugEditor('faseData-aplicado', {
+        proporcao: faseData.proporcao,
+        posicaoInicialJogador: faseData.posicaoInicialJogador || '',
+        objetivo: faseData.objetivo || '',
+        autoSave: false,
+        plataformas: Array.isArray(faseData.plataformas) ? faseData.plataformas.length : 0
+    });
+
+    if (Object.prototype.hasOwnProperty.call(opcoes, 'arquivoFaseAtual')) {
+        definirArquivoFaseAtual(opcoes.arquivoFaseAtual);
+    }
+
+    atualizarStatusSalvamento({
+        mensagem: arquivoFaseAtual ? `alterações pendentes em ${arquivoFaseAtual}.` : 'alterações pendentes; vincule um arquivo para salvar.',
+        tipo: 'warning'
+    });
+}
 
 function obterLegendaCoord(coord) {
     for (const def of [...PLATFORM_DEFS, ...ENEMY_DEFS]) {
@@ -88,7 +161,7 @@ window.onload = async () => {
         randomDiffSelect,
         randomTypeSelect,
         getFaseData: () => faseData,
-        setFaseData: (novoEstado) => { faseData = novoEstado; },
+        setFaseData: (novoEstado, opcoes = {}) => { aplicarFaseDataEditor(novoEstado, opcoes); },
         atualizarTamanhoStage,
         atualizarVisual,
         adicionarElemento,
@@ -103,7 +176,7 @@ window.onload = async () => {
     persistenciaEditor = window.criarPersistenciaEditor({
         output,
         getFaseData: () => faseData,
-        setFaseData: (novoEstado) => { faseData = novoEstado; },
+        setFaseData: (novoEstado, opcoes = {}) => { aplicarFaseDataEditor(novoEstado, opcoes); },
         getRandomConfig: () => ({
             enabled: document.getElementById('spawn-random').checked,
             diff: parseInt(document.getElementById('random-diff').value),
@@ -115,9 +188,44 @@ window.onload = async () => {
             randomDiffSelect.value = estado.inimigoAleatorio[0] || 1;
             randomTypeSelect.value = estado.inimigoAleatorio[1] || 0;
             document.getElementById('random-config-fields').style.opacity = spawnRandomCheck.checked ? '1' : '0.3';
+            console.debug('[Editor] fase aplicada', {
+                proporcao: estado.proporcao,
+                posicaoInicialJogador: estado.posicaoInicialJogador,
+                objetivo: estado.objetivo
+            });
             atualizarTamanhoStage();
-        }
+        },
+        onStatusChange: atualizarStatusSalvamento
     });
+
+    definirArquivoFaseAtual('');
+    atualizarStatusSalvamento({ mensagem: 'aguardando fase ativa.', tipo: 'info' });
+
+    if (btnLinkSave) {
+        btnLinkSave.onclick = async () => {
+            if (!persistenciaEditor) return;
+            await persistenciaEditor.vincularArquivoAtual();
+        };
+    }
+
+    if (btnSavePhase) {
+        btnSavePhase.onclick = async () => {
+            if (!persistenciaEditor) return;
+
+            if (!persistenciaEditor.getArquivoFaseAtual()) {
+                alert('Carregue uma fase antes de salvar.');
+                return;
+            }
+
+            const resultado = await persistenciaEditor.salvarAutomaticamenteAgora();
+            if (resultado?.saved) {
+                atualizarStatusSalvamento({
+                    mensagem: `fase salva em ${resultado.arquivo || persistenciaEditor.getArquivoFaseAtual()}.`,
+                    tipo: 'success'
+                });
+            }
+        };
+    }
 
     uiEditor.configurarControlesDimensoes();
     atualizarTamanhoStage();
@@ -130,19 +238,21 @@ window.onload = async () => {
     uiEditor.configurarSeletorFases({
         persistencia: persistenciaEditor,
         basePath: PHASES_BASE_PATH,
-        arquivosCandidatos: PHASE_DISCOVERY_CANDIDATES
+        manifestPath: PHASES_MANIFEST_PATH,
+        arquivosCandidatos: PHASE_DISCOVERY_CANDIDATES,
+        aoCarregarFase: (arquivo) => definirArquivoFaseAtual(arquivo)
     });
 
     btnExport.onclick = () => persistenciaEditor.exportarJSON();
     btnImport.onclick = () => persistenciaEditor.importarJSON();
     btnClear.onclick = () => {
         if(confirm("Deseja limpar todo o palco?")) {
-            faseData = createEmptyFaseData({
+            aplicarFaseDataEditor(createEmptyFaseData({
                 proporcao: faseData.proporcao,
                 posicaoInicialJogador: '',
                 objetivo: '',
                 inimigoAleatorio: [...(faseData.inimigoAleatorio || [1, 0])]
-            });
+            }));
             atualizarVisual();
         }
     };
@@ -166,7 +276,17 @@ async function carregarItemDefinitions() {
 }
 
 
-function atualizarTamanhoStage() {
+function ajustarViewportFase(coordFoco = '') {
+    registrarDebugEditor('viewport-preservado', {
+        foco: coordFoco || faseData.posicaoInicialJogador || faseData.objetivo || '',
+        scrollLeft: stageArea?.scrollLeft || 0,
+        scrollTop: stageArea?.scrollTop || 0,
+        proporcao: faseData.proporcao
+    });
+}
+
+function atualizarTamanhoStage(opcoes = {}) {
+    const { recentralizar = false, coordFoco = '' } = opcoes;
     const [hMult, wMult] = faseData.proporcao.split('x').map(Number);
     COLS = 20 * (wMult || 1);
     ROWS = 15 * (hMult || 1);
@@ -180,13 +300,12 @@ function atualizarTamanhoStage() {
         output.style.boxSizing = 'border-box'; // Garante que a largura total inclua bordas
     }
 
-    if (stageArea) {
-        stageArea.scrollTop = 0;
-        stageArea.scrollLeft = 0;
-    }
-
     configurarGrade();
     atualizarVisual();
+
+    if (recentralizar) {
+        ajustarViewportFase(coordFoco);
+    }
 }
 
 function configurarGrade() {
@@ -206,6 +325,7 @@ function adicionarElemento(coord) {
             faseData[definition.stateKey].push(coord);
             faseData[definition.stateKey] = [...new Set(faseData[definition.stateKey])].sort(sortCoords);
         }
+        aplicarFaseDataEditor(faseData);
         return;
     }
 
@@ -218,6 +338,8 @@ function adicionarElemento(coord) {
         faseData.itens[tipoReal].push(coord);
         faseData.itens[tipoReal] = [...new Set(faseData.itens[tipoReal])].sort(sortCoords);
     }
+
+    aplicarFaseDataEditor(faseData);
 }
 
 function removerElemento(coord) {
@@ -238,10 +360,17 @@ function removerElemento(coord) {
 
     if (faseData.posicaoInicialJogador === coord) faseData.posicaoInicialJogador = '';
     if (faseData.objetivo === coord) faseData.objetivo = '';
+
+    aplicarFaseDataEditor(faseData);
 }
 
 function atualizarVisual() {
     renderizadorEditor.atualizarVisual();
+    registrarDebugEditor('visual-atualizado', {
+        imagensNoPalco: stage.querySelectorAll('img').length,
+        scrollTop: stageArea?.scrollTop || 0,
+        scrollLeft: stageArea?.scrollLeft || 0
+    });
 }
 
 /**

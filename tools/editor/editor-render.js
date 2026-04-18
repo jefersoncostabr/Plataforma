@@ -72,6 +72,13 @@
             const elementos = stage.querySelectorAll('img');
             elementos.forEach(el => el.remove());
 
+            console.debug('[EditorRender] iniciar render', {
+                proporcao: faseData.proporcao,
+                plataformas: Array.isArray(faseData.plataformas) ? faseData.plataformas.length : 0,
+                itens: Object.keys(faseData.itens || {}).length,
+                imagensRemovidas: elementos.length
+            });
+
             [...PLATFORM_DEFS, ...ENEMY_DEFS].forEach((def) => {
                 (faseData[def.stateKey] || []).forEach((coord) => {
                     criarIcone(coord, def.sprite, def.className || '');
@@ -91,6 +98,10 @@
             SYSTEM_DEFS.forEach((def) => {
                 const coord = faseData[def.stateKey];
                 if (coord) criarIcone(coord, def.sprite, def.className || '');
+            });
+
+            console.debug('[EditorRender] render finalizado', {
+                imagensNoPalco: stage.querySelectorAll('img').length
             });
         }
 

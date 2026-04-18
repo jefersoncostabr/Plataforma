@@ -90,8 +90,13 @@
             </div>
             <hr>
             <button id="btn-export">Exportar JSON</button>
+            <button id="btn-link-save" style="background: #6f42c1;">Vincular Arquivo</button>
+            <button id="btn-save-phase" style="background: #198754;">Salvar Fase</button>
             <button id="btn-import" style="background: #28a745;">Importar JSON</button>
             <button id="btn-clear" style="background: #600;">Limpar Tudo</button>
+            <div id="save-status" class="info" style="margin-top: 10px; color: #9ec5fe;">
+                <p><strong>Auto-save</strong>: aguardando fase ativa.</p>
+            </div>
             <div class="info">
                 <p><strong>G</strong>: Alternar Grade</p>
                 <p><strong>Clique</strong>: Adicionar</p>
@@ -110,11 +115,12 @@
     </div>
 
     <!-- Scripts auxiliares simulando o motor do jogo -->
-    <script src="editor-config.js?v=20260416-sparsefix"></script>
-    <script src="editor-utils.js?v=20260416-sparsefix"></script>
-    <script src="editor-render.js?v=20260416-sparsefix"></script>
-    <script src="editor-persistence.js?v=20260416-sparsefix"></script>
-    <script src="editor-ui.js?v=20260416-sparsefix"></script>
-    <script src="editor.js?v=20260416-sparsefix"></script>
+    <script src="editor-config.js?v=20260418-manualsave"></script>
+    <script src="editor-utils.js?v=20260418-manualsave"></script>
+    <script src="editor-render.js?v=20260418-manualsave"></script>
+    <script src="editor-export.js?v=20260418-manualsave"></script>
+    <script src="editor-persistence.js?v=20260418-manualsave"></script>
+    <script src="editor-ui.js?v=20260418-manualsave"></script>
+    <script src="editor.js?v=20260418-manualsave"></script>
 </body>
 </html>

@@ -1,6 +1,9 @@
 (function () {
-    const { COORD_ARRAY_KEYS = [] } = window.EditorConfig || {};
-    const { sortCoords, normalizeFaseData, exportarItensData = (itens) => itens, limparCamposVazios = (data) => data } = window.EditorUtils || {};
+    const {
+        normalizeFaseData = (data) => data,
+        exportarItensData = (itens) => itens,
+        limparCamposVazios = (data) => data
+    } = window.EditorUtils || {};
 
     function criarPersistenciaEditor(opcoes = {}) {
         const {
@@ -8,79 +11,37 @@
             getFaseData,
             setFaseData,
             getRandomConfig,
-            aplicarEstadoUI
+            aplicarEstadoUI,
+            onStatusChange
         } = opcoes;
 
         if (!output || typeof getFaseData !== 'function' || typeof setFaseData !== 'function') {
             throw new Error('Output, getFaseData e setFaseData são obrigatórios para a persistência do editor.');
         }
 
+        const exportador = typeof window.criarExportadorEditor === 'function'
+            ? window.criarExportadorEditor({
+                output,
+                getFaseData,
+                getRandomConfig,
+                onStatusChange
+            })
+            : null;
+
         function exportarJSON() {
+            if (exportador && typeof exportador.exportarJSON === 'function') {
+                return exportador.exportarJSON();
+            }
+
             const faseData = normalizeFaseData(getFaseData());
-            const randomConfig = typeof getRandomConfig === 'function' ? getRandomConfig() : { enabled: true, diff: 1, type: 0 };
-            faseData.inimigoAleatorio = randomConfig.enabled ? [randomConfig.diff, randomConfig.type] : [0, 0];
-
-            COORD_ARRAY_KEYS.forEach((key) => {
-                faseData[key] = (faseData[key] || []).sort(sortCoords);
-            });
-
-            const dadosExportacao = limparCamposVazios({
+            output.value = JSON.stringify(limparCamposVazios({
                 ...faseData,
                 itens: exportarItensData(faseData.itens)
-            });
-
-            let jsonStr = JSON.stringify(dadosExportacao, null, 4);
-
-            const enemyKeys = COORD_ARRAY_KEYS.filter((key) => key.startsWith('inimigo_'));
-            const condensedKeys = [...enemyKeys, 'inimigoAleatorio'];
-            const condensedPattern = new RegExp(`"(${condensedKeys.join('|')})":\\s*\\[\\s*([\\s\\S]*?)\\s*\\]`, 'g');
-
-            jsonStr = jsonStr.replace(condensedPattern, (match, key, content) => {
-                const condensed = content.split('\n')
-                    .map(l => l.trim().replace(/,$/, ''))
-                    .filter(l => l !== '')
-                    .join(', ');
-                return `"${key}": [${condensed}]`;
-            });
-
-            const formatarPlataformas = (match, key, content) => {
-                const items = Array.from(content.matchAll(/"[^"]+"/g), (resultado) => resultado[0]);
-                if (items.length === 0) return `"${key}": []`;
-
-                if (key.startsWith('inimigo_')) {
-                    return `"${key}": [${items.join(', ')}]`;
-                }
-
-                const rows = [];
-                let currentLine = [];
-                let lastLetter = '';
-
-                items.forEach((item) => {
-                    const val = item.trim();
-                    const letterMatch = val.match(/"([a-z]+)\d+"/);
-                    const letter = letterMatch ? letterMatch[1] : '';
-
-                    if (lastLetter && letter !== lastLetter) {
-                        rows.push('        ' + currentLine.join(', '));
-                        currentLine = [];
-                    }
-                    currentLine.push(val);
-                    lastLetter = letter;
-                });
-
-                if (currentLine.length > 0) rows.push('        ' + currentLine.join(', '));
-                return `"${key}": [\n${rows.join(',\n')}\n    ]`;
-            };
-
-            COORD_ARRAY_KEYS.forEach((key) => {
-                const regex = new RegExp(`"${key}":\\s*\\[\\s*([\\s\\S]*?)\\s*\\]`, 'g');
-                jsonStr = jsonStr.replace(regex, (m, c) => formatarPlataformas(m, key, c));
-            });
-
-            output.value = jsonStr;
+            }), null, 4);
             output.select();
             document.execCommand('copy');
             alert('JSON copiado!');
+            return output.value;
         }
 
         function carregarJSONTexto(jsonStr, opcoes = {}) {
@@ -91,7 +52,13 @@
             try {
                 const data = JSON.parse(texto);
                 const normalized = normalizeFaseData(data);
-                setFaseData(normalized);
+                console.debug('[Editor] carregarJSONTexto', {
+                    proporcao: normalized.proporcao,
+                    posicaoInicialJogador: normalized.posicaoInicialJogador || '',
+                    objetivo: normalized.objetivo || '',
+                    tamanhoTexto: texto.length
+                });
+                setFaseData(normalized, { autoSave: false, origem: 'carregamento-json' });
                 if (typeof aplicarEstadoUI === 'function') aplicarEstadoUI(normalized);
                 output.value = JSON.stringify(limparCamposVazios({
                     ...normalized,
@@ -112,7 +79,12 @@
         return {
             exportarJSON,
             importarJSON,
-            carregarJSONTexto
+            carregarJSONTexto,
+            setArquivoFaseAtual: (arquivo) => exportador?.setArquivoFaseAtual?.(arquivo),
+            getArquivoFaseAtual: () => exportador?.getArquivoFaseAtual?.() || '',
+            vincularArquivoAtual: () => exportador?.vincularArquivoAtual?.(),
+            salvarAutomaticamenteAgora: () => exportador?.salvarAutomaticamenteAgora?.(),
+            agendarAutoSave: (delay) => exportador?.agendarAutoSave?.(delay)
         };
     }
 

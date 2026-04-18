@@ -220,7 +220,9 @@
             const {
                 persistencia,
                 basePath = '../../config/fases/',
-                arquivosCandidatos = []
+                manifestPath = '',
+                arquivosCandidatos = [],
+                aoCarregarFase = null
             } = opcoes;
 
             const phaseList = document.getElementById('phase-list');
@@ -253,6 +255,20 @@
                         throw new Error('Falha ao aplicar os dados da fase.');
                     }
 
+                    console.debug('[Editor] fase carregada do arquivo', {
+                        arquivo,
+                        proporcao: carregado.proporcao,
+                        posicaoInicialJogador: carregado.posicaoInicialJogador,
+                        objetivo: carregado.objetivo
+                    });
+
+                    if (typeof persistencia.setArquivoFaseAtual === 'function') {
+                        persistencia.setArquivoFaseAtual(arquivo);
+                    }
+                    if (typeof aoCarregarFase === 'function') {
+                        aoCarregarFase(arquivo, carregado);
+                    }
+
                     marcarAtiva(arquivo);
                     alert(`${formatarNome(arquivo)} carregada com sucesso!`);
                 } catch (erro) {
@@ -260,44 +276,15 @@
                 }
             };
 
-            const verificarArquivoExiste = async (arquivo) => {
-                const url = `${basePath}${arquivo}`;
-
-                try {
-                    const respostaHead = await fetch(url, { method: 'HEAD', cache: 'no-store' });
-                    if (respostaHead.ok) return true;
-                    if (![405, 501].includes(respostaHead.status)) return false;
-                } catch (e) {
-                    // tenta fallback abaixo
-                }
-
-                try {
-                    const respostaGet = await fetch(url, { cache: 'no-store' });
-                    return respostaGet.ok;
-                } catch (e) {
-                    return false;
-                }
-            };
-
-            const detectarExistentes = async () => {
-                phaseList.innerHTML = '<div class="phase-list-empty">Detectando fases existentes...</div>';
-
-                const encontrados = [];
-                for (const arquivo of arquivosCandidatos) {
-                    const existe = await verificarArquivoExiste(arquivo);
-                    if (existe) {
-                        encontrados.push(arquivo);
-                    }
-                }
-
+            const renderizarListaFases = (arquivos = []) => {
                 phaseList.innerHTML = '';
 
-                if (encontrados.length === 0) {
+                if (arquivos.length === 0) {
                     phaseList.innerHTML = '<div class="phase-list-empty">Nenhuma fase detectada.</div>';
-                    return encontrados;
+                    return [];
                 }
 
-                encontrados.forEach((arquivo) => {
+                arquivos.forEach((arquivo) => {
                     const botao = document.createElement('button');
                     botao.type = 'button';
                     botao.className = 'phase-entry';
@@ -307,7 +294,53 @@
                     phaseList.appendChild(botao);
                 });
 
-                return encontrados;
+                return arquivos;
+            };
+
+            const carregarManifestoFases = async () => {
+                if (!manifestPath) return [];
+
+                try {
+                    const resposta = await fetch(manifestPath, { cache: 'no-store' });
+                    if (!resposta.ok) return [];
+
+                    const data = await resposta.json();
+                    if (Array.isArray(data)) return data.filter(Boolean);
+                    if (Array.isArray(data?.fases)) return data.fases.filter(Boolean);
+                    return [];
+                } catch (e) {
+                    return [];
+                }
+            };
+
+            const verificarArquivoExiste = async (arquivo) => {
+                const url = `${basePath}${arquivo}`;
+
+                try {
+                    const resposta = await fetch(url, { cache: 'no-store' });
+                    return resposta.ok;
+                } catch (e) {
+                    return false;
+                }
+            };
+
+            const detectarExistentes = async () => {
+                phaseList.innerHTML = '<div class="phase-list-empty">Detectando fases existentes...</div>';
+
+                const arquivosManifesto = await carregarManifestoFases();
+                if (arquivosManifesto.length > 0) {
+                    return renderizarListaFases(arquivosManifesto);
+                }
+
+                const encontrados = [];
+                for (const arquivo of arquivosCandidatos) {
+                    const existe = await verificarArquivoExiste(arquivo);
+                    if (existe) {
+                        encontrados.push(arquivo);
+                    }
+                }
+
+                return renderizarListaFases(encontrados);
             };
 
             if (refreshButton) {

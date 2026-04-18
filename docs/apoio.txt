@@ -10,12 +10,6 @@ git log --oneline
 -Log da branch atual
 git log --oneline --decorate --no-merges
 
--Merge de branches
-git checkout main
-git pull origin main
-git checkout sua-branch
-git merge main
-
 
 *Pegar para a main(merge)
 git checkout main
@@ -24,3 +18,6 @@ git merge <branch>
 git add .
 git commit
 git push origin main
+
+*codigo no console do navegador
+window.toggleDebugVelocidadePlayer()
