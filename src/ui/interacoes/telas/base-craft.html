@@ -1,15 +1,4 @@
 <div class="base-panel">
-    <p>
-        Esta é a base permanente da campanha. O menu abre com a tecla <strong>E</strong> quando o personagem está sobre o sprite da base.
-    </p>
-
-    <div class="base-stats">
-        <div class="base-stat-card">
-            <strong>Nível</strong>
-            <span data-interaction-field="nivel">-</span>
-        </div>
-    </div>
-
     <div class="base-mode-section" data-interaction-modes style="display: none;">
         <strong>Modos da base</strong>
         <div class="base-mode-buttons">
@@ -23,8 +12,15 @@
         Você pode salvar um checkpoint permanente do equipamento nesta base. Em qualquer reinício, o personagem volta com esse loadout salvo. As skills também permanecem registradas.
     </div>
 
+    <div class="base-saved-section">
+        <div class="base-saved-toolbar">
+            <button type="button" class="btn-primary" data-interaction-action="salvar-equipamento" data-primary-action>Equipamento</button>
+            <div class="base-saved-list" data-interaction-saved-equip></div>
+        </div>
+        <small data-interaction-saved-meta>Nenhum equipamento salvo nesta base ainda.</small>
+    </div>
+
     <div class="base-actions">
-        <button type="button" class="btn-primary" data-interaction-action="salvar-equipamento" data-primary-action>Equipamento</button>
         <button type="button" class="btn-secondary" data-interaction-action="recolher-base">Recolher</button>
         <button type="button" class="btn-secondary" data-interaction-close>Fechar</button>
     </div>

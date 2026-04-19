@@ -99,10 +99,124 @@
             const nivelMinimo = Number(botao.getAttribute('data-min-level') || 0);
             const liberado = Number(nivelAtual || 0) >= nivelMinimo;
             botao.disabled = !liberado;
+            botao.classList.toggle('is-locked', !liberado);
             botao.title = liberado
                 ? ''
                 : `Libera no nível ${nivelMinimo}`;
         });
+    }
+
+    function obterElementosNavegaveis(container) {
+        if (!container) return [];
+
+        return Array.from(container.querySelectorAll('button, [href], [tabindex]:not([tabindex="-1"])'))
+            .filter((elemento) => {
+                if (elemento.disabled) return false;
+                if (elemento.getAttribute('aria-hidden') === 'true') return false;
+                const estilo = window.getComputedStyle(elemento);
+                return estilo.display !== 'none' && estilo.visibility !== 'hidden';
+            });
+    }
+
+    function moverFocoNavegacao(container, direcao = 1) {
+        const navegaveis = obterElementosNavegaveis(container);
+        if (!navegaveis.length) return;
+
+        const atual = document.activeElement;
+        const indiceAtual = navegaveis.indexOf(atual);
+        const proximoIndice = indiceAtual >= 0
+            ? (indiceAtual + direcao + navegaveis.length) % navegaveis.length
+            : 0;
+
+        navegaveis[proximoIndice]?.focus();
+    }
+
+    function obterResumoEquipamentoSalvo() {
+        const checkpoint = typeof window.carregarCheckpointEquipamentoSalvo === 'function'
+            ? window.carregarCheckpointEquipamentoSalvo()
+            : null;
+
+        if (!checkpoint || typeof checkpoint !== 'object') {
+            return { itens: [], municao: 0, meta: 'Nenhum equipamento salvo nesta base ainda.' };
+        }
+
+        const vistos = new Set();
+        const itens = [];
+        const adicionarItem = (tipo, rotulo) => {
+            const chave = String(tipo || '').trim().toLowerCase();
+            if (!chave || vistos.has(chave)) return;
+            vistos.add(chave);
+
+            const definicao = window.itemDefinitions?.[chave] || null;
+            itens.push({
+                tipo: chave,
+                rotulo: rotulo || definicao?.nome || chave,
+                sprite: definicao?.spriteColetavel || definicao?.spriteEquipado || ''
+            });
+        };
+
+        if (checkpoint.temArma) adicionarItem('revolver', 'Revólver');
+        if (checkpoint.temEscudo) adicionarItem('escudo', 'Escudo');
+        if (checkpoint.temBota) adicionarItem('bota', 'Bota');
+        if (checkpoint.temJetpack) adicionarItem('jetpack', 'Jetpack');
+        if (checkpoint.temGarra) adicionarItem('garra', 'Garra');
+        if (checkpoint.temCinto) adicionarItem('cinto', 'Cinto');
+        if (checkpoint.temColete) adicionarItem('colete', 'Colete');
+
+        const inventario = Array.isArray(checkpoint.inventario) ? checkpoint.inventario : [];
+        inventario.forEach((tipo) => adicionarItem(tipo));
+
+        const salvoEm = Number(checkpoint.salvoEm || 0);
+        const meta = Number.isFinite(salvoEm) && salvoEm > 0
+            ? `Último save: ${new Date(salvoEm).toLocaleString('pt-BR')}`
+            : 'Checkpoint pronto para o próximo reinício.';
+
+        return {
+            itens,
+            municao: Number(checkpoint.municao || 0),
+            meta
+        };
+    }
+
+    function atualizarResumoEquipamentoSalvo(container) {
+        if (!container) return;
+
+        const lista = container.querySelector('[data-interaction-saved-equip]');
+        const meta = container.querySelector('[data-interaction-saved-meta]');
+        if (!lista || !meta) return;
+
+        const resumo = obterResumoEquipamentoSalvo();
+        lista.innerHTML = '';
+
+        if (!resumo.itens.length) {
+            const vazio = document.createElement('span');
+            vazio.className = 'base-saved-empty';
+            vazio.textContent = '—';
+            lista.appendChild(vazio);
+        } else {
+            resumo.itens.forEach((item) => {
+                const icone = document.createElement('span');
+                icone.className = 'base-saved-icon';
+                icone.title = item.rotulo || item.tipo;
+                icone.setAttribute('aria-label', item.rotulo || item.tipo);
+
+                const img = document.createElement('img');
+                img.alt = item.rotulo || item.tipo;
+                img.src = item.sprite || '';
+                icone.appendChild(img);
+
+                if (item.tipo === 'revolver' && resumo.municao > 0) {
+                    const badge = document.createElement('span');
+                    badge.className = 'base-saved-count';
+                    badge.textContent = String(resumo.municao);
+                    icone.appendChild(badge);
+                }
+
+                lista.appendChild(icone);
+            });
+        }
+
+        meta.textContent = resumo.meta;
     }
 
     function removerEventosAtuais() {
@@ -160,6 +274,10 @@
             <div class="interaction-modal" role="dialog" aria-modal="true" aria-label="${definicao.titulo || 'Interação'}">
                 <div class="interaction-header">
                     <img data-interaction-sprite alt="Interação">
+                    <div class="interaction-level-badge" aria-label="Nível da base">
+                        <span>NV</span>
+                        <strong data-interaction-field="nivel">-</strong>
+                    </div>
                     <div class="interaction-header-copy">
                         <h2>${definicao.titulo || 'Interação'}</h2>
                         <p>Base ativa detectada no cenário</p>
@@ -185,6 +303,7 @@
         }
         atualizarEstadoBotoesModo(overlay, contexto?.modoRenascimento || null);
         atualizarDisponibilidadeBotoesModo(overlay, Number(contexto?.nivel || 0));
+        atualizarResumoEquipamentoSalvo(overlay);
 
         overlay.addEventListener('click', (event) => {
             if (event.target === overlay) {
@@ -216,6 +335,7 @@
                 }
 
                 definirFeedbackInteracao(resultado.motivo || 'Checkpoint de equipamento salvo com sucesso.');
+                atualizarResumoEquipamentoSalvo(overlay);
             });
         }
 
@@ -289,7 +409,26 @@
                 return;
             }
 
-            if (event.key === 'Enter') {
+            if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                event.preventDefault();
+                moverFocoNavegacao(overlay, 1);
+                return;
+            }
+
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                event.preventDefault();
+                moverFocoNavegacao(overlay, -1);
+                return;
+            }
+
+            if (event.key === 'Enter' || event.key === ' ') {
+                const ativo = document.activeElement;
+                if (ativo instanceof HTMLButtonElement && overlay.contains(ativo) && !ativo.disabled) {
+                    event.preventDefault();
+                    ativo.click();
+                    return;
+                }
+
                 const primaria = overlay.querySelector('[data-primary-action]');
                 if (primaria && !primaria.disabled) {
                     event.preventDefault();
@@ -298,6 +437,11 @@
             }
         };
         document.addEventListener('keydown', onKeyDownAtual);
+
+        const focoInicial = overlay.querySelector('[data-primary-action]') || obterElementosNavegaveis(overlay)[0];
+        if (focoInicial?.focus) {
+            requestAnimationFrame(() => focoInicial.focus());
+        }
 
         if (!window.isPaused && typeof window.togglePause === 'function') {
             window.togglePause();
