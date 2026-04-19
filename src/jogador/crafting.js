@@ -3,11 +3,17 @@
     const NIVEL_MAXIMO_CRAFT = 3;
     const CRAFT_PERSISTENCE_KEY = 'plataformaCraftPersistente';
     const TIPO_ITEM_BASE_PORTATIL = 'base_portatil';
+    const MODOS_RENASCIMENTO_VALIDOS = new Set(['spawnpoint', 'memoria']);
     const SPRITES_CRAFT = {
         1: '../../assets/craft/craft_nivel1.png',
         2: '../../assets/craft/craft_nivel2.png',
         3: '../../assets/craft/craft_nivel3.png'
     };
+
+    function normalizarModoRenascimento(valor) {
+        const modo = String(valor || '').trim().toLowerCase();
+        return MODOS_RENASCIMENTO_VALIDOS.has(modo) ? modo : null;
+    }
 
     function lerCraftPersistidoStorage() {
         try {
@@ -110,6 +116,7 @@
                 altura: 32,
                 nivel,
                 tipoBase: String(craft.tipoBase || 'item'),
+                modoRenascimento: normalizarModoRenascimento(craft.modoRenascimento),
                 elementos: []
             };
         }
@@ -130,7 +137,8 @@
                 x: Number(craft.x || 0),
                 y: Number(craft.y || 0),
                 nivel: Math.max(1, Math.min(NIVEL_MAXIMO_CRAFT, Number(craft.nivel || 1))),
-                tipoBase: String(craft.tipoBase || 'item')
+                tipoBase: String(craft.tipoBase || 'item'),
+                modoRenascimento: normalizarModoRenascimento(craft.modoRenascimento)
             };
 
             try {
@@ -172,6 +180,7 @@
             if (existente) {
                 existente.nivel = craftPersistido.nivel;
                 existente.tipoBase = craftPersistido.tipoBase;
+                existente.modoRenascimento = craftPersistido.modoRenascimento;
                 atualizarVisualCraft(existente);
                 return true;
             }
@@ -278,7 +287,8 @@
                 usarSoSePrecisar: true,
                 dados: {
                     craftNivel: nivel,
-                    craftTipoBase: tipoBase
+                    craftTipoBase: tipoBase,
+                    craftModoRenascimento: normalizarModoRenascimento(craft?.modoRenascimento)
                 }
             };
         }
@@ -366,6 +376,16 @@
             return recolherCraftExistente(alvo);
         }
 
+        function podeInstalarBasePortatil() {
+            const craftPersistido = obterCraftPersistido();
+            if ((window.craftsAtivos || []).length > 0 || craftPersistido) {
+                return false;
+            }
+
+            const posicao = obterPosicaoCraftNoGrid();
+            return areaValidaParaNovoCraft(posicao);
+        }
+
         function instalarBasePortatilDoSlot(dados = {}) {
             const craftPersistido = obterCraftPersistido();
             if ((window.craftsAtivos || []).length > 0 || craftPersistido) {
@@ -388,6 +408,7 @@
                 altura: 32,
                 nivel: Math.max(1, Math.min(NIVEL_MAXIMO_CRAFT, Number(dados?.craftNivel || 1))),
                 tipoBase: String(dados?.craftTipoBase || 'item'),
+                modoRenascimento: normalizarModoRenascimento(dados?.craftModoRenascimento),
                 elementos: []
             };
 
@@ -401,6 +422,45 @@
             }
 
             return true;
+        }
+
+        function definirModoRenascimentoBasePorId(craftId, modoDesejado) {
+            const craft = (window.craftsAtivos || []).find((item) => String(item?.id || '') === String(craftId || '')) || null;
+            if (!craft) {
+                return { ok: false, motivo: 'Base não encontrada.' };
+            }
+
+            if (Number(craft.nivel || 0) < 3) {
+                return { ok: false, motivo: 'O modo de renascimento só libera na base nível 3.' };
+            }
+
+            const modoNormalizado = normalizarModoRenascimento(modoDesejado);
+            if (!modoNormalizado) {
+                return { ok: false, motivo: 'Modo inválido.' };
+            }
+
+            craft.modoRenascimento = craft.modoRenascimento === modoNormalizado ? null : modoNormalizado;
+            salvarCraftPersistido(craft);
+
+            const mensagem = craft.modoRenascimento === 'spawnpoint'
+                ? 'Spawnpoint ativado. O personagem nascerá nesta base.'
+                : craft.modoRenascimento === 'memoria'
+                    ? 'Memória ativada. O personagem renascerá do zero, mas lembrando as skills.'
+                    : 'Modo especial da base desativado.';
+
+            return {
+                ok: true,
+                modoRenascimento: craft.modoRenascimento,
+                motivo: mensagem
+            };
+        }
+
+        function obterConfigRenascimentoBase() {
+            const craft = obterCraftPersistido();
+            if (!craft) return null;
+            if (Number(craft.nivel || 0) < 3) return null;
+            if (!normalizarModoRenascimento(craft.modoRenascimento)) return null;
+            return craft;
         }
 
         function podeConsumirItemParaCraft(fonte) {
@@ -617,6 +677,7 @@
                 altura: 32,
                 nivel: nivelInicial,
                 tipoBase: tipoBaseInstalado,
+                modoRenascimento: normalizarModoRenascimento(fonteConsumida?.dados?.craftModoRenascimento),
                 elementos: []
             };
 
@@ -755,6 +816,9 @@
         window.obterSpriteCraftNivel = obterSpriteCraftNivel;
         window.recolherCraftPorId = recolherCraftPorId;
         window.podeRecolherBasePorId = () => podeGuardarBaseNoSlot();
+        window.definirModoRenascimentoBasePorId = definirModoRenascimentoBasePorId;
+        window.obterConfigRenascimentoBase = obterConfigRenascimentoBase;
+        window.podeInstalarBasePortatil = podeInstalarBasePortatil;
         window.instalarBasePortatilDoSlot = instalarBasePortatilDoSlot;
 
         return {

@@ -23,7 +23,9 @@
         { type: 'inimigo_jetpack', stateKey: 'inimigo_jetpack', sprite: '../../assets/personagem/jetpack_pegavel.png', label: 'Inimigo Voador (Jetpack)', className: 'enemy-marker', kind: 'array' },
         { type: 'inimigo_feno', stateKey: 'inimigo_feno', sprite: '../../assets/personagem/alvoFeno.png', label: 'Alvo de Feno (Treino)', className: 'enemy-marker', kind: 'array' },
         { type: 'inimigo_garra', stateKey: 'inimigo_garra', sprite: '../../assets/personagem/garra_coletavel.png', label: 'Inimigo com Garra', className: 'enemy-marker', kind: 'array' },
-        { type: 'inimigo_cinto', stateKey: 'inimigo_cinto', sprite: '../../assets/personagem/cinto_coletavel.png', label: 'Inimigo com Cinto', className: 'enemy-marker', kind: 'array' }
+        { type: 'inimigo_cinto', stateKey: 'inimigo_cinto', sprite: '../../assets/personagem/cinto_coletavel.png', label: 'Inimigo com Cinto', className: 'enemy-marker', kind: 'array' },
+        { type: 'inimigo_colete', stateKey: 'inimigo_colete', sprite: '../../assets/personagem/colete_coletavel.png', label: 'Inimigo com Colete', className: 'enemy-marker', kind: 'array' },
+        { type: 'inimigo_completo', stateKey: 'inimigo_completo', sprite: '../../assets/personagem/revolver_pegavel.png', label: 'Inimigo Completo', className: 'enemy-marker', kind: 'array' }
     ];
 
     const SYSTEM_DEFS = [

@@ -3,7 +3,18 @@
  */
 
 
-const listaArquivosFases = ["fase1.json", "fase2.json", "fase3.json", "fase4.json", "fase5.json", "fase6.json", "fase7.json", "fase8.json", "fase9.json"];
+const listaArquivosFases = [
+    "fase1.json",
+    "fase2.json",
+    "fase3.json",
+    "fase4.json",
+    "fase5.json",
+    "fase6.json",
+    "fase7.json",
+    "fase8.json",
+    "fase9.json",
+    "fase10.json"
+];
 window.niveis = listaArquivosFases.map(nome => `../../config/fases/${nome}`);
 window.nivelAtual = 0;
 window.isTraining = false; // Flag para identificar se o jogador está no modo treino
@@ -20,6 +31,57 @@ function obterIndiceFaseInicial(valorFaseInicial) {
 
     const indiceNormalizado = Math.floor(faseNumero) - 1;
     return Math.max(0, Math.min(indiceNormalizado, window.niveis.length - 1));
+}
+
+function obterIndiceFasePorNome(nomeArquivo = '') {
+    const alvo = String(nomeArquivo || '').split('/').pop().trim().toLowerCase();
+    if (!alvo) return -1;
+
+    return window.niveis.findIndex((caminho) => {
+        const nome = String(caminho || '').split('/').pop().trim().toLowerCase();
+        return nome === alvo;
+    });
+}
+
+function obterConfigRenascimentoBaseAtiva() {
+    if (typeof window.obterConfigRenascimentoBase !== 'function') return null;
+    const craft = window.obterConfigRenascimentoBase();
+    const modo = String(craft?.modoRenascimento || '').trim().toLowerCase();
+    return (craft && (modo === 'spawnpoint' || modo === 'memoria')) ? craft : null;
+}
+
+function resetarJogadorParaZeroMantendoSkills() {
+    const controle = window.playerControle;
+    if (!controle) return;
+
+    controle.temEscudo = false;
+    controle.escudoVermelho = false;
+    controle.escudoProtegido = 0;
+    controle.temArma = false;
+    controle.municao = 0;
+    controle.temBota = false;
+    controle.botaVermelha = false;
+    controle.botaUsosDash = 0;
+    controle.temJetpack = false;
+    controle.temCinto = false;
+    controle.temGarra = false;
+    controle.garraVermelha = false;
+    controle.garraImpactosSolidos = 0;
+    controle.temColete = false;
+    controle.inventario = [];
+    controle.coleteSlots = Array.from({ length: Math.max(1, Number(window.coleteConfig?.capacidade ?? 6)) }, () => null);
+    controle.cintoSlot = null;
+
+    ['player-weapon', 'player-shield', 'player-boots', 'player-jetpack', 'player-claw', 'player-belt', 'player-vest', 'player-jet-fire']
+        .forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+
+    if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
+    if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
+    if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
+    if (typeof window.salvarInventario === 'function') window.salvarInventario();
 }
 
 // ⭐ Escala atual do jogo
@@ -187,8 +249,8 @@ async function carregarFase(nomeArquivo) {
         // Spikes apontam para BAIXO, bloqueiam colisão na PARTE SUPERIOR
         if (fase.plataformasEstacaBaixo) {
             fase.plataformasEstacaBaixo.forEach(coord => {
-                // Estaca Baixo: colisão na metade inferior do bloco
-                // yOffset: 0 → Começa na base do bloco
+                // Estaca Baixo: colisão na metade superior do bloco
+                // yOffset: 0 → Começa no topo do tile
                 // height: 16 → Colisão tem 16px de altura (metade)
                 window.plataformas[coord.trim().toLowerCase()] = { tipo: 'estaca', direcao: 'baixo', yOffset: 0, height: 16 };
             });
@@ -240,9 +302,15 @@ async function carregarFase(nomeArquivo) {
 
     // Inicializa posição do jogador
     if (window.playerControle) {
-        const pos = typeof fase.posicaoInicialJogador === 'string' 
-            ? (typeof window.gridParaPixels === 'function' ? window.gridParaPixels(fase.posicaoInicialJogador) : {x: 0, y: 0})
-            : fase.posicaoInicialJogador;
+        const renascimentoBase = obterConfigRenascimentoBaseAtiva();
+        const usarSpawnpointDaBase = renascimentoBase?.modoRenascimento === 'spawnpoint'
+            && String(renascimentoBase?.fase || '').trim().toLowerCase() === String(window.faseAtualNome || '').trim().toLowerCase();
+
+        const pos = usarSpawnpointDaBase
+            ? { x: Number(renascimentoBase.x || 0), y: Number(renascimentoBase.y || 0) }
+            : (typeof fase.posicaoInicialJogador === 'string'
+                ? (typeof window.gridParaPixels === 'function' ? window.gridParaPixels(fase.posicaoInicialJogador) : { x: 0, y: 0 })
+                : fase.posicaoInicialJogador);
         window.playerControle.x = pos.x;
         window.playerControle.y = pos.y;
         window.playerControle.velocidadeY = 0;
@@ -303,7 +371,7 @@ async function carregarFase(nomeArquivo) {
     // Configura spawn de inimigos aleatórios
     if (Array.isArray(fase.inimigoAleatorio) && fase.inimigoAleatorio.length === 2) {
         const dificuldade = fase.inimigoAleatorio[0]; // 1, 2 ou 3
-        const tipoEquipamento = fase.inimigoAleatorio[1]; // 0, 1 ou 2
+        const tipoEquipamento = fase.inimigoAleatorio[1]; // 0=sem, 1=revólver, 2=escudo, 3=bota, 4=jetpack, 6=garra, 7=cinto, 8=colete, 9=todos
         
         // Calcula o tempo baseado na dificuldade
         let tempoEmMs = 60000; // padrão: 1 minuto
@@ -314,9 +382,7 @@ async function carregarFase(nomeArquivo) {
         } else if (dificuldade === 3) {
             tempoEmMs = 30000; // 30 segundos
         }
-        
 
-        
         // Define uma função para criar o inimigo repetidamente
         const criarInimigoRepetido = () => {
             // Verifica se o jogo está pausado antes de prosseguir com o spawn
@@ -361,9 +427,8 @@ window.proximoNivel = async function() {
     } else {
         alert("FIM DE JOGO! Você completou todos os níveis.");
         if (typeof window.reiniciarJogo === 'function') {
-            // Ao zerar o jogo, podemos optar por voltar para a fase 1 (índice 0)
-            window.nivelAtual = 0; 
-            await window.reiniciarJogo(false); // Passa 'false' para indicar que NÃO foi por morte
+            window.nivelAtual = 0;
+            await window.reiniciarJogo(false);
         }
     }
 };
@@ -371,6 +436,11 @@ window.proximoNivel = async function() {
 // Reinicia a fase atual
 window.reiniciarJogo = async function(porMorte = true) {
     limparAnimacaoDanoJogador();
+
+    const renascimentoBase = obterConfigRenascimentoBaseAtiva();
+    const usarSpawnpointDaBase = renascimentoBase?.modoRenascimento === 'spawnpoint';
+    const usarMemoriaDaBase = !!(porMorte && renascimentoBase?.modoRenascimento === 'memoria');
+    const skillsMemorizadas = usarMemoriaDaBase ? [...(window.playerSkills || [])] : [];
 
     // Cancela spawns de inimigos aleatórios
     if (window.intervalInimigoAleatorio !== null) {
@@ -381,10 +451,10 @@ window.reiniciarJogo = async function(porMorte = true) {
         clearTimeout(window.timeoutPrimeiroInimigoAleatorio);
         window.timeoutPrimeiroInimigoAleatorio = null;
     }
-    
+
     // Reseta estado do jogador
     if (window.playerControle) {
-        window.isTraining = false; // Garante que sai do modo treino ao reiniciar o jogo normal
+        window.isTraining = false;
         window.playerControle.dano = 0;
         window.playerControle.teclas = {};
         window.playerControle.movendoHorizontal = false;
@@ -393,21 +463,19 @@ window.reiniciarJogo = async function(porMorte = true) {
         window.playerControle.cooldownChute = 0;
         window.playerControle.cooldownTiro = 0;
         window.playerControle.cooldownPulo = 0;
-        window.playerControle.danoProjetil = 1; // Reset projectile damage
+        window.playerControle.danoProjetil = 1;
         window.playerControle.velocidadeY = 0;
         window.playerControle.framesKnockbackRestante = 0;
         window.playerControle.velocidadeKnockback = 0;
         window.playerControle.airdropUsadoNoNivel = false;
         window.playerControle.noChao = false;
         window.playerControle.direcao = 'd';
-        
         window.playerControle.jetpackAtivo = false;
         window.playerControle.timerAtivacaoJetpack = 0;
         window.playerControle.timerVooRestante = 0;
         window.playerControle.cooldownVooJetpack = 0;
         window.playerControle.jetpackHovering = false;
 
-        // Restaura itens coletados
         if (window.playerControle.temEscudo || window.playerControle.escudoVermelho) {
             window.playerControle.temEscudo = true;
             window.playerControle.escudoVermelho = false;
@@ -417,36 +485,39 @@ window.reiniciarJogo = async function(porMorte = true) {
             window.playerControle.municao = window.config.maxMunicao || 5;
         }
 
-        // Reaplicaa bônus das skills
+        if (usarMemoriaDaBase) {
+            resetarJogadorParaZeroMantendoSkills();
+        }
+
         if (typeof window.aplicarEfeitosSkills === 'function') {
             window.aplicarEfeitosSkills();
         }
 
-        // Mantém equipamentos adquiridos
-        if (window.playerControle.temBota) {
-            window.playerControle.temBota = true;
-        }
-        if (window.playerControle.temJetpack) {
-            window.playerControle.temJetpack = true;
-        }
-        if (window.playerControle.temGarra) {
-            window.playerControle.temGarra = true;
-        }
         if (typeof window.salvarInventario === 'function') {
             window.salvarInventario();
         }
     }
-    
-    // Reseta progresso apenas se morte
+
     if (porMorte && typeof window.resetarProgressoParaJson === 'function') {
         await window.resetarProgressoParaJson();
+
+        if (usarMemoriaDaBase) {
+            window.playerSkills = [...new Set(skillsMemorizadas.map(skill => String(skill || '')))].filter(Boolean);
+            if (typeof window.aplicarEfeitosSkills === 'function') {
+                window.aplicarEfeitosSkills();
+            }
+        }
     }
 
-    // Retorna à fase inicial usando numeração humana na configuração (1 = fase 1)
-    window.nivelAtual = obterIndiceFaseInicial(window.config?.faseInicial);
+    const indiceSpawnpoint = usarSpawnpointDaBase
+        ? obterIndiceFasePorNome(renascimentoBase?.faseOriginal || renascimentoBase?.fase)
+        : -1;
+    window.nivelAtual = indiceSpawnpoint >= 0
+        ? indiceSpawnpoint
+        : obterIndiceFaseInicial(window.config?.faseInicial);
+
     await carregarFase(window.niveis[window.nivelAtual]);
-    
-    // Atualiza visual dos itens
+
     if (window.playerControle && typeof window.atualizarVisualEscudo === 'function') {
         window.atualizarVisualEscudo();
     }

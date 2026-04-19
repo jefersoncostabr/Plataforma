@@ -222,7 +222,7 @@ function gerarPosicaoAleatoria(plataformas) {
  * O inimigo será colocado sempre ACIMA de uma plataforma, nunca dentro.
  * 
  * @param {array} plataformas - Lista de coordenadas das plataformas.
- * @param {number} tipoEquipamento - Tipo de equipamento do inimigo (0=sem, 1=revólver, 2=escudo, 3=bota, 4=jetpack, 5=feno, 6=garra, 7=cinto)
+ * @param {number} tipoEquipamento - Tipo de equipamento do inimigo (0=sem, 1=revólver, 2=escudo, 3=bota, 4=jetpack, 5=feno, 6=garra, 7=cinto, 8=colete, 9=todos)
  */
 function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     const posicao = gerarPosicaoAleatoria(plataformas);
@@ -258,7 +258,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         palco.appendChild(inimigoImg);
     }
     
-    // Determina tipo e equipamento baseado no parâmetro (0=melee, 1=revolver, 2=escudo, 3=bota, 4=jetpack, 5=feno, 6=garra)
+    // Determina tipo e equipamento baseado no parâmetro (0=melee, 1=revolver, 2=escudo, 3=bota, 4=jetpack, 5=feno, 6=garra, 7=cinto, 8=colete, 9=todos)
     let tipoInimigo = tipoEquipamento; 
     let temArma = false;
     let temEscudo = false;
@@ -282,9 +282,26 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         temCinto = true;
     } else if (tipoInimigo === 8) {
         temColete = true;
+    } else if (tipoInimigo === 9) {
+        temArma = true;
+        temEscudo = true;
+        temBota = true;
+        temJetpack = true;
+        temGarra = true;
+        temCinto = true;
+        temColete = true;
     }
     
     // Registra o inimigo na lista global
+    const inventarioInicial = [];
+    if (temArma) inventarioInicial.push('revolver');
+    if (temEscudo) inventarioInicial.push('escudo');
+    if (temBota) inventarioInicial.push('bota');
+    if (temJetpack) inventarioInicial.push('jetpack');
+    if (temGarra) inventarioInicial.push('garra');
+    if (temCinto) inventarioInicial.push('cinto');
+    if (temColete) inventarioInicial.push('colete');
+
     const novoInimigo = {
         x: posicao.x,
         y: posicao.y,
@@ -303,6 +320,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         temGarra: temGarra,
         temCinto: temCinto,
         temColete: temColete,
+        inventario: inventarioInicial,
         escudoVermelho: false,
         escudoProtegido: 0,
         stunned: false, // Adiciona propriedade de stun

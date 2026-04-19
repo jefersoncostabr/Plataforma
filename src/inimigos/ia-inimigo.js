@@ -345,6 +345,14 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             });
 
             const inimigoObj = window.inimigos[window.inimigos.length - 1];
+            inimigoObj.inventario = [];
+            if (inimigoObj.temArma) inimigoObj.inventario.push('revolver');
+            if (inimigoObj.temEscudo) inimigoObj.inventario.push('escudo');
+            if (inimigoObj.temBota) inimigoObj.inventario.push('bota');
+            if (inimigoObj.temJetpack) inimigoObj.inventario.push('jetpack');
+            if (inimigoObj.temGarra) inimigoObj.inventario.push('garra');
+            if (inimigoObj.temCinto) inimigoObj.inventario.push('cinto');
+            if (inimigoObj.temColete) inimigoObj.inventario.push('colete');
 
             // Criação imediata dos acessórios para visualização no editor/fase
             if (inimigoObj.temArma) {

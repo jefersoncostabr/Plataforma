@@ -72,6 +72,7 @@
         return {
             craftId: String(craft?.id || ''),
             nivel: String(craft?.nivel || 1),
+            modoRenascimento: String(craft?.modoRenascimento || ''),
             sprite: craft?.elementos?.[Math.max(0, Number(craft?.nivel || 1) - 1)]?.src
                 || craft?.elementos?.[0]?.src
                 || 'assets/craft/craft_nivel1.png'
@@ -82,6 +83,14 @@
         container.querySelectorAll('[data-interaction-field]').forEach((node) => {
             const chave = node.getAttribute('data-interaction-field');
             node.textContent = contexto[chave] ?? '-';
+        });
+    }
+
+    function atualizarEstadoBotoesModo(container, modoAtual = null) {
+        container.querySelectorAll('[data-interaction-mode]').forEach((botao) => {
+            const ativo = botao.getAttribute('data-interaction-mode') === modoAtual;
+            botao.classList.toggle('active', ativo);
+            botao.setAttribute('aria-pressed', ativo ? 'true' : 'false');
         });
     }
 
@@ -159,6 +168,12 @@
 
         preencherCampos(overlay, contexto);
 
+        const secaoNivel3 = overlay.querySelector('[data-interaction-level3]');
+        if (secaoNivel3) {
+            secaoNivel3.style.display = Number(contexto?.nivel || 0) >= 3 ? 'grid' : 'none';
+        }
+        atualizarEstadoBotoesModo(overlay, contexto?.modoRenascimento || null);
+
         overlay.addEventListener('click', (event) => {
             if (event.target === overlay) {
                 fecharTelaInteracao();
@@ -198,6 +213,31 @@
 
             atualizarBotao();
         }
+
+        overlay.querySelectorAll('[data-interaction-mode]').forEach((botao) => {
+            botao.addEventListener('click', () => {
+                if (Number(contexto?.nivel || 0) < 3) {
+                    definirFeedbackInteracao('Essa configuração só libera na base nível 3.', true);
+                    return;
+                }
+
+                if (typeof window.definirModoRenascimentoBasePorId !== 'function') {
+                    definirFeedbackInteracao('O modo de renascimento ainda não está disponível.', true);
+                    return;
+                }
+
+                const modo = botao.getAttribute('data-interaction-mode');
+                const resultado = window.definirModoRenascimentoBasePorId(contexto.craftId, modo);
+                if (!resultado?.ok) {
+                    definirFeedbackInteracao(resultado?.motivo || 'Não foi possível atualizar o modo da base.', true);
+                    return;
+                }
+
+                contexto.modoRenascimento = resultado.modoRenascimento || '';
+                atualizarEstadoBotoesModo(overlay, contexto.modoRenascimento || null);
+                definirFeedbackInteracao(resultado.motivo || 'Modo da base atualizado.');
+            });
+        });
 
         onKeyDownAtual = (event) => {
             if (event.key === 'Escape') {

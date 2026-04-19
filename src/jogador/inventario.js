@@ -56,26 +56,37 @@
 
     function normalizarEntradaArmazenada(slot = null) {
         if (!slot) return null;
-        if (typeof slot === 'string') {
-            return {
-                tipo: slot,
-                nome: slot,
-                spriteColetavel: '',
-                spriteEquipado: '',
-                consumivel: false,
-                usarSoSePrecisar: false,
-                dados: {}
-            };
-        }
+
+        const raw = (typeof slot === 'string') ? { tipo: slot } : slot;
+        const tipo = raw?.tipo || raw?.id || null;
+        const regra = obterRegraColete(tipo) || {};
+        const itemData = (tipo && window.itemDefinitions && window.itemDefinitions[tipo]) ? window.itemDefinitions[tipo] : null;
+        const dadosOriginais = (raw?.dados && typeof raw.dados === 'object') ? raw.dados : {};
 
         return {
-            tipo: slot.tipo || slot.id || null,
-            nome: slot.nome || slot.tipo || 'Item',
-            spriteColetavel: slot.spriteColetavel || '',
-            spriteEquipado: slot.spriteEquipado || '',
-            consumivel: !!slot.consumivel,
-            usarSoSePrecisar: !!slot.usarSoSePrecisar,
-            dados: (slot.dados && typeof slot.dados === 'object') ? { ...slot.dados } : {}
+            tipo,
+            nome: raw?.nome || itemData?.nome || tipo || 'Item',
+            spriteColetavel: raw?.spriteColetavel || itemData?.spriteColetavel || obterSpriteItem(tipo, window.config || {}) || '',
+            spriteEquipado: raw?.spriteEquipado || itemData?.spriteEquipado || '',
+            consumivel: raw?.consumivel != null
+                ? !!raw.consumivel
+                : !!(itemData?.consumivel || regra.consumivel || tipo === 'restauracao' || tipo === 'base_portatil'),
+            usarSoSePrecisar: raw?.usarSoSePrecisar != null
+                ? !!raw.usarSoSePrecisar
+                : !!(regra.usarSoSePrecisar || tipo === 'restauracao' || tipo === 'base_portatil'),
+            dados: {
+                ...dadosOriginais,
+                municao: Number.isFinite(Number(raw?.municao ?? dadosOriginais?.municao)) ? Number(raw?.municao ?? dadosOriginais?.municao) : undefined,
+                escudoProtegido: Number.isFinite(Number(raw?.escudoProtegido ?? dadosOriginais?.escudoProtegido)) ? Number(raw?.escudoProtegido ?? dadosOriginais?.escudoProtegido) : undefined,
+                escudoVermelho: !!(raw?.escudoVermelho ?? dadosOriginais?.escudoVermelho),
+                botaUsosDash: Number.isFinite(Number(raw?.botaUsosDash ?? dadosOriginais?.botaUsosDash)) ? Number(raw?.botaUsosDash ?? dadosOriginais?.botaUsosDash) : undefined,
+                botaVermelha: !!(raw?.botaVermelha ?? dadosOriginais?.botaVermelha),
+                garraImpactosSolidos: Number.isFinite(Number(raw?.garraImpactosSolidos ?? dadosOriginais?.garraImpactosSolidos)) ? Number(raw?.garraImpactosSolidos ?? dadosOriginais?.garraImpactosSolidos) : undefined,
+                garraVermelha: !!(raw?.garraVermelha ?? dadosOriginais?.garraVermelha),
+                craftNivel: Number.isFinite(Number(raw?.craftNivel ?? dadosOriginais?.craftNivel)) ? Number(raw?.craftNivel ?? dadosOriginais?.craftNivel) : undefined,
+                craftTipoBase: raw?.craftTipoBase || dadosOriginais?.craftTipoBase,
+                craftModoRenascimento: raw?.craftModoRenascimento || dadosOriginais?.craftModoRenascimento || null
+            }
         };
     }
 
@@ -101,6 +112,7 @@
     function criarEntradaColete(item = {}, itemData = null) {
         const tipo = item?.tipo || itemData?.id || null;
         const regra = obterRegraColete(tipo) || {};
+        const dadosOriginais = (item?.dados && typeof item.dados === 'object') ? item.dados : {};
         return {
             tipo,
             nome: itemData?.nome || item?.nome || tipo || 'Item',
@@ -109,13 +121,17 @@
             consumivel: !!(itemData?.consumivel || regra.consumivel),
             usarSoSePrecisar: !!regra.usarSoSePrecisar,
             dados: {
-                municao: Number.isFinite(Number(item?.municao)) ? Number(item.municao) : undefined,
-                escudoProtegido: Number.isFinite(Number(item?.escudoProtegido)) ? Number(item.escudoProtegido) : undefined,
-                escudoVermelho: !!item?.escudoVermelho,
-                botaUsosDash: Number.isFinite(Number(item?.botaUsosDash)) ? Number(item.botaUsosDash) : undefined,
-                botaVermelha: !!item?.botaVermelha,
-                garraImpactosSolidos: Number.isFinite(Number(item?.garraImpactosSolidos)) ? Number(item.garraImpactosSolidos) : undefined,
-                garraVermelha: !!item?.garraVermelha
+                ...dadosOriginais,
+                municao: Number.isFinite(Number(item?.municao ?? dadosOriginais?.municao)) ? Number(item?.municao ?? dadosOriginais?.municao) : undefined,
+                escudoProtegido: Number.isFinite(Number(item?.escudoProtegido ?? dadosOriginais?.escudoProtegido)) ? Number(item?.escudoProtegido ?? dadosOriginais?.escudoProtegido) : undefined,
+                escudoVermelho: !!(item?.escudoVermelho ?? dadosOriginais?.escudoVermelho),
+                botaUsosDash: Number.isFinite(Number(item?.botaUsosDash ?? dadosOriginais?.botaUsosDash)) ? Number(item?.botaUsosDash ?? dadosOriginais?.botaUsosDash) : undefined,
+                botaVermelha: !!(item?.botaVermelha ?? dadosOriginais?.botaVermelha),
+                garraImpactosSolidos: Number.isFinite(Number(item?.garraImpactosSolidos ?? dadosOriginais?.garraImpactosSolidos)) ? Number(item?.garraImpactosSolidos ?? dadosOriginais?.garraImpactosSolidos) : undefined,
+                garraVermelha: !!(item?.garraVermelha ?? dadosOriginais?.garraVermelha),
+                craftNivel: Number.isFinite(Number(item?.craftNivel ?? dadosOriginais?.craftNivel)) ? Number(item?.craftNivel ?? dadosOriginais?.craftNivel) : undefined,
+                craftTipoBase: item?.craftTipoBase || dadosOriginais?.craftTipoBase,
+                craftModoRenascimento: item?.craftModoRenascimento || dadosOriginais?.craftModoRenascimento || null
             }
         };
     }
@@ -324,6 +340,11 @@
 
         function precisaDeItemAgora(tipo) {
             if (tipo === 'restauracao') return precisaRestauracaoAgora();
+            if (tipo === 'base_portatil') {
+                return typeof window.podeInstalarBasePortatil === 'function'
+                    ? window.podeInstalarBasePortatil()
+                    : true;
+            }
             if (tipo === 'revolver') {
                 const maxMunicao = Number(config?.maxMunicao ?? window.config?.maxMunicao ?? 5);
                 return !controle.temArma || Number(controle.municao || 0) < maxMunicao;
@@ -687,6 +708,14 @@
         }
 
         function usarOuDroparItemDoCinto() {
+            const slot = obterSlotCinto();
+            if (slot?.tipo === 'base_portatil') {
+                if (usarItemDoCinto()) {
+                    return { acao: 'usado' };
+                }
+                return { acao: 'nenhum' };
+            }
+
             if (usarItemDoCinto()) {
                 return { acao: 'usado' };
             }
@@ -769,6 +798,14 @@
         }
 
         function usarOuDroparItemDoColete(indice) {
+            const slot = obterSlotsColete()[indice];
+            if (slot?.tipo === 'base_portatil') {
+                if (usarItemDoColete(indice)) {
+                    return { acao: 'usado' };
+                }
+                return { acao: 'nenhum' };
+            }
+
             if (usarItemDoColete(indice)) {
                 return { acao: 'usado' };
             }
