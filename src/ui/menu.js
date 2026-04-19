@@ -178,7 +178,7 @@ function criarChipResumo(texto, cor = '#3a3a3a', corTexto = '#fff') {
 }
 
 function criarPainelResumoSalvo() {
-    const inventarioSalvo = lerJsonStorage('plataformaCheckpointEquipamento') || lerJsonStorage('plataformaInventario') || {};
+    const inventarioSalvo = lerJsonStorage('plataformaCheckpointEquipamento') || {};
     const baseSalva = lerJsonStorage('plataformaCraftPersistente') || {};
     const skillsSalvas = lerJsonStorage('plataformaSkills') || {};
     const equipamentos = extrairEquipamentosConquistados(inventarioSalvo);

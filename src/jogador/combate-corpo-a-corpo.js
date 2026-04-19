@@ -129,11 +129,9 @@
             }
 
             const direcaoKnockback = controle.direcao === 'd' ? 1 : -1;
-            let valorKnockbackInimigo = Number(obterKnockback(config, 'playerChute') || 0);
-
-            if (inimigo.temEscudo && !inimigo.escudoVermelho && !inimigo.itensGuardadosNoCinto) {
-                valorKnockbackInimigo *= Number(config.escudoKnockbackMultiplicador ?? 0.5);
-            }
+            const valorKnockbackInimigo = typeof window.obterKnockbackRecebidoPadrao === 'function'
+                ? Number(window.obterKnockbackRecebidoPadrao(inimigo, config, 'playerChute') || 0)
+                : Number(obterKnockback(config, 'playerChute') || 0);
 
             const duracaoRecuoInimigo = 15;
             inimigo.framesKnockbackRestante = duracaoRecuoInimigo;

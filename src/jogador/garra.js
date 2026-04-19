@@ -593,11 +593,9 @@
                         inimigoAtingido.elemento.style.filter = 'none';
 
                         const direcaoKnockback = (controle.direcao === 'd' ? 1 : -1);
-                        let valorKnockbackInimigo = obterKnockback(config, 'playerChute');
-
-                        if (inimigoAtingido.temEscudo && !inimigoAtingido.escudoVermelho && !inimigoAtingido.itensGuardadosNoCinto) {
-                            valorKnockbackInimigo *= Number(config.escudoKnockbackMultiplicador ?? 0.5);
-                        }
+                        const valorKnockbackInimigo = typeof window.obterKnockbackRecebidoPadrao === 'function'
+                            ? window.obterKnockbackRecebidoPadrao(inimigoAtingido, config, 'playerChute')
+                            : obterKnockback(config, 'playerChute');
 
                         const duracaoRecuoInimigo = 15;
                         inimigoAtingido.framesKnockbackRestante = duracaoRecuoInimigo;

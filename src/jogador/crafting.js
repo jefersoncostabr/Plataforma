@@ -15,6 +15,13 @@
         return MODOS_RENASCIMENTO_VALIDOS.has(modo) ? modo : null;
     }
 
+    function obterNivelMinimoModoRenascimento(modo) {
+        const modoNormalizado = normalizarModoRenascimento(modo);
+        if (modoNormalizado === 'memoria') return 2;
+        if (modoNormalizado === 'spawnpoint') return 3;
+        return Number.POSITIVE_INFINITY;
+    }
+
     function lerCraftPersistidoStorage() {
         try {
             const raw = localStorage.getItem(CRAFT_PERSISTENCE_KEY);
@@ -430,13 +437,19 @@
                 return { ok: false, motivo: 'Base não encontrada.' };
             }
 
-            if (Number(craft.nivel || 0) < 3) {
-                return { ok: false, motivo: 'O modo de renascimento só libera na base nível 3.' };
-            }
-
             const modoNormalizado = normalizarModoRenascimento(modoDesejado);
             if (!modoNormalizado) {
                 return { ok: false, motivo: 'Modo inválido.' };
+            }
+
+            const nivelMinimo = obterNivelMinimoModoRenascimento(modoNormalizado);
+            if (Number(craft.nivel || 0) < nivelMinimo) {
+                return {
+                    ok: false,
+                    motivo: modoNormalizado === 'memoria'
+                        ? 'A Memória libera na base nível 2.'
+                        : 'O Spawnpoint libera na base nível 3.'
+                };
             }
 
             craft.modoRenascimento = craft.modoRenascimento === modoNormalizado ? null : modoNormalizado;
@@ -458,8 +471,11 @@
         function obterConfigRenascimentoBase() {
             const craft = obterCraftPersistido();
             if (!craft) return null;
-            if (Number(craft.nivel || 0) < 3) return null;
-            if (!normalizarModoRenascimento(craft.modoRenascimento)) return null;
+
+            const modo = normalizarModoRenascimento(craft.modoRenascimento);
+            if (!modo) return null;
+            if (Number(craft.nivel || 0) < obterNivelMinimoModoRenascimento(modo)) return null;
+
             return craft;
         }
 
@@ -808,6 +824,36 @@
             }
         }
 
+        function apagarBasePersistidaDev() {
+            try {
+                if (typeof window.fecharTelaInteracao === 'function') {
+                    window.fecharTelaInteracao();
+                }
+            } catch (_) {}
+
+            removerTodosCrafts(true);
+
+            try {
+                localStorage.removeItem(CRAFT_PERSISTENCE_KEY);
+                localStorage.removeItem('plataformaCheckpointEquipamento');
+                localStorage.removeItem('plataformaInventario');
+            } catch (_) {}
+
+            if (typeof window.limparCheckpointEquipamentoSalvo === 'function') {
+                window.limparCheckpointEquipamentoSalvo();
+            }
+            if (typeof window.limparInventarioSalvo === 'function') {
+                window.limparInventarioSalvo();
+            }
+
+            if (window.isMenuOpen && typeof renderMenuUI === 'function') {
+                renderMenuUI();
+            }
+
+            console.log('Base persistida removida e localStorage relacionado limpo.');
+            return true;
+        }
+
         window.limparCraftPersistido = limparCraftPersistido;
         window.restaurarCraftPersistenteDaFaseAtual = restaurarCraftPersistenteDaFaseAtual;
         window.removerTodosCrafts = removerTodosCrafts;
@@ -820,6 +866,7 @@
         window.obterConfigRenascimentoBase = obterConfigRenascimentoBase;
         window.podeInstalarBasePortatil = podeInstalarBasePortatil;
         window.instalarBasePortatilDoSlot = instalarBasePortatilDoSlot;
+        window.apagarBasePersistidaDev = apagarBasePersistidaDev;
 
         return {
             processarInteracaoCraft,

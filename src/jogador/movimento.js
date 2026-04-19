@@ -1358,7 +1358,16 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             inimigo.estaColetando = false;
                             inimigo.timerColeta = 0;
 
-                            if (inimigo.temEscudo && !inimigo.escudoVermelho && !inimigo.itensGuardadosNoCinto) {
+                            let bloqueouEscudoInimigo = false;
+                            if (typeof window.aplicarImpactoEscudoPadrao === 'function') {
+                                bloqueouEscudoInimigo = !!window.aplicarImpactoEscudoPadrao(inimigo, config, {
+                                    alvoVisual: inimigo.escudoElemento,
+                                    flashElement: typeof flashElement === 'function' ? flashElement : null,
+                                    duracaoFlash: 150,
+                                    intensidadeFlash: 6
+                                })?.bloqueou;
+                            } else if (inimigo.temEscudo && !inimigo.escudoVermelho && !inimigo.itensGuardadosNoCinto) {
+                                bloqueouEscudoInimigo = true;
                                 inimigo.escudoProtegido = (inimigo.escudoProtegido || 0) + 1;
                                 const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
                                 
@@ -1368,9 +1377,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
                                 if (inimigo.escudoProtegido >= tirosProtegidos) {
                                     inimigo.escudoVermelho = true;
-                                    // console.log("Escudo do inimigo quebrou!");
                                 }
-                            } else {
+                            }
+
+                            if (!bloqueouEscudoInimigo) {
                                 const danoTomado = (controle.danoProjetil || 1);
                                 inimigo.vida = (inimigo.vida || 0) + danoTomado;
                                 if (inimigo.vida < 3) animarDanoAlvo(inimigo);
@@ -1419,22 +1429,30 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
                     if (detectarColisaoHitbox(hitboxProjetil, hitboxPlayer, 0, 0, 0)) {
                         if (temEscudoAtivo()) {
-                            controle.escudoProtegido = (controle.escudoProtegido || 0) + 1;
-                            const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
-                            
-                            // Efeito visual no escudo ao receber dano
-                            if (typeof flashElement === 'function' && escudoElemento) {
-                                flashElement(escudoElemento, 150, 6);
-                            }
-                            
-                            if (controle.escudoProtegido >= tirosProtegidos) {
-                                controle.escudoVermelho = true;
-                                // console.log('Escudo danificado: agora vermelho e sem proteção.');
+                            if (typeof window.aplicarImpactoEscudoPadrao === 'function') {
+                                window.aplicarImpactoEscudoPadrao(controle, config, {
+                                    alvoVisual: escudoElemento,
+                                    flashElement: typeof flashElement === 'function' ? flashElement : null,
+                                    atualizarVisualEscudo,
+                                    salvarInventario,
+                                    duracaoFlash: 150,
+                                    intensidadeFlash: 6
+                                });
                             } else {
-                                // console.log(`Escudo bloqueou o tiro! ${controle.escudoProtegido}/${tirosProtegidos}`);
+                                controle.escudoProtegido = (controle.escudoProtegido || 0) + 1;
+                                const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
+                                
+                                // Efeito visual no escudo ao receber dano
+                                if (typeof flashElement === 'function' && escudoElemento) {
+                                    flashElement(escudoElemento, 150, 6);
+                                }
+                                
+                                if (controle.escudoProtegido >= tirosProtegidos) {
+                                    controle.escudoVermelho = true;
+                                }
+                                atualizarVisualEscudo();
+                                salvarInventario();
                             }
-                            atualizarVisualEscudo();
-                            salvarInventario();
                         } else {
                             controle.dano = (controle.dano || 0) + 1;
                             // console.log(`Dano: Jogador atingido por projétil! Total: ${controle.dano}/3`);

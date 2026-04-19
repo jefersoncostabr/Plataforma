@@ -50,9 +50,11 @@ function obterConfigRenascimentoBaseAtiva() {
     return (craft && (modo === 'spawnpoint' || modo === 'memoria')) ? craft : null;
 }
 
-function resetarJogadorParaZeroMantendoSkills() {
+function resetarJogadorParaZeroMantendoSkills(opcoes = {}) {
     const controle = window.playerControle;
     if (!controle) return;
+
+    const preservarEstadoSalvo = !!opcoes?.preservarEstadoSalvo;
 
     controle.temEscudo = false;
     controle.escudoVermelho = false;
@@ -81,7 +83,7 @@ function resetarJogadorParaZeroMantendoSkills() {
     if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
     if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
     if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
-    if (typeof window.salvarInventario === 'function') window.salvarInventario();
+    if (!preservarEstadoSalvo && typeof window.salvarInventario === 'function') window.salvarInventario();
 }
 
 // ⭐ Escala atual do jogo
@@ -437,9 +439,13 @@ window.proximoNivel = async function() {
 window.reiniciarJogo = async function(porMorte = true) {
     limparAnimacaoDanoJogador();
 
-    if (typeof window.aplicarCheckpointEquipamentoComoInventarioPadrao === 'function') {
-        window.aplicarCheckpointEquipamentoComoInventarioPadrao();
+    if (typeof window.limparInventarioSalvo === 'function') {
+        window.limparInventarioSalvo();
     }
+
+    const temCheckpointEquipamento = typeof window.aplicarCheckpointEquipamentoComoInventarioPadrao === 'function'
+        ? !!window.aplicarCheckpointEquipamentoComoInventarioPadrao()
+        : false;
 
     const renascimentoBase = obterConfigRenascimentoBaseAtiva();
     const usarSpawnpointDaBase = renascimentoBase?.modoRenascimento === 'spawnpoint';
@@ -489,16 +495,24 @@ window.reiniciarJogo = async function(porMorte = true) {
             window.playerControle.municao = window.config.maxMunicao || 5;
         }
 
-        if (usarMemoriaDaBase) {
-            resetarJogadorParaZeroMantendoSkills();
+        if (usarMemoriaDaBase || !temCheckpointEquipamento) {
+            resetarJogadorParaZeroMantendoSkills({
+                preservarEstadoSalvo: !!temCheckpointEquipamento
+            });
+        }
+
+        if (temCheckpointEquipamento && typeof window.aplicarCheckpointEquipamentoComoInventarioPadrao === 'function') {
+            window.aplicarCheckpointEquipamentoComoInventarioPadrao();
+            if (typeof window.aplicarInventarioSalvoNoControle === 'function') {
+                window.aplicarInventarioSalvoNoControle(window.playerControle);
+            }
+            if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
+            if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
+            if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
         }
 
         if (typeof window.aplicarEfeitosSkills === 'function') {
             window.aplicarEfeitosSkills();
-        }
-
-        if (typeof window.salvarInventario === 'function') {
-            window.salvarInventario();
         }
     }
 
@@ -525,8 +539,18 @@ window.reiniciarJogo = async function(porMorte = true) {
 
     await carregarFase(window.niveis[window.nivelAtual]);
 
+    if (temCheckpointEquipamento && window.playerControle && typeof window.aplicarInventarioSalvoNoControle === 'function') {
+        window.aplicarInventarioSalvoNoControle(window.playerControle);
+    }
+
     if (window.playerControle && typeof window.atualizarVisualEscudo === 'function') {
         window.atualizarVisualEscudo();
+    }
+    if (window.playerControle && typeof window.atualizarVisualBota === 'function') {
+        window.atualizarVisualBota();
+    }
+    if (window.playerControle && typeof window.atualizarVisualGarra === 'function') {
+        window.atualizarVisualGarra();
     }
 };
 
@@ -544,6 +568,9 @@ async function iniciarJogo() {
     if (typeof window.carregarItemDefinitions === 'function') await window.carregarItemDefinitions();
     if (typeof window.carregarConfigColete === 'function') await window.carregarConfigColete();
 
+    if (typeof window.limparInventarioSalvo === 'function') {
+        window.limparInventarioSalvo();
+    }
     if (typeof window.aplicarCheckpointEquipamentoComoInventarioPadrao === 'function') {
         window.aplicarCheckpointEquipamentoComoInventarioPadrao();
     }

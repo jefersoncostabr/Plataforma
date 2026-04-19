@@ -21,3 +21,4 @@ git push origin main
 
 *codigo no console do navegador
 window.toggleDebugVelocidadePlayer()
+window.apagarBasePersistidaDev()

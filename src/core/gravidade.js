@@ -17,6 +17,57 @@ function temEscudoAtivoPadrao(entidade) {
     return !!(entidade?.temEscudo && !entidade?.escudoVermelho && !entidade?.itensGuardadosNoCinto);
 }
 
+function obterCapacidadeEscudoPadrao(config = {}) {
+    return Math.max(1, Number(config?.escudoTirosProtegidos ?? 3));
+}
+
+function obterProtecaoRestanteEscudoPadrao(entidade, config = {}) {
+    const total = obterCapacidadeEscudoPadrao(config);
+    const usado = Math.max(0, Number(entidade?.escudoProtegido || 0));
+    return Math.max(0, total - usado);
+}
+
+function aplicarImpactoEscudoPadrao(entidade, config = {}, opcoes = {}) {
+    const totalProtegido = obterCapacidadeEscudoPadrao(config);
+
+    if (!temEscudoAtivoPadrao(entidade)) {
+        return {
+            bloqueou: false,
+            quebrou: false,
+            restante: obterProtecaoRestanteEscudoPadrao(entidade, config),
+            total: totalProtegido
+        };
+    }
+
+    entidade.escudoProtegido = Math.max(0, Number(entidade?.escudoProtegido || 0)) + 1;
+    const quebrou = entidade.escudoProtegido >= totalProtegido;
+
+    if (quebrou) {
+        entidade.escudoVermelho = true;
+    } else if (typeof opcoes.flashElement === 'function' && opcoes.alvoVisual) {
+        opcoes.flashElement(
+            opcoes.alvoVisual,
+            Number(opcoes.duracaoFlash ?? 150),
+            Number(opcoes.intensidadeFlash ?? 6)
+        );
+    }
+
+    if (typeof opcoes.atualizarVisualEscudo === 'function') {
+        opcoes.atualizarVisualEscudo();
+    }
+
+    if (typeof opcoes.salvarInventario === 'function') {
+        opcoes.salvarInventario();
+    }
+
+    return {
+        bloqueou: true,
+        quebrou,
+        restante: Math.max(0, totalProtegido - Number(entidade.escudoProtegido || 0)),
+        total: totalProtegido
+    };
+}
+
 function obterKnockbackRecebidoPadrao(entidade, config = {}, fonte = 'default') {
     const valor = obterKnockbackPadrao(config, fonte);
     if (temEscudoAtivoPadrao(entidade)) {
@@ -60,6 +111,9 @@ function aplicarDeslocamentoHorizontalComColisaoPadrao(ent, deslocX, plataformas
 
 window.obterKnockbackPadrao = obterKnockbackPadrao;
 window.temEscudoAtivoPadrao = temEscudoAtivoPadrao;
+window.obterCapacidadeEscudoPadrao = obterCapacidadeEscudoPadrao;
+window.obterProtecaoRestanteEscudoPadrao = obterProtecaoRestanteEscudoPadrao;
+window.aplicarImpactoEscudoPadrao = aplicarImpactoEscudoPadrao;
 window.obterKnockbackRecebidoPadrao = obterKnockbackRecebidoPadrao;
 window.aplicarDeslocamentoHorizontalComColisaoPadrao = aplicarDeslocamentoHorizontalComColisaoPadrao;
 

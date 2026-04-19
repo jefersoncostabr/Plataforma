@@ -1,5 +1,6 @@
 (function () {
     const INVENTARIO_STORAGE_KEY = 'plataformaInventario';
+    const INVENTARIO_RUNTIME_KEY = '__plataformaInventarioRuntime';
     const CHECKPOINT_EQUIPAMENTO_STORAGE_KEY = 'plataformaCheckpointEquipamento';
     const COLETE_CONFIG_PADRAO = {
         capacidade: 6,
@@ -148,6 +149,20 @@
         }
     }
 
+    function lerEstadoInventarioRuntime() {
+        const estado = window[INVENTARIO_RUNTIME_KEY];
+        return estado && typeof estado === 'object'
+            ? JSON.parse(JSON.stringify(estado))
+            : null;
+    }
+
+    function salvarEstadoInventarioRuntime(estado) {
+        window[INVENTARIO_RUNTIME_KEY] = estado && typeof estado === 'object'
+            ? JSON.parse(JSON.stringify(estado))
+            : null;
+        return true;
+    }
+
     function serializarInventarioDoControle(controle) {
         if (!controle) return null;
 
@@ -172,8 +187,33 @@
         };
     }
 
+    function inventarioTemConteudo(estado = null) {
+        if (!estado || typeof estado !== 'object') return false;
+
+        return !!(
+            estado.temEscudo
+            || estado.temArma
+            || estado.temBota
+            || estado.temJetpack
+            || estado.temCinto
+            || estado.temGarra
+            || estado.temColete
+            || Number(estado.municao || 0) > 0
+            || (Array.isArray(estado.inventario) && estado.inventario.length > 0)
+            || (Array.isArray(estado.coleteSlots) && estado.coleteSlots.some(Boolean))
+            || estado.cintoSlot
+        );
+    }
+
     function carregarInventarioSalvo() {
-        return lerEstadoInventarioDoStorage(INVENTARIO_STORAGE_KEY);
+        const runtime = lerEstadoInventarioRuntime();
+        const checkpoint = carregarCheckpointEquipamentoSalvo();
+
+        if (inventarioTemConteudo(runtime)) {
+            return runtime;
+        }
+
+        return checkpoint || runtime;
     }
 
     function carregarCheckpointEquipamentoSalvo() {
@@ -186,6 +226,13 @@
         try {
             const estado = serializarInventarioDoControle(controle);
             if (!estado) return false;
+
+            if (storageKey === INVENTARIO_STORAGE_KEY) {
+                salvarEstadoInventarioRuntime(estado);
+                localStorage.removeItem(INVENTARIO_STORAGE_KEY);
+                return true;
+            }
+
             localStorage.setItem(storageKey, JSON.stringify(estado));
             return true;
         } catch (error) {
@@ -221,7 +268,13 @@
 
     function aplicarCheckpointEquipamentoComoInventarioPadrao() {
         const checkpoint = carregarCheckpointEquipamentoSalvo();
-        if (!checkpoint) return false;
+        if (!checkpoint) {
+            salvarEstadoInventarioRuntime(null);
+            try {
+                localStorage.removeItem(INVENTARIO_STORAGE_KEY);
+            } catch (_) {}
+            return false;
+        }
 
         try {
             const estado = {
@@ -231,7 +284,8 @@
                 cintoSlot: normalizarEntradaArmazenada(checkpoint.cintoSlot)
             };
 
-            localStorage.setItem(INVENTARIO_STORAGE_KEY, JSON.stringify(estado));
+            salvarEstadoInventarioRuntime(estado);
+            localStorage.removeItem(INVENTARIO_STORAGE_KEY);
             return true;
         } catch (error) {
             console.error('Erro ao aplicar checkpoint de equipamento:', error);
@@ -240,6 +294,7 @@
     }
 
     function limparInventarioSalvo() {
+        salvarEstadoInventarioRuntime(null);
         localStorage.removeItem(INVENTARIO_STORAGE_KEY);
     }
 
@@ -1111,6 +1166,7 @@
         window.limparInventarioSalvo = limparInventarioSalvo;
         window.limparCheckpointEquipamentoSalvo = limparCheckpointEquipamentoSalvo;
         window.carregarInventarioSalvo = carregarInventarioSalvo;
+        window.aplicarInventarioSalvoNoControle = aplicarInventarioSalvoNoControle;
         window.carregarCheckpointEquipamentoSalvo = carregarCheckpointEquipamentoSalvo;
         window.aplicarCheckpointEquipamentoComoInventarioPadrao = aplicarCheckpointEquipamentoComoInventarioPadrao;
         window.salvarCheckpointEquipamentoDoControle = salvarCheckpointEquipamentoDoControle;

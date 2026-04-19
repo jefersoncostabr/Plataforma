@@ -94,6 +94,17 @@
         });
     }
 
+    function atualizarDisponibilidadeBotoesModo(container, nivelAtual = 0) {
+        container.querySelectorAll('[data-interaction-mode]').forEach((botao) => {
+            const nivelMinimo = Number(botao.getAttribute('data-min-level') || 0);
+            const liberado = Number(nivelAtual || 0) >= nivelMinimo;
+            botao.disabled = !liberado;
+            botao.title = liberado
+                ? ''
+                : `Libera no nível ${nivelMinimo}`;
+        });
+    }
+
     function removerEventosAtuais() {
         if (onKeyDownAtual) {
             document.removeEventListener('keydown', onKeyDownAtual);
@@ -168,11 +179,12 @@
 
         preencherCampos(overlay, contexto);
 
-        const secaoNivel3 = overlay.querySelector('[data-interaction-level3]');
-        if (secaoNivel3) {
-            secaoNivel3.style.display = Number(contexto?.nivel || 0) >= 3 ? 'grid' : 'none';
+        const secaoModos = overlay.querySelector('[data-interaction-modes]');
+        if (secaoModos) {
+            secaoModos.style.display = Number(contexto?.nivel || 0) >= 2 ? 'grid' : 'none';
         }
         atualizarEstadoBotoesModo(overlay, contexto?.modoRenascimento || null);
+        atualizarDisponibilidadeBotoesModo(overlay, Number(contexto?.nivel || 0));
 
         overlay.addEventListener('click', (event) => {
             if (event.target === overlay) {
@@ -239,8 +251,17 @@
 
         overlay.querySelectorAll('[data-interaction-mode]').forEach((botao) => {
             botao.addEventListener('click', () => {
-                if (Number(contexto?.nivel || 0) < 3) {
-                    definirFeedbackInteracao('Essa configuração só libera na base nível 3.', true);
+                const modo = botao.getAttribute('data-interaction-mode');
+                const nivelAtual = Number(contexto?.nivel || 0);
+                const nivelMinimo = modo === 'memoria' ? 2 : 3;
+
+                if (nivelAtual < nivelMinimo) {
+                    definirFeedbackInteracao(
+                        modo === 'memoria'
+                            ? 'Memória libera na base nível 2.'
+                            : 'Spawnpoint libera na base nível 3.',
+                        true
+                    );
                     return;
                 }
 
@@ -249,7 +270,6 @@
                     return;
                 }
 
-                const modo = botao.getAttribute('data-interaction-mode');
                 const resultado = window.definirModoRenascimentoBasePorId(contexto.craftId, modo);
                 if (!resultado?.ok) {
                     definirFeedbackInteracao(resultado?.motivo || 'Não foi possível atualizar o modo da base.', true);

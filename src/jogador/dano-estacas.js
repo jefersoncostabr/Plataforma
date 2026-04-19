@@ -56,18 +56,29 @@
             }
 
             if (temEscudoAtivo()) {
-                controle.escudoProtegido = (controle.escudoProtegido || 0) + 1;
-                const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
+                if (typeof window.aplicarImpactoEscudoPadrao === 'function') {
+                    window.aplicarImpactoEscudoPadrao(controle, config, {
+                        alvoVisual: escudoElemento,
+                        flashElement: typeof flashElement === 'function' ? flashElement : null,
+                        atualizarVisualEscudo,
+                        salvarInventario,
+                        duracaoFlash: 120,
+                        intensidadeFlash: 6
+                    });
+                } else {
+                    controle.escudoProtegido = (controle.escudoProtegido || 0) + 1;
+                    const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
 
-                const quebrouEscudoAgora = controle.escudoProtegido >= tirosProtegidos;
-                if (quebrouEscudoAgora) {
-                    controle.escudoVermelho = true;
-                } else if (typeof flashElement === 'function' && escudoElemento) {
-                    flashElement(escudoElemento, 120, 6);
+                    const quebrouEscudoAgora = controle.escudoProtegido >= tirosProtegidos;
+                    if (quebrouEscudoAgora) {
+                        controle.escudoVermelho = true;
+                    } else if (typeof flashElement === 'function' && escudoElemento) {
+                        flashElement(escudoElemento, 120, 6);
+                    }
+
+                    atualizarVisualEscudo();
+                    salvarInventario();
                 }
-
-                atualizarVisualEscudo();
-                salvarInventario();
                 return;
             }
 
