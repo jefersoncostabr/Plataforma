@@ -9,16 +9,6 @@ Registrar os principais pontos do projeto onde existem trechos duplicados, lógi
 
 ## 1. Código duplicado
 
-### 1.1 Cálculo de knockback
-Arquivos:
-- src/jogador/movimento.js
-- src/inimigos/ia-inimigo.js
-
-Observação:
-A lógica de cálculo de knockback base + ajuste aparece repetida para jogador e inimigo.
-
----
-
 ### 1.2 Checagem de escudo ativo
 Arquivos:
 - src/inimigos/ia-inimigo.js

@@ -2,6 +2,7 @@
     const TILE_SIZE = 32;
     const NIVEL_MAXIMO_CRAFT = 3;
     const CRAFT_PERSISTENCE_KEY = 'plataformaCraftPersistente';
+    const TIPO_ITEM_BASE_PORTATIL = 'base_portatil';
     const SPRITES_CRAFT = {
         1: '../../assets/craft/craft_nivel1.png',
         2: '../../assets/craft/craft_nivel2.png',
@@ -191,7 +192,30 @@
         }
 
         function obterFonteItemParaCraft() {
+            const slotCinto = typeof window.obterSlotCinto === 'function'
+                ? window.obterSlotCinto()
+                : (controle.cintoSlot || null);
+
+            if (slotCinto?.tipo === TIPO_ITEM_BASE_PORTATIL) {
+                return {
+                    origem: 'cinto',
+                    tipo: slotCinto.tipo,
+                    dados: slotCinto.dados || {}
+                };
+            }
+
             if (Array.isArray(controle.coleteSlots)) {
+                const indiceBasePortatil = controle.coleteSlots.findIndex(slot => slot?.tipo === TIPO_ITEM_BASE_PORTATIL);
+                if (indiceBasePortatil >= 0) {
+                    const slotColete = controle.coleteSlots[indiceBasePortatil];
+                    return {
+                        origem: 'colete',
+                        indice: indiceBasePortatil,
+                        tipo: slotColete.tipo,
+                        dados: slotColete.dados || {}
+                    };
+                }
+
                 const indiceColete = controle.coleteSlots.findIndex(slot => slot?.tipo);
                 if (indiceColete >= 0) {
                     const slotColete = controle.coleteSlots[indiceColete];
@@ -203,10 +227,6 @@
                     };
                 }
             }
-
-            const slotCinto = typeof window.obterSlotCinto === 'function'
-                ? window.obterSlotCinto()
-                : (controle.cintoSlot || null);
 
             if (slotCinto?.tipo) {
                 return {
@@ -242,6 +262,145 @@
 
         function encontrarCraftNaPosicao(x, y) {
             return (window.craftsAtivos || []).find((craft) => craft && craft.x === x && craft.y === y) || null;
+        }
+
+        function criarEntradaBasePortatil(craft) {
+            const nivel = Math.max(1, Math.min(NIVEL_MAXIMO_CRAFT, Number(craft?.nivel || 1)));
+            const tipoBase = String(craft?.tipoBase || 'item');
+            const sprite = obterSpriteCraftNivel(nivel, tipoBase);
+
+            return {
+                tipo: TIPO_ITEM_BASE_PORTATIL,
+                nome: `Base recolhida Nv ${nivel}`,
+                spriteColetavel: sprite,
+                spriteEquipado: sprite,
+                consumivel: true,
+                usarSoSePrecisar: true,
+                dados: {
+                    craftNivel: nivel,
+                    craftTipoBase: tipoBase
+                }
+            };
+        }
+
+        function obterIndiceLivreColeteParaBase() {
+            if (!controle.temColete || !Array.isArray(controle.coleteSlots)) return -1;
+            return controle.coleteSlots.findIndex((slot) => !slot);
+        }
+
+        function podeGuardarBaseNoSlot() {
+            const slotCinto = typeof window.obterSlotCinto === 'function'
+                ? window.obterSlotCinto()
+                : (controle.cintoSlot || null);
+
+            if (controle.temCinto && !slotCinto) {
+                return true;
+            }
+
+            return obterIndiceLivreColeteParaBase() >= 0;
+        }
+
+        function guardarBasePortatilEmSlot(craft) {
+            const entrada = criarEntradaBasePortatil(craft);
+            const slotCinto = typeof window.obterSlotCinto === 'function'
+                ? window.obterSlotCinto()
+                : (controle.cintoSlot || null);
+
+            if (controle.temCinto && !slotCinto) {
+                controle.cintoSlot = entrada;
+                salvarInventario();
+                if (typeof window.atualizarMochilaUI === 'function') window.atualizarMochilaUI(controle);
+                return { ok: true, destino: 'cinto', entrada };
+            }
+
+            const indiceLivre = obterIndiceLivreColeteParaBase();
+            if (indiceLivre >= 0) {
+                controle.coleteSlots[indiceLivre] = entrada;
+                salvarInventario();
+                if (typeof window.atualizarMochilaUI === 'function') window.atualizarMochilaUI(controle);
+                return { ok: true, destino: `colete-${indiceLivre}`, entrada };
+            }
+
+            return { ok: false, motivo: 'Sem slot livre no cinto ou no colete.' };
+        }
+
+        function removerCraftDoMundo(craft, removerPersistencia = false) {
+            if (!craft) return false;
+
+            if (Array.isArray(craft.elementos)) {
+                craft.elementos.forEach((camada) => camada?.remove?.());
+            }
+
+            if (Array.isArray(window.craftsAtivos)) {
+                window.craftsAtivos = window.craftsAtivos.filter((item) => item !== craft);
+            }
+
+            if (removerPersistencia) {
+                limparCraftPersistido();
+            }
+
+            return true;
+        }
+
+        function recolherCraftExistente(craft) {
+            if (!craft) {
+                return { ok: false, motivo: 'Base não encontrada.' };
+            }
+
+            if (!podeGuardarBaseNoSlot()) {
+                return { ok: false, motivo: 'Sem slot livre no cinto ou no colete.' };
+            }
+
+            const guardou = guardarBasePortatilEmSlot(craft);
+            if (!guardou?.ok) {
+                return { ok: false, motivo: guardou?.motivo || 'Falha ao recolher a base.' };
+            }
+
+            removerCraftDoMundo(craft, true);
+            limparPreviewCraft();
+            return { ok: true, motivo: 'Base recolhida e guardada em um slot.' };
+        }
+
+        function recolherCraftPorId(craftId) {
+            const alvo = (window.craftsAtivos || []).find((craft) => String(craft?.id || '') === String(craftId || '')) || null;
+            return recolherCraftExistente(alvo);
+        }
+
+        function instalarBasePortatilDoSlot(dados = {}) {
+            const craftPersistido = obterCraftPersistido();
+            if ((window.craftsAtivos || []).length > 0 || craftPersistido) {
+                return false;
+            }
+
+            const posicao = obterPosicaoCraftNoGrid();
+            if (!areaValidaParaNovoCraft(posicao)) {
+                if (typeof flashElement === 'function') {
+                    flashElement(elemento, 120, 4);
+                }
+                return false;
+            }
+
+            const craft = {
+                id: `craft-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                x: posicao.x,
+                y: posicao.y,
+                largura: 32,
+                altura: 32,
+                nivel: Math.max(1, Math.min(NIVEL_MAXIMO_CRAFT, Number(dados?.craftNivel || 1))),
+                tipoBase: String(dados?.craftTipoBase || 'item'),
+                elementos: []
+            };
+
+            window.craftsAtivos.push(craft);
+            atualizarVisualCraft(craft);
+            salvarCraftPersistido(craft);
+            limparPreviewCraft();
+
+            if (window.isMochilaMenuOpen && typeof window.toggleMochilaMenu === 'function') {
+                window.toggleMochilaMenu(controle);
+            }
+
+            return true;
         }
 
         function podeConsumirItemParaCraft(fonte) {
@@ -308,7 +467,12 @@
             return true;
         }
 
-        function obterSpritePreviewItem(tipo) {
+        function obterSpritePreviewItem(tipo, fonte = null) {
+            if (tipo === TIPO_ITEM_BASE_PORTATIL) {
+                const nivel = Math.max(1, Math.min(NIVEL_MAXIMO_CRAFT, Number(fonte?.dados?.craftNivel || 1)));
+                const tipoBase = String(fonte?.dados?.craftTipoBase || 'item');
+                return obterSpriteCraftNivel(nivel, tipoBase);
+            }
             return obterSpriteCraftNivel(1, tipo);
         }
 
@@ -372,6 +536,9 @@
             const posicao = obterPosicaoCraftNoGrid();
             const faseAtual = obterNomeFaseAtual();
             const craftPersistido = obterCraftPersistido();
+            const tipoPreview = tipo === TIPO_ITEM_BASE_PORTATIL
+                ? String(fonte?.dados?.craftTipoBase || 'item')
+                : tipo;
 
             if (!podeConsumirItemParaCraft(fonte)) return false;
             if (!areaValidaParaNovoCraft(posicao)) {
@@ -400,18 +567,18 @@
 
             limparPreviewCraft();
             controle.craftPreviewAtivo = true;
-            controle.craftPreviewTipo = tipo;
+            controle.craftPreviewTipo = tipoPreview;
             controle.craftPreviewOrigem = fonte;
             controle.craftPreviewPosicao = posicao;
             controle.craftPreviewVisual = typeof window.criarVisualFantasma === 'function'
                 ? window.criarVisualFantasma({
-                    src: obterSpritePreviewItem(tipo),
+                    src: obterSpritePreviewItem(tipo, fonte),
                     x: posicao.x,
                     y: posicao.y,
                     layer: window.LAYERS?.EFEITOS,
                     zIndex: 28
                 })
-                : criarElementoCraft({ id: 'preview', x: posicao.x, y: posicao.y, nivel: 1, tipoBase: tipo });
+                : criarElementoCraft({ id: 'preview', x: posicao.x, y: posicao.y, nivel: 1, tipoBase: tipoPreview });
 
             if (controle.craftPreviewVisual && !controle.craftPreviewVisual.parentElement) {
                 const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
@@ -430,6 +597,14 @@
 
             const fonteConsumida = controle.craftPreviewOrigem || obterFonteItemParaCraft();
             const tipoConsumido = fonteConsumida?.tipo || controle.craftPreviewTipo;
+            const ehBasePortatil = tipoConsumido === TIPO_ITEM_BASE_PORTATIL;
+            const nivelInicial = ehBasePortatil
+                ? Math.max(1, Math.min(NIVEL_MAXIMO_CRAFT, Number(fonteConsumida?.dados?.craftNivel || 1)))
+                : 1;
+            const tipoBaseInstalado = ehBasePortatil
+                ? String(fonteConsumida?.dados?.craftTipoBase || controle.craftPreviewTipo || 'item')
+                : tipoConsumido;
+
             if (!consumirItemDoInventarioParaCraft(fonteConsumida)) {
                 return false;
             }
@@ -440,8 +615,8 @@
                 y: controle.craftPreviewPosicao.y,
                 largura: 32,
                 altura: 32,
-                nivel: 1,
-                tipoBase: tipoConsumido,
+                nivel: nivelInicial,
+                tipoBase: tipoBaseInstalado,
                 elementos: []
             };
 
@@ -482,6 +657,7 @@
                 || !!window.isMenuOpen
                 || !!window.isSkillMenuOpen
                 || !!window.isMochilaMenuOpen
+                || !!window.isInteractionMenuOpen
                 || acaoAtiva('pulo');
 
             if (estadoInvalido) {
@@ -518,9 +694,23 @@
             cancelarCraftSeInvalido();
 
             if (!acaoAtiva('interagir')) return false;
+
+            if (typeof window.processarInteracaoBaseProxima === 'function') {
+                const abriuInteracaoBase = window.processarInteracaoBaseProxima({
+                    controle,
+                    acaoAtiva,
+                    consumirAcao
+                });
+
+                if (abriuInteracaoBase) {
+                    limparPreviewCraft();
+                    return true;
+                }
+            }
+
             consumirAcao('interagir');
 
-            if (window.isPaused || window.isMenuOpen || window.isSkillMenuOpen || window.isMochilaMenuOpen) return false;
+            if (window.isPaused || window.isMenuOpen || window.isSkillMenuOpen || window.isMochilaMenuOpen || window.isInteractionMenuOpen) return false;
             if (controle.stunned || controle.vendaEmCurso || !controle.noChao || !controle.estaAgachado) {
                 limparPreviewCraft();
                 return false;
@@ -562,6 +752,10 @@
         window.removerTodosCrafts = removerTodosCrafts;
         window.obterCraftNaPosicao = encontrarCraftNaPosicao;
         window.obterCraftPersistido = obterCraftPersistido;
+        window.obterSpriteCraftNivel = obterSpriteCraftNivel;
+        window.recolherCraftPorId = recolherCraftPorId;
+        window.podeRecolherBasePorId = () => podeGuardarBaseNoSlot();
+        window.instalarBasePortatilDoSlot = instalarBasePortatilDoSlot;
 
         return {
             processarInteracaoCraft,

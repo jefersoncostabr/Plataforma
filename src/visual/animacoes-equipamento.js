@@ -225,12 +225,14 @@ function sincronizarAcessoriosPortador(portador, elementoBase, elementos = {}, o
         el.style.transform = transform;
     };
 
+    const agachadoVisualAtivo = !!(portador.estaAgachado && portador.noChao);
+
     aplicar(armaElemento);
     aplicar(escudoElemento);
     aplicar(botaElemento);
     aplicar(jetpackElemento);
-    aplicar(cintoElemento);
-    aplicar(coleteElemento, portador.estaAgachado ? -6 : 0);
+    aplicar(cintoElemento, agachadoVisualAtivo ? -5 : 0);
+    aplicar(coleteElemento, agachadoVisualAtivo ? -6 : 0);
 
     if (!portador.garraAnimEstado || portador.garraAnimEstado === 'idle' || sincronizarGarraAnimando) {
         aplicar(garraElemento);
@@ -475,7 +477,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
 
     function obterOffsetVisualCinto() {
         let offsetY = 0;
-        if (controle.estaAgachado) offsetY -= 5;
+        if (controle.estaAgachado && controle.noChao) offsetY -= 5;
         if (controle.chutando) offsetY -= 2;
         return { x: 0, y: offsetY };
     }
@@ -688,7 +690,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
         if (coleteElemento) {
             const permiteRecolherColete = coleteRecolhivelNoCinto(config);
             if (controle.temColete && (!controle.itensGuardadosNoCinto || !permiteRecolherColete)) {
-                const offsetColeteY = controle.estaAgachado ? -6 : 0;
+                const offsetColeteY = (controle.estaAgachado && controle.noChao) ? -6 : 0;
                 coleteElemento.style.display = 'block';
                 coleteElemento.style.left = controle.x + 'px';
                 coleteElemento.style.bottom = (controle.y + offsetColeteY) + 'px';

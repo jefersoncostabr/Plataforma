@@ -52,6 +52,9 @@ function limparAnimacaoDanoJogador() {
 async function carregarFase(nomeArquivo) {
 
     limparAnimacaoDanoJogador();
+    if (typeof window.fecharTelaInteracao === 'function') {
+        window.fecharTelaInteracao();
+    }
     window.faseAtualNome = String(nomeArquivo || '').split('/').pop() || String(nomeArquivo || '');
     if (typeof window.removerTodosCrafts === 'function') {
         window.removerTodosCrafts();

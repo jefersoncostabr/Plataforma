@@ -10,7 +10,8 @@
             garra: { permitidoNoColete: true, equipavel: true, usarSoSePrecisar: true },
             cinto: { permitidoNoColete: true, equipavel: true, usarSoSePrecisar: true },
             colete: { permitidoNoColete: true, equipavel: true, usarSoSePrecisar: true },
-            restauracao: { permitidoNoColete: true, consumivel: true, usarSoSePrecisar: true }
+            restauracao: { permitidoNoColete: true, consumivel: true, usarSoSePrecisar: true },
+            base_portatil: { permitidoNoColete: true, consumivel: true, usarSoSePrecisar: true }
         }
     };
 
@@ -201,8 +202,45 @@
         if (tipo === 'cinto') return config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
         if (tipo === 'colete') return config.spriteItemColete || '../../assets/personagem/colete_coletavel.png';
         if (tipo === 'restauracao') return '../../assets/personagem/restauracao.png';
+        if (tipo === 'base_portatil') {
+            return typeof window.obterSpriteCraftNivel === 'function'
+                ? window.obterSpriteCraftNivel(1, 'item')
+                : '../../assets/craft/craft_nivel1.png';
+        }
         return '';
     }
+
+    function aplicarRestauracaoPadrao(controle, config = {}, callbacks = {}) {
+        if (!controle) return;
+
+        controle.municao = Number(config?.maxMunicao ?? window.config?.maxMunicao ?? 5);
+        controle.escudoProtegido = 0;
+        controle.escudoVermelho = false;
+        controle.botaUsosDash = 0;
+        controle.botaVermelha = false;
+        controle.garraImpactosSolidos = 0;
+        controle.garraVermelha = false;
+        controle.dano = Math.max(0, Number(controle.dano || 0) - 1);
+
+        if (Array.isArray(controle.inventario) && controle.inventario.includes('escudo')) {
+            controle.temEscudo = true;
+        }
+        if (Array.isArray(controle.inventario) && controle.inventario.includes('garra')) {
+            controle.temGarra = true;
+        }
+
+        if (typeof callbacks.atualizarVisualEscudo === 'function') {
+            callbacks.atualizarVisualEscudo();
+        }
+        if (typeof callbacks.atualizarVisualBota === 'function') {
+            callbacks.atualizarVisualBota();
+        }
+        if (typeof callbacks.atualizarVisualGarra === 'function') {
+            callbacks.atualizarVisualGarra();
+        }
+    }
+
+    window.aplicarRestauracaoPadrao = aplicarRestauracaoPadrao;
 
     function criarSistemaInventarioJogador(opcoes = {}) {
         const {
@@ -303,6 +341,14 @@
         }
 
         function aplicarRestauracao() {
+            if (typeof window.aplicarRestauracaoPadrao === 'function') {
+                return window.aplicarRestauracaoPadrao(controle, config, {
+                    atualizarVisualEscudo,
+                    atualizarVisualBota: window.atualizarVisualBota,
+                    atualizarVisualGarra: window.atualizarVisualGarra
+                });
+            }
+
             controle.municao = Number(config?.maxMunicao ?? 5);
             controle.escudoProtegido = 0;
             controle.escudoVermelho = false;
@@ -340,6 +386,16 @@
 
             if (tipo === 'restauracao') {
                 aplicarRestauracao();
+                salvarInventario();
+                atualizarMochilaUI();
+                return true;
+            }
+
+            if (tipo === 'base_portatil') {
+                const instalouBase = typeof window.instalarBasePortatilDoSlot === 'function'
+                    ? window.instalarBasePortatilDoSlot(extras || {})
+                    : false;
+                if (!instalouBase) return false;
                 salvarInventario();
                 atualizarMochilaUI();
                 return true;
@@ -409,7 +465,7 @@
                 if (coleteElemento) {
                     if (itemData?.spriteEquipado) coleteElemento.src = itemData.spriteEquipado;
                     coleteElemento.style.display = 'block';
-                    sincronizarElementoComJogador(coleteElemento, controle.estaAgachado ? -6 : 0);
+                    sincronizarElementoComJogador(coleteElemento, (controle.estaAgachado && controle.noChao) ? -6 : 0);
                 }
             } else if (itemData?.efeitos?.jogador) {
                 Object.entries(itemData.efeitos.jogador).forEach(([chave, valor]) => {
@@ -743,6 +799,10 @@
                     return true;
                 }
                 return guardarItemNoColete(item, itemData) || guardarItemNoCinto(item, itemData);
+            }
+
+            if (item.tipo === 'base_portatil') {
+                return guardarItemNoCinto(item, itemData) || guardarItemNoColete(item, itemData);
             }
 
             if (!itemJaAtivoNoCorpo(item.tipo) || precisaDeItemAgora(item.tipo)) {

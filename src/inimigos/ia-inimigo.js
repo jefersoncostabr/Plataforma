@@ -19,18 +19,30 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     const EPSILON = 0.01;
 
     function obterKnockback(config, fonte = 'default') {
+        if (typeof window.obterKnockbackPadrao === 'function') {
+            return window.obterKnockbackPadrao(config, fonte);
+        }
+
         const base = Number(config.knockbackBase ?? config.knockbackInimigo ?? 150);
         const ajuste = Number(config.knockbackAjustes?.[fonte] ?? 0);
         return base + ajuste;
     }
 
     function temEscudoAtivo() {
+        if (typeof window.temEscudoAtivoPadrao === 'function') {
+            return window.temEscudoAtivoPadrao(window.playerControle);
+        }
+
         return window.playerControle?.temEscudo
             && !window.playerControle?.escudoVermelho
             && !window.playerControle?.itensGuardadosNoCinto;
     }
 
     function obterKnockbackRecebido(config, fonte = 'default') {
+        if (typeof window.obterKnockbackRecebidoPadrao === 'function') {
+            return window.obterKnockbackRecebidoPadrao(window.playerControle, config, fonte);
+        }
+
         const valor = obterKnockback(config, fonte);
         if (temEscudoAtivo()) {
             return valor * Number(config.escudoKnockbackMultiplicador ?? 0.5);
@@ -97,6 +109,14 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     }
 
     function aplicarDeslocamentoHorizontalComColisao(ent, deslocX) {
+        if (typeof window.aplicarDeslocamentoHorizontalComColisaoPadrao === 'function') {
+            return window.aplicarDeslocamentoHorizontalComColisaoPadrao(ent, deslocX, window.plataformas, {
+                config,
+                maxPasso: config.inimigoKnockbackPassoMax ?? 1,
+                cancelarKnockbackAoColidir: true
+            });
+        }
+
         if (!ent || !deslocX) return;
 
         const maxPasso = Math.max(0.25, Number(config.inimigoKnockbackPassoMax ?? 1));
@@ -1810,7 +1830,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 // Sincroniza o colete com o inimigo
                 if (inimigo.coleteElemento && inimigo.temColete) {
-                    const offsetY = inimigo.estaAgachado ? -6 : 0;
+                    const offsetY = (inimigo.estaAgachado && inimigo.noChao) ? -6 : 0;
                     inimigo.coleteElemento.style.left = inimigo.x + 'px';
                     inimigo.coleteElemento.style.bottom = (inimigo.y + offsetY) + 'px';
                     inimigo.coleteElemento.style.transform = inimigo.elemento.style.transform;

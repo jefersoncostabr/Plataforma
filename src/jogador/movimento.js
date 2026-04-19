@@ -64,6 +64,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     }
 
     function obterKnockback(config, fonte = 'default') {
+        if (typeof window.obterKnockbackPadrao === 'function') {
+            return window.obterKnockbackPadrao(config, fonte);
+        }
+
         const base = Number(config.knockbackBase ?? config.knockbackInimigo ?? 150);
         const ajuste = Number(config.knockbackAjustes?.[fonte] ?? 0);
         return base + ajuste;
@@ -89,6 +93,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     const spriteAgachado2 = '../../assets/personagem/per_agachado2.png';
 
     function obterKnockbackRecebido(fonte = 'default') {
+        if (typeof window.obterKnockbackRecebidoPadrao === 'function') {
+            return window.obterKnockbackRecebidoPadrao(controle, config, fonte);
+        }
+
         const valor = obterKnockback(config, fonte);
         if (temEscudoAtivo()) {
             return valor * Number(config.escudoKnockbackMultiplicador ?? 0.5);
@@ -97,6 +105,13 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     }
 
     function aplicarDeslocamentoHorizontalComColisao(ent, deslocX, opcoes = {}) {
+        if (typeof window.aplicarDeslocamentoHorizontalComColisaoPadrao === 'function') {
+            return window.aplicarDeslocamentoHorizontalComColisaoPadrao(ent, deslocX, window.plataformas, {
+                config,
+                ...opcoes
+            });
+        }
+
         if (!ent || !deslocX) return;
 
         const largura = Number(opcoes.largura ?? ent.largura ?? 32);

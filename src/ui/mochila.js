@@ -94,6 +94,16 @@
             };
         }
 
+        if (slot.tipo === 'base_portatil') {
+            return {
+                titulo: String(slot.nome || `SLOT ${indice + 1}`),
+                subtitulo: 'Base portátil',
+                dica: 'Enter reinstala no chão',
+                cor: '#ffd36f',
+                sprite: obterSpriteSlot(slot)
+            };
+        }
+
         const podeUsar = typeof window.itemColetePodeSerUsadoAgora === 'function'
             ? window.itemColetePodeSerUsadoAgora(slot)
             : false;
@@ -135,6 +145,16 @@
                 dica: 'Guarda 1 item do corpo',
                 cor: '#f7e27b',
                 sprite: ''
+            };
+        }
+
+        if (celula.item?.tipo === 'base_portatil') {
+            return {
+                titulo: String(celula.item.nome || 'Base portátil'),
+                subtitulo: 'Base portátil',
+                dica: 'Enter reinstala no chão',
+                cor: '#ffd36f',
+                sprite: obterSpriteSlot(celula.item)
             };
         }
 

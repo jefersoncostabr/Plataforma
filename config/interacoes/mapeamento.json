@@ -1,0 +1,11 @@
+{
+  "elementos": [
+    {
+      "id": "craft_base",
+      "tipo": "craft-base",
+      "arquivo": "src/ui/interacoes/telas/base-craft.html",
+      "sprite": "assets/craft/craft_nivel1.png",
+      "titulo": "Base de Campanha"
+    }
+  ]
+}

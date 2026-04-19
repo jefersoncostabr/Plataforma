@@ -14,6 +14,10 @@
         }
 
         function temEscudoAtivo() {
+            if (typeof window.temEscudoAtivoPadrao === 'function') {
+                return window.temEscudoAtivoPadrao(controle);
+            }
+
             return controle.temEscudo && !controle.escudoVermelho && !controle.itensGuardadosNoCinto;
         }
 

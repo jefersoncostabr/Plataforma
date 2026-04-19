@@ -1,0 +1,146 @@
+.interaction-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(8, 12, 24, 0.78);
+    backdrop-filter: blur(2px);
+    z-index: 10020;
+    pointer-events: auto;
+    overflow-y: auto;
+}
+
+.interaction-modal {
+    width: min(520px, calc(100vw - 40px));
+    max-width: 100%;
+    max-height: calc(100vh - 40px);
+    margin: auto;
+    border: 3px solid #87a8ff;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #17233f 0%, #101726 100%);
+    color: #eef4ff;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+    overflow: auto;
+    font-family: Arial, sans-serif;
+}
+
+.interaction-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.interaction-header img {
+    width: 40px;
+    height: 40px;
+    image-rendering: pixelated;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 4px;
+}
+
+.interaction-header-copy {
+    flex: 1;
+}
+
+.interaction-header-copy h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.interaction-header-copy p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #c7d6ff;
+}
+
+.interaction-close {
+    border: none;
+    border-radius: 10px;
+    padding: 6px 10px;
+    background: #ff6b6b;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.interaction-body {
+    padding: 16px;
+}
+
+.base-panel {
+    display: grid;
+    gap: 14px;
+}
+
+.base-panel p {
+    margin: 0;
+    line-height: 1.4;
+}
+
+.base-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.base-stat-card {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.base-stat-card strong {
+    display: block;
+    font-size: 12px;
+    color: #9fb7ff;
+    margin-bottom: 4px;
+}
+
+.base-stat-card span {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.base-tip {
+    padding: 10px 12px;
+    border-left: 4px solid #7cc9ff;
+    background: rgba(124, 201, 255, 0.12);
+    border-radius: 8px;
+    color: #dff5ff;
+}
+
+.base-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.base-actions button {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.base-actions .btn-primary {
+    background: #7ee081;
+    color: #0f3113;
+}
+
+.base-actions .btn-secondary {
+    background: #c6d4ff;
+    color: #142140;
+}
+
+.base-actions button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
