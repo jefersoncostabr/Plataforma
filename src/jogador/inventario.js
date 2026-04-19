@@ -1,5 +1,6 @@
 (function () {
     const INVENTARIO_STORAGE_KEY = 'plataformaInventario';
+    const CHECKPOINT_EQUIPAMENTO_STORAGE_KEY = 'plataformaCheckpointEquipamento';
     const COLETE_CONFIG_PADRAO = {
         capacidade: 6,
         itens: {
@@ -136,47 +137,114 @@
         };
     }
 
-    function carregarInventarioSalvo() {
+    function lerEstadoInventarioDoStorage(storageKey = INVENTARIO_STORAGE_KEY) {
         try {
-            const raw = localStorage.getItem(INVENTARIO_STORAGE_KEY);
+            const raw = localStorage.getItem(storageKey);
             if (!raw) return null;
             return JSON.parse(raw);
         } catch (error) {
-            console.error('Erro ao ler inventário salvo:', error);
+            console.error(`Erro ao ler inventário salvo (${storageKey}):`, error);
             return null;
         }
     }
 
-    function salvarInventarioDoControle(controle) {
-        if (!controle) return;
+    function serializarInventarioDoControle(controle) {
+        if (!controle) return null;
+
+        return {
+            temEscudo: !!controle.temEscudo,
+            escudoVermelho: !!controle.escudoVermelho,
+            escudoProtegido: Number(controle.escudoProtegido || 0),
+            temArma: !!controle.temArma,
+            municao: Number(controle.municao || 0),
+            temBota: !!controle.temBota,
+            botaVermelha: !!controle.botaVermelha,
+            botaUsosDash: Number(controle.botaUsosDash || 0),
+            temJetpack: !!controle.temJetpack,
+            temCinto: !!controle.temCinto,
+            temGarra: !!controle.temGarra,
+            garraVermelha: !!controle.garraVermelha,
+            garraImpactosSolidos: Number(controle.garraImpactosSolidos || 0),
+            temColete: !!controle.temColete,
+            inventario: Array.isArray(controle.inventario) ? [...controle.inventario] : [],
+            coleteSlots: normalizarSlotsColete(controle.coleteSlots),
+            cintoSlot: normalizarEntradaArmazenada(controle.cintoSlot)
+        };
+    }
+
+    function carregarInventarioSalvo() {
+        return lerEstadoInventarioDoStorage(INVENTARIO_STORAGE_KEY);
+    }
+
+    function carregarCheckpointEquipamentoSalvo() {
+        const checkpoint = lerEstadoInventarioDoStorage(CHECKPOINT_EQUIPAMENTO_STORAGE_KEY);
+        return checkpoint && typeof checkpoint === 'object' ? checkpoint : null;
+    }
+
+    function salvarInventarioDoControle(controle, storageKey = INVENTARIO_STORAGE_KEY) {
+        if (!controle) return false;
+        try {
+            const estado = serializarInventarioDoControle(controle);
+            if (!estado) return false;
+            localStorage.setItem(storageKey, JSON.stringify(estado));
+            return true;
+        } catch (error) {
+            console.error(`Erro ao salvar inventário (${storageKey}):`, error);
+            return false;
+        }
+    }
+
+    function salvarCheckpointEquipamentoDoControle(controle, extras = {}) {
+        if (!controle) {
+            return { ok: false, motivo: 'Controle do jogador indisponível.' };
+        }
+
         try {
             const estado = {
-                temEscudo: controle.temEscudo,
-                escudoVermelho: controle.escudoVermelho,
-                escudoProtegido: controle.escudoProtegido,
-                temArma: controle.temArma,
-                municao: controle.municao,
-                temBota: controle.temBota,
-                botaVermelha: controle.botaVermelha,
-                botaUsosDash: controle.botaUsosDash,
-                temJetpack: controle.temJetpack,
-                temCinto: controle.temCinto,
-                temGarra: controle.temGarra,
-                garraVermelha: controle.garraVermelha,
-                garraImpactosSolidos: controle.garraImpactosSolidos,
-                temColete: controle.temColete,
-                inventario: Array.isArray(controle.inventario) ? [...controle.inventario] : [],
-                coleteSlots: normalizarSlotsColete(controle.coleteSlots),
-                cintoSlot: normalizarEntradaArmazenada(controle.cintoSlot)
+                ...serializarInventarioDoControle(controle),
+                salvoEm: Date.now(),
+                craftId: String(extras?.craftId || ''),
+                fase: String(extras?.fase || window.faseAtualNome || ''),
+                nivelBase: Number(extras?.nivelBase || 0)
             };
-            localStorage.setItem(INVENTARIO_STORAGE_KEY, JSON.stringify(estado));
+
+            localStorage.setItem(CHECKPOINT_EQUIPAMENTO_STORAGE_KEY, JSON.stringify(estado));
+            return {
+                ok: true,
+                motivo: 'Equipamento salvo nesta base. O personagem renascerá com esse loadout.'
+            };
         } catch (error) {
-            console.error('Erro ao salvar inventário:', error);
+            console.error('Erro ao salvar checkpoint de equipamento:', error);
+            return { ok: false, motivo: 'Falha ao salvar o checkpoint de equipamento.' };
+        }
+    }
+
+    function aplicarCheckpointEquipamentoComoInventarioPadrao() {
+        const checkpoint = carregarCheckpointEquipamentoSalvo();
+        if (!checkpoint) return false;
+
+        try {
+            const estado = {
+                ...checkpoint,
+                inventario: Array.isArray(checkpoint.inventario) ? [...checkpoint.inventario] : [],
+                coleteSlots: normalizarSlotsColete(checkpoint.coleteSlots),
+                cintoSlot: normalizarEntradaArmazenada(checkpoint.cintoSlot)
+            };
+
+            localStorage.setItem(INVENTARIO_STORAGE_KEY, JSON.stringify(estado));
+            return true;
+        } catch (error) {
+            console.error('Erro ao aplicar checkpoint de equipamento:', error);
+            return false;
         }
     }
 
     function limparInventarioSalvo() {
         localStorage.removeItem(INVENTARIO_STORAGE_KEY);
+    }
+
+    function limparCheckpointEquipamentoSalvo() {
+        localStorage.removeItem(CHECKPOINT_EQUIPAMENTO_STORAGE_KEY);
     }
 
     function aplicarInventarioSalvoNoControle(controle, inventarioSalvo = carregarInventarioSalvo()) {
@@ -1041,7 +1109,18 @@
 
         window.salvarInventario = salvarInventario;
         window.limparInventarioSalvo = limparInventarioSalvo;
+        window.limparCheckpointEquipamentoSalvo = limparCheckpointEquipamentoSalvo;
         window.carregarInventarioSalvo = carregarInventarioSalvo;
+        window.carregarCheckpointEquipamentoSalvo = carregarCheckpointEquipamentoSalvo;
+        window.aplicarCheckpointEquipamentoComoInventarioPadrao = aplicarCheckpointEquipamentoComoInventarioPadrao;
+        window.salvarCheckpointEquipamentoDoControle = salvarCheckpointEquipamentoDoControle;
+        window.salvarCheckpointEquipamentoAtual = (extras = {}) => {
+            const resultado = salvarCheckpointEquipamentoDoControle(controle, extras);
+            if (resultado?.ok && typeof window.salvarProgressoSkills === 'function') {
+                window.salvarProgressoSkills();
+            }
+            return resultado;
+        };
         window.tentarColetarItemJogador = tentarColetarItemJogador;
         window.removerItemDoCorpoSemDropar = removerItemDoCorpoSemDropar;
         window.usarOuDroparItemColete = usarOuDroparItemDoColete;

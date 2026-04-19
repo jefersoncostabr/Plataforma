@@ -20,6 +20,39 @@ window.SKILLS = Object.freeze({
     RESGATE: 'Resgate'
 });
 window.temSkill = (nomeSkill) => Array.isArray(window.playerSkills) && window.playerSkills.includes(String(nomeSkill || ''));
+const SKILLS_STORAGE_KEY = 'plataformaSkills';
+window.salvarProgressoSkills = salvarProgressoSkills;
+window.carregarProgressoSkillsSalvo = carregarProgressoSkillsSalvo;
+
+function carregarProgressoSkillsSalvo() {
+    try {
+        const raw = localStorage.getItem(SKILLS_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch (error) {
+        console.warn('SkillTree: falha ao ler progresso salvo.', error);
+        return null;
+    }
+}
+
+function salvarProgressoSkills() {
+    try {
+        const estado = {
+            playerXP: Number(window.playerXP || 0),
+            skillPoints: Number(window.skillPoints || 0),
+            acquired: [...new Set((Array.isArray(window.playerSkills) ? window.playerSkills : [])
+                .map((skill) => String(skill || ''))
+                .filter(Boolean))],
+            salvoEm: Date.now()
+        };
+
+        localStorage.setItem(SKILLS_STORAGE_KEY, JSON.stringify(estado));
+        return true;
+    } catch (error) {
+        console.warn('SkillTree: falha ao salvar progresso.', error);
+        return false;
+    }
+}
+
 let selectedSkillId = null;
 let skillsLevelMap = {}; 
 let skillButtonsMap = {};
@@ -87,6 +120,10 @@ window.ganharXP = (quantidade = 1) => {
         // console.log(`Sistema: +${novosPontos} Ponto(s) de Skill obtido(s)! Total: ${window.skillPoints}`);
     }
 
+    if (typeof window.salvarProgressoSkills === 'function') {
+        window.salvarProgressoSkills();
+    }
+
     // console.log(`XP Ganho: +${quantidade}. Total: ${window.playerXP}`);
 };
 
@@ -100,21 +137,44 @@ window.carregarDadosSkills = async (forçarReset = false) => {
         const dados = await resposta.json();
         const skillsOriginais = dados.skills || {};
         const skillsNormalizadas = normalizarEstruturaSkills(skillsOriginais);
+        const progressoSalvo = !forçarReset ? carregarProgressoSkillsSalvo() : null;
         window.skillsData = skillsNormalizadas;
 
-        if (forçarReset || window.playerSkills.length === 0) {
+        if (progressoSalvo && typeof progressoSalvo === 'object') {
+            window.playerXP = Number(progressoSalvo.playerXP ?? progressoSalvo.xp ?? 0);
+            window.skillPoints = Number(progressoSalvo.skillPoints ?? 0);
+            window.playerSkills = normalizarSkillsAdquiridas(
+                progressoSalvo.acquired || progressoSalvo.playerSkills || [],
+                skillsNormalizadas,
+                skillsOriginais
+            );
+        } else if (forçarReset || window.playerSkills.length === 0) {
             window.playerXP = Number(dados.playerStats?.xp || 0);
             window.skillPoints = Number(dados.playerStats?.skillPoints || 0);
             window.playerSkills = normalizarSkillsAdquiridas(dados.playerStats?.acquired || [], skillsNormalizadas, skillsOriginais);
         } else {
+            window.playerXP = Number(window.playerXP || 0);
+            window.skillPoints = Number(window.skillPoints || 0);
             window.playerSkills = normalizarSkillsAdquiridas(window.playerSkills, skillsNormalizadas, skillsOriginais);
         }
 
         if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
+        salvarProgressoSkills();
     } catch (e) {
-        window.playerXP = 0;
-        window.skillPoints = 0;
-        window.playerSkills = [];
+        const progressoSalvo = carregarProgressoSkillsSalvo();
+        if (progressoSalvo && typeof progressoSalvo === 'object') {
+            window.playerXP = Number(progressoSalvo.playerXP ?? progressoSalvo.xp ?? 0);
+            window.skillPoints = Number(progressoSalvo.skillPoints ?? 0);
+            window.playerSkills = Array.isArray(progressoSalvo.acquired || progressoSalvo.playerSkills)
+                ? [...new Set((progressoSalvo.acquired || progressoSalvo.playerSkills).map((skill) => String(skill || '')).filter(Boolean))]
+                : [];
+        } else {
+            window.playerXP = 0;
+            window.skillPoints = 0;
+            window.playerSkills = [];
+        }
+
+        if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
     }
 };
 
@@ -333,6 +393,7 @@ function abrirMenuSkillsUI() {
                 
                 // Executa a lógica da skill recém-adquirida
                 if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
+                if (typeof window.salvarProgressoSkills === 'function') window.salvarProgressoSkills();
 
                 // Atualiza a UI imediatamente
                 fecharMenuSkillsUI();

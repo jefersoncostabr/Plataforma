@@ -184,6 +184,29 @@
             botao.addEventListener('click', () => fecharTelaInteracao());
         });
 
+        const botaoEquipamento = overlay.querySelector('[data-interaction-action="salvar-equipamento"]');
+        if (botaoEquipamento) {
+            botaoEquipamento.addEventListener('click', () => {
+                if (typeof window.salvarCheckpointEquipamentoAtual !== 'function') {
+                    definirFeedbackInteracao('O checkpoint de equipamento ainda não está disponível.', true);
+                    return;
+                }
+
+                const resultado = window.salvarCheckpointEquipamentoAtual({
+                    craftId: contexto.craftId,
+                    fase: window.faseAtualNome || '',
+                    nivelBase: Number(contexto?.nivel || 1)
+                });
+
+                if (!resultado?.ok) {
+                    definirFeedbackInteracao(resultado?.motivo || 'Não foi possível salvar o equipamento.', true);
+                    return;
+                }
+
+                definirFeedbackInteracao(resultado.motivo || 'Checkpoint de equipamento salvo com sucesso.');
+            });
+        }
+
         const botaoRecolher = overlay.querySelector('[data-interaction-action="recolher-base"]');
         if (botaoRecolher) {
             const atualizarBotao = () => {

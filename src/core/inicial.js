@@ -437,6 +437,10 @@ window.proximoNivel = async function() {
 window.reiniciarJogo = async function(porMorte = true) {
     limparAnimacaoDanoJogador();
 
+    if (typeof window.aplicarCheckpointEquipamentoComoInventarioPadrao === 'function') {
+        window.aplicarCheckpointEquipamentoComoInventarioPadrao();
+    }
+
     const renascimentoBase = obterConfigRenascimentoBaseAtiva();
     const usarSpawnpointDaBase = renascimentoBase?.modoRenascimento === 'spawnpoint';
     const usarMemoriaDaBase = !!(porMorte && renascimentoBase?.modoRenascimento === 'memoria');
@@ -506,6 +510,9 @@ window.reiniciarJogo = async function(porMorte = true) {
             if (typeof window.aplicarEfeitosSkills === 'function') {
                 window.aplicarEfeitosSkills();
             }
+            if (typeof window.salvarProgressoSkills === 'function') {
+                window.salvarProgressoSkills();
+            }
         }
     }
 
@@ -536,6 +543,10 @@ async function iniciarJogo() {
     // Carrega as definições de itens para o jogo usar os sprites dos JSONs
     if (typeof window.carregarItemDefinitions === 'function') await window.carregarItemDefinitions();
     if (typeof window.carregarConfigColete === 'function') await window.carregarConfigColete();
+
+    if (typeof window.aplicarCheckpointEquipamentoComoInventarioPadrao === 'function') {
+        window.aplicarCheckpointEquipamentoComoInventarioPadrao();
+    }
 
     // Carrega dados de skills e progresso
     if (typeof window.carregarDadosSkills === 'function') {

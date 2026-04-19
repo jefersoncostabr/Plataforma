@@ -96,6 +96,204 @@ function definirTeclaAcao(acao, tecla) {
 
 carregarControlesDoStorage();
 
+const EQUIPAMENTOS_RESUMO = [
+    { tipo: 'revolver', label: 'Revólver', configKey: 'spriteItemRevolver', fallback: 'assets/personagem/revolver_pegavel.png' },
+    { tipo: 'escudo', label: 'Escudo', configKey: 'spriteEscudoPlayer', fallback: 'assets/personagem/escudo.png' },
+    { tipo: 'bota', label: 'Bota', configKey: 'spriteItemBota', fallback: 'assets/personagem/bota_pegavel.png' },
+    { tipo: 'jetpack', label: 'Jetpack', configKey: 'spriteItemJetpack', fallback: 'assets/personagem/jetpack_pegavel.png' },
+    { tipo: 'garra', label: 'Garra', configKey: 'spriteItemGarra', fallback: 'assets/personagem/garra_coletavel.png' },
+    { tipo: 'cinto', label: 'Cinto', configKey: 'spriteItemCinto', fallback: 'assets/personagem/cinto_coletavel.png' },
+    { tipo: 'colete', label: 'Colete', configKey: 'spriteItemColete', fallback: 'assets/personagem/colete_coletavel.png' }
+];
+
+function lerJsonStorage(chave) {
+    try {
+        const valor = localStorage.getItem(chave);
+        return valor ? JSON.parse(valor) : null;
+    } catch (_) {
+        return null;
+    }
+}
+
+function obterSpriteResumoEquipamento(item) {
+    const spriteItem = window.itemDefinitions?.[item.tipo];
+    return spriteItem?.spriteColetavel
+        || spriteItem?.spriteEquipado
+        || window.config?.[item.configKey]
+        || item.fallback;
+}
+
+function extrairEquipamentosConquistados(estado = {}) {
+    const encontrados = new Set();
+    const inventario = Array.isArray(estado?.inventario) ? estado.inventario : [];
+    const slotsColete = Array.isArray(estado?.coleteSlots) ? estado.coleteSlots : [];
+    const slotCinto = estado?.cintoSlot || null;
+
+    inventario.forEach((tipo) => {
+        if (tipo) encontrados.add(String(tipo));
+    });
+
+    slotsColete.forEach((slot) => {
+        if (slot?.tipo) encontrados.add(String(slot.tipo));
+    });
+
+    if (slotCinto?.tipo) encontrados.add(String(slotCinto.tipo));
+    if (estado?.temArma) encontrados.add('revolver');
+    if (estado?.temEscudo || estado?.escudoVermelho) encontrados.add('escudo');
+    if (estado?.temBota) encontrados.add('bota');
+    if (estado?.temJetpack) encontrados.add('jetpack');
+    if (estado?.temGarra) encontrados.add('garra');
+    if (estado?.temCinto) encontrados.add('cinto');
+    if (estado?.temColete) encontrados.add('colete');
+
+    return EQUIPAMENTOS_RESUMO.filter((item) => encontrados.has(item.tipo));
+}
+
+function formatarFaseResumo(nomeArquivo = '') {
+    const valor = String(nomeArquivo || '').trim().toLowerCase();
+    if (!valor) return '--';
+    if (valor.includes('treino')) return 'TR';
+
+    const numero = valor.match(/(\d+)/);
+    if (numero?.[1]) return `F${numero[1]}`;
+
+    return valor.replace('.json', '').slice(0, 5).toUpperCase();
+}
+
+function criarChipResumo(texto, cor = '#3a3a3a', corTexto = '#fff') {
+    const chip = document.createElement('span');
+    chip.textContent = texto;
+    chip.style.display = 'inline-flex';
+    chip.style.alignItems = 'center';
+    chip.style.justifyContent = 'center';
+    chip.style.minWidth = '30px';
+    chip.style.padding = '2px 6px';
+    chip.style.borderRadius = '999px';
+    chip.style.background = cor;
+    chip.style.color = corTexto;
+    chip.style.fontSize = '10px';
+    chip.style.fontWeight = '700';
+    chip.style.letterSpacing = '0.5px';
+    return chip;
+}
+
+function criarPainelResumoSalvo() {
+    const inventarioSalvo = lerJsonStorage('plataformaCheckpointEquipamento') || lerJsonStorage('plataformaInventario') || {};
+    const baseSalva = lerJsonStorage('plataformaCraftPersistente') || {};
+    const skillsSalvas = lerJsonStorage('plataformaSkills') || {};
+    const equipamentos = extrairEquipamentosConquistados(inventarioSalvo);
+    const qtdSkills = Array.isArray(skillsSalvas?.acquired)
+        ? new Set(skillsSalvas.acquired.map((item) => String(item || ''))).size
+        : Array.isArray(skillsSalvas?.playerSkills)
+            ? new Set(skillsSalvas.playerSkills.map((item) => String(item || ''))).size
+            : 0;
+    const xp = Number(skillsSalvas?.playerXP ?? skillsSalvas?.xp ?? 0);
+    const modoBase = String(baseSalva?.modoRenascimento || '').toLowerCase();
+    const nivelBase = Math.max(0, Number(baseSalva?.nivel || 0));
+
+    const painel = document.createElement('div');
+    painel.style.width = '188px';
+    painel.style.minHeight = '148px';
+    painel.style.padding = '10px';
+    painel.style.border = '1px solid rgba(255,255,255,0.16)';
+    painel.style.borderRadius = '10px';
+    painel.style.background = 'rgba(255,255,255,0.05)';
+    painel.style.boxShadow = '0 6px 18px rgba(0,0,0,0.24)';
+    painel.style.display = 'flex';
+    painel.style.flexDirection = 'column';
+    painel.style.gap = '8px';
+
+    const titulo = document.createElement('div');
+    titulo.textContent = 'SALVO';
+    titulo.style.fontSize = '11px';
+    titulo.style.fontWeight = '800';
+    titulo.style.letterSpacing = '2px';
+    titulo.style.opacity = '0.9';
+    painel.appendChild(titulo);
+
+    const equipamentosWrap = document.createElement('div');
+    equipamentosWrap.style.display = 'flex';
+    equipamentosWrap.style.flexWrap = 'wrap';
+    equipamentosWrap.style.gap = '6px';
+
+    if (equipamentos.length === 0) {
+        const vazio = document.createElement('div');
+        vazio.textContent = 'Sem equipamentos';
+        vazio.style.fontSize = '11px';
+        vazio.style.opacity = '0.72';
+        equipamentosWrap.appendChild(vazio);
+    } else {
+        equipamentos.forEach((item) => {
+            const icone = document.createElement('img');
+            icone.src = obterSpriteResumoEquipamento(item);
+            icone.alt = item.label;
+            icone.title = item.label;
+            icone.style.width = '22px';
+            icone.style.height = '22px';
+            icone.style.objectFit = 'contain';
+            icone.style.imageRendering = 'pixelated';
+            icone.style.padding = '2px';
+            icone.style.borderRadius = '6px';
+            icone.style.background = 'rgba(255,255,255,0.08)';
+            equipamentosWrap.appendChild(icone);
+        });
+    }
+
+    painel.appendChild(equipamentosWrap);
+
+    const skillsRow = document.createElement('div');
+    skillsRow.style.display = 'flex';
+    skillsRow.style.flexWrap = 'wrap';
+    skillsRow.style.gap = '6px';
+    skillsRow.appendChild(criarChipResumo(`★ ${qtdSkills}`, '#3f51b5'));
+    skillsRow.appendChild(criarChipResumo(`XP ${xp}`, '#5b2a86'));
+    if (lerJsonStorage('plataformaCheckpointEquipamento')) {
+        skillsRow.appendChild(criarChipResumo('CP', '#0c8b62'));
+    }
+    painel.appendChild(skillsRow);
+
+    const baseBox = document.createElement('div');
+    baseBox.style.display = 'flex';
+    baseBox.style.alignItems = 'center';
+    baseBox.style.gap = '8px';
+    baseBox.style.minHeight = '38px';
+
+    const baseImg = document.createElement('img');
+    baseImg.alt = 'Base';
+    baseImg.style.width = '26px';
+    baseImg.style.height = '26px';
+    baseImg.style.objectFit = 'contain';
+    baseImg.style.imageRendering = 'pixelated';
+    baseImg.style.background = 'rgba(255,255,255,0.08)';
+    baseImg.style.borderRadius = '6px';
+    baseImg.style.padding = '2px';
+    baseImg.src = typeof window.obterSpriteCraftNivel === 'function'
+        ? window.obterSpriteCraftNivel(Math.max(1, nivelBase || 1), 'item')
+        : 'assets/craft/craft_nivel1.png';
+    baseBox.appendChild(baseImg);
+
+    const baseInfo = document.createElement('div');
+    baseInfo.style.display = 'flex';
+    baseInfo.style.flexWrap = 'wrap';
+    baseInfo.style.gap = '4px';
+
+    if (nivelBase > 0) {
+        baseInfo.appendChild(criarChipResumo(`N${nivelBase}`, '#00695c'));
+        baseInfo.appendChild(criarChipResumo(
+            modoBase === 'spawnpoint' ? 'SP' : modoBase === 'memoria' ? 'MEM' : 'OFF',
+            modoBase === 'spawnpoint' ? '#1565c0' : modoBase === 'memoria' ? '#8e24aa' : '#555'
+        ));
+        baseInfo.appendChild(criarChipResumo(formatarFaseResumo(baseSalva?.faseOriginal || baseSalva?.fase), '#424242'));
+    } else {
+        baseInfo.appendChild(criarChipResumo('SEM BASE', '#555'));
+    }
+
+    baseBox.appendChild(baseInfo);
+    painel.appendChild(baseBox);
+
+    return painel;
+}
+
 /**
  * Retorna a lista de opcoes do menu, ajustando o comportamento para o inicio do jogo.
  */
@@ -359,6 +557,13 @@ function renderMenuUI() {
 }
 
 function renderMainMenuContent(overlay) {
+    const layout = document.createElement('div');
+    layout.style.display = 'flex';
+    layout.style.alignItems = 'center';
+    layout.style.justifyContent = 'center';
+    layout.style.gap = '18px';
+    layout.style.width = '100%';
+
     const optionsContainer = document.createElement('div');
     optionsContainer.id = 'menu-options-container';
     optionsContainer.style.display = 'flex';
@@ -395,7 +600,9 @@ function renderMainMenuContent(overlay) {
         optionsContainer.appendChild(btn);
     });
 
-    overlay.appendChild(optionsContainer);
+    layout.appendChild(optionsContainer);
+    layout.appendChild(criarPainelResumoSalvo());
+    overlay.appendChild(layout);
 }
 
 function renderControlsContent(overlay) {

@@ -256,6 +256,7 @@
 
                 if (sorteio === 'skillpoint') {
                     window.skillPoints += 1;
+                    if (typeof window.salvarProgressoSkills === 'function') window.salvarProgressoSkills();
                 } else if (sorteio === 'xp') {
                     if (typeof window.ganharXP === 'function') window.ganharXP(6);
                 } else if (sorteio === 'restauracao') {
@@ -291,6 +292,7 @@
                             const skillSorteada = disponiveis[Math.floor(Math.random() * disponiveis.length)];
                             window.playerSkills.push(skillSorteada);
                             if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
+                            if (typeof window.salvarProgressoSkills === 'function') window.salvarProgressoSkills();
                             console.log('Nova Skill Desbloqueada: ' + window.skillsData[skillSorteada].nome);
                         } else {
                             if (typeof window.ganharXP === 'function') window.ganharXP(5);
