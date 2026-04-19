@@ -26,7 +26,7 @@
         "m15", "m29",
         "n16", "n29",
         "o29",
-        "p18", "p28",
+        "p18", "p20", "p21", "p22", "p23", "p24", "p25", "p26", "p28",
         "q18", "q28",
         "r18", "r28",
         "s19", "s27",
@@ -38,12 +38,14 @@
     ],
     "plataformasTerraSuperior2": [
         "b8", "b33",
-        "o17"
+        "o17",
+        "q19", "q27"
     ],
     "plataformasEstacaSup": [
         "b16"
     ],
     "inimigo_revolver": ["b21", "b22", "b23", "b24"],
     "inimigo_escudo": ["b13", "b32", "v25"],
-    "inimigo_feno": ["v19", "v26"]
+    "inimigo_feno": ["v19", "v26"],
+    "inimigo_comum": ["q21", "r22", "r24"]
 }

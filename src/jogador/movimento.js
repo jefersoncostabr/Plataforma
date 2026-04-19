@@ -634,7 +634,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             },
             onResetDebug: () => {
                 limparInventarioSalvo();
-                console.log('Inventário salvo zerado.');
+                if (typeof window.limparCraftPersistido === 'function') {
+                    window.limparCraftPersistido();
+                }
+                console.log('Inventário salvo e base persistente zerados.');
                 controle.temEscudo = false;
                 controle.escudoVermelho = false;
                 controle.escudoProtegido = 0;

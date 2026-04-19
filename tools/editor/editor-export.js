@@ -19,8 +19,24 @@
             throw new Error('Output e getFaseData são obrigatórios para a exportação do editor.');
         }
 
-        const SAVE_SERVER_URL = 'http://127.0.0.1:3210';
+        const SAVE_SERVER_CANDIDATES = (() => {
+            const candidates = [];
+            const overrideUrl = window.EDITOR_SAVE_SERVER_URL || window.EditorConfig?.SAVE_SERVER_URL || '';
+            const currentOrigin = window.location?.origin || '';
 
+            if (overrideUrl) {
+                candidates.push(String(overrideUrl).replace(/\/+$/, ''));
+            }
+
+            if (/^https?:/i.test(currentOrigin)) {
+                candidates.push(currentOrigin.replace(/\/+$/, ''));
+            }
+
+            candidates.push('http://127.0.0.1:3210', 'http://localhost:3210');
+            return [...new Set(candidates.filter(Boolean))];
+        })();
+
+        let saveServerUrl = SAVE_SERVER_CANDIDATES[0] || 'http://127.0.0.1:3210';
         let arquivoFaseAtual = '';
         let handleArquivoAtual = null;
         let autoSaveTimeoutId = null;
@@ -124,18 +140,25 @@
                 return servidorLocalDisponivel;
             }
 
-            try {
-                const resposta = await fetch(`${SAVE_SERVER_URL}/__editor-save-status`, { cache: 'no-store' });
-                servidorLocalDisponivel = resposta.ok;
-            } catch (erro) {
-                servidorLocalDisponivel = false;
+            for (const candidate of SAVE_SERVER_CANDIDATES) {
+                try {
+                    const resposta = await fetch(`${candidate}/__editor-save-status`, { cache: 'no-store' });
+                    if (resposta.ok) {
+                        saveServerUrl = candidate;
+                        servidorLocalDisponivel = true;
+                        return true;
+                    }
+                } catch (erro) {
+                    // tenta o próximo candidato
+                }
             }
 
-            return servidorLocalDisponivel;
+            servidorLocalDisponivel = false;
+            return false;
         }
 
         async function salvarViaServidorLocal(jsonStr) {
-            const resposta = await fetch(`${SAVE_SERVER_URL}/save-phase`, {
+            const resposta = await fetch(`${saveServerUrl}/save-phase`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

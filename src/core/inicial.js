@@ -52,6 +52,10 @@ function limparAnimacaoDanoJogador() {
 async function carregarFase(nomeArquivo) {
 
     limparAnimacaoDanoJogador();
+    window.faseAtualNome = String(nomeArquivo || '').split('/').pop() || String(nomeArquivo || '');
+    if (typeof window.removerTodosCrafts === 'function') {
+        window.removerTodosCrafts();
+    }
 
     
     // Tenta encontrar o container para controle de exibição
@@ -287,6 +291,10 @@ async function carregarFase(nomeArquivo) {
     // Carrega itens iniciais da fase
     if (typeof window.resetarItens === 'function') {
         window.resetarItens(fase.itens || {});
+    }
+
+    if (typeof window.restaurarCraftPersistenteDaFaseAtual === 'function') {
+        window.restaurarCraftPersistenteDaFaseAtual();
     }
 
     // Configura spawn de inimigos aleatórios

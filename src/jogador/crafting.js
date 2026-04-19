@@ -1,11 +1,22 @@
 (function () {
     const TILE_SIZE = 32;
     const NIVEL_MAXIMO_CRAFT = 3;
+    const CRAFT_PERSISTENCE_KEY = 'plataformaCraftPersistente';
     const SPRITES_CRAFT = {
         1: '../../assets/craft/craft_nivel1.png',
         2: '../../assets/craft/craft_nivel2.png',
         3: '../../assets/craft/craft_nivel3.png'
     };
+
+    function lerCraftPersistidoStorage() {
+        try {
+            const raw = localStorage.getItem(CRAFT_PERSISTENCE_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch (error) {
+            console.warn('Craft: falha ao ler base persistida.', error);
+            return null;
+        }
+    }
 
     function gerarSpriteCraftNivel(nivel = 1, tipoBase = 'item') {
         const temaPorNivel = {
@@ -73,6 +84,106 @@
         controle.craftPreviewPosicao = null;
         controle.craftPreviewTipo = null;
         controle.craftPreviewOrigem = null;
+
+        function obterNomeFaseAtual() {
+            return String(window.faseAtualNome || '').trim().toLowerCase();
+        }
+
+        function obterCraftPersistido() {
+            const craft = lerCraftPersistidoStorage();
+            if (!craft || typeof craft !== 'object') return null;
+
+            const x = Number(craft.x);
+            const y = Number(craft.y);
+            const nivel = Math.max(1, Math.min(NIVEL_MAXIMO_CRAFT, Number(craft.nivel || 1)));
+            if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+
+            return {
+                id: String(craft.id || 'craft-persistente'),
+                fase: String(craft.fase || '').trim().toLowerCase(),
+                faseOriginal: String(craft.faseOriginal || craft.fase || '').trim(),
+                posicaoGrid: String(craft.posicaoGrid || ''),
+                x,
+                y,
+                largura: 32,
+                altura: 32,
+                nivel,
+                tipoBase: String(craft.tipoBase || 'item'),
+                elementos: []
+            };
+        }
+
+        function salvarCraftPersistido(craft) {
+            const faseOriginal = String(window.faseAtualNome || '').trim();
+            if (!craft || !faseOriginal) return false;
+
+            const posicaoGrid = typeof window.ViewportUtils?.pixelsParaGrid === 'function'
+                ? window.ViewportUtils.pixelsParaGrid(craft.x, craft.y)
+                : '';
+
+            const registro = {
+                id: String(craft.id || 'craft-persistente'),
+                fase: faseOriginal.toLowerCase(),
+                faseOriginal,
+                posicaoGrid,
+                x: Number(craft.x || 0),
+                y: Number(craft.y || 0),
+                nivel: Math.max(1, Math.min(NIVEL_MAXIMO_CRAFT, Number(craft.nivel || 1))),
+                tipoBase: String(craft.tipoBase || 'item')
+            };
+
+            try {
+                localStorage.setItem(CRAFT_PERSISTENCE_KEY, JSON.stringify(registro));
+                return true;
+            } catch (error) {
+                console.warn('Craft: falha ao salvar base persistida.', error);
+                return false;
+            }
+        }
+
+        function limparCraftPersistido() {
+            try {
+                localStorage.removeItem(CRAFT_PERSISTENCE_KEY);
+            } catch (error) {
+                console.warn('Craft: falha ao limpar base persistida.', error);
+            }
+        }
+
+        function existeBasePersistidaEmOutraFase() {
+            const craft = obterCraftPersistido();
+            const faseAtual = obterNomeFaseAtual();
+            return !!(craft && craft.fase && faseAtual && craft.fase !== faseAtual);
+        }
+
+        function restaurarCraftPersistenteDaFaseAtual() {
+            const craftPersistido = obterCraftPersistido();
+            const faseAtual = obterNomeFaseAtual();
+
+            if (!craftPersistido || !faseAtual || craftPersistido.fase !== faseAtual) {
+                return false;
+            }
+
+            if (!Array.isArray(window.craftsAtivos)) {
+                window.craftsAtivos = [];
+            }
+
+            const existente = encontrarCraftNaPosicao(craftPersistido.x, craftPersistido.y);
+            if (existente) {
+                existente.nivel = craftPersistido.nivel;
+                existente.tipoBase = craftPersistido.tipoBase;
+                atualizarVisualCraft(existente);
+                return true;
+            }
+
+            const craft = {
+                ...craftPersistido,
+                elementos: []
+            };
+
+            window.craftsAtivos.push(craft);
+            atualizarVisualCraft(craft);
+            return true;
+        }
 
         function obterUltimoItemInventario() {
             if (!Array.isArray(controle.inventario) || controle.inventario.length === 0) return null;
@@ -259,12 +370,31 @@
             const fonte = obterFonteItemParaCraft();
             const tipo = fonte?.tipo || null;
             const posicao = obterPosicaoCraftNoGrid();
+            const faseAtual = obterNomeFaseAtual();
+            const craftPersistido = obterCraftPersistido();
 
             if (!podeConsumirItemParaCraft(fonte)) return false;
             if (!areaValidaParaNovoCraft(posicao)) {
                 if (typeof flashElement === 'function') {
                     flashElement(elemento, 120, 4);
                 }
+                return false;
+            }
+
+            if (craftPersistido && craftPersistido.fase === faseAtual) {
+                restaurarCraftPersistenteDaFaseAtual();
+                if (typeof flashElement === 'function') {
+                    flashElement(elemento, 120, 4);
+                }
+                console.log('Craft: a base única desta campanha já está instalada nesta fase.');
+                return false;
+            }
+
+            if (existeBasePersistidaEmOutraFase()) {
+                if (typeof flashElement === 'function') {
+                    flashElement(elemento, 120, 4);
+                }
+                console.log(`Craft: a base única já foi instalada em ${craftPersistido?.faseOriginal || craftPersistido?.fase || 'outra fase'}.`);
                 return false;
             }
 
@@ -317,6 +447,7 @@
 
             window.craftsAtivos.push(craft);
             atualizarVisualCraft(craft);
+            salvarCraftPersistido(craft);
             limparPreviewCraft();
             return true;
         }
@@ -336,6 +467,7 @@
 
             craft.nivel = Math.min(NIVEL_MAXIMO_CRAFT, craft.nivel + 1);
             atualizarVisualCraft(craft);
+            salvarCraftPersistido(craft);
             return true;
         }
 
@@ -407,9 +539,10 @@
             return iniciarPreviewCraft();
         }
 
-        function removerTodosCrafts() {
+        function removerTodosCrafts(removerPersistencia = false) {
             if (!Array.isArray(window.craftsAtivos)) {
                 window.craftsAtivos = [];
+                if (removerPersistencia) limparCraftPersistido();
                 return;
             }
             window.craftsAtivos.forEach((craft) => {
@@ -419,15 +552,22 @@
             });
             window.craftsAtivos = [];
             limparPreviewCraft();
+            if (removerPersistencia) {
+                limparCraftPersistido();
+            }
         }
 
+        window.limparCraftPersistido = limparCraftPersistido;
+        window.restaurarCraftPersistenteDaFaseAtual = restaurarCraftPersistenteDaFaseAtual;
         window.removerTodosCrafts = removerTodosCrafts;
         window.obterCraftNaPosicao = encontrarCraftNaPosicao;
+        window.obterCraftPersistido = obterCraftPersistido;
 
         return {
             processarInteracaoCraft,
             limparPreviewCraft,
-            removerTodosCrafts
+            removerTodosCrafts,
+            restaurarCraftPersistenteDaFaseAtual
         };
     }
 

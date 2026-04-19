@@ -3,8 +3,10 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = Number(process.env.EDITOR_SAVE_PORT || 3210);
+const HOST = process.env.EDITOR_SAVE_HOST || '127.0.0.1';
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
 const PHASES_DIR = path.join(ROOT_DIR, 'config', 'fases');
+const EDITOR_DIR = path.join(ROOT_DIR, 'tools', 'editor');
 
 function setCorsHeaders(res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -89,21 +91,63 @@ async function handleSavePhase(req, res) {
 }
 
 async function handleStatic(req, res, pathname) {
-    const relativePath = pathname === '/' ? 'tools/editor/editor.html' : pathname.replace(/^\/+/, '');
-    const filePath = path.normalize(path.join(ROOT_DIR, relativePath));
+    const cleanPath = decodeURIComponent(String(pathname || '/'));
 
-    if (!filePath.startsWith(ROOT_DIR)) {
-        return sendText(res, 403, 'Acesso negado.');
+    if (cleanPath === '/') {
+        setCorsHeaders(res);
+        res.writeHead(302, { Location: '/tools/editor/editor.html' });
+        return res.end();
+    }
+
+    const relativePath = (cleanPath === '/tools/editor' || cleanPath === '/tools/editor/')
+        ? 'tools/editor/editor.html'
+        : cleanPath.replace(/^\/+/, '');
+
+    const candidatos = [path.normalize(path.join(ROOT_DIR, relativePath))];
+
+    if (!relativePath.includes('/') && /^editor[\w.-]*\.(css|js|html)$/i.test(relativePath)) {
+        candidatos.push(path.normalize(path.join(EDITOR_DIR, relativePath)));
     }
 
     try {
-        const stat = await fs.promises.stat(filePath);
+        let filePath = null;
+        let stat = null;
+
+        for (const candidato of candidatos) {
+            if (!candidato.startsWith(ROOT_DIR)) continue;
+
+            try {
+                const info = await fs.promises.stat(candidato);
+                filePath = candidato;
+                stat = info;
+                break;
+            } catch (e) {
+                // tenta próximo caminho candidato
+            }
+        }
+
+        if (!filePath || !stat) {
+            return sendText(res, 404, 'Not Found');
+        }
+
         if (stat.isDirectory()) {
-            const indexPath = path.join(filePath, 'index.html');
-            const content = await fs.promises.readFile(indexPath);
-            setCorsHeaders(res);
-            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-            return res.end(content);
+            const indexCandidates = [
+                path.join(filePath, 'index.html'),
+                path.join(filePath, 'editor.html')
+            ];
+
+            for (const indexPath of indexCandidates) {
+                try {
+                    const content = await fs.promises.readFile(indexPath);
+                    setCorsHeaders(res);
+                    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+                    return res.end(content);
+                } catch (e) {
+                    // tenta o próximo arquivo de entrada
+                }
+            }
+
+            return sendText(res, 404, 'Not Found');
         }
 
         const content = await fs.promises.readFile(filePath);
@@ -140,8 +184,9 @@ const server = http.createServer(async (req, res) => {
     return handleStatic(req, res, url.pathname);
 });
 
-server.listen(PORT, '127.0.0.1', () => {
-    console.log(`Editor save server running at http://127.0.0.1:${PORT}`);
+server.listen(PORT, HOST, () => {
+    console.log(`Editor save server running at http://${HOST}:${PORT}`);
+    console.log(`Editor URL: http://${HOST}:${PORT}/tools/editor/editor.html`);
     console.log(`Serving workspace root: ${ROOT_DIR}`);
 });
 
