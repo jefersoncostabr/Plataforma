@@ -18,10 +18,12 @@
         const base = { ...CONTROLES_PADRAO };
         if (!raw || typeof raw !== 'object') return base;
 
-        Object.keys(base).forEach((acao) => {
+        Object.keys(raw).forEach((acao) => {
             const valor = raw[acao];
             if (Array.isArray(valor) && valor.length > 0) {
                 base[acao] = valor.map(v => String(v));
+            } else if (typeof valor === 'object' && valor !== null) {
+                // ...
             }
         });
 
@@ -63,26 +65,35 @@
 
     function acaoAtiva(controle, acao) {
         if (!controle?.teclas) return false;
+        // Discretas (teclado)
         if (controle.acoesDiscretas?.[acao]) return true;
-
-        return getBinds(acao).some(k => {
+        // Teclado
+        const tecladoAtivo = getBinds(acao).some(k => {
             const key = String(k);
             return !!(controle.teclas[key] || controle.teclas[key.toLowerCase()] || controle.teclas[key.toUpperCase()]);
         });
+        if (tecladoAtivo) return true;
+        // ...
+        return false;
     }
 
     function consumirAcao(controle, acao) {
         if (!controle?.teclas) return;
+        
+        // Limpar estado discreto (teclado)
         if (controle.acoesDiscretas) {
             controle.acoesDiscretas[acao] = false;
         }
 
+        // Limpar todas as variações de teclas do teclado
         getBinds(acao).forEach((k) => {
             const key = String(k);
             controle.teclas[key] = false;
             controle.teclas[key.toLowerCase()] = false;
             controle.teclas[key.toUpperCase()] = false;
         });
+        
+        // ...
     }
 
     function criarSistemaControlesJogador(opcoes = {}) {
@@ -197,6 +208,8 @@
         const api = {
             async inicializar() {
                 await carregarControles();
+
+                // ...
 
                 const handlersAtuais = window.__playerControlsHandlers;
                 if (handlersAtuais?.keydown) window.removeEventListener('keydown', handlersAtuais.keydown);

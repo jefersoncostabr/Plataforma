@@ -779,6 +779,21 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     } = sistemaCombateCorpoACorpo;
 
     function atualizar() {
+        // DEBUG: Logar estado das ações de movimento e teclas virtuais
+        if (window.DEBUG_CONTROLE_MOVIMENTO) {
+            const acoes = ['esquerda', 'direita', 'cima', 'baixo'];
+            window.__DEBUG_CONTROLE_LAST = window.__DEBUG_CONTROLE_LAST || {};
+            acoes.forEach(acao => {
+                const ativa = acaoAtiva(acao);
+                if (window.__DEBUG_CONTROLE_LAST[acao] !== ativa) {
+                    window.__DEBUG_CONTROLE_LAST[acao] = ativa;
+                    console.log(`[DEBUG CONTROLE] ${acao}: ${ativa}`);
+                }
+            });
+            // ...
+        }
+        // ...
+
         // Lógica de Stun do Jogador (quando capturado pela garra inimiga)
         if (controle.stunned) {
             if (controle.stunTimer > 0) {

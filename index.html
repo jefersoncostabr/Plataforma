@@ -27,6 +27,7 @@
 
     <!-- Config & Utilities (Devem carregar ANTES dos outros scripts) -->
     <script src="src/config/constants.js"></script>
+    <script src="src/config/gamepad-config.js"></script>
     <script src="src/utils/viewport.js"></script>
     <script src="src/utils/debug.js"></script>
     <script src="src/visual/ajuste-tela.js"></script>
@@ -42,6 +43,7 @@
     <!-- Jogador (Player) -->
     <script src="src/jogador/inventario.js?v=20260419-base-restore-fix2"></script>
     <script src="src/jogador/controles.js?v=20260417-dash-skill"></script>
+    <script src="src/jogador/gamepads.js"></script>
     <script src="src/ui/hud.js"></script>
     <script src="src/jogador/garra.js?v=20260419-shield-refactor"></script>
     <script src="src/jogador/dano-estacas.js?v=20260419-shield-refactor"></script>
@@ -73,6 +75,9 @@
     <!-- UI (Menu) -->
     <script src="src/ui/mochila.js?v=20260417-storage-icons"></script>
     <script src="src/ui/menu.js?v=20260419-base-checkpoint-rule"></script>
+
+    <!-- DEBUG: Gamepad Helper (Remover em produção) -->
+    <script src="src/config/gamepad-mapeamento-debug.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             // Inicializa a grade de visualização
@@ -82,5 +87,9 @@
             iniciarJogo();
         });
     </script>
+
+    <!-- DEBUG: Gamepad RAW (Remover em produção) -->
+    <script src="src/config/gamepad-debug-raw.js"></script>
+    <!-- <script src="tools/gamepad-debug-console.js"></script> -->
 </body>
 </html>

@@ -620,8 +620,11 @@ function renderControlsContent(overlay) {
     optionsContainer.id = 'menu-options-container';
     optionsContainer.style.display = 'flex';
     optionsContainer.style.flexDirection = 'column';
-    optionsContainer.style.gap = '8px';
-    optionsContainer.style.width = '420px';
+    optionsContainer.style.gap = '4px';
+    optionsContainer.style.width = '340px';
+    optionsContainer.style.maxHeight = '260px';
+    optionsContainer.style.overflowY = 'auto';
+    optionsContainer.style.paddingRight = '6px';
 
     CONTROLES_MENU_ITEMS.forEach((item, index) => {
         const linha = document.createElement('div');
@@ -630,14 +633,14 @@ function renderControlsContent(overlay) {
         const aguardando = controlsBindingAction === item.id ? '  <AGUARDANDO...>' : '';
         linha.innerText = `${item.label}: ${bind}${aguardando}`;
         linha.style = `
-            padding: 9px 12px;
-            font-size: 16px;
+            padding: 5px 8px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
             text-align: left;
             transition: transform 0.1s;
             border: 2px solid transparent;
-            border-radius: 5px;
+            border-radius: 4px;
         `;
 
         linha.onmouseenter = () => {
@@ -659,14 +662,14 @@ function renderControlsContent(overlay) {
     salvarBtn.innerText = 'SALVAR E VOLTAR';
     salvarBtn.style = `
         margin-top: 8px;
-        padding: 10px 12px;
-        font-size: 16px;
+        padding: 7px 8px;
+        font-size: 13px;
         font-weight: bold;
         cursor: pointer;
         text-align: center;
         transition: transform 0.1s;
         border: 2px solid transparent;
-        border-radius: 5px;
+        border-radius: 4px;
     `;
     salvarBtn.onmouseenter = () => {
         controlsSelectedIndex = CONTROLES_MENU_ITEMS.length;
@@ -684,14 +687,14 @@ function renderControlsContent(overlay) {
     resetBtn.className = 'menu-option';
     resetBtn.innerText = 'RESTAURAR PADRAO';
     resetBtn.style = `
-        padding: 10px 12px;
-        font-size: 16px;
+        padding: 7px 8px;
+        font-size: 13px;
         font-weight: bold;
         cursor: pointer;
         text-align: center;
         transition: transform 0.1s;
         border: 2px solid transparent;
-        border-radius: 5px;
+        border-radius: 4px;
     `;
     resetBtn.onmouseenter = () => {
         controlsSelectedIndex = CONTROLES_MENU_ITEMS.length + 1;

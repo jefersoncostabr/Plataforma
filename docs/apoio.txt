@@ -22,6 +22,14 @@ git push origin main
 *codigo no console do navegador
 window.toggleDebugVelocidadePlayer()
 window.apagarBasePersistidaDev()
+* testar gamepad
+gp.mostrarEstadoGamepad()      // Live gamepad state + buttons
+gp.mostrarMapeamentos()        // Action→button mappings
+gp.simularAcao('pulo')         // Test action without hardware
+gp.mostrarAcoesAtivas()        // Currently active actions
+gp.testarConectividade()   
 
 *Código de terminal para pegar dados do git
 git config --get user.email; git config --get user.name
+
+https://gamepad-tester.com/
