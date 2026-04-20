@@ -421,18 +421,21 @@
                 return;
             }
 
-            if (event.key === 'Enter' || event.key === ' ') {
-                const ativo = document.activeElement;
-                if (ativo instanceof HTMLButtonElement && overlay.contains(ativo) && !ativo.disabled) {
-                    event.preventDefault();
-                    ativo.click();
-                    return;
-                }
-
-                const primaria = overlay.querySelector('[data-primary-action]');
-                if (primaria && !primaria.disabled) {
-                    event.preventDefault();
-                    primaria.click();
+            // Confirmação apenas com a tecla de chute
+            if (window.controlesConfig && Array.isArray(window.controlesConfig.chute)) {
+                const chuteKeys = window.controlesConfig.chute.map(k => String(k).toLowerCase());
+                if (chuteKeys.includes(event.key.toLowerCase())) {
+                    const ativo = document.activeElement;
+                    if (ativo instanceof HTMLButtonElement && overlay.contains(ativo) && !ativo.disabled) {
+                        event.preventDefault();
+                        ativo.click();
+                        return;
+                    }
+                    const primaria = overlay.querySelector('[data-primary-action]');
+                    if (primaria && !primaria.disabled) {
+                        event.preventDefault();
+                        primaria.click();
+                    }
                 }
             }
         };

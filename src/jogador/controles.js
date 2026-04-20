@@ -103,6 +103,10 @@
         window.debugInimigoTeclas = window.debugInimigoTeclas || {};
 
         const handleKeyDown = (e) => {
+                                    // Bloqueia comandos se o jogo está pausado ou em overlay de interação
+                                    if (window.isPaused || window.isInteractionMenuOpen) {
+                                        return;
+                                    }
                         // Debug: Próxima Fase
                         if (!e.repeat && typeof window.proximoNivel === 'function' && teclaEhAcao(e.key, 'debugProximoNivel')) {
                             window.proximoNivel();
