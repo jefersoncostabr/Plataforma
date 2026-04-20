@@ -250,8 +250,15 @@
                     sincronizarEquipamentoNoJogador(coleteElemento);
                 }
             } else if (item.tipo === 'airdrop') {
-                const conteudos = config.airdrop1?.conteudos || ['xp'];
-                const sorteio = conteudos[Math.floor(Math.random() * conteudos.length)];
+                // Garante que sempre haverá pelo menos um conteúdo válido
+                let conteudos = config.airdrop1?.conteudos;
+                if (!Array.isArray(conteudos) || conteudos.length === 0) conteudos = ['item'];
+                let sorteio = conteudos[Math.floor(Math.random() * conteudos.length)];
+
+                // Se o sorteio não for reconhecido, força cair um item
+                const validos = ['skillpoint', 'xp', 'restauracao', 'skill', 'item'];
+                if (!validos.includes(sorteio)) sorteio = 'item';
+
                 console.log('AirDrop resgatado pela garra! Conteúdo: ' + sorteio);
 
                 if (sorteio === 'skillpoint') {
@@ -298,8 +305,10 @@
                             if (typeof window.ganharXP === 'function') window.ganharXP(5);
                         }
                     }
-                } else if (sorteio === 'item') {
-                    const itensDisponiveis = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto'];
+                } 
+                // Sempre garante um item se nada acima for sorteado
+                if (sorteio === 'item' || !validos.includes(sorteio)) {
+                    const itensDisponiveis = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete'];
                     const itemSorteado = itensDisponiveis[Math.floor(Math.random() * itensDisponiveis.length)];
 
                     if (itemSorteado === 'escudo') {

@@ -103,6 +103,11 @@
         window.debugInimigoTeclas = window.debugInimigoTeclas || {};
 
         const handleKeyDown = (e) => {
+                        // Debug: Próxima Fase
+                        if (!e.repeat && typeof window.proximoNivel === 'function' && teclaEhAcao(e.key, 'debugProximoNivel')) {
+                            window.proximoNivel();
+                            return;
+                        }
             controle.teclas[e.key] = true;
             controle.acoesDiscretas = controle.acoesDiscretas || {};
 

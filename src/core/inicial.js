@@ -453,6 +453,14 @@ window.proximoNivel = async function() {
                 if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
                 if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
                 if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
+
+                // Salva como checkpoint e inventário persistente
+                if (typeof window.salvarCheckpointEquipamentoDoControle === 'function') {
+                    window.salvarCheckpointEquipamentoDoControle(window.playerControle, { fase: 'inicio' });
+                }
+                if (typeof window.salvarInventarioDoControle === 'function') {
+                    window.salvarInventarioDoControle(window.playerControle);
+                }
             }
             await window.reiniciarJogo(false);
         }
