@@ -430,6 +430,30 @@ window.proximoNivel = async function() {
         alert("FIM DE JOGO! Você completou todos os níveis.");
         if (typeof window.reiniciarJogo === 'function') {
             window.nivelAtual = 0;
+            // Ao reiniciar, garantir todos os equipamentos
+            if (window.playerControle) {
+                // Lista de todos os equipamentos possíveis
+                window.playerControle.temEscudo = true;
+                window.playerControle.temArma = true;
+                window.playerControle.temBota = true;
+                window.playerControle.temJetpack = true;
+                window.playerControle.temCinto = true;
+                window.playerControle.temGarra = true;
+                window.playerControle.temColete = true;
+                // Inventário completo
+                window.playerControle.inventario = [
+                    'escudo', 'revolver', 'bota', 'jetpack', 'cinto', 'garra', 'colete'
+                ];
+                // Slots de colete/cinto preenchidos
+                window.playerControle.coleteSlots = Array.from({ length: Math.max(1, Number(window.coleteConfig?.capacidade ?? 6)) }, (_,i) => {
+                    const tipos = ['escudo','revolver','bota','jetpack','cinto','garra','colete'];
+                    return tipos[i] || null;
+                });
+                window.playerControle.cintoSlot = 'cinto';
+                if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
+                if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
+                if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
+            }
             await window.reiniciarJogo(false);
         }
     }
@@ -670,10 +694,3 @@ async function iniciarJogo() {
         window.togglePauseMenu();
     }
 }
-
-// Atalho de Debug: Avançar de fase
-window.addEventListener('keydown', (e) => {
-    if (e.key === '4') {
-        if (typeof window.proximoNivel === 'function') window.proximoNivel();
-    }
-});

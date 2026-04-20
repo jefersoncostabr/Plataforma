@@ -229,7 +229,7 @@
 
             if (storageKey === INVENTARIO_STORAGE_KEY) {
                 salvarEstadoInventarioRuntime(estado);
-                localStorage.removeItem(INVENTARIO_STORAGE_KEY);
+                localStorage.setItem(INVENTARIO_STORAGE_KEY, JSON.stringify(estado));
                 return true;
             }
 
@@ -366,6 +366,27 @@
         }
         if (Array.isArray(controle.inventario) && controle.inventario.includes('garra')) {
             controle.temGarra = true;
+        }
+        if (Array.isArray(controle.inventario) && controle.inventario.includes('revolver')) {
+            controle.temArma = true;
+        }
+        if (Array.isArray(controle.inventario) && controle.inventario.includes('bota')) {
+            controle.temBota = true;
+        }
+        if (Array.isArray(controle.inventario) && controle.inventario.includes('jetpack')) {
+            controle.temJetpack = true;
+        }
+        if (Array.isArray(controle.inventario) && controle.inventario.includes('cinto')) {
+            controle.temCinto = true;
+        }
+        if (Array.isArray(controle.inventario) && controle.inventario.includes('colete')) {
+            controle.temColete = true;
+        }
+
+        // Sincronização visual para itens que não possuem callbacks dedicados expostos
+        const armaElemento = document.getElementById('player-weapon');
+        if (armaElemento) {
+            armaElemento.style.display = controle.temArma ? 'block' : 'none';
         }
 
         if (typeof callbacks.atualizarVisualEscudo === 'function') {

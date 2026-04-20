@@ -528,8 +528,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
     const { acionarGarra, coletarItemGarra, atualizarAnimacaoGarra } = sistemaGarra;
 
-    function podeAgacharSemBloqueio() {
-        return controle.itensGuardadosNoCinto || obterEquipamentosDoCinto().length === 0;
+        function podeAgacharSemBloqueio() {
+            return controle.itensGuardadosNoCinto || obterEquipamentosDoCinto().length === 0;
     }
 
     function temEspacoParaLevantar() {
@@ -626,7 +626,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     console.error("Erro: A função 'toggleSkillMenu' não foi encontrada. Verifique se o arquivo skills.js foi carregado corretamente.");
                 }
             },
-            onCriarInimigoAleatorio: () => {
+            onDebugProximoNivel: () => {
+                if (typeof window.proximoNivel === 'function') window.proximoNivel();
+            },
+            onDebugSpawnInimigo: () => {
                 if (typeof criarInimigoAleatorio === 'function' && window.plataformas) {
                     const coordsArray = Object.keys(window.plataformas);
                     const tipoAleatorio = Math.floor(Math.random() * 3);
@@ -635,6 +638,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             },
             onAcionarGarra: () => {
                 acionarGarra();
+            },
+            onToggleDebugGrade: () => {
+                if (typeof window.configurarGrade === 'function') {
+                    window.configurarGrade(); // Aciona o toggle da grade centralizado
+                }
             },
             onAlternarCinto: () => {
                 alternarItensNoCinto();
@@ -647,7 +655,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 if (controle.stunned || controle.vendaEmCurso) return;
                 window.toggleMochilaMenu(controle);
             },
-            onResetDebug: () => {
+            onDebugReset: () => {
                 limparInventarioSalvo();
                 if (typeof window.limparCraftPersistido === 'function') {
                     window.limparCraftPersistido();
@@ -848,18 +856,15 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         processarInteracaoCraft();
         atualizarAnimacaoGarra();
 
-        // Detecta combinação de Drop: S ou Seta Baixo + Pulo
+        // --- LÓGICA DE COMBINAÇÕES DE ENTRADA ---
         const segurandoBaixo = acaoAtiva('baixo');
-        
-        // Debug de teclas combinadas (Dropar)
-        if (segurandoBaixo && acaoAtiva('pulo')) {
-            // console.log("Debug: Tentativa de Drop detectada. No chão?", controle.noChao);
-        }
 
+        // Combinação: Dropar Item (Baixo + Pulo no chão)
         if (segurandoBaixo && acaoAtiva('pulo') && controle.noChao) {
-            consumirAcao('pulo'); // Consome o pulo para não pular e dropar ao mesmo tempo
+            consumirAcao('pulo'); 
             droparItemJogador();
         }
+
 
         // Atualiza a interface de visão
         atualizarHUD();

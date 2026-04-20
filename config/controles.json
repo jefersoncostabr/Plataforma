@@ -10,7 +10,12 @@
     "cinto": ["l", "L"],
     "mochila": ["Enter"],
     "interagir": ["e", "E"],
+    "debugProximoNivel": ["4"],
+    "debugSpawnInimigo": ["6"],
     "debugPuloInimigo": ["8"],
-    "debugKillInimigos": ["9"]
+    "debugKillInimigos": ["9"],
+    "debugReset": ["0"],
+    "pause": ["Escape"],
+    "debugGrade": ["g", "G"]
 
 }

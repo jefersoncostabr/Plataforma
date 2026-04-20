@@ -34,7 +34,12 @@ const CONTROLES_MENU_ITEMS = [
     { id: 'garra', label: 'Garra' },
     { id: 'cinto', label: 'Cinto' },
     { id: 'mochila', label: 'Slots do Cinto e Colete' },
-    { id: 'interagir', label: 'Interagir / Craft' }
+    { id: 'interagir', label: 'Interagir / Craft' },
+    { id: 'debugProximoNivel', label: 'Debug: Próxima Fase (4)' },
+    { id: 'debugSpawnInimigo', label: 'Debug: Spawn Inimigo (6)' },
+    { id: 'debugReset', label: 'Debug: Reset Total (0)' },
+    { id: 'pause', label: 'Pausar Jogo' },
+    { id: 'debugGrade', label: 'Grade de Debug (G)' }
 ];
 
 function normalizarControles(raw) {
