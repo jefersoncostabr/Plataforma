@@ -2,6 +2,16 @@
  * Atualiza o frame de animação baseado no estado de movimento.
  * Deve ser chamada dentro do loop principal (requestAnimationFrame).
  */
+function definirSpriteSeValido(elemento, sprite, fallbackSprite) {
+    const spriteValido = typeof sprite === 'string' && sprite.trim() !== ''
+        ? sprite
+        : (typeof fallbackSprite === 'string' && fallbackSprite.trim() !== '' ? fallbackSprite : null);
+
+    if (!elemento || !spriteValido) return false;
+    elemento.src = spriteValido;
+    return true;
+}
+
 function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spriteNoAr, spriteAgachado, spriteAgachadoAndando) {
     //console.log('[ANIMACAO] Função chamada - tempo chute:', controle.tempoChute, 'chutando:', controle.chutando);
 
@@ -20,7 +30,7 @@ function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spri
 
         // Mantém o frame base enquanto estiver agachado parado
         if (!controle.movendoHorizontal) {
-            elemento.src = agachadoParado;
+            definirSpriteSeValido(elemento, agachadoParado, spriteParado);
             controle.contadorAnimacao = 0;
             controle.frameAtual = 0;
             return;
@@ -29,7 +39,11 @@ function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spri
         // Alterna entre os sprites de agachado ao andar
         if (controle.contadorAnimacao >= 10) {
             controle.frameAtual = controle.frameAtual === 0 ? 1 : 0;
-            elemento.src = controle.frameAtual === 0 ? agachadoParado : agachadoAndando;
+            definirSpriteSeValido(
+                elemento,
+                controle.frameAtual === 0 ? agachadoParado : agachadoAndando,
+                spriteParado
+            );
             controle.contadorAnimacao = 0;
         }
         return;
@@ -48,19 +62,23 @@ function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spri
         // Troca o frame a cada 10 quadros (aprox. 6 vezes por segundo em 60fps)
         if (controle.contadorAnimacao >= 10) {
             controle.frameAtual = controle.frameAtual === 0 ? 1 : 0;
-            elemento.src = controle.frameAtual === 0 ? spriteParado : spriteAndando;
+            definirSpriteSeValido(
+                elemento,
+                controle.frameAtual === 0 ? spriteParado : spriteAndando,
+                spriteParado
+            );
             //console.log('[ANIMACAO] 🔄 Frame trocado para:', elemento.src);
             controle.contadorAnimacao = 0;
         }
     } else if (!controle.noChao && spriteNoAr) {
         // Se estiver no ar, usa o sprite específico para pulo/queda
         //console.log('[ANIMACAO] 🚀 No ar - usando sprite:', spriteNoAr);
-        elemento.src = spriteNoAr;
+        definirSpriteSeValido(elemento, spriteNoAr, spriteParado);
         controle.contadorAnimacao = 0;
         controle.frameAtual = 0;
     } else {
         // Se estiver parado no chão, reseta para o sprite parado
-        elemento.src = spriteParado;
+        definirSpriteSeValido(elemento, spriteParado);
         controle.contadorAnimacao = 0;
         controle.frameAtual = 0;
     }

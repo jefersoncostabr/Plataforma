@@ -259,14 +259,15 @@
                 const validos = ['skillpoint', 'xp', 'restauracao', 'skill', 'item'];
                 if (!validos.includes(sorteio)) sorteio = 'item';
 
-                console.log('AirDrop resgatado pela garra! Conteúdo: ' + sorteio);
-
                 if (sorteio === 'skillpoint') {
+                    console.log('AirDrop resgatado pela garra! Conteúdo: 1 Ponto de Skill');
                     window.skillPoints += 1;
                     if (typeof window.salvarProgressoSkills === 'function') window.salvarProgressoSkills();
                 } else if (sorteio === 'xp') {
+                    console.log('AirDrop resgatado pela garra! Conteúdo: 6 XP');
                     if (typeof window.ganharXP === 'function') window.ganharXP(6);
                 } else if (sorteio === 'restauracao') {
+                    console.log('AirDrop resgatado pela garra! Conteúdo: Restauração Completa');
                     if (typeof window.aplicarRestauracaoPadrao === 'function') {
                         window.aplicarRestauracaoPadrao(controle, config, {
                             atualizarVisualEscudo,
@@ -300,8 +301,9 @@
                             window.playerSkills.push(skillSorteada);
                             if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
                             if (typeof window.salvarProgressoSkills === 'function') window.salvarProgressoSkills();
-                            console.log('Nova Skill Desbloqueada: ' + window.skillsData[skillSorteada].nome);
+                            console.log('AirDrop resgatado pela garra! Conteúdo: Skill (' + window.skillsData[skillSorteada].nome + ')');
                         } else {
+                            console.log('AirDrop resgatado pela garra! Conteúdo: 5 XP (Nenhuma skill disponível)');
                             if (typeof window.ganharXP === 'function') window.ganharXP(5);
                         }
                     }
@@ -310,6 +312,8 @@
                 if (sorteio === 'item' || !validos.includes(sorteio)) {
                     const itensDisponiveis = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete'];
                     const itemSorteado = itensDisponiveis[Math.floor(Math.random() * itensDisponiveis.length)];
+
+                    console.log('AirDrop resgatado pela garra! Conteúdo: Item (' + itemSorteado + ')');
 
                     if (itemSorteado === 'escudo') {
                         controle.temEscudo = true;

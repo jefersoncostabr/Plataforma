@@ -10,6 +10,7 @@
         tiro: ['i', 'I'],
         garra: ['j', 'J'],
         cinto: ['l', 'L'],
+        airdrop: ['u', 'U'],
         mochila: ['Enter'],
         interagir: ['e', 'E']
     };
@@ -103,10 +104,31 @@
         window.debugInimigoTeclas = window.debugInimigoTeclas || {};
 
         const handleKeyDown = (e) => {
-                                    // Bloqueia comandos se o jogo está pausado ou em overlay de interação
-                                    if (window.isPaused || window.isInteractionMenuOpen) {
-                                        return;
-                                    }
+            // Bloqueia comandos se o jogo está pausado
+            if (window.isPaused) return;
+
+            // Se o menu da base (interação) estiver aberto, redirecionamos as teclas WASD/Ação para as setas.
+            // Isso permite que o menu navegue mesmo que tenha sido programado apenas para as setas físicas.
+            if (window.isInteractionMenuOpen) {
+                let seta = null;
+                let code = 0;
+                if (teclaEhAcao(e.key, 'cima')) { seta = 'ArrowUp'; code = 38; }
+                else if (teclaEhAcao(e.key, 'baixo')) { seta = 'ArrowDown'; code = 40; }
+                else if (teclaEhAcao(e.key, 'esquerda')) { seta = 'ArrowLeft'; code = 37; }
+                else if (teclaEhAcao(e.key, 'direita')) { seta = 'ArrowRight'; code = 39; }
+
+                if (seta && !e.key.startsWith('Arrow')) {
+                    document.dispatchEvent(new KeyboardEvent('keydown', { 
+                        key: seta, 
+                        keyCode: code, 
+                        which: code, 
+                        bubbles: true 
+                    }));
+                    return;
+                }
+                return;
+            }
+
                         // Debug: Próxima Fase
                         if (!e.repeat && typeof window.proximoNivel === 'function' && teclaEhAcao(e.key, 'debugProximoNivel')) {
                             window.proximoNivel();
@@ -170,8 +192,9 @@
                 }
             }
 
+            // Log de Depuração para tecla 5
             if (e.key === '5') {
-                callbacks.onGanharXP?.(5);
+                console.log("[INPUT] Tecla 5 detectada no motor de controles.");
             }
 
             if (e.key === '6') {

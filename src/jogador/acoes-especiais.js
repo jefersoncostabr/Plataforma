@@ -236,12 +236,28 @@
         function processarComandosEspeciais() {
             const segurandoCima = acaoAtiva('cima');
             const apertouTiro = acaoAtiva('tiro');
+            const apertouAirdropRapido = acaoAtiva('airdrop');
 
-            if (segurandoCima && window.temSkill?.((window.SKILLS || {}).AIRDROP) && apertouTiro && !controle.airdropUsadoNoNivel) {
+            // Log para debug da tecla 5
+            const solicitouAirdrop = apertouAirdropRapido || (segurandoCima && apertouTiro);
+
+            if (solicitouAirdrop) {
+                const temSkill = window.temSkill?.((window.SKILLS || {}).AIRDROP);
+                console.log(`[AIRDROP] Solicitação recebida. Skill adquirida: ${temSkill}, Já usado: ${controle.airdropUsadoNoNivel}`);
+                
+                if (!temSkill) {
+                    console.warn("[AIRDROP] Bloqueado: Habilidade AIRDROP necessária.");
+                    return;
+                }
+
+                if (controle.airdropUsadoNoNivel) return;
+
                 dispararSinalizador();
                 controle.airdropUsadoNoNivel = true;
                 console.log('Skill AirDrop: Suporte aéreo solicitado!');
-                consumirAcao('tiro');
+                
+                if (apertouAirdropRapido) consumirAcao('airdrop');
+                else consumirAcao('tiro');
                 return;
             }
 

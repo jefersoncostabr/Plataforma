@@ -11,6 +11,7 @@
     "mochila": ["Enter"],
     "interagir": ["e", "E"],
     "debugProximoNivel": ["4"],
+    "airdrop": ["u", "U", "5"],
     "debugSpawnInimigo": ["6"],
     "debugPuloInimigo": ["8"],
     "debugKillInimigos": ["9"],
