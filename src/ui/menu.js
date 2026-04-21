@@ -605,13 +605,22 @@ function renderMainMenuContent(overlay) {
         optionsContainer.appendChild(btn);
     });
 
+    // Coluna da direita para agrupar o Painel de Resumo e o Controle de Volume
+    const rightColumn = document.createElement('div');
+    rightColumn.style.display = 'flex';
+    rightColumn.style.flexDirection = 'column';
+    rightColumn.style.gap = '10px';
+    rightColumn.style.width = '188px'; // Mantém a largura consistente com o painel de resumo
+
+    rightColumn.appendChild(criarPainelResumoSalvo());
+
     layout.appendChild(optionsContainer);
-    layout.appendChild(criarPainelResumoSalvo());
+    layout.appendChild(rightColumn);
     overlay.appendChild(layout);
 
-    // Injeta a barra de volume do AudioManager no container de opções do menu
+    // Injeta a barra de volume do AudioManager na coluna da direita (abaixo do resumo)
     if (window.AudioManager && typeof window.AudioManager.renderVolumeControl === 'function') {
-        window.AudioManager.renderVolumeControl(optionsContainer);
+        window.AudioManager.renderVolumeControl(rightColumn);
     }
 }
 
