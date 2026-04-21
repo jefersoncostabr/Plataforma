@@ -199,6 +199,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         noChao: false,
         movendoHorizontal: false,
         direcao: 'd',
+        distanciaPercorridaPasso: 0,
+        frequenciaPasso: 24, // Pixels necessários para tocar o próximo som
         chutando: false,
         tempoChute: 0,
         framesImpulsoRestante: 0,
@@ -670,48 +672,18 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 if (typeof window.limparCraftPersistido === 'function') {
                     window.limparCraftPersistido();
                 }
-                console.log('Inventário salvo e base persistente zerados.');
-                controle.temEscudo = false;
-                controle.escudoVermelho = false;
-                controle.escudoProtegido = 0;
-                controle.temArma = false;
-                controle.municao = 0;
-                controle.temBota = false;
-                controle.botaVermelha = false;
-                controle.botaUsosDash = 0;
-                controle.framesKnockbackRestante = 0;
-                controle.velocidadeKnockback = 0;
-                controle.temGarra = false;
-                controle.garraVermelha = false;
-                controle.garraImpactosSolidos = 0;
-                botaElemento.style.display = 'none';
-                controle.temColete = false;
-                if (coleteElemento) coleteElemento.style.display = 'none';
-                controle.inventario = [];
-                controle.coleteSlots = Array.from({ length: 6 }, () => null);
-                controle.cintoSlot = null;
-                controle.craftPreviewAtivo = false;
-                controle.craftPreviewPosicao = null;
-                controle.craftPreviewTipo = null;
-                controle.dashSolicitado = null;
-                controle.dashFramesRestantes = 0;
-                controle.velocidadeDashSkill = 0;
-                controle.cooldownDash = 0;
-                controle.pesoTemporarioSuperDescida = 0;
-                limparPreviewCraft?.();
-                removerTodosCrafts?.();
-                controle.temJetpack = false;
-                controle.jetpackAtivo = false;
-                garraElemento.style.display = 'none';
-                controle.temCinto = false;
-                cintoElemento.style.display = 'none';
-                controle.timerAtivacaoJetpack = 0;
-                controle.timerVooRestante = 0;
-                controle.cooldownVooJetpack = 0;
-                atualizarVisualEscudo();
-                atualizarVisualGarra();
-                if (typeof armaElemento !== 'undefined') {
-                    armaElemento.style.display = 'none';
+                
+                if (typeof window.resetarJogadorParaZeroMantendoSkills === 'function') {
+                    window.resetarJogadorParaZeroMantendoSkills();
+                }
+                
+                if (typeof limparPreviewCraft === 'function') limparPreviewCraft();
+                if (typeof removerTodosCrafts === 'function') removerTodosCrafts();
+
+                console.log('[DEBUG] Sistema resetado via botão 0.');
+                
+                if (typeof atualizarHUD === 'function') {
+                    atualizarHUD();
                 }
             },
             onEliminarInimigos: () => {
@@ -865,6 +837,22 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         processarInteracaoCraft();
         atualizarAnimacaoGarra();
+
+        // --- LÓGICA DE ÁUDIO DE PASSOS ---
+        if (controle.noChao && controle.movendoHorizontal && !controle.dashFramesRestantes) {
+            const velX = Math.abs(controle.velocidadeXAtual);
+            controle.distanciaPercorridaPasso += velX;
+
+            // Se estiver agachado, os passos são mais lentos (frequencia maior)
+            const freqAtual = controle.estaAgachado ? controle.frequenciaPasso * 1.5 : controle.frequenciaPasso;
+
+            if (controle.distanciaPercorridaPasso >= freqAtual) {
+                window.AudioManager?.playPasso();
+                controle.distanciaPercorridaPasso = 0;
+            }
+        } else {
+            controle.distanciaPercorridaPasso = 0;
+        }
 
         // --- LÓGICA DE COMBINAÇÕES DE ENTRADA ---
         const segurandoBaixo = acaoAtiva('baixo');

@@ -239,14 +239,17 @@
             const apertouAirdropRapido = acaoAtiva('airdrop');
             const apertouTecla5 = controle.teclas['5'];
 
-            const solicitouAirdrop = apertouAirdropRapido || (segurandoCima && apertouTiro);
+            const solicitouAirdrop = apertouAirdropRapido || apertouTecla5 || (segurandoCima && apertouTiro);
 
             if (solicitouAirdrop) {
-                const isDebug = apertouTecla5;
+                const isDebug = !!apertouTecla5;
                 const temSkill = window.temSkill?.((window.SKILLS || {}).AIRDROP);
                 
-                if (isDebug) console.log("[DEBUG] Airdrop forçado via tecla 5.");
-                else console.log(`[AIRDROP] Solicitação recebida. Skill: ${temSkill}, Já usado: ${controle.airdropUsadoNoNivel}`);
+                if (isDebug) {
+                    console.log("[DEBUG] Airdrop forçado via tecla 5.");
+                } else {
+                    console.log(`[AIRDROP] Solicitação recebida. Skill: ${temSkill}, Já usado: ${controle.airdropUsadoNoNivel}`);
+                }
                 
                 if (!temSkill && !isDebug) {
                     console.warn("[AIRDROP] Bloqueado: Habilidade AIRDROP necessária.");
@@ -256,11 +259,16 @@
                 if (controle.airdropUsadoNoNivel && !isDebug) return;
 
                 dispararSinalizador();
-                controle.airdropUsadoNoNivel = true;
+                if (!isDebug) controle.airdropUsadoNoNivel = true;
                 console.log('Skill AirDrop: Suporte aéreo solicitado!');
                 
-                if (apertouAirdropRapido) consumirAcao('airdrop');
-                else consumirAcao('tiro');
+                if (isDebug) {
+                    controle.teclas['5'] = false; // Consome o input de debug para evitar disparos contínuos
+                } else if (apertouAirdropRapido) {
+                    consumirAcao('airdrop');
+                } else {
+                    consumirAcao('tiro');
+                }
                 return;
             }
 

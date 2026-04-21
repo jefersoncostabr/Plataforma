@@ -216,6 +216,15 @@
         return checkpoint || runtime;
     }
 
+    function podePersistirDados() {
+        // Só permite salvar no disco (localStorage) se houver uma base instalada no nível atual.
+        const temBase = Array.isArray(window.craftsAtivos) && window.craftsAtivos.length > 0;
+        
+        // Permite salvar se houver uma transição de fase ou evento forçado (checkpoint/fim de fase).
+        const salvamentoForcado = !!window.__forcarSalvarInventario;
+        return temBase || salvamentoForcado;
+    }
+
     function carregarCheckpointEquipamentoSalvo() {
         const checkpoint = lerEstadoInventarioDoStorage(CHECKPOINT_EQUIPAMENTO_STORAGE_KEY);
         return checkpoint && typeof checkpoint === 'object' ? checkpoint : null;
@@ -229,7 +238,11 @@
 
             if (storageKey === INVENTARIO_STORAGE_KEY) {
                 salvarEstadoInventarioRuntime(estado);
-                localStorage.setItem(INVENTARIO_STORAGE_KEY, JSON.stringify(estado));
+                
+                // Só persiste no localStorage se as condições de "Base Instalada" forem atendidas.
+                if (podePersistirDados()) {
+                    localStorage.setItem(INVENTARIO_STORAGE_KEY, JSON.stringify(estado));
+                }
                 return true;
             }
 
@@ -294,7 +307,8 @@
     }
 
     function limparInventarioSalvo() {
-        salvarEstadoInventarioRuntime(null);
+        window[INVENTARIO_RUNTIME_KEY] = null;
+        localStorage.removeItem(INVENTARIO_RUNTIME_KEY); // Limpeza extra de segurança
         localStorage.removeItem(INVENTARIO_STORAGE_KEY);
     }
 

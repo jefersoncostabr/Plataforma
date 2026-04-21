@@ -1444,6 +1444,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (!inimigo.estaAgachado && distanciaAtual <= config.distanciaAtaqueInimigo && inimigo.cooldownChute === 0) {
                         inimigo.tempoChute = config.tempoChute;
                         inimigo.cooldownChute = config.cooldownChute;
+                        window.AudioManager?.playSFX('chute', 0.3);
                         inimigo.jaAtacouNesteChute = false;
 
                         // Dash do inimigo (Suave e com bônus de bota)
@@ -1696,6 +1697,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (typeof detectarColisaoHitbox === 'function' && 
                         detectarColisaoHitbox(hitboxAtaqueInimigo, hurtboxPlayer, 0, 0, 0)) {
                         
+                        window.AudioManager?.playSFX('impacto', 0.7);
                         inimigo.jaAtacouNesteChute = true;
                         
                         const escudoAtivo = temEscudoAtivo();

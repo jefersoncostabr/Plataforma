@@ -50,6 +50,8 @@
                 ? Math.max(1, Math.round(cooldownBaseChute * multiplicadorCooldownChute))
                 : 0;
 
+            window.AudioManager?.playSFX('chute', 0.4);
+
             const duracaoDash = 10;
             const multiplicadorChute = (controle.temBota && !controle.botaVermelha && !controle.itensGuardadosNoCinto) ? 2 : 1;
             controle.framesImpulsoRestante = duracaoDash;
@@ -123,6 +125,8 @@
             inimigo.estaColetando = false;
             inimigo.timerColeta = 0;
             inimigo.vida = (inimigo.vida || 0) + 1;
+
+            window.AudioManager?.playSFX('impacto', 0.6);
 
             if (inimigo.vida < 3) {
                 animarDanoAlvo(inimigo);

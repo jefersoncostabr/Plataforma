@@ -73,6 +73,7 @@ function resetarJogadorParaZeroMantendoSkills(opcoes = {}) {
     controle.inventario = [];
     controle.coleteSlots = Array.from({ length: Math.max(1, Number(window.coleteConfig?.capacidade ?? 6)) }, () => null);
     controle.cintoSlot = null;
+    controle.municao = 0;
 
     ['player-weapon', 'player-shield', 'player-boots', 'player-jetpack', 'player-claw', 'player-belt', 'player-vest', 'player-jet-fire']
         .forEach((id) => {
@@ -83,7 +84,10 @@ function resetarJogadorParaZeroMantendoSkills(opcoes = {}) {
     if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
     if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
     if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
-    if (!preservarEstadoSalvo && typeof window.salvarInventario === 'function') window.salvarInventario();
+    
+    if (!preservarEstadoSalvo && typeof window.limparInventarioSalvo === 'function') {
+        window.limparInventarioSalvo();
+    }
 }
 
 // ⭐ Escala atual do jogo
@@ -124,6 +128,22 @@ async function carregarFase(nomeArquivo) {
         window.removerTodosCrafts();
     }
 
+    // Bloqueia o carregamento de equipamentos se não houver base instalada nesta fase,
+    // exceto se for a última fase do jogo.
+    const isLastPhase = window.nivelAtual === (window.niveis.length - 1);
+    const craftSalvo = typeof window.obterCraftPersistido === 'function' ? window.obterCraftPersistido() : null;
+    const temBaseNestaFase = craftSalvo && craftSalvo.fase === window.faseAtualNome.toLowerCase();
+
+    if (!isLastPhase && !temBaseNestaFase) {
+        // Se não é a última fase e não tem base, limpa TUDO antes de começar
+        if (typeof window.limparInventarioSalvo === 'function') {
+            window.limparInventarioSalvo();
+        }
+        if (typeof resetarJogadorParaZeroMantendoSkills === 'function') {
+            resetarJogadorParaZeroMantendoSkills();
+        }
+    }
+
     
     // Tenta encontrar o container para controle de exibição
     const palcoElemento = document.getElementById('game-stage') || document.getElementById('jogo-container');
@@ -148,6 +168,9 @@ async function carregarFase(nomeArquivo) {
         const resposta = await fetch(nomeArquivo);
         if (!resposta.ok) throw new Error(`Erro ${resposta.status}: ${nomeArquivo} não encontrado.`);
         fase = await resposta.json();
+        
+        // Expõe os dados da fase para o AudioManager e outros sistemas
+        window.faseAtualData = fase;
     } catch (erro) {
         console.error("Erro ao carregar nível:", erro);
         alert("Erro técnico: O arquivo da fase não foi encontrado ou está corrompido.");
@@ -424,6 +447,14 @@ window.proximoNivel = async function() {
 
     if (proximoIndice < window.niveis.length) {
         alert("Parabéns! Você concluiu esta fase.");
+        
+        // Força o salvamento do inventário ao final da fase, independentemente de ter base instalada
+        if (window.playerControle && typeof window.salvarInventarioDoControle === 'function') {
+            window.__forcarSalvarInventario = true;
+            window.salvarInventarioDoControle(window.playerControle);
+            window.__forcarSalvarInventario = false;
+        }
+
         window.nivelAtual = proximoIndice;
         await carregarFase(window.niveis[window.nivelAtual]);
     } else {
