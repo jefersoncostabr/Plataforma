@@ -104,8 +104,11 @@
         window.debugInimigoTeclas = window.debugInimigoTeclas || {};
 
         const handleKeyDown = (e) => {
-            // Bloqueia comandos se o jogo está pausado
-            if (window.isPaused) return;
+            // Bloqueia comandos se o jogo está pausado, exceto teclas de menu/pause
+            const ehTeclaMenu = e.key === '6' || e.key === 'Escape' || e.key === 'Esc' || 
+                                e.key === 'Pause' || teclaEhAcao(e.key, 'mochila');
+            
+            if (window.isPaused && !ehTeclaMenu) return;
 
             // Se o menu da base (interação) estiver aberto, redirecionamos as teclas WASD/Ação para as setas.
             // Isso permite que o menu navegue mesmo que tenha sido programado apenas para as setas físicas.
@@ -202,7 +205,7 @@
             }
 
             if (e.key === '7') {
-                callbacks.onCriarInimigoAleatorio?.();
+                callbacks.onDebugResetSkills?.();
             }
 
             if (e.key === '8') {
@@ -222,7 +225,7 @@
             }
 
             if (e.key === '0') {
-                callbacks.onResetDebug?.();
+                callbacks.onDebugReset?.();
             }
 
             if (e.key === '9') {

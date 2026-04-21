@@ -620,7 +620,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 if (typeof window.ganharXP === 'function') window.ganharXP(valor);
             },
             onToggleSkillMenu: () => {
-                if (typeof window.toggleSkillMenu === 'function' && !window.isPaused) {
+                if (typeof window.toggleSkillMenu === 'function') {
+                    // Removida a trava de !window.isPaused para permitir fechar o menu
                     window.toggleSkillMenu();
                 } else if (typeof window.toggleSkillMenu !== 'function') {
                     console.error("Erro: A função 'toggleSkillMenu' não foi encontrada. Verifique se o arquivo skills.js foi carregado corretamente.");
@@ -643,6 +644,15 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 if (typeof window.configurarGrade === 'function') {
                     window.configurarGrade(); // Aciona o toggle da grade centralizado
                 }
+            },
+            onDebugResetSkills: () => {
+                window.playerSkills = [];
+                window.skillPoints = 0;
+                window.playerXP = 0;
+                if (typeof window.salvarProgressoSkills === 'function') window.salvarProgressoSkills();
+                if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
+                console.log("[DEBUG] Skills resetadas! XP e Pontos zerados.");
+                if (typeof window.atualizarHUD === 'function') window.atualizarHUD();
             },
             onAlternarCinto: () => {
                 alternarItensNoCinto();

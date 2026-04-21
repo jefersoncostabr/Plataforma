@@ -237,20 +237,23 @@
             const segurandoCima = acaoAtiva('cima');
             const apertouTiro = acaoAtiva('tiro');
             const apertouAirdropRapido = acaoAtiva('airdrop');
+            const apertouTecla5 = controle.teclas['5'];
 
-            // Log para debug da tecla 5
             const solicitouAirdrop = apertouAirdropRapido || (segurandoCima && apertouTiro);
 
             if (solicitouAirdrop) {
+                const isDebug = apertouTecla5;
                 const temSkill = window.temSkill?.((window.SKILLS || {}).AIRDROP);
-                console.log(`[AIRDROP] Solicitação recebida. Skill adquirida: ${temSkill}, Já usado: ${controle.airdropUsadoNoNivel}`);
                 
-                if (!temSkill) {
+                if (isDebug) console.log("[DEBUG] Airdrop forçado via tecla 5.");
+                else console.log(`[AIRDROP] Solicitação recebida. Skill: ${temSkill}, Já usado: ${controle.airdropUsadoNoNivel}`);
+                
+                if (!temSkill && !isDebug) {
                     console.warn("[AIRDROP] Bloqueado: Habilidade AIRDROP necessária.");
                     return;
                 }
 
-                if (controle.airdropUsadoNoNivel) return;
+                if (controle.airdropUsadoNoNivel && !isDebug) return;
 
                 dispararSinalizador();
                 controle.airdropUsadoNoNivel = true;
