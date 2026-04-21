@@ -852,6 +852,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             }
         } else {
             controle.distanciaPercorridaPasso = 0;
+            window.AudioManager?.stopPasso();
         }
 
         // --- LÓGICA DE COMBINAÇÕES DE ENTRADA ---

@@ -30,6 +30,14 @@
             }
             
             this._audioPasso.play().catch(() => {});
+        },
+
+        stopPasso: function() {
+            // Interrompe o áudio de passo imediatamente e limpa a referência
+            if (this._audioPasso) {
+                this._audioPasso.pause();
+                this._audioPasso = null;
+            }
         }
     };
 })();
