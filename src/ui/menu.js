@@ -608,6 +608,11 @@ function renderMainMenuContent(overlay) {
     layout.appendChild(optionsContainer);
     layout.appendChild(criarPainelResumoSalvo());
     overlay.appendChild(layout);
+
+    // Injeta a barra de volume do AudioManager no container de opções do menu
+    if (window.AudioManager && typeof window.AudioManager.renderVolumeControl === 'function') {
+        window.AudioManager.renderVolumeControl(optionsContainer);
+    }
 }
 
 function renderControlsContent(overlay) {
