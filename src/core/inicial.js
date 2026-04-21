@@ -134,10 +134,15 @@ async function carregarFase(nomeArquivo) {
     const temBaseNestaFase = craftSalvo && craftSalvo.fase === window.faseAtualNome.toLowerCase();
     const vindoDeTransicao = !!window.__transicaoFaseAtiva;
 
-    if (!isLastPhase && !temBaseNestaFase && !vindoDeTransicao) {
-        // Se não houver justificativa para manter itens (Base, Fim de Jogo ou Transição), reseta.
+    // Regra de Ouro: No reinício (morte ou carregamento), limpamos o jogador para não "vazar" 
+    // itens coletados após o save. Apenas transições vitoriosas preservam o estado volátil.
+    if (!vindoDeTransicao) {
+        const deveLimparTotal = !isLastPhase && !temBaseNestaFase;
+        
         if (typeof resetarJogadorParaZeroMantendoSkills === 'function') {
-            resetarJogadorParaZeroMantendoSkills();
+            resetarJogadorParaZeroMantendoSkills({ 
+                preservarEstadoSalvo: !deveLimparTotal 
+            });
         }
     }
 
@@ -556,22 +561,6 @@ window.reiniciarJogo = async function(porMorte = true) {
         }
         if (window.playerControle.temArma) {
             window.playerControle.municao = window.config.maxMunicao || 5;
-        }
-
-        if (usarMemoriaDaBase || !temCheckpointEquipamento) {
-            resetarJogadorParaZeroMantendoSkills({
-                preservarEstadoSalvo: !!temCheckpointEquipamento
-            });
-        }
-
-        if (temCheckpointEquipamento && typeof window.aplicarCheckpointEquipamentoComoInventarioPadrao === 'function') {
-            window.aplicarCheckpointEquipamentoComoInventarioPadrao();
-            if (typeof window.aplicarInventarioSalvoNoControle === 'function') {
-                window.aplicarInventarioSalvoNoControle(window.playerControle);
-            }
-            if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
-            if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
-            if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
         }
 
         if (typeof window.aplicarEfeitosSkills === 'function') {

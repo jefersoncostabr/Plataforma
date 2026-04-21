@@ -209,11 +209,13 @@
         const runtime = lerEstadoInventarioRuntime();
         const checkpoint = carregarCheckpointEquipamentoSalvo();
 
-        if (inventarioTemConteudo(runtime)) {
+        // Se estamos em uma transição vitoriosa de fase, o runtime (progresso acumulado) é a prioridade.
+        if (window.__transicaoFaseAtiva && inventarioTemConteudo(runtime)) {
             return runtime;
         }
 
-        return checkpoint || runtime;
+        // Se morremos ou reiniciamos, o checkpoint da base é a única fonte de verdade para persistência.
+        return checkpoint;
     }
 
     function podePersistirDados() {
