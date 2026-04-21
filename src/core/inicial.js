@@ -128,17 +128,14 @@ async function carregarFase(nomeArquivo) {
         window.removerTodosCrafts();
     }
 
-    // Bloqueia o carregamento de equipamentos se não houver base instalada nesta fase,
-    // exceto se for a última fase do jogo.
+    // Bloqueia o reset se houver base instalada, se for a última fase ou se virmos de uma transição de nível.
     const isLastPhase = window.nivelAtual === (window.niveis.length - 1);
     const craftSalvo = typeof window.obterCraftPersistido === 'function' ? window.obterCraftPersistido() : null;
     const temBaseNestaFase = craftSalvo && craftSalvo.fase === window.faseAtualNome.toLowerCase();
+    const vindoDeTransicao = !!window.__transicaoFaseAtiva;
 
-    if (!isLastPhase && !temBaseNestaFase) {
-        // Se não é a última fase e não tem base, limpa TUDO antes de começar
-        if (typeof window.limparInventarioSalvo === 'function') {
-            window.limparInventarioSalvo();
-        }
+    if (!isLastPhase && !temBaseNestaFase && !vindoDeTransicao) {
+        // Se não houver justificativa para manter itens (Base, Fim de Jogo ou Transição), reseta.
         if (typeof resetarJogadorParaZeroMantendoSkills === 'function') {
             resetarJogadorParaZeroMantendoSkills();
         }
@@ -448,6 +445,7 @@ window.proximoNivel = async function() {
     if (proximoIndice < window.niveis.length) {
         alert("Parabéns! Você concluiu esta fase.");
         
+
         // Força o salvamento do inventário ao final da fase, independentemente de ter base instalada
         if (window.playerControle && typeof window.salvarInventarioDoControle === 'function') {
             window.__forcarSalvarInventario = true;
@@ -455,8 +453,10 @@ window.proximoNivel = async function() {
             window.__forcarSalvarInventario = false;
         }
 
+        window.__transicaoFaseAtiva = true;
         window.nivelAtual = proximoIndice;
         await carregarFase(window.niveis[window.nivelAtual]);
+        window.__transicaoFaseAtiva = false;
     } else {
         alert("FIM DE JOGO! Você completou todos os níveis.");
         if (typeof window.reiniciarJogo === 'function') {

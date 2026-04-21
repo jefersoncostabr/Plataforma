@@ -611,6 +611,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             onLevantar: () => {
                 tentarLevantarJogador();
             },
+            onDebugApagarEquipamento: () => {
+                if (typeof window.apagarBasePersistidaDev === 'function') {
+                    window.apagarBasePersistidaDev();
+                }
+            },
             onTogglePauseMenu: () => {
                 if (typeof window.togglePauseMenu === 'function') {
                     window.togglePauseMenu();

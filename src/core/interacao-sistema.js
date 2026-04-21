@@ -339,6 +339,18 @@
             });
         }
 
+
+        // Atalho: tecla 3 apaga os itens salvos na base
+        overlay.addEventListener('keydown', (event) => {
+            if (event.key === '3') {
+                if (typeof window.limparCheckpointEquipamentoSalvo === 'function') {
+                    window.limparCheckpointEquipamentoSalvo();
+                }
+                atualizarResumoEquipamentoSalvo(overlay);
+                definirFeedbackInteracao('Itens salvos na base apagados.');
+            }
+        });
+
         const botaoRecolher = overlay.querySelector('[data-interaction-action="recolher-base"]');
         if (botaoRecolher) {
             const atualizarBotao = () => {

@@ -10,6 +10,8 @@
     "cinto": ["l", "L"],
     "mochila": ["Enter"],
     "interagir": ["e", "E"],
+    "debugApagarEquipamento": ["2"],
+    "debugXP": ["3"],
     "debugProximoNivel": ["4"],
     "airdrop": ["5"],
     "debugSpawnInimigo": ["6"],

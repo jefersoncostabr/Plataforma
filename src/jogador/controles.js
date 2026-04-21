@@ -195,6 +195,16 @@
                 }
             }
 
+            if (e.key === '2') {
+                console.log("[DEBUG] Tecla 2 detectada: Executando limpeza total de equipamentos e base.");
+                callbacks.onDebugApagarEquipamento?.();
+            }
+
+            if (e.key === '3') {
+                console.log("[DEBUG] Tecla 3 detectada: Concedendo XP ao jogador.");
+                callbacks.onGanharXP?.(10);
+            }
+
             // Log de Depuração para tecla 5
             if (e.key === '5') {
                 console.log("[INPUT] Tecla 5 detectada no motor de controles.");
