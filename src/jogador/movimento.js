@@ -1148,6 +1148,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             }
 
             if (puloAcabouDeSerPressionado) {
+                window.AudioManager?.playSFX('pulo', 0.5);
                 controle.pulosRealizados = 1;
                 controle.timerPuloDuplo = 12; // Janela de tempo mais rigorosa: 10 frames (aprox. 0.16s)
             } else {
@@ -1157,6 +1158,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         } else if (puloAcabouDeSerPressionado && window.temSkill?.((window.SKILLS || {}).SALTO) && controle.pulosRealizados === 1 && controle.timerPuloDuplo > 0 && controle.cooldownPuloDuplo === 0) {
             // Segundo salto: agora com 1.25x da força (um quarto a mais) e com timing mais exigente
             controle.velocidadeY = forcaPuloFinal * 1.25;
+            window.AudioManager?.playSFX('pulo', 0.5);
             controle.pulosRealizados = 2; // Consome o segundo salto até tocar o chão novamente
             controle.doubleJumpUsedInAir = true; // Marca que o pulo duplo foi usado no ar
             console.log("Habilidade Salto: Pulo duplo rápido executado!");
@@ -1260,7 +1262,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Detecta toque no chão: APENAS se houver colisão real com tiles de plataforma
         if (controle.noChao && controle.velocidadeY <= 0) {
-            // if (!noChaoAnterior && controle.noChao) console.log("Movimentação: Personagem tocou o chão.");
+            if (!noChaoAnterior) {
+                window.AudioManager?.playSFX('pouso', 0.3);
+            }
             controle.velocidadeY = 0;
         }
 
