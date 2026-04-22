@@ -220,7 +220,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         pulosRealizados: 0,
         timerPuloDuplo: 0,
         doubleJumpUsedInAir: false, // Nova flag para controlar o cooldown do pulo duplo
-        cooldownPuloDuplo: 0, // Novo cooldown para o pulo duplo
+        cooldownPuloDuplo: 0, // Cooldown para o pulo duplo
+        minVelocidadePousoSom: -6, // Velocidade mínima de queda (negativa) para tocar o som
         cooldownPosSuperDescida: 0, // Cooldown de 1s após a Super Descida
         superDescidaAtiva: false, // Rastreador de uso da Super Descida
         espacoPressionado: false,
@@ -1195,6 +1196,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         controle.noChao = false;
         const distTotalY = controle.y - yAnterior;
         
+        // Armazena a velocidade de queda antes de processar as colisões que podem zerá-la
+        const velocidadeAntesImpacto = controle.velocidadeY;
+
         // Sub-stepping Vertical para Super Descida
         const passosY = Math.ceil(Math.abs(distTotalY) / 16);
         const incrementoY = distTotalY / passosY;
@@ -1267,7 +1271,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         // Detecta toque no chão: APENAS se houver colisão real com tiles de plataforma
         if (controle.noChao && controle.velocidadeY <= 0) {
             if (!noChaoAnterior) {
-                window.AudioManager?.playSFX('pouso', 0.3);
+                // Só reproduz o som se a velocidade de queda for maior que o limite definido
+                if (velocidadeAntesImpacto < (controle.minVelocidadePousoSom || -6)) {
+                    window.AudioManager?.playSFX('pouso', 0.3);
+                }
             }
             controle.velocidadeY = 0;
         }
