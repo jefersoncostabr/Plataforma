@@ -585,6 +585,7 @@
             if (tipo === 'revolver') {
                 controle.temArma = true;
                 controle.municao = Number(extras?.municao ?? itemData?.efeitos?.jogador?.municao ?? config?.maxMunicao ?? 5);
+                window.AudioManager?.playSFX('recarga', 0.6);
                 if (armaElemento) {
                     if (itemData?.spriteEquipado) armaElemento.src = itemData.spriteEquipado;
                     armaElemento.style.display = 'block';

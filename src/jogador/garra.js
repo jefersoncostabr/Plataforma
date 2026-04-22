@@ -340,6 +340,7 @@
                     } else if (itemSorteado === 'revolver') {
                         controle.temArma = true;
                         controle.municao = config.maxMunicao || 5;
+                        window.AudioManager?.playSFX('recarga', 0.6);
                         if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
                         armaElemento.style.display = 'block';
                     } else if (itemSorteado === 'cinto') {
@@ -352,6 +353,7 @@
                 const novaMunicao = item.municao !== undefined ? item.municao : (config.maxMunicao || 5);
                 controle.municao = Math.min((controle.municao || 0) + novaMunicao, (config.maxMunicao || 5) * 2);
                 controle.temArma = true;
+                window.AudioManager?.playSFX('recarga', 0.6);
                 if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
                 armaElemento.style.display = 'block';
             } else if (item.tipo === 'restauracao') {
