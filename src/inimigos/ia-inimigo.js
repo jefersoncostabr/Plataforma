@@ -12,6 +12,35 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     const resposta = await fetch('../../config/configuracoes.json');
     const config = await resposta.json();
 
+    /**
+     * Inicia a sequência de lançamento (morte cartoon).
+     */
+    window.prepararMorteInimigo = (inimigo, direcaoX) => {
+        if (inimigo.estaMorrendo || inimigo.estaMorto) return;
+
+        inimigo.estaMorrendo = true;
+        inimigo.framesMorrendo = 35; // Duração do voo
+        inimigo.velocidadeY = 9;    // Impulso para cima
+        
+        // Direção: usa a informada ou a oposta da face do inimigo
+        const dir = direcaoX !== undefined ? Math.sign(direcaoX) : (inimigo.direcao === 'd' ? -1 : 1);
+        inimigo.velocidadeKnockback = dir * 4;
+
+        if (inimigo.elemento) {
+            inimigo.elemento.style.filter = 'brightness(2) grayscale(0.5)';
+            inimigo.elemento.style.pointerEvents = 'none';
+        }
+
+        // Desativa comportamentos de IA
+        inimigo.perseguindo = false;
+        inimigo.estaColetando = false;
+        if (inimigo.garraAnimEstado !== 'idle') {
+            inimigo.garraAnimEstado = 'idle';
+            if (inimigo.garraBracos) inimigo.garraBracos.forEach(b => b.remove());
+            inimigo.garraBracos = [];
+        }
+    };
+
     // Default values for jump delay
     config.inimigoPuloDelayMin = config.inimigoPuloDelayMin ?? 5; // Default 5 frames
     config.inimigoPuloDelayMax = config.inimigoPuloDelayMax ?? 20; // Default 20 frames
@@ -499,6 +528,36 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             for (let i = window.inimigos.length - 1; i >= 0; i--) {
                 const inimigo = window.inimigos[i];
                 
+                // --- LÓGICA DE MORTE LANÇADA (FLYING DEATH) ---
+                if (inimigo.estaMorrendo) {
+                    inimigo.velocidadeY -= config.inimigoGravidade || 0.6;
+                    inimigo.y += inimigo.velocidadeY;
+                    inimigo.x += inimigo.velocidadeKnockback;
+
+                    inimigo.elemento.style.left = inimigo.x + 'px';
+                    inimigo.elemento.style.bottom = inimigo.y + 'px';
+                    
+                    // Rotação cartoon: 12 graus por frame baseado na direção
+                    const rot = (35 - inimigo.framesMorrendo) * 12 * (inimigo.velocidadeKnockback > 0 ? 1 : -1);
+                    inimigo.elemento.style.transform = `rotate(${rot}deg)`;
+
+                    // Sincroniza todos os acessórios equipados no voo da morte
+                    [inimigo.armaElemento, inimigo.escudoElemento, inimigo.botaElemento, inimigo.jetpackElemento, inimigo.garraElemento, inimigo.cintoElemento, inimigo.coleteElemento].forEach(el => {
+                        if (el) {
+                            el.style.left = inimigo.elemento.style.left;
+                            el.style.bottom = inimigo.elemento.style.bottom;
+                            el.style.transform = inimigo.elemento.style.transform;
+                        }
+                    });
+
+                    inimigo.framesMorrendo--;
+                    // Morte definitiva quando o timer acaba ou sai da tela
+                    if (inimigo.framesMorrendo <= 0 || inimigo.y < -64) {
+                        inimigo.tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID ? window.processarMorteFeno?.(inimigo) : window.removerInimigoDerrotado?.(inimigo);
+                    }
+                    continue; // Pula o processamento da IA normal
+                }
+
                 // Lógica especial para o Alvo de Feno (Tipo 5)
                 if (inimigo.tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID) {
                     // Durante destruição/respawn, o alvo fica fora da física.

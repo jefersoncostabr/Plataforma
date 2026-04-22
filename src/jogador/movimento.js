@@ -312,6 +312,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         processarMorteFeno
     } = sistemaMorteInimigo;
 
+    // Expõe para que outros sistemas (IA, Combate) usem a mesma lógica de limpeza
+    window.removerInimigoDerrotado = removerInimigoDerrotado;
+    window.processarMorteFeno = processarMorteFeno;
+
     aplicarInventarioSalvo();
 
     window.isPaused = false;
