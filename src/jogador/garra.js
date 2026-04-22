@@ -447,7 +447,6 @@
                         };
 
                         if (detectarColisaoHitbox(hitboxGarra, hitboxInimigo, 0, 0, 0)) {
-                            console.log(`[GARRA] Atingiu inimigo tipo: ${inimigo.tipo} em x:${inimigo.x}`);
                             controle.garraItemCarregado = inimigo;
                             inimigo.stunned = true;
                             inimigo.stunTimer = Number(config.garraStunDuration ?? 180);
@@ -594,6 +593,10 @@
                     if (controle.garraItemCarregado.isEnemy) {
                         const inimigoAtingido = controle.garraItemCarregado;
 
+                        // Ativa os sons de chute e impacto (consistente com combate-corpo-a-corpo.js)
+                        // window.AudioManager?.playSFX('chute', 0.4);
+                        window.AudioManager?.playSFX('impacto', 0.6);
+
                         controle.tempoChute = config.tempoChute;
                         controle.cooldownChute = Number(config.cooldownChute ?? 0);
                         controle.framesImpulsoRestante = 0;
@@ -606,7 +609,6 @@
 
                         inimigoAtingido.foiAtingidoNesteChute = true;
                         inimigoAtingido.vida = (inimigoAtingido.vida || 0) + 1;
-                        console.log(`[GARRA] Soltou inimigo. Vida atual: ${inimigoAtingido.vida}`);
 
                         if (inimigoAtingido.vida < 3) animarDanoAlvo(inimigoAtingido);
 
@@ -625,7 +627,6 @@
                         virarFenoParaFonteDano(inimigoAtingido, controle.x + ((controle.largura || 32) / 2));
 
                         if (inimigoAtingido.vida >= 3) {
-                            console.log('[GARRA] Dano fatal atingido pela garra!');
                             window.prepararMorteInimigo?.(inimigoAtingido, direcaoKnockback);
                         }
                     } else {

@@ -18,7 +18,6 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
      */
     window.prepararMorteInimigo = (inimigo, direcaoX) => {
         if (inimigo.estaMorrendo || inimigo.estaMorto) return;
-        console.log(`[MORTE] Iniciando prepararMorteInimigo para tipo: ${inimigo.tipo}`);
 
         // Dropa os itens que o inimigo possui no chão antes de iniciar a animação de voo
         if (typeof window.droparItensInimigo === 'function') {
@@ -521,9 +520,6 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (!inimigo) continue;
 
                 if (inimigo && inimigo.estaMorrendo) {
-                    if (inimigo.framesMorrendo % 10 === 0) {
-                        console.log(`[MORTE] Animando quadro de voo. Frames restantes: ${inimigo.framesMorrendo}`);
-                    }
 
                     inimigo.velocidadeY -= config.inimigoGravidade || 0.6;
                     inimigo.y += inimigo.velocidadeY;
