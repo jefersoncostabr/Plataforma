@@ -7,30 +7,13 @@ Registrar os principais pontos do projeto onde existem trechos duplicados, lógi
 
 ---
 
-## 1. Código duplicado
-
-### 1.2 Checagem de escudo ativo
-
-### 1.3 Lógica de restauração e reparo
-Arquivos:
-- src/jogador/garra.js
-- src/jogador/inventario.js
-- src/inimigos/ia-inimigo.js
-
-Status:
-- [x] Centralizado em `window.aplicarRestauracaoPadrao` no arquivo `inventario.js`.
-- [x] Removida duplicação na coleta de itens da Garra.
-- [x] Removida duplicação na IA dos inimigos.
-
----
-
 ### 1.4 Mapeamento de sprite por tipo de item
 Arquivos:
 - src/jogador/inventario.js
 - src/jogador/acoes-especiais.js
 
-Observação:
-A seleção de sprite para revolver, escudo, bota, jetpack, garra, cinto, colete e restauração está repetida.
+Status:
+- [x] Centralizado na função global `window.obterSpriteItem` em `inventario.js`.
 
 ---
 

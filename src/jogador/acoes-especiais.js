@@ -1,18 +1,6 @@
 (function () {
     const FILTRO_PREVIEW_VISUAL = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
 
-    function obterSpritePreviewItemGlobal(tipo, config = window.config || {}) {
-        if (tipo === 'revolver') return config.spriteItemRevolver || '../../assets/personagem/revolver_pegavel.png';
-        if (tipo === 'escudo') return config.spriteItemEscudo || '../../assets/personagem/escudo_pegavel.png';
-        if (tipo === 'bota') return config.spriteItemBota || '../../assets/personagem/bota_pegavel.png';
-        if (tipo === 'jetpack') return config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
-        if (tipo === 'garra') return config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
-        if (tipo === 'cinto') return config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
-        if (tipo === 'colete') return config.spriteItemColete || '../../assets/personagem/colete_coletavel.png';
-        if (tipo === 'restauracao') return '../../assets/personagem/restauracao.png';
-        return window.itemDefinitions?.[tipo]?.spriteColetavel || window.itemDefinitions?.[tipo]?.spriteEquipado || '';
-    }
-
     function criarVisualFantasma(opcoes = {}) {
         const {
             src = '',
@@ -40,7 +28,6 @@
     }
 
     window.FILTRO_VISUAL_PREVIEW = FILTRO_PREVIEW_VISUAL;
-    window.obterSpritePreviewItem = obterSpritePreviewItemGlobal;
     window.criarVisualFantasma = criarVisualFantasma;
 
     function criarSistemaAcoesEspeciaisJogador(opcoes = {}) {
@@ -67,7 +54,7 @@
         }
 
         function obterSpriteVisualItem(tipo) {
-            return obterSpritePreviewItemGlobal(tipo, config);
+            return window.obterSpriteItem(tipo, config);
         }
 
         function dispararSinalizador() {

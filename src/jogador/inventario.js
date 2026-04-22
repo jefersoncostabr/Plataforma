@@ -348,14 +348,21 @@
         if (controle.inventario.includes('colete')) controle.temColete = true;
     }
 
-    function obterSpriteItem(tipo, config) {
-        if (tipo === 'revolver') return config.spriteItemRevolver || '../../assets/personagem/revolver_pegavel.png';
-        if (tipo === 'escudo') return config.spriteItemEscudo || '../../assets/personagem/escudo_pegavel.png';
-        if (tipo === 'bota') return config.spriteItemBota || '../../assets/personagem/bota_pegavel.png';
-        if (tipo === 'jetpack') return config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
-        if (tipo === 'garra') return config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
-        if (tipo === 'cinto') return config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
-        if (tipo === 'colete') return config.spriteItemColete || '../../assets/personagem/colete_coletavel.png';
+    function obterSpriteItem(tipo, config = window.config || {}) {
+        // Prioridade 1: Definições dinâmicas de itens (JSONs)
+        if (window.itemDefinitions && window.itemDefinitions[tipo]) {
+            const def = window.itemDefinitions[tipo];
+            return def.spriteColetavel || def.spriteEquipado || '';
+        }
+
+        // Prioridade 2: Configurações globais ou Fallbacks conhecidos
+        if (tipo === 'revolver') return config.spriteItemRevolver || config.spriteArmaPlayer || '../../assets/personagem/revolver_pegavel.png';
+        if (tipo === 'escudo') return config.spriteItemEscudo || config.spriteEscudoPlayer || '../../assets/personagem/escudo_pegavel.png';
+        if (tipo === 'bota') return config.spriteItemBota || config.spriteBotaParado || '../../assets/personagem/bota_pegavel.png';
+        if (tipo === 'jetpack') return config.spriteItemJetpack || config.spriteJetpackPlayer || '../../assets/personagem/jetpack_pegavel.png';
+        if (tipo === 'garra') return config.spriteItemGarra || config.spriteGarraPlayer || '../../assets/personagem/garra_coletavel.png';
+        if (tipo === 'cinto') return config.spriteItemCinto || config.spriteCintoPlayer || '../../assets/personagem/cinto_coletavel.png';
+        if (tipo === 'colete') return config.spriteItemColete || config.spriteColeteParado || '../../assets/personagem/colete_coletavel.png';
         if (tipo === 'restauracao') return '../../assets/personagem/restauracao.png';
         if (tipo === 'base_portatil') {
             return typeof window.obterSpriteCraftNivel === 'function'
@@ -364,6 +371,8 @@
         }
         return '';
     }
+
+    window.obterSpriteItem = obterSpriteItem;
 
     function aplicarRestauracaoPadrao(controle, config = {}, callbacks = {}) {
         if (!controle) return;
