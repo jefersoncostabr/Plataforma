@@ -18,7 +18,7 @@
                 return window.temEscudoAtivoPadrao(controle);
             }
 
-            return controle.temEscudo && !controle.escudoVermelho && !controle.itensGuardadosNoCinto;
+            return false;
         }
 
         function aplicarDanoEspinho(colisaoEstaca) {

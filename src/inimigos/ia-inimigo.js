@@ -59,38 +59,13 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     config.inimigoPuloDelayMin = config.inimigoPuloDelayMin ?? 5; // Default 5 frames
     config.inimigoPuloDelayMax = config.inimigoPuloDelayMax ?? 20; // Default 20 frames
 
-    const EPSILON = 0.01;
-
-    function obterKnockback(config, fonte = 'default') {
-        if (typeof window.obterKnockbackPadrao === 'function') {
-            return window.obterKnockbackPadrao(config, fonte);
+    function animarDanoAlvo(inimigo) {
+        if (!inimigo || !inimigo.elemento) return;
+        if (typeof piscaLeve === 'function') {
+            piscaLeve(inimigo.elemento);
+        } else if (typeof flashElement === 'function') {
+            flashElement(inimigo.elemento, 120, 8);
         }
-
-        const base = Number(config.knockbackBase ?? config.knockbackInimigo ?? 150);
-        const ajuste = Number(config.knockbackAjustes?.[fonte] ?? 0);
-        return base + ajuste;
-    }
-
-    function temEscudoAtivo() {
-        if (typeof window.temEscudoAtivoPadrao === 'function') {
-            return window.temEscudoAtivoPadrao(window.playerControle);
-        }
-
-        return window.playerControle?.temEscudo
-            && !window.playerControle?.escudoVermelho
-            && !window.playerControle?.itensGuardadosNoCinto;
-    }
-
-    function obterKnockbackRecebido(config, fonte = 'default') {
-        if (typeof window.obterKnockbackRecebidoPadrao === 'function') {
-            return window.obterKnockbackRecebidoPadrao(window.playerControle, config, fonte);
-        }
-
-        const valor = obterKnockback(config, fonte);
-        if (temEscudoAtivo()) {
-            return valor * Number(config.escudoKnockbackMultiplicador ?? 0.5);
-        }
-        return valor;
     }
 
     function detectarEstacaEmPonto(x, y) {
@@ -301,7 +276,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 duracaoFlash: 120,
                 intensidadeFlash: 6
             })?.bloqueou
-            : !!(inimigo.temEscudo && !inimigo.escudoVermelho && !inimigo.itensGuardadosNoCinto);
+            : window.temEscudoAtivoPadrao(inimigo);
 
         if (escudoBloqueouEspinho) {
             return false;
@@ -541,9 +516,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             // Usamos um loop for reverso para permitir a remoção segura de inimigos que caem no buraco
             for (let i = window.inimigos.length - 1; i >= 0; i--) {
                 const inimigo = window.inimigos[i];
-                
-                // --- LÓGICA DE MORTE LANÇADA (FLYING DEATH) ---
-                if (inimigo.estaMorrendo) {
+                if (inimigo && inimigo.estaMorrendo) {
                     inimigo.velocidadeY -= config.inimigoGravidade || 0.6;
                     inimigo.y += inimigo.velocidadeY;
                     inimigo.x += inimigo.velocidadeKnockback;
@@ -587,7 +560,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                     // Aplica knockback se estiver ativo
                     if (inimigo.framesKnockbackRestante > 0) {
-                        aplicarDeslocamentoHorizontalComColisao(inimigo, inimigo.velocidadeKnockback);
+                        window.aplicarDeslocamentoHorizontalComColisaoPadrao(inimigo, inimigo.velocidadeKnockback, window.plataformas, { config, maxPasso: config.inimigoKnockbackPassoMax ?? 1, cancelarKnockbackAoColidir: true });
                         inimigo.framesKnockbackRestante--;
                         inimigo.elemento.style.transform = inimigo.velocidadeKnockback > 0 ? 'scaleX(1)' : 'scaleX(-1)';
                     }
@@ -768,9 +741,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 }
                 
                 // Penalidade de velocidade para o escudo ativo (igual ao player)
-                if (typeof window.temEscudoAtivoPadrao === 'function'
-                    ? window.temEscudoAtivoPadrao(inimigo)
-                    : (inimigo.temEscudo && !inimigo.escudoVermelho && !inimigo.itensGuardadosNoCinto)) {
+                if (window.temEscudoAtivoPadrao(inimigo)) {
                     const penalidade = Number(config.escudoVelocidadeReduzida ?? 2);
                     velAtiva = Math.max(0.5, velAtiva - penalidade); // Garante no mínimo 0.5 de velocidade
                 }
@@ -1139,31 +1110,12 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                         salvarInventario: window.salvarInventario,
                                         duracaoFlash: 150,
                                         intensidadeFlash: 6
-                                    })?.bloqueou;
-                                } else if (playerAtingido.temEscudo && !playerAtingido.escudoVermelho && !playerAtingido.itensGuardadosNoCinto) {
-                                    escudoBloqueou = true;
-                                    playerAtingido.escudoProtegido = (playerAtingido.escudoProtegido || 0) + 1;
-                                    const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
-                                    if (typeof flashElement === 'function' && window.escudoElemento) flashElement(window.escudoElemento, 150, 6);
-                                    if (playerAtingido.escudoProtegido >= tirosProtegidos) playerAtingido.escudoVermelho = true;
-                                    window.atualizarVisualEscudo();
-                                    window.salvarInventario();
-                                }
-
-                                if (!escudoBloqueou) {
-                                    playerAtingido.dano = (playerAtingido.dano || 0) + 1;
-                                    if (typeof flashComVibacao === 'function') flashComVibacao(playerAtingido.elemento);
-                                    const limiteVida = playerAtingido.maxVida || 3;
-                                    if (playerAtingido.dano >= limiteVida) {
-                                        playerAtingido.dano = 0;
-                                        alert("Game Over! Você foi derrotado pela garra inimiga.");
-                                        if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
-                                    }
+                                    })?.bloqueou || false;
                                 }
 
                                 // Knockback player
                                 const direcaoKnockback = (inimigo.direcao === 'd' ? 1 : -1);
-                                const valorKnockback = obterKnockbackRecebido(config, 'inimigoChute'); // Reusing kick knockback
+                                const valorKnockback = window.obterKnockbackRecebidoPadrao(playerAtingido, config, 'inimigoChute');
                                 const duracaoRecuo = 15;
                                 playerAtingido.framesKnockbackRestante = duracaoRecuo;
                                 playerAtingido.velocidadeKnockback = (valorKnockback / duracaoRecuo) * direcaoKnockback;
@@ -1191,7 +1143,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 // Aplica knockback se estiver ativo
                 if (inimigo.framesKnockbackRestante > 0) {
-                    aplicarDeslocamentoHorizontalComColisao(inimigo, inimigo.velocidadeKnockback);
+                    window.aplicarDeslocamentoHorizontalComColisaoPadrao(inimigo, inimigo.velocidadeKnockback, window.plataformas, { config, maxPasso: config.inimigoKnockbackPassoMax ?? 1, cancelarKnockbackAoColidir: true });
                     inimigo.framesKnockbackRestante--;
                 }
                 // Decrementa o timer de stun
@@ -1777,8 +1729,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         window.AudioManager?.playSFX('impacto', 0.7);
                         inimigo.jaAtacouNesteChute = true;
                         
-                        const escudoAtivo = temEscudoAtivo();
-                        if (!escudoAtivo) {
+                        if (!window.temEscudoAtivoPadrao(window.playerControle)) {
                             window.playerControle.dano = (window.playerControle.dano || 0) + 1;
                             
                             if (typeof flashComVibacao === 'function') {
@@ -1791,7 +1742,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         }
                         
                         const direcaoKnockback = (inimigo.direcao === 'd' ? 1 : -1);
-                        const valorKnockback = obterKnockbackRecebido(config, 'inimigoChute');
+                        const valorKnockback = window.obterKnockbackRecebidoPadrao(window.playerControle, config, 'inimigoChute');
                         const duracaoRecuo = 15;
                         
                         window.playerControle.framesKnockbackRestante = duracaoRecuo;

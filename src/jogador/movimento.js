@@ -63,17 +63,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         throw new Error('Erro ao carregar combate-corpo-a-corpo.js: sistema de combate corpo a corpo indisponível.');
     }
 
-    function obterKnockback(config, fonte = 'default') {
-        if (typeof window.obterKnockbackPadrao === 'function') {
-            return window.obterKnockbackPadrao(config, fonte);
-        }
-
-        const base = Number(config.knockbackBase ?? config.knockbackInimigo ?? 150);
-        const ajuste = Number(config.knockbackAjustes?.[fonte] ?? 0);
-        return base + ajuste;
-    }
-
-
     function virarFenoParaFonteDano(inimigo, fonteX) {
         if (!inimigo || inimigo.tipo !== window.GAME_CONSTANTS.INIMIGO_FENO_ID || !inimigo.elemento) return;
         const centroX = inimigo.x + ((inimigo.largura || 32) / 2);
@@ -91,57 +80,6 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
     const spriteAgachado = '../../assets/personagem/per_agachado.png';
     const spriteAgachado2 = '../../assets/personagem/per_agachado2.png';
-
-    function obterKnockbackRecebido(fonte = 'default') {
-        if (typeof window.obterKnockbackRecebidoPadrao === 'function') {
-            return window.obterKnockbackRecebidoPadrao(controle, config, fonte);
-        }
-
-        const valor = obterKnockback(config, fonte);
-        if (temEscudoAtivo()) {
-            return valor * Number(config.escudoKnockbackMultiplicador ?? 0.5);
-        }
-        return valor;
-    }
-
-    function aplicarDeslocamentoHorizontalComColisao(ent, deslocX, opcoes = {}) {
-        if (typeof window.aplicarDeslocamentoHorizontalComColisaoPadrao === 'function') {
-            return window.aplicarDeslocamentoHorizontalComColisaoPadrao(ent, deslocX, window.plataformas, {
-                config,
-                ...opcoes
-            });
-        }
-
-        if (!ent || !deslocX) return;
-
-        const largura = Number(opcoes.largura ?? ent.largura ?? 32);
-        const altura = Number(opcoes.altura ?? ent.altura ?? 32);
-        const offsetX = Number(opcoes.offsetX ?? ent.offsetX ?? 0);
-        const maxPasso = Math.max(0.25, Number(opcoes.maxPasso ?? config.playerKnockbackPassoMax ?? config.inimigoKnockbackPassoMax ?? 1));
-        const passos = Math.max(1, Math.ceil(Math.abs(deslocX) / maxPasso));
-        const passoX = deslocX / passos;
-
-        for (let i = 0; i < passos; i++) {
-            const xAnterior = ent.x;
-            ent.x += passoX;
-
-            if (typeof verificarColisaoComTiles === 'function' &&
-                verificarColisaoComTiles(ent.x + offsetX, ent.y, largura, altura, window.plataformas)) {
-                ent.x = xAnterior;
-
-                if (opcoes.cancelarKnockbackAoColidir) {
-                    ent.framesKnockbackRestante = 0;
-                    ent.velocidadeKnockback = 0;
-                }
-                break;
-            }
-
-            if (typeof limitarPosicaoAoPalco === 'function') {
-                const posAjustada = limitarPosicaoAoPalco(ent.x + offsetX, ent.y, largura, altura);
-                ent.x = posAjustada.x - offsetX;
-            }
-        }
-    }
 
     function atualizarVisualEscudo() {
         if ((controle.temEscudo || controle.escudoVermelho) && !controle.itensGuardadosNoCinto) {
@@ -526,7 +464,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         atualizarVisualEscudo,
         salvarInventario,
         animarDanoAlvo,
-        obterKnockback,
+            obterKnockback: window.obterKnockbackPadrao,
         virarFenoParaFonteDano,
         processarMorteFeno,
         removerInimigoDerrotado,
@@ -763,7 +701,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         config,
         acaoAtiva,
         detectarColisaoHitbox,
-        obterKnockback,
+        obterKnockback: window.obterKnockbackPadrao,
         animarDanoAlvo,
         virarFenoParaFonteDano,
         processarMorteFeno,
@@ -898,8 +836,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         const xAnterior = controle.x;
         const yAnterior = controle.y;
 
-        const velBase = config.velocidadePlayer || velocidade;
-        let velAtiva = temEscudoAtivo()
+        const velBase = config.velocidadePlayer || velocidade; // ... (rest of the code)
+        let velAtiva = window.temEscudoAtivoPadrao(controle)
             ? Math.max(0, velBase - (config.escudoVelocidadeReduzida ?? 2))
             : velBase;
 
@@ -970,7 +908,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         // Aplica knockback se o jogador foi atingido (executa o movimento calculado)
         if (controle.framesKnockbackRestante > 0) {
-            aplicarDeslocamentoHorizontalComColisao(controle, controle.velocidadeKnockback, {
+            window.aplicarDeslocamentoHorizontalComColisaoPadrao(controle, controle.velocidadeKnockback, window.plataformas, {
                 largura: controle.largura,
                 altura: controle.altura,
                 offsetX: controle.offsetX || 0,
@@ -1427,9 +1365,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                             }
                             
                             // Knockback por subpassos para impedir atravessar blocos em impactos fortes.
-                            aplicarDeslocamentoHorizontalComColisao(
+                            window.aplicarDeslocamentoHorizontalComColisaoPadrao(
                                 inimigo,
-                                obterKnockback(config, 'playerProjetil') * proj.direcao,
+                                window.obterKnockbackPadrao(config, 'playerProjetil') * proj.direcao,
                                 {
                                     largura: inimigo.largura,
                                     altura: inimigo.altura,
@@ -1471,7 +1409,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                     const hitboxProjetil = { x: proj.x, y: proj.y, largura: config.PROJETIL_LARGURA, altura: config.PROJETIL_ALTURA };
 
                     if (detectarColisaoHitbox(hitboxProjetil, hitboxPlayer, 0, 0, 0)) {
-                        if (temEscudoAtivo()) {
+                        if (window.temEscudoAtivoPadrao(controle)) {
                             if (typeof window.aplicarImpactoEscudoPadrao === 'function') {
                                 window.aplicarImpactoEscudoPadrao(controle, config, {
                                     alvoVisual: escudoElemento,
@@ -1514,7 +1452,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         }
 
                         // Knockback no Jogador baseado na direção do tiro
-                        const valorKnockback = obterKnockbackRecebido('inimigoProjetil');
+                        const valorKnockback = window.obterKnockbackRecebidoPadrao(controle, config, 'inimigoProjetil');
                         const duracaoRecuo = 12; // O recuo durará 12 frames
                         controle.framesKnockbackRestante = duracaoRecuo;
                         // A velocidade por frame é o valor total dividido pela duração
