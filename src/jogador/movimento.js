@@ -919,6 +919,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
         const dashDisponivel = !!controle.dashHabilitado && window.temSkill?.((window.SKILLS || {}).DASH);
         if (dashDisponivel && controle.dashSolicitado && (controle.cooldownDash || 0) === 0) {
+            window.AudioManager?.playSFX('dash', 0.5);
             const duracaoDash = Math.max(1, Number(controle.dashDuracao ?? 8));
             const distanciaDashBase = Math.max(0, Number(controle.distanciaDash ?? 64));
             const multiplicadorDashBota = controle.leveComBota ? 2 : 1;

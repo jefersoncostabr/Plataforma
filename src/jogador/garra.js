@@ -594,7 +594,7 @@
                         const inimigoAtingido = controle.garraItemCarregado;
 
                         // Ativa os sons de chute e impacto (consistente com combate-corpo-a-corpo.js)
-                        // window.AudioManager?.playSFX('chute', 0.4);
+                        
                         window.AudioManager?.playSFX('impacto', 0.6);
 
                         controle.tempoChute = config.tempoChute;
