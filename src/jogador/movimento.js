@@ -1443,7 +1443,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                         flashComVibacao(inimigo.elemento);
                                     }
 
-                                    removerInimigoDerrotado(inimigo);
+                                    if (typeof window.prepararMorteInimigo === 'function') {
+                                        window.prepararMorteInimigo(inimigo, proj.direcao);
+                                    } else {
+                                        removerInimigoDerrotado(inimigo);
+                                    }
                                 }
                             }
                             hitAlvo = true;

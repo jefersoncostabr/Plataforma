@@ -18,6 +18,20 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     window.prepararMorteInimigo = (inimigo, direcaoX) => {
         if (inimigo.estaMorrendo || inimigo.estaMorto) return;
 
+        // Dropa os itens que o inimigo possui no chão antes de iniciar a animação de voo
+        if (typeof window.droparItensInimigo === 'function') {
+            window.droparItensInimigo(inimigo);
+        }
+
+        // Remove os acessórios visuais do inimigo imediatamente para que o corpo voe "limpo"
+        limparVisuaisInimigo(inimigo);
+
+        // Limpa o inventário lógico para garantir que não haverá processamento residual ou drop duplicado
+        if (Array.isArray(inimigo.inventario)) inimigo.inventario = [];
+        if (Array.isArray(inimigo.coleteSlots)) inimigo.coleteSlots = [];
+        inimigo.cintoSlot = null;
+        inimigo.estaColetando = false;
+
         inimigo.estaMorrendo = true;
         inimigo.framesMorrendo = 35; // Duração do voo
         inimigo.velocidadeY = 9;    // Impulso para cima
@@ -553,7 +567,11 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.framesMorrendo--;
                     // Morte definitiva quando o timer acaba ou sai da tela
                     if (inimigo.framesMorrendo <= 0 || inimigo.y < -64) {
-                        inimigo.tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID ? window.processarMorteFeno?.(inimigo) : window.removerInimigoDerrotado?.(inimigo);
+                        if (inimigo.tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID) {
+                            window.processarMorteFeno?.(inimigo);
+                        } else {
+                            window.removerInimigoDerrotado?.(inimigo, { droparItens: false });
+                        }
                     }
                     continue; // Pula o processamento da IA normal
                 }

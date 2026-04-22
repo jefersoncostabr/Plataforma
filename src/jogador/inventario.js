@@ -1203,6 +1203,7 @@
         window.limparInventarioSalvo = limparInventarioSalvo;
         window.limparCheckpointEquipamentoSalvo = limparCheckpointEquipamentoSalvo;
         window.carregarInventarioSalvo = carregarInventarioSalvo;
+        window.droparItensInimigo = droparItensInimigo;
         window.aplicarInventarioSalvoNoControle = aplicarInventarioSalvoNoControle;
         window.carregarCheckpointEquipamentoSalvo = carregarCheckpointEquipamentoSalvo;
         window.aplicarCheckpointEquipamentoComoInventarioPadrao = aplicarCheckpointEquipamentoComoInventarioPadrao;
