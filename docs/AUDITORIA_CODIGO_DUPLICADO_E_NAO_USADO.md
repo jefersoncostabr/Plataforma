@@ -10,14 +10,6 @@ Registrar os principais pontos do projeto onde existem trechos duplicados, lógi
 ## 1. Código duplicado
 
 ### 1.2 Checagem de escudo ativo
-Arquivos:
-- src/inimigos/ia-inimigo.js
-- src/jogador/dano-estacas.js
-
-Observação:
-A condição que verifica se o escudo está ativo e disponível está duplicada em contextos diferentes.
-
----
 
 ### 1.3 Lógica de restauração e reparo
 Arquivos:

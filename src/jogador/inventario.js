@@ -522,35 +522,11 @@
         }
 
         function aplicarRestauracao() {
-            if (typeof window.aplicarRestauracaoPadrao === 'function') {
-                return window.aplicarRestauracaoPadrao(controle, config, {
-                    atualizarVisualEscudo,
-                    atualizarVisualBota: window.atualizarVisualBota,
-                    atualizarVisualGarra: window.atualizarVisualGarra
-                });
-            }
-
-            controle.municao = Number(config?.maxMunicao ?? 5);
-            controle.escudoProtegido = 0;
-            controle.escudoVermelho = false;
-            controle.botaUsosDash = 0;
-            controle.botaVermelha = false;
-            controle.garraImpactosSolidos = 0;
-            controle.garraVermelha = false;
-            controle.dano = Math.max(0, (controle.dano || 0) - 1);
-            if (controle.inventario.includes('escudo')) {
-                controle.temEscudo = true;
-            }
-            if (controle.inventario.includes('garra')) {
-                controle.temGarra = true;
-            }
-            atualizarVisualEscudo();
-            if (typeof window.atualizarVisualBota === 'function') {
-                window.atualizarVisualBota();
-            }
-            if (typeof window.atualizarVisualGarra === 'function') {
-                window.atualizarVisualGarra();
-            }
+            return window.aplicarRestauracaoPadrao?.(controle, config, {
+                atualizarVisualEscudo,
+                atualizarVisualBota: window.atualizarVisualBota,
+                atualizarVisualGarra: window.atualizarVisualGarra
+            });
         }
 
         function aplicarItemNoCorpo(tipo, itemData = null, extras = {}) {

@@ -140,31 +140,11 @@
                 }
 
                 if (item.tipo === 'restauracao') {
-                    if (typeof window.aplicarRestauracaoPadrao === 'function') {
-                        window.aplicarRestauracaoPadrao(controle, config, {
-                            atualizarVisualEscudo,
-                            atualizarVisualBota: window.atualizarVisualBota,
-                            atualizarVisualGarra: window.atualizarVisualGarra
-                        });
-                    } else {
-                        controle.municao = config.maxMunicao || 5;
-                        controle.escudoProtegido = 0;
-                        controle.escudoVermelho = false;
-                        controle.botaUsosDash = 0;
-                        controle.botaVermelha = false;
-                        controle.garraImpactosSolidos = 0;
-                        controle.garraVermelha = false;
-                        controle.dano = Math.max(0, (controle.dano || 0) - 1);
-                        if (controle.inventario.includes('escudo')) {
-                            controle.temEscudo = true;
-                        }
-                        if (controle.inventario.includes('garra')) {
-                            controle.temGarra = true;
-                        }
-                        atualizarVisualEscudo();
-                        if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
-                        if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
-                    }
+                    window.aplicarRestauracaoPadrao?.(controle, config, {
+                        atualizarVisualEscudo,
+                        atualizarVisualBota: window.atualizarVisualBota,
+                        atualizarVisualGarra: window.atualizarVisualGarra
+                    });
                 }
 
                 if (item.tipo === 'revolver') {
@@ -269,31 +249,11 @@
                     if (typeof window.ganharXP === 'function') window.ganharXP(6);
                 } else if (sorteio === 'restauracao') {
                     console.log('AirDrop resgatado pela garra! Conteúdo: Restauração Completa');
-                    if (typeof window.aplicarRestauracaoPadrao === 'function') {
-                        window.aplicarRestauracaoPadrao(controle, config, {
-                            atualizarVisualEscudo,
-                            atualizarVisualBota: window.atualizarVisualBota,
-                            atualizarVisualGarra: window.atualizarVisualGarra
-                        });
-                    } else {
-                        controle.municao = config.maxMunicao || 5;
-                        controle.escudoProtegido = 0;
-                        controle.escudoVermelho = false;
-                        controle.botaUsosDash = 0;
-                        controle.botaVermelha = false;
-                        controle.garraImpactosSolidos = 0;
-                        controle.garraVermelha = false;
-                        controle.dano = Math.max(0, (controle.dano || 0) - 1);
-                        if (controle.inventario.includes('escudo')) {
-                            controle.temEscudo = true;
-                        }
-                        if (controle.inventario.includes('garra')) {
-                            controle.temGarra = true;
-                        }
-                        atualizarVisualEscudo();
-                        if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
-                        if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
-                    }
+                    window.aplicarRestauracaoPadrao?.(controle, config, {
+                        atualizarVisualEscudo,
+                        atualizarVisualBota: window.atualizarVisualBota,
+                        atualizarVisualGarra: window.atualizarVisualGarra
+                    });
                 } else if (sorteio === 'skill') {
                     if (window.skillsData && Object.keys(window.skillsData).length > 0) {
                         const disponiveis = Object.keys(window.skillsData).filter(s => !window.playerSkills.includes(s) && window.skillsData[s].parent === null);
@@ -357,31 +317,11 @@
                 if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
                 armaElemento.style.display = 'block';
             } else if (item.tipo === 'restauracao') {
-                if (typeof window.aplicarRestauracaoPadrao === 'function') {
-                    window.aplicarRestauracaoPadrao(controle, config, {
-                        atualizarVisualEscudo,
-                        atualizarVisualBota: window.atualizarVisualBota,
-                        atualizarVisualGarra: window.atualizarVisualGarra
-                    });
-                } else {
-                    controle.municao = config.maxMunicao || 5;
-                    controle.escudoProtegido = 0;
-                    controle.escudoVermelho = false;
-                    controle.botaUsosDash = 0;
-                    controle.botaVermelha = false;
-                    controle.garraImpactosSolidos = 0;
-                    controle.garraVermelha = false;
-                    controle.dano = Math.max(0, (controle.dano || 0) - 1);
-                    if (controle.inventario.includes('escudo')) {
-                        controle.temEscudo = true;
-                    }
-                    if (controle.inventario.includes('garra')) {
-                        controle.temGarra = true;
-                    }
-                    atualizarVisualEscudo();
-                    if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
-                    if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
-                }
+                window.aplicarRestauracaoPadrao?.(controle, config, {
+                    atualizarVisualEscudo,
+                    atualizarVisualBota: window.atualizarVisualBota,
+                    atualizarVisualGarra: window.atualizarVisualGarra
+                });
             }
             salvarInventario();
             return true;
