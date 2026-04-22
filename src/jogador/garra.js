@@ -72,11 +72,12 @@
         }
 
         function resetarVisualGarra() {
+            // Garante limpeza de braços esticados
+            if (Array.isArray(controle.garraBracos)) {
+                controle.garraBracos.forEach(b => b?.remove());
+                controle.garraBracos = [];
+            }
             garraElemento.src = config.spriteGarraPlayer || '../../assets/personagem/garra.png';
-            controle.garraBracos.forEach((braco) => {
-                if (braco && typeof braco.remove === 'function') braco.remove();
-            });
-            controle.garraBracos = [];
             atualizarVisualEstadoGarra();
         }
 
@@ -446,6 +447,7 @@
                         };
 
                         if (detectarColisaoHitbox(hitboxGarra, hitboxInimigo, 0, 0, 0)) {
+                            console.log(`[GARRA] Atingiu inimigo tipo: ${inimigo.tipo} em x:${inimigo.x}`);
                             controle.garraItemCarregado = inimigo;
                             inimigo.stunned = true;
                             inimigo.stunTimer = Number(config.garraStunDuration ?? 180);
@@ -597,8 +599,15 @@
                         controle.framesImpulsoRestante = 0;
                         controle.velocidadeDash = 0;
 
+                        // Adiciona o inimigo de volta à lista global para que a IA e a Morte possam processá-lo
+                        if (!window.inimigos.includes(inimigoAtingido)) {
+                            window.inimigos.push(inimigoAtingido);
+                        }
+
                         inimigoAtingido.foiAtingidoNesteChute = true;
                         inimigoAtingido.vida = (inimigoAtingido.vida || 0) + 1;
+                        console.log(`[GARRA] Soltou inimigo. Vida atual: ${inimigoAtingido.vida}`);
+
                         if (inimigoAtingido.vida < 3) animarDanoAlvo(inimigoAtingido);
 
                         inimigoAtingido.stunned = false;
@@ -616,9 +625,8 @@
                         virarFenoParaFonteDano(inimigoAtingido, controle.x + ((controle.largura || 32) / 2));
 
                         if (inimigoAtingido.vida >= 3) {
+                            console.log('[GARRA] Dano fatal atingido pela garra!');
                             window.prepararMorteInimigo?.(inimigoAtingido, direcaoKnockback);
-                        } else {
-                            window.inimigos.push(inimigoAtingido);
                         }
                     } else {
                         const foiColetado = coletarItemGarra(controle.garraItemCarregado);

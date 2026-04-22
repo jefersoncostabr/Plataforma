@@ -164,6 +164,8 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         superDescidaAtiva: false, // Rastreador de uso da Super Descida
         espacoPressionado: false,
         cooldownChute: 0,
+        estaMorrendo: false,
+        framesMorrendo: 0,
         cooldownPulo: 0,
         cooldownTiro: 0,
         cooldownDanoEspinho: 0,
@@ -211,6 +213,33 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         velocidadeTotalAtual: 0,
         teclas: {},
         acoesDiscretas: {}
+    };
+
+    /**
+     * Inicia a sequência de morte do jogador (estilo cartoon).
+     */
+    window.prepararMorteJogador = (direcaoX) => {
+        if (controle.estaMorrendo) return;
+
+        controle.estaMorrendo = true;
+        controle.framesMorrendo = 35;
+        controle.velocidadeY = 10;
+        
+        // Direção oposta ao dano ou baseada na face
+        const dir = direcaoX !== undefined ? Math.sign(direcaoX) : (controle.direcao === 'd' ? -1 : 1);
+        controle.velocidadeKnockback = dir * 5;
+
+        if (elemento) {
+            // Força o sprite de "no ar" (pulo) para a animação de voo
+            elemento.src = config.spriteNoArPlayer || spriteNoAr;
+            elemento.style.filter = 'brightness(2) grayscale(0.5)';
+            elemento.style.pointerEvents = 'none';
+        }
+
+        // Desativa controles
+        controle.stunned = true;
+        controle.stunTimer = 100;
+        window.AudioManager?.playSFX('impacto', 0.8);
     };
 
     if (typeof window.inicializarEstadoCinto === 'function') {
@@ -730,7 +759,42 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             });
             // ...
         }
-        // ...
+
+        // --- LÓGICA DE MORTE (FLYING DEATH) ---
+        if (controle.estaMorrendo) {
+            controle.velocidadeY -= config.inimigoGravidade || 0.6;
+            controle.y += controle.velocidadeY;
+            controle.x += controle.velocidadeKnockback;
+
+            elemento.style.left = controle.x + 'px';
+            elemento.style.bottom = controle.y + 'px';
+            
+            // Rotação cartoon baseada no tempo de voo
+            const rot = (35 - controle.framesMorrendo) * 15 * (controle.velocidadeKnockback > 0 ? 1 : -1);
+            const flip = controle.velocidadeKnockback > 0 ? 1 : -1;
+            elemento.style.transform = `scaleX(${flip}) rotate(${rot}deg)`;
+
+            // Sincroniza acessórios equipados
+            const elementosEquip = { armaElemento, escudoElemento, botaElemento, jetpackElemento, garraElemento, cintoElemento, coleteElemento };
+            Object.values(elementosEquip).forEach(el => {
+                if (el && el.style.display !== 'none') {
+                    el.style.left = elemento.style.left;
+                    el.style.bottom = elemento.style.bottom;
+                    el.style.transform = elemento.style.transform;
+                }
+            });
+
+            controle.framesMorrendo--;
+            if (controle.framesMorrendo <= 0 || controle.y < -128) {
+                controle.estaMorrendo = false;
+                elemento.style.filter = 'none';
+                elemento.style.transform = 'none';
+                alert("Game Over!");
+                if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
+            }
+            requestAnimationFrame(atualizar);
+            return;
+        }
 
         // Lógica de Stun do Jogador (quando capturado pela garra inimiga)
         if (controle.stunned) {

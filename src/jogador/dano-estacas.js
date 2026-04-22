@@ -91,9 +91,9 @@
 
             const limiteVida = controle.maxVida || 3;
             if (controle.dano >= limiteVida) {
-                controle.dano = 0;
-                alert('Game Over! Você foi derrotado pelos espinhos.');
-                if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
+                if (typeof window.prepararMorteJogador === 'function') {
+                    window.prepararMorteJogador();
+                }
             }
         }
 

@@ -714,7 +714,13 @@ async function iniciarJogo() {
         '../../assets/personagem/personagem_chute2.png',
         '../../assets/personagem/personagem_no_ar.png'
     );
-    await iniciarIAInimigos(1, '../../assets/personagem/Personagem_parado.png', '../../assets/personagem/Personagem_andando.png', '../../assets/personagem/personagem_chute2.png');
+    await iniciarIAInimigos(
+        1, 
+        '../../assets/personagem/Personagem_parado.png', 
+        '../../assets/personagem/Personagem_andando.png', 
+        '../../assets/personagem/personagem_chute2.png',
+        '../../assets/personagem/personagem_no_ar.png'
+    );
     
     // Carrega fase e abre menu inicial
     await carregarFase(window.niveis[window.nivelAtual]);

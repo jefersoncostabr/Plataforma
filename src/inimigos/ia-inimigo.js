@@ -6,8 +6,9 @@
  * @param {string} spriteParado - Caminho da imagem parado.
  * @param {string} spriteAndando - Caminho da imagem andando.
  * @param {string} spriteChute - Caminho da imagem chutando.
+ * @param {string} spriteNoAr - Caminho da imagem no ar (usado para morte).
  */
-async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteChute) {
+async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteChute, spriteNoAr) {
     // Busca as configurações do arquivo JSON
     const resposta = await fetch('../../config/configuracoes.json');
     const config = await resposta.json();
@@ -17,6 +18,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
      */
     window.prepararMorteInimigo = (inimigo, direcaoX) => {
         if (inimigo.estaMorrendo || inimigo.estaMorto) return;
+        console.log(`[MORTE] Iniciando prepararMorteInimigo para tipo: ${inimigo.tipo}`);
 
         // Dropa os itens que o inimigo possui no chão antes de iniciar a animação de voo
         if (typeof window.droparItensInimigo === 'function') {
@@ -516,7 +518,13 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             // Usamos um loop for reverso para permitir a remoção segura de inimigos que caem no buraco
             for (let i = window.inimigos.length - 1; i >= 0; i--) {
                 const inimigo = window.inimigos[i];
+                if (!inimigo) continue;
+
                 if (inimigo && inimigo.estaMorrendo) {
+                    if (inimigo.framesMorrendo % 10 === 0) {
+                        console.log(`[MORTE] Animando quadro de voo. Frames restantes: ${inimigo.framesMorrendo}`);
+                    }
+
                     inimigo.velocidadeY -= config.inimigoGravidade || 0.6;
                     inimigo.y += inimigo.velocidadeY;
                     inimigo.x += inimigo.velocidadeKnockback;
@@ -526,7 +534,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     
                     // Rotação cartoon: 12 graus por frame baseado na direção
                     const rot = (35 - inimigo.framesMorrendo) * 12 * (inimigo.velocidadeKnockback > 0 ? 1 : -1);
-                    inimigo.elemento.style.transform = `rotate(${rot}deg)`;
+                    const flip = inimigo.velocidadeKnockback > 0 ? 1 : -1;
+                    inimigo.elemento.style.transform = `scaleX(${flip}) rotate(${rot}deg)`;
 
                     // Sincroniza todos os acessórios equipados no voo da morte
                     [inimigo.armaElemento, inimigo.escudoElemento, inimigo.botaElemento, inimigo.jetpackElemento, inimigo.garraElemento, inimigo.cintoElemento, inimigo.coleteElemento].forEach(el => {
@@ -1119,6 +1128,14 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                 const duracaoRecuo = 15;
                                 playerAtingido.framesKnockbackRestante = duracaoRecuo;
                                 playerAtingido.velocidadeKnockback = (valorKnockback / duracaoRecuo) * direcaoKnockback;
+
+                                // ADICIONADO: Checagem de morte fatal após soltar da garra
+                                const limiteVida = playerAtingido.maxVida || 3;
+                                if (playerAtingido.dano >= limiteVida) {
+                                    if (typeof window.prepararMorteJogador === 'function') {
+                                        window.prepararMorteJogador(direcaoKnockback);
+                                    }
+                                }
 
                             } else { // It's an item
                                 // Enemy collects the item
@@ -1750,9 +1767,9 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                         const limiteVida = window.playerControle.maxVida || 3;
                         if (window.playerControle.dano >= limiteVida) {
-                            window.playerControle.dano = 0;
-                            alert("Game Over! Você foi derrotado pelos inimigos.");
-                            if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
+                            if (typeof window.prepararMorteJogador === 'function') {
+                                window.prepararMorteJogador(inimigo.direcao === 'd' ? 1 : -1);
+                            }
                         }
                     }
                 }
