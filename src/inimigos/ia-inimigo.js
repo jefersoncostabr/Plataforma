@@ -1501,6 +1501,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.temArma && !inimigo.itensGuardadosNoCinto && distanciaAtual <= alcanceTiro && distanciaAtual > config.distanciaAtaqueInimigo && inimigo.cooldownTiro === 0 && inimigo.municao > 0) {
                         inimigo.cooldownTiro = config.cooldownTiro;
                         inimigo.municao--;
+                        window.AudioManager?.playSFX('disparo', 0.4);
                         
                         const dir = inimigo.direcao === 'd' ? 1 : -1;
                         const xPartida = (inimigo.direcao === 'd') ? inimigo.x + 32 : inimigo.x - config.PROJETIL_LARGURA;

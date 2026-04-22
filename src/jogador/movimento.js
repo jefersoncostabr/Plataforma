@@ -987,6 +987,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         if (acaoAtiva('tiro') && controle.cooldownTiro === 0 && controle.temArma && !controle.itensGuardadosNoCinto && controle.municao > 0) {
             controle.cooldownTiro = config.cooldownTiro; 
             controle.municao--;
+            window.AudioManager?.playSFX('disparo', 0.5);
             const dir = controle.direcao === 'd' ? 1 : -1;
             
             // Inicia na frente do personagem (considerando 32px de largura do sprite)
