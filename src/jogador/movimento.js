@@ -1167,6 +1167,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             // Segundo salto: agora com 1.25x da força (um quarto a mais) e com timing mais exigente
             controle.velocidadeY = forcaPuloFinal * 1.25;
             window.AudioManager?.playSFX('pulo', 0.5);
+            window.AudioManager?.playSFX('dash', 0.5);
             controle.pulosRealizados = 2; // Consome o segundo salto até tocar o chão novamente
             controle.doubleJumpUsedInAir = true; // Marca que o pulo duplo foi usado no ar
             console.log("Habilidade Salto: Pulo duplo rápido executado!");
@@ -1182,6 +1183,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         if (!controle.noChao && controle.velocidadeY < 0 && acaoAtiva('pulo') && !controle.usandoParaquedas && controle.pulosRealizados === 2) {
             controle.velocidadeY = -20; 
             if (!controle.superDescidaAtiva) {
+                window.AudioManager?.playSFX('dash', 0.5);
                 const jaEraPesado = !!controle.pesado;
                 controle.superDescidaAtiva = true;
                 if (!jaEraPesado) {
