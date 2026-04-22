@@ -82,12 +82,18 @@
         }
 
         function sincronizarEquipamentoNoJogador(equipamento) {
-            if (!equipamento) return;
-            const agachadoVisualAtivo = !!(controle.estaAgachado && controle.noChao);
-            const offsetY = equipamento.id === 'player-vest' && agachadoVisualAtivo ? -5 : 0;
-            equipamento.style.left = controle.x + 'px';
-            equipamento.style.bottom = (controle.y + offsetY) + 'px';
-            equipamento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+            if (!equipamento || typeof window.sincronizarAcessoriosEntidade !== 'function') return;
+            
+            // Mapeia o elemento isolado para o formato esperado pelo sincronizador global
+            const elementoChave = equipamento.id === 'player-weapon' ? 'armaElemento' :
+                                 equipamento.id === 'player-shield' ? 'escudoElemento' :
+                                 equipamento.id === 'player-boots' ? 'botaElemento' :
+                                 equipamento.id === 'player-vest' ? 'coleteElemento' : 
+                                 equipamento.id === 'player-jetpack' ? 'jetpackElemento' : null;
+            
+            if (elementoChave) {
+                window.sincronizarAcessoriosEntidade(controle, { [elementoChave]: equipamento });
+            }
         }
 
         function criarImpactoVerticalGarra(x, y) {

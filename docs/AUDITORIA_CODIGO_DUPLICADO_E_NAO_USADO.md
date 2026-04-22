@@ -7,6 +7,23 @@ Registrar os principais pontos do projeto onde existem trechos duplicados, lógi
 
 ---
 
+## 1. Código duplicado
+
+### 1.2 Checagem de escudo ativo
+
+### 1.3 Lógica de restauração e reparo
+Arquivos:
+- src/jogador/garra.js
+- src/jogador/inventario.js
+- src/inimigos/ia-inimigo.js
+
+Status:
+- [x] Centralizado em `window.aplicarRestauracaoPadrao` no arquivo `inventario.js`.
+- [x] Removida duplicação na coleta de itens da Garra.
+- [x] Removida duplicação na IA dos inimigos.
+
+---
+
 ### 1.4 Mapeamento de sprite por tipo de item
 Arquivos:
 - src/jogador/inventario.js
@@ -20,9 +37,12 @@ Status:
 ### 1.5 Sincronização visual de equipamentos
 Arquivo:
 - src/visual/animacoes-equipamento.js
+- src/jogador/movimento.js
+- src/inimigos/ia-inimigo.js
 
-Observação:
-Há funções muito parecidas para sincronizar posição, transformação e animação de clones dos equipamentos no corpo e no cinto.
+Status:
+- [x] Criado `window.sincronizarAcessoriosEntidade` em `src/visual/sincronizacao-visual.js`.
+- [x] Removidos blocos manuais de style e centralizado posicionamento.
 
 ---
 

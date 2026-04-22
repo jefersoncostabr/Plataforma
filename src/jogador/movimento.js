@@ -43,6 +43,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         throw new Error('Erro ao carregar animacoes-equipamento.js: sistema visual de equipamentos indisponível.');
     }
 
+    if (typeof window.sincronizarAcessoriosEntidade !== 'function') {
+        throw new Error('Erro ao carregar sincronizacao-visual.js: sistema de sincronização indisponível.');
+    }
+
     if (typeof window.criarSistemaDanoEstacasJogador !== 'function') {
         throw new Error('Erro ao carregar dano-estacas.js: sistema de dano por estacas indisponível.');
     }
@@ -774,15 +778,16 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
             const flip = controle.velocidadeKnockback > 0 ? 1 : -1;
             elemento.style.transform = `scaleX(${flip}) rotate(${rot}deg)`;
 
-            // Sincroniza acessórios equipados
-            const elementosEquip = { armaElemento, escudoElemento, botaElemento, jetpackElemento, garraElemento, cintoElemento, coleteElemento };
-            Object.values(elementosEquip).forEach(el => {
-                if (el && el.style.display !== 'none') {
-                    el.style.left = elemento.style.left;
-                    el.style.bottom = elemento.style.bottom;
-                    el.style.transform = elemento.style.transform;
-                }
-            });
+            // Sincroniza acessórios voados usando o helper centralizado
+            window.sincronizarAcessoriosEntidade(controle, {
+                armaElemento,
+                escudoElemento,
+                botaElemento,
+                jetpackElemento,
+                garraElemento,
+                cintoElemento,
+                coleteElemento
+            }, { forçarSincroniaGarra: true });
 
             controle.framesMorrendo--;
             if (controle.framesMorrendo <= 0 || controle.y < -128) {
@@ -809,27 +814,16 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                 elemento.style.bottom = controle.y + 'px';
                 elemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
                 
-                // Sincroniza itens acessórios
-                if (typeof window.sincronizarAcessoriosPortador === 'function') {
-                    window.sincronizarAcessoriosPortador(controle, elemento, {
-                        armaElemento,
-                        escudoElemento,
-                        botaElemento,
-                        jetpackElemento,
-                        garraElemento,
-                        cintoElemento,
-                        coleteElemento
-                    });
-                } else {
-                    const posStyle = { left: elemento.style.left, bottom: elemento.style.bottom, transform: elemento.style.transform };
-                    if (armaElemento) Object.assign(armaElemento.style, posStyle);
-                    if (escudoElemento) Object.assign(escudoElemento.style, posStyle);
-                    if (botaElemento) Object.assign(botaElemento.style, posStyle);
-                    if (jetpackElemento) Object.assign(jetpackElemento.style, posStyle);
-                    if (garraElemento) Object.assign(garraElemento.style, posStyle);
-                    if (coleteElemento) Object.assign(coleteElemento.style, posStyle);
-                    if (cintoElemento && controle.temCinto) sincronizarCintoComJogador();
-                }
+                // Sincroniza acessórios via helper global (unificando o código que era manual)
+                window.sincronizarAcessoriosEntidade(controle, {
+                    armaElemento,
+                    escudoElemento,
+                    botaElemento,
+                    jetpackElemento,
+                    garraElemento,
+                    cintoElemento,
+                    coleteElemento
+                });
 
                 // Mantém o HUD atualizado
                 atualizarHUD();

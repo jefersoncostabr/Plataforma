@@ -13,6 +13,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     const resposta = await fetch('../../config/configuracoes.json');
     const config = await resposta.json();
 
+    if (typeof window.sincronizarAcessoriosEntidade !== 'function') {
+        console.error('IA: Erro ao carregar sincronizacao-visual.js. A IA visual pode falhar.');
+    }
+
     /**
      * Inicia a sequência de lançamento (morte cartoon).
      */
@@ -533,14 +537,16 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     const flip = inimigo.velocidadeKnockback > 0 ? 1 : -1;
                     inimigo.elemento.style.transform = `scaleX(${flip}) rotate(${rot}deg)`;
 
-                    // Sincroniza todos os acessórios equipados no voo da morte
-                    [inimigo.armaElemento, inimigo.escudoElemento, inimigo.botaElemento, inimigo.jetpackElemento, inimigo.garraElemento, inimigo.cintoElemento, inimigo.coleteElemento].forEach(el => {
-                        if (el) {
-                            el.style.left = inimigo.elemento.style.left;
-                            el.style.bottom = inimigo.elemento.style.bottom;
-                            el.style.transform = inimigo.elemento.style.transform;
-                        }
-                    });
+                    // Sincroniza acessórios no voo da morte via helper global
+                    window.sincronizarAcessoriosEntidade(inimigo, {
+                        armaElemento: inimigo.armaElemento,
+                        escudoElemento: inimigo.escudoElemento,
+                        botaElemento: inimigo.botaElemento,
+                        jetpackElemento: inimigo.jetpackElemento,
+                        garraElemento: inimigo.garraElemento,
+                        cintoElemento: inimigo.cintoElemento,
+                        coleteElemento: inimigo.coleteElemento
+                    }, { forçarSincroniaGarra: true });
 
                     inimigo.framesMorrendo--;
                     // Morte definitiva quando o timer acaba ou sai da tela
@@ -1069,12 +1075,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                         garraElemento: window.playerControle.garraElemento,
                                         cintoElemento: window.playerControle.cintoElemento,
                                         coleteElemento: window.playerControle.coleteElemento
-                                    }, {
-                                        x: window.playerControle.x,
-                                        y: window.playerControle.y,
-                                        transform: window.playerControle.elemento?.style?.transform,
-                                        sincronizarGarraAnimando: true
-                                    });
+                                    }, { forçarSincroniaGarra: true });
                                 } else {
                                     if (window.playerControle.armaElemento) window.playerControle.armaElemento.style.left = inimigo.garraElemento.style.left;
                                     if (window.playerControle.armaElemento) window.playerControle.armaElemento.style.bottom = inimigo.garraElemento.style.bottom;
@@ -1806,102 +1807,48 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 inimigo.elemento.style.bottom = inimigo.y + 'px';
                 inimigo.elemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
 
-                // Sincroniza a arma com o inimigo
+                // Prepara transforms e offsets específicos antes da sincronização global
+                const direcaoFator = inimigo.direcao === 'e' ? 1 : -1;
+                const anguloRecuo = (inimigo.armaElemento?.dataset.recoil === 'true') ? (15 * direcaoFator) : 0;
+                const transformArma = (inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)') + ` rotate(${anguloRecuo}deg)`;
+
+                const tremorFogo = (Math.random() * 3) - 1.5;
+                const mostrarFogo = !!(inimigo.jetpackAtivo && playerY > inimigo.y + 10 && (inimigo.timerVooRestante % 4 < 2));
+                if (inimigo.jetFogoElemento) inimigo.jetFogoElemento.style.display = mostrarFogo ? 'block' : 'none';
+
+                // Sincroniza posição de todos os acessórios via helper centralizado
+                window.sincronizarAcessoriosEntidade(inimigo, {
+                    armaElemento: inimigo.armaElemento,
+                    escudoElemento: inimigo.escudoElemento,
+                    botaElemento: inimigo.botaElemento,
+                    jetpackElemento: inimigo.jetpackElemento,
+                    jetFogoElemento: inimigo.jetFogoElemento,
+                    garraElemento: inimigo.garraElemento,
+                    cintoElemento: inimigo.cintoElemento,
+                    coleteElemento: inimigo.coleteElemento
+                }, {
+                    transformArma,
+                    offsetYFogo: -4 + tremorFogo
+                });
+
+                // Lógica de atualização de sprites e filtros (mantida aqui por ser específica da lógica do item)
                 if (inimigo.armaElemento) {
-                    inimigo.armaElemento.style.left = inimigo.x + 'px';
-                    inimigo.armaElemento.style.bottom = inimigo.y + 'px';
-
-                    // Aplica rotação de 15 graus se estiver no estado de recuo (igual ao jogador)
-                    const direcaoFator = inimigo.direcao === 'e' ? 1 : -1;
-                    const emRecuo = inimigo.armaElemento.dataset.recoil === 'true';
-                    const anguloRecuo = emRecuo ? (15 * direcaoFator) : 0;
-                    inimigo.armaElemento.style.transform = (inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)') + ` rotate(${anguloRecuo}deg)`;
-
-                    // Aplica filtro vermelho se o inimigo estiver sem munição
                     inimigo.armaElemento.style.filter = (inimigo.municao <= 0) ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
                 }
 
-                // Sincroniza o escudo com o inimigo
                 if (inimigo.escudoElemento && inimigo.temEscudo) {
-                    inimigo.escudoElemento.style.left = inimigo.x + 'px';
-                    inimigo.escudoElemento.style.bottom = inimigo.y + 'px';
-                    inimigo.escudoElemento.style.transform = inimigo.elemento.style.transform;
-
-                    inimigo.escudoElemento.src = config.spriteEscudoPlayer || '../../assets/personagem/escudo.png';
-                    // Aplica filtro vermelho se o escudo do inimigo quebrar
                     inimigo.escudoElemento.style.filter = inimigo.escudoVermelho ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
                 }
 
-                // Sincroniza a bota com o inimigo
                 if (inimigo.botaElemento && inimigo.temBota) {
-                    inimigo.botaElemento.style.left = inimigo.x + 'px';
-                    inimigo.botaElemento.style.bottom = inimigo.y + 'px';
-                    inimigo.botaElemento.style.transform = inimigo.elemento.style.transform;
-                    
-                    if (estaChutando) {
-                        inimigo.botaElemento.src = config.spriteBotaChutando || '../../assets/personagem/bota_chutando.png';
-                    } else if (!inimigo.noChao) {
-                        // Se estiver no ar, usa o sprite específico para o ar
-                        inimigo.botaElemento.src = config.spriteBotaNoAr || '../../assets/personagem/bota_no_ar.png';
-                    } else if (movendoDestaVez) {
-                        inimigo.botaElemento.src = (inimigo.frameAtual === 1)
-                            ? (config.spriteBotaAndando || '../../assets/personagem/bota_andando.png')
-                            : (config.spriteBotaParado || '../../assets/personagem/bota_parado.png');
-                    } else {
-                        inimigo.botaElemento.src = config.spriteBotaParado || '../../assets/personagem/bota_parado.png';
-                    }
+                    if (estaChutando) inimigo.botaElemento.src = config.spriteBotaChutando || '../../assets/personagem/bota_chutando.png';
+                    else if (!inimigo.noChao) inimigo.botaElemento.src = config.spriteBotaNoAr || '../../assets/personagem/bota_no_ar.png';
+                    else if (movendoDestaVez) inimigo.botaElemento.src = (inimigo.frameAtual === 1) ? (config.spriteBotaAndando || '../../assets/personagem/bota_andando.png') : (config.spriteBotaParado || '../../assets/personagem/bota_parado.png');
+                    else inimigo.botaElemento.src = config.spriteBotaParado || '../../assets/personagem/bota_parado.png';
                 }
 
-                // Sincroniza o jetpack com o inimigo
                 if (inimigo.jetpackElemento && inimigo.temJetpack) {
-                    inimigo.jetpackElemento.style.left = inimigo.x + 'px';
-                    inimigo.jetpackElemento.style.bottom = inimigo.y + 'px';
-                    inimigo.jetpackElemento.style.transform = inimigo.elemento.style.transform;
-
-                    // Indicação visual de recarga para o inimigo: Aplica um filtro de cor vermelha no sprite durante o tempo de espera (cooldown).
-                    if (inimigo.cooldownVooJetpack > 0) {
-                        inimigo.jetpackElemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
-                    } else {
-                        inimigo.jetpackElemento.style.filter = 'none';
-                    }
-
-                    // Lógica do Fogo para o Inimigo
-                    const subir = yAlvo > inimigo.y + 10;
-                    const efeitoPisca = (inimigo.timerVooRestante % 4 < 2);
-                    const tremorFogo = (Math.random() * 3) - 1.5;
-
-                    if (inimigo.jetpackAtivo && subir && efeitoPisca) {
-                        inimigo.jetFogoElemento.style.display = 'block';
-                        inimigo.jetFogoElemento.style.left = inimigo.x + 'px';
-                        inimigo.jetFogoElemento.style.bottom = (inimigo.y - 4 + tremorFogo) + 'px';
-                        inimigo.jetFogoElemento.style.transform = inimigo.elemento.style.transform;
-                    } else {
-                        inimigo.jetFogoElemento.style.display = 'none';
-                    }
-                }
-
-                // Sincroniza o cinto com o inimigo
-                if (inimigo.cintoElemento && inimigo.temCinto) {
-                    inimigo.cintoElemento.style.left = inimigo.x + 'px';
-                    inimigo.cintoElemento.style.bottom = inimigo.y + 'px';
-                    inimigo.cintoElemento.style.transform = inimigo.elemento.style.transform;
-                }
-
-                // Sincroniza o colete com o inimigo
-                if (inimigo.coleteElemento && inimigo.temColete) {
-                    const offsetY = (inimigo.estaAgachado && inimigo.noChao) ? -6 : 0;
-                    inimigo.coleteElemento.style.left = inimigo.x + 'px';
-                    inimigo.coleteElemento.style.bottom = (inimigo.y + offsetY) + 'px';
-                    inimigo.coleteElemento.style.transform = inimigo.elemento.style.transform;
-                }
-
-                // Sincroniza a garra com o inimigo
-                if (inimigo.garraElemento && inimigo.temGarra) {
-                    if (inimigo.garraAnimEstado === 'idle') { // Only sync to body if not animating
-                        inimigo.garraElemento.style.left = inimigo.x + 'px';
-                        inimigo.garraElemento.style.bottom = inimigo.y + 'px';
-                        inimigo.garraElemento.style.transform = inimigo.elemento.style.transform;
-                    }
+                    inimigo.jetpackElemento.style.filter = (inimigo.cooldownVooJetpack > 0) ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
                 }
             }
         }
