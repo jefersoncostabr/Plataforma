@@ -180,13 +180,13 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             }
 
             if (item.tipo === 'restauracao') {
-                inimigo.municao = config.maxMunicao || 5;
-                inimigo.escudoProtegido = 0;
-                inimigo.escudoVermelho = false;
-                inimigo.vida = Math.max(0, (inimigo.vida || 0) - 1);
-                if (inimigo.inventario.includes('escudo')) {
-                    inimigo.temEscudo = true;
-                }
+                window.aplicarRestauracaoPadrao?.(inimigo, config, {
+                    atualizarVisualEscudo: () => {
+                        if (inimigo.escudoElemento) {
+                            inimigo.escudoElemento.style.filter = inimigo.escudoVermelho ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
+                        }
+                    }
+                });
             }
             // Exibe visual se aplicável
             if (item.tipo === 'revolver' && inimigo.armaElemento) inimigo.armaElemento.style.display = 'block';
@@ -1417,13 +1417,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             else if (item.tipo === 'cinto') { inimigo.temCinto = true; if (inimigo.cintoElemento) inimigo.cintoElemento.style.display = 'block'; }
                             else if (item.tipo === 'colete') { inimigo.temColete = true; if (inimigo.coleteElemento) inimigo.coleteElemento.style.display = 'block'; }
                             else if (item.tipo === 'restauracao') { // NEW: Enemy collects restoration item
-                                inimigo.municao = config.maxMunicao || 5;
-                                inimigo.escudoProtegido = 0;
-                                inimigo.escudoVermelho = false;
-                                inimigo.vida = Math.max(0, (inimigo.vida || 0) - 1);
-                                if (inimigo.inventario.includes('escudo')) { // Only restore if they had one
-                                    inimigo.temEscudo = true;
-                                }
+                                window.aplicarRestauracaoPadrao?.(inimigo, config);
                                 console.log("IA: Inimigo coletou item de restauração!");
                             }
 
@@ -1438,13 +1432,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                     : 'item';
 
                                 if (sorteio === 'restauracao') {
-                                    inimigo.municao = config.maxMunicao || 5;
-                                    inimigo.escudoProtegido = 0;
-                                    inimigo.escudoVermelho = false;
-                                    inimigo.vida = Math.max(0, (inimigo.vida || 0) - 1);
-                                    if (inimigo.inventario.includes('escudo')) { // Only restore if they had one
-                                        inimigo.temEscudo = true;
-                                    }
+                                    window.aplicarRestauracaoPadrao?.(inimigo, config);
                                     console.log("IA: Inimigo restaurou equipamentos via AirDrop!");
                                 } else {
                                     // Sorteia um equipamento que o inimigo ainda não possua

@@ -375,7 +375,12 @@
         controle.botaVermelha = false;
         controle.garraImpactosSolidos = 0;
         controle.garraVermelha = false;
+        
+        // Suporta tanto o sistema de dano do jogador quanto o de vida dos inimigos
         controle.dano = Math.max(0, Number(controle.dano || 0) - 1);
+        if (controle.vida !== undefined) {
+            controle.vida = Math.max(0, Number(controle.vida || 0) - 1);
+        }
 
         if (Array.isArray(controle.inventario) && controle.inventario.includes('escudo')) {
             controle.temEscudo = true;
