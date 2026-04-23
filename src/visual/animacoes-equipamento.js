@@ -688,6 +688,11 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
             jetFogoOffsetY: -4 + ((Math.random() * 3) - 1.5) // Efeito de tremor do fogo
         });
 
+        // Aplica o filtro de "sem munição" (vermelho) no revólver
+        if (armaElemento) {
+            armaElemento.style.filter = (controle.municao <= 0) ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
+        }
+
         if (controle.temCinto && cintoElemento) {
             sincronizarCintoComJogador();
         }

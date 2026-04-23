@@ -14,8 +14,8 @@ window.inicializarVisualEquipamentoEntidade = function(entidade, parentElement, 
 
     const mapaEquipamentos = {
         'armaElemento':   { flag: 'temArma',    z: '6', sprite: 'revolver', fallback: '../../assets/personagem/revolver.png', offY: 1 },
-        'escudoElemento': { flag: 'temEscudo',  z: '7', sprite: 'escudo',   fallback: '../../assets/personagem/escudo.png', offY: 0 },
-        'botaElemento':   { flag: 'temBota',    z: '8', sprite: 'bota',     fallback: '../../assets/personagem/bota_parado.png', offY: 0 },
+        'escudoElemento': { flag: 'temEscudo',  z: '8', sprite: 'escudo',   fallback: '../../assets/personagem/escudo.png', offY: 0 },
+        'botaElemento':   { flag: 'temBota',    z: '7', sprite: 'bota',     fallback: '../../assets/personagem/bota_parado.png', offY: 0 },
         'jetpackElemento':{ flag: 'temJetpack', z: '3', sprite: 'jetpack',  fallback: '../../assets/personagem/jetpack.png', offY: 0 },
         'garraElemento':  { flag: 'temGarra',   z: '9', sprite: 'garra',    fallback: '../../assets/personagem/garra.png', offY: 0 },
         'cintoElemento':  { flag: 'temCinto',   z: '6', sprite: 'cinto',    fallback: '../../assets/personagem/cinto.png', offY: -2 },
