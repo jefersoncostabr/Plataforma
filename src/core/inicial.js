@@ -113,8 +113,42 @@ function limparAnimacaoDanoJogador() {
     // Reaplica apenas o espelhamento padrão do sprite.
     const direcao = window.playerControle?.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
     playerEl.style.transform = direcao;
-}
+}  
 
+/**
+ * Retorna a força de knockback baseada no tipo de dano e configurações.
+ * Centraliza o item 3.1 da auditoria.
+ */
+window.obterForcaKnockback = function(config, tipo) {
+    const cfg = config || window.config || {};
+    if (tipo === 'playerChute') return Number(cfg.knockbackInimigo ?? 150);
+    if (tipo === 'playerProjetil') return Number(cfg.knockbackProjetilInimigo ?? cfg.knockbackProjetil ?? 100);
+    if (tipo === 'inimigoChute') return Number(cfg.knockbackPlayer ?? 120);
+    if (tipo === 'inimigoProjetil') return Number(cfg.knockbackProjetilPlayer ?? 80);
+    if (tipo === 'espinho') return Number(cfg.knockbackEspinhoInimigo ?? cfg.knockbackEspinho ?? 70);
+    return 0;
+};
+
+/**
+ * Aplica fisicamente o recuo a uma entidade.
+ * @param {Object} entidade - Jogador ou Inimigo.
+ * @param {number} forca - Valor total do empurrão.
+ * @param {number} direcao - 1 para direita, -1 para esquerda.
+ * @param {number} duracao - Quantidade de frames que o recuo dura.
+ */
+window.aplicarKnockback = function(entidade, forca, direcao, duracao = 15) {
+    if (!entidade) return;
+    
+    // Se já houver um knockback em curso, respeitamos o maior tempo restante
+    entidade.framesKnockbackRestante = Math.max(entidade.framesKnockbackRestante || 0, duracao);
+    
+    // O deslocamento por frame é a força total distribuída pelo tempo
+    entidade.velocidadeKnockback = (forca / duracao) * direcao;
+};
+
+// Aliases para manter compatibilidade com sistemas legados (ex: gravidade.js)
+window.obterKnockbackPadrao = (config, tipo) => window.obterForcaKnockback(config, tipo);
+window.obterKnockbackRecebidoPadrao = (ent, config, tipo) => window.obterForcaKnockback(config, tipo);
 
 
 async function carregarFase(nomeArquivo) {

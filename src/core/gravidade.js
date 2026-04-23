@@ -7,12 +7,6 @@
  * @param {number} gravidade - A força da gravidade por quadro (padrão 0.6).
  * @param {number} cooldownValor - O tempo de espera para o próximo pulo.
  */
-function obterKnockbackPadrao(config = {}, fonte = 'default') {
-    const base = Number(config?.knockbackBase ?? config?.knockbackInimigo ?? 150);
-    const ajuste = Number(config?.knockbackAjustes?.[fonte] ?? 0);
-    return base + ajuste;
-}
-
 function temEscudoAtivoPadrao(entidade) {
     return !!(entidade?.temEscudo && !entidade?.escudoVermelho && !entidade?.itensGuardadosNoCinto);
 }
@@ -69,7 +63,8 @@ function aplicarImpactoEscudoPadrao(entidade, config = {}, opcoes = {}) {
 }
 
 function obterKnockbackRecebidoPadrao(entidade, config = {}, fonte = 'default') {
-    const valor = obterKnockbackPadrao(config, fonte);
+    // Agora utiliza a função centralizada de inicial.js
+    const valor = window.obterForcaKnockback ? window.obterForcaKnockback(config, fonte) : 150;
     if (temEscudoAtivoPadrao(entidade)) {
         return valor * Number(config?.escudoKnockbackMultiplicador ?? 0.5);
     }
@@ -109,12 +104,10 @@ function aplicarDeslocamentoHorizontalComColisaoPadrao(ent, deslocX, plataformas
     }
 }
 
-window.obterKnockbackPadrao = obterKnockbackPadrao;
 window.temEscudoAtivoPadrao = temEscudoAtivoPadrao;
 window.obterCapacidadeEscudoPadrao = obterCapacidadeEscudoPadrao;
 window.obterProtecaoRestanteEscudoPadrao = obterProtecaoRestanteEscudoPadrao;
 window.aplicarImpactoEscudoPadrao = aplicarImpactoEscudoPadrao;
-window.obterKnockbackRecebidoPadrao = obterKnockbackRecebidoPadrao;
 window.aplicarDeslocamentoHorizontalComColisaoPadrao = aplicarDeslocamentoHorizontalComColisaoPadrao;
 
 function aplicarFisica(controle, teclas, forcaPulo = 12, gravidade = 0.6, cooldownValor = 0) {
@@ -145,4 +138,3 @@ function aplicarFisica(controle, teclas, forcaPulo = 12, gravidade = 0.6, cooldo
     controle.velocidadeY -= gravidade;
     controle.y += controle.velocidadeY;
 }
-

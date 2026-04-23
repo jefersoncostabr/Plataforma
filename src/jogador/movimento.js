@@ -47,6 +47,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
         throw new Error('Erro ao carregar sincronizacao-visual.js: sistema de sincronização indisponível.');
     }
 
+    if (typeof window.obterForcaKnockback !== 'function' || typeof window.aplicarKnockback !== 'function') {
+        throw new Error('Erro ao carregar inicial.js: funções de knockback unificadas não encontradas.');
+    }
+
     if (typeof window.criarSistemaDanoEstacasJogador !== 'function') {
         throw new Error('Erro ao carregar dano-estacas.js: sistema de dano por estacas indisponível.');
     }
@@ -1514,12 +1518,9 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                         }
 
                         // Knockback no Jogador baseado na direção do tiro
-                        const valorKnockback = window.obterKnockbackRecebidoPadrao(controle, config, 'inimigoProjetil');
-                        const duracaoRecuo = 12; // O recuo durará 12 frames
-                        controle.framesKnockbackRestante = duracaoRecuo;
-                        // A velocidade por frame é o valor total dividido pela duração
-                        controle.velocidadeKnockback = (valorKnockback / duracaoRecuo) * proj.direcao;
-                        
+                        const forcaRecuo = window.obterForcaKnockback(config, 'inimigoProjetil');
+                        window.aplicarKnockback(controle, forcaRecuo, proj.direcao, 12);
+
                         hitAlvo = true;
                     }
 

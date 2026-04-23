@@ -55,9 +55,8 @@ Arquivo:
 Símbolo:
 - window.obterSpritePreviewItem
 
-Observação:
-Não foi encontrada referência relevante fora da própria definição/exportação.
-
+Status:
+- [x] Removido. A exportação órfã foi eliminada durante a centralização do mapeamento de sprites (item 1.4).
 ---
 
 ### 2.2 Export global de filtro visual preview
@@ -67,18 +66,19 @@ Arquivo:
 Símbolo:
 - window.FILTRO_VISUAL_PREVIEW
 
-Observação:
-Não apareceu uso no restante do projeto.
-
+Status:
+- [x] Removido. A exportação global foi excluída por não possuir referências externas (item 2.2).
 ---
 
 ## 3. Prioridade sugerida de limpeza
 
 ### Alta prioridade
-- Unificar cálculo de knockback
+- [x] Unificar cálculo de knockback (Centralizado em `inicial.js`)
 - Unificar rotina de restauração/reparo
 - Unificar regra de escudo ativo
 
+
+*****************CONTINUAR AQUI!!!*********************************
 ### Média prioridade
 - Centralizar função de sprite de item
 - Reduzir duplicação das rotinas visuais do cinto/equipamentos

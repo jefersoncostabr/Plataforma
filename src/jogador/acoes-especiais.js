@@ -27,7 +27,6 @@
         return visual;
     }
 
-    window.FILTRO_VISUAL_PREVIEW = FILTRO_PREVIEW_VISUAL;
     window.criarVisualFantasma = criarVisualFantasma;
 
     function criarSistemaAcoesEspeciaisJogador(opcoes = {}) {

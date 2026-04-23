@@ -17,6 +17,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         console.error('IA: Erro ao carregar sincronizacao-visual.js. A IA visual pode falhar.');
     }
 
+    if (typeof window.obterForcaKnockback !== 'function' || typeof window.aplicarKnockback !== 'function') {
+        console.error('IA: Erro crítico! Funções de knockback não encontradas em inicial.js.');
+    }
+
     /**
      * Inicia a sequência de lançamento (morte cartoon).
      */
@@ -265,10 +269,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             const centroEstaca = (hitEstaca.esquerdaReal + hitEstaca.direitaReal) / 2;
             const centroInimigo = inimigo.x + (inimigo.offsetX || 0) + ((inimigo.largura || 0) / 2);
             const direcaoKnock = centroInimigo < centroEstaca ? -1 : 1;
-            const valorKnock = Number(config.knockbackEspinhoInimigo ?? config.knockbackEspinho ?? 70);
-            const duracaoKnock = 10;
-            inimigo.framesKnockbackRestante = Math.max(inimigo.framesKnockbackRestante || 0, duracaoKnock);
-            inimigo.velocidadeKnockback = (valorKnock / duracaoKnock) * direcaoKnock;
+            
+            window.aplicarKnockback(inimigo, window.obterForcaKnockback(config, 'espinho'), direcaoKnock, 10);
         } else if (hitEstaca.direcao === 'cima') {
             inimigo.framesKnockbackRestante = 0;
             inimigo.velocidadeKnockback = 0;
@@ -1121,10 +1123,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                                 // Knockback player
                                 const direcaoKnockback = (inimigo.direcao === 'd' ? 1 : -1);
-                                const valorKnockback = window.obterKnockbackRecebidoPadrao(playerAtingido, config, 'inimigoChute');
-                                const duracaoRecuo = 15;
-                                playerAtingido.framesKnockbackRestante = duracaoRecuo;
-                                playerAtingido.velocidadeKnockback = (valorKnockback / duracaoRecuo) * direcaoKnockback;
+                                const forca = window.obterForcaKnockback(config, 'inimigoChute');
+                                window.aplicarKnockback(playerAtingido, forca, direcaoKnockback, 15);
 
                                 // ADICIONADO: Checagem de morte fatal após soltar da garra
                                 const limiteVida = playerAtingido.maxVida || 3;

@@ -133,13 +133,9 @@
             }
 
             const direcaoKnockback = controle.direcao === 'd' ? 1 : -1;
-            const valorKnockbackInimigo = typeof window.obterKnockbackRecebidoPadrao === 'function'
-                ? Number(window.obterKnockbackRecebidoPadrao(inimigo, config, 'playerChute') || 0)
-                : Number(obterKnockback(config, 'playerChute') || 0);
+            const forcaRecuo = window.obterForcaKnockback(config, 'playerChute');
+            window.aplicarKnockback(inimigo, forcaRecuo, direcaoKnockback, 15);
 
-            const duracaoRecuoInimigo = 15;
-            inimigo.framesKnockbackRestante = duracaoRecuoInimigo;
-            inimigo.velocidadeKnockback = (valorKnockbackInimigo / duracaoRecuoInimigo) * direcaoKnockback;
             virarFenoParaFonteDano(inimigo, controle.x + ((controle.largura || 32) / 2));
 
             if (inimigo.vida >= 3) {
