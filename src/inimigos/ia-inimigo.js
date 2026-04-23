@@ -852,7 +852,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             // If player is carried, update their associated elements too
                             if (inimigo.garraItemCarregado.id === 'player') {
                                 if (typeof window.sincronizarAcessoriosPortador === 'function') {
-                                    window.sincronizarAcessoriosPortador(window.playerControle, window.playerControle.elemento, {
+                                    window.sincronizarAcessoriosPortador(window.playerControle, {
                                         armaElemento: window.playerControle.armaElemento,
                                         escudoElemento: window.playerControle.escudoElemento,
                                         botaElemento: window.playerControle.botaElemento,

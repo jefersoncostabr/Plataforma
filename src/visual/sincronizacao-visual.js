@@ -99,7 +99,8 @@ window.sincronizarAcessoriosEntidade = function(entidade, elementos, opcoes = {}
     };
 
     Object.entries(elementos).forEach(([chave, el]) => {
-        if (!el || el.style.display === 'none') return;
+        // Proteção extra: garante que o elemento existe e possui a propriedade style
+        if (!el || !el.style || el.style.display === 'none') return;
         
         // Se a garra está em animação (esticando/voltando), ela segue sua própria lógica física.
         // Só sincronizamos aqui se a flag forçarSincroniaGarra for passada (ex: durante stun ou morte).

@@ -62,15 +62,6 @@ function aplicarImpactoEscudoPadrao(entidade, config = {}, opcoes = {}) {
     };
 }
 
-function obterKnockbackRecebidoPadrao(entidade, config = {}, fonte = 'default') {
-    // Agora utiliza a função centralizada de inicial.js
-    const valor = window.obterForcaKnockback ? window.obterForcaKnockback(config, fonte) : 150;
-    if (temEscudoAtivoPadrao(entidade)) {
-        return valor * Number(config?.escudoKnockbackMultiplicador ?? 0.5);
-    }
-    return valor;
-}
-
 function aplicarDeslocamentoHorizontalComColisaoPadrao(ent, deslocX, plataformas = window.plataformas, opcoes = {}) {
     if (!ent || !deslocX) return;
 
@@ -105,8 +96,6 @@ function aplicarDeslocamentoHorizontalComColisaoPadrao(ent, deslocX, plataformas
 }
 
 window.temEscudoAtivoPadrao = temEscudoAtivoPadrao;
-window.obterCapacidadeEscudoPadrao = obterCapacidadeEscudoPadrao;
-window.obterProtecaoRestanteEscudoPadrao = obterProtecaoRestanteEscudoPadrao;
 window.aplicarImpactoEscudoPadrao = aplicarImpactoEscudoPadrao;
 window.aplicarDeslocamentoHorizontalComColisaoPadrao = aplicarDeslocamentoHorizontalComColisaoPadrao;
 

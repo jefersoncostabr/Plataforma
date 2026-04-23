@@ -478,7 +478,7 @@
 
                     if (carried.isEnemy) {
                         if (typeof window.sincronizarAcessoriosPortador === 'function') {
-                            window.sincronizarAcessoriosPortador(carried, carried.elemento, {
+                            window.sincronizarAcessoriosPortador(carried, {
                                 armaElemento: carried.armaElemento,
                                 escudoElemento: carried.escudoElemento,
                                 botaElemento: carried.botaElemento,
@@ -490,7 +490,7 @@
                                 x: carried.x,
                                 y: carried.y,
                                 transform: carried.elemento.style.transform,
-                                sincronizarGarraAnimando: true
+                                forçarSincroniaGarra: true
                             });
                         } else {
                             if (carried.armaElemento) {

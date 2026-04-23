@@ -861,7 +861,6 @@
         window.obterCraftPersistido = obterCraftPersistido;
         window.obterSpriteCraftNivel = obterSpriteCraftNivel;
         window.recolherCraftPorId = recolherCraftPorId;
-        window.podeRecolherBasePorId = () => podeGuardarBaseNoSlot();
         window.definirModoRenascimentoBasePorId = definirModoRenascimentoBasePorId;
         window.obterConfigRenascimentoBase = obterConfigRenascimentoBase;
         window.podeInstalarBasePortatil = podeInstalarBasePortatil;
