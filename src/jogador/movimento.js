@@ -8,7 +8,7 @@
  * @param {string} spriteChute - Caminho da imagem chutando.
  * @param {string} spriteNoAr - Caminho da imagem no ar.
  */
-async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndando, spriteChute, spriteNoAr) {
+window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, spriteAndando, spriteChute, spriteNoAr) {
     const elemento = document.getElementById(id);
     if (!elemento) return;
 
@@ -363,33 +363,11 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     window.projeteis = [];
     window.itensColetaveis = [];
 
-    
-    // Elemento da arma
-    const armaElemento = document.createElement('img');
-    armaElemento.id = 'player-weapon';
-    armaElemento.src = config.spriteArmaPlayer || '../../assets/personagem/revolver.png';
-    armaElemento.style.position = 'absolute';
-    armaElemento.style.width = '32px';
-    armaElemento.style.height = '32px';
-    armaElemento.style.zIndex = '6';
-    armaElemento.style.display = 'none';
-    armaElemento.style.imageRendering = 'pixelated';
-    armaElemento.style.pointerEvents = 'none';
-    elemento.parentElement.appendChild(armaElemento);
-    armaElemento.style.display = controle.temArma ? 'block' : 'none';
+    // Centraliza a criação de acessórios visuais
+    window.inicializarVisualEquipamentoEntidade(controle, elemento.parentElement, config);
 
-    // Elemento do escudo
-    const escudoElemento = document.createElement('img');
-    escudoElemento.id = 'player-shield';
-    escudoElemento.src = config.spriteEscudoPlayer || '../../assets/personagem/escudo.png';
-    escudoElemento.style.position = 'absolute';
-    escudoElemento.style.width = '32px';
-    escudoElemento.style.height = '32px';
-    escudoElemento.style.zIndex = '7'; // À frente da arma
-    escudoElemento.style.display = 'none';
-    escudoElemento.style.imageRendering = 'pixelated';
-    escudoElemento.style.pointerEvents = 'none';
-    elemento.parentElement.appendChild(escudoElemento);
+    // Referências locais para compatibilidade com o restante do arquivo (agora vêm do controle)
+    const { armaElemento, escudoElemento, botaElemento, coleteElemento, jetpackElemento, jetFogoElemento, garraElemento, cintoElemento } = controle;
 
     const sistemaDanoEstacas = window.criarSistemaDanoEstacasJogador({
         controle,
@@ -407,74 +385,10 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
     } = sistemaDanoEstacas;
 
     atualizarVisualEscudo();
+    atualizarVisualBota(); // Chamada para garantir que o visual da bota seja atualizado
+    atualizarVisualGarra(); // Chamada para garantir que o visual da garra seja atualizado
 
-    // Elemento da bota
-    const botaElemento = document.createElement('img');
-    botaElemento.id = 'player-boots';
-    botaElemento.src = config.spriteBotaParado || '../../assets/personagem/bota_parado.png';
-    botaElemento.style.position = 'absolute';
-    botaElemento.style.width = '32px';
-    botaElemento.style.height = '32px';
-    botaElemento.style.zIndex = '8'; // Garantir que fique acima do personagem e outros itens
-    botaElemento.style.display = controle.temBota ? 'block' : 'none';
-    botaElemento.style.imageRendering = 'pixelated';
-    botaElemento.style.pointerEvents = 'none';
-    elemento.parentElement.appendChild(botaElemento);
-    atualizarVisualBota();
-
-    // Elemento do Colete
-    const coleteElemento = document.createElement('img');
-    coleteElemento.id = 'player-vest';
-    coleteElemento.src = config.spriteColeteParado || '../../assets/personagem/colete.png';
-    coleteElemento.style.position = 'absolute';
-    coleteElemento.style.width = '32px';
-    coleteElemento.style.height = '32px';
-    coleteElemento.style.zIndex = '6';
-    coleteElemento.style.display = controle.temColete ? 'block' : 'none';
-    coleteElemento.style.imageRendering = 'pixelated';
-    coleteElemento.style.pointerEvents = 'none';
-    elemento.parentElement.appendChild(coleteElemento);
-
-    // Elemento do Jetpack (Equipado)
-    const jetpackElemento = document.createElement('img');
-    jetpackElemento.id = 'player-jetpack';
-    jetpackElemento.src = config.spriteJetpackPlayer || '../../assets/personagem/jetpack.png';
-    jetpackElemento.style.position = 'absolute';
-    jetpackElemento.style.width = '32px';
-    jetpackElemento.style.height = '32px';
-    jetpackElemento.style.zIndex = '4'; // Camada 4: Atrás do jogador (5), mas à frente do cenário (1-2)
-    jetpackElemento.style.display = controle.temJetpack ? 'block' : 'none';
-    jetpackElemento.style.imageRendering = 'pixelated';
-    jetpackElemento.style.pointerEvents = 'none';
-    elemento.parentElement.appendChild(jetpackElemento);
-
-    // Elemento do Fogo do Jetpack
-    const jetFogoElemento = document.createElement('img');
-    jetFogoElemento.id = 'player-jet-fire';
-    jetFogoElemento.src = config.spriteJetFogo || '../../assets/personagem/jet.png';
-    jetFogoElemento.style.position = 'absolute';
-    jetFogoElemento.style.width = '32px';
-    jetFogoElemento.style.height = '32px';
-    jetFogoElemento.style.zIndex = '3'; // Atrás do jetpack (4) e jogador (5)
-    jetFogoElemento.style.display = 'none';
-    jetFogoElemento.style.imageRendering = 'pixelated';
-    jetFogoElemento.style.pointerEvents = 'none';
-    elemento.parentElement.appendChild(jetFogoElemento);
-
-    // Elemento da Garra
-    const garraElemento = document.createElement('img');
-    garraElemento.id = 'player-claw';
-    garraElemento.src = config.spriteGarraPlayer || '../../assets/personagem/garra.png';
-    garraElemento.style.position = 'absolute';
-    garraElemento.style.width = '32px';
-    garraElemento.style.height = '32px';
-    garraElemento.style.zIndex = '9'; // Acima do personagem
-    garraElemento.style.display = controle.temGarra ? 'block' : 'none';
-    garraElemento.style.imageRendering = 'pixelated';
-    garraElemento.style.pointerEvents = 'none';
-    elemento.parentElement.appendChild(garraElemento);
-
-    const { cintoElemento, paraquedasElemento } = window.criarElementosSuporteEquipamentos({
+    const { paraquedasElemento } = window.criarElementosSuporteEquipamentos({
         elemento,
         config,
         controle
@@ -1409,7 +1323,7 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
                                     duracaoFlash: 150,
                                     intensidadeFlash: 6
                                 })?.bloqueou;
-                            } else if (inimigo.temEscudo && !inimigo.escudoVermelho && !inimigo.itensGuardadosNoCinto) {
+                            } else if (window.temEscudoAtivoPadrao(inimigo)) {
                                 bloqueouEscudoInimigo = true;
                                 inimigo.escudoProtegido = (inimigo.escudoProtegido || 0) + 1;
                                 const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
@@ -1628,4 +1542,4 @@ async function iniciarMovimentacao(id, velocidade = 4, spriteParado, spriteAndan
 
     // Inicia o loop de atualização
     requestAnimationFrame(atualizar);
-}
+};

@@ -495,24 +495,24 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
         const permiteRecolherColete = coleteRecolhivelNoCinto(config);
 
         if (cintoElemento) cintoElemento.style.display = controle.temCinto ? 'block' : 'none';
-        armaElemento.style.display = (controle.temArma && !guardados) ? 'block' : 'none';
-        botaElemento.style.display = (controle.temBota && !guardados) ? 'block' : 'none';
-        botaElemento.style.filter = controle.botaVermelha ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
+        if (armaElemento) armaElemento.style.display = (controle.temArma && !guardados) ? 'block' : 'none';
+        if (botaElemento) botaElemento.style.display = (controle.temBota && !guardados) ? 'block' : 'none';
+        if (botaElemento) botaElemento.style.filter = controle.botaVermelha ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
         if (coleteElemento) coleteElemento.style.display = (controle.temColete && (!guardados || !permiteRecolherColete)) ? 'block' : 'none';
-        jetpackElemento.style.display = (controle.temJetpack && !guardados) ? 'block' : 'none';
+        if (jetpackElemento) jetpackElemento.style.display = (controle.temJetpack && !guardados) ? 'block' : 'none';
 
-        if (!controle.temJetpack || guardados || !controle.jetpackAtivo) {
+        if (jetFogoElemento && (!controle.temJetpack || guardados || !controle.jetpackAtivo)) {
             jetFogoElemento.style.display = 'none';
         }
 
-        if (guardados) {
+        if (garraElemento && guardados) {
             garraElemento.style.display = 'none';
         } else if (controle.temGarra && controle.garraAnimEstado === 'idle') {
             garraElemento.style.display = 'block';
         } else if (!controle.temGarra) {
             garraElemento.style.display = 'none';
         }
-        garraElemento.style.filter = controle.garraVermelha ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
+        if (garraElemento) garraElemento.style.filter = controle.garraVermelha ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
 
         atualizarVisualEscudo();
     }
@@ -673,17 +673,22 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
     function sincronizarVisuaisEquipamentos() {
         atualizarVisibilidadeEquipamentosCinto();
 
-        armaElemento.style.left = controle.x + 'px';
-        armaElemento.style.bottom = controle.y + 'px';
-        armaElemento.style.transform = obterTransformAtualEquipamento({ tipo: 'revolver' });
-        armaElemento.src = config.spriteArmaPlayer || '../../assets/personagem/revolver.png';
-        armaElemento.style.filter = (controle.municao <= 0) ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
+        // Utiliza o novo helper de sincronização centralizado para garantir posições e offsets corretos
+        window.sincronizarAcessoriosEntidade(controle, {
+            armaElemento,
+            escudoElemento,
+            botaElemento,
+            jetpackElemento,
+            jetFogoElemento,
+            garraElemento,
+            cintoElemento,
+            coleteElemento
+        }, {
+            transformArma: obterTransformAtualEquipamento({ tipo: 'revolver' }),
+            jetFogoOffsetY: -4 + ((Math.random() * 3) - 1.5) // Efeito de tremor do fogo
+        });
 
-        escudoElemento.style.left = controle.x + 'px';
-        escudoElemento.style.bottom = controle.y + 'px';
-        escudoElemento.style.transform = elemento.style.transform;
-
-        if (controle.temCinto) {
+        if (controle.temCinto && cintoElemento) {
             sincronizarCintoComJogador();
         }
 
@@ -809,4 +814,3 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
 window.inicializarEstadoCinto = inicializarEstadoCinto;
 window.criarElementosSuporteEquipamentos = criarElementosSuporteEquipamentos;
 window.criarSistemaVisuaisEquipamentos = criarSistemaVisuaisEquipamentos;
-

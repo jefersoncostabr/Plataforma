@@ -348,21 +348,43 @@
         if (controle.inventario.includes('colete')) controle.temColete = true;
     }
 
-    function obterSpriteItem(tipo, config = window.config || {}) {
-        // Prioridade 1: Definições dinâmicas de itens (JSONs)
+    /**
+     * Obtém o sprite correto para o item.
+     * @param {string} tipo - Tipo do item.
+     * @param {Object} config - Configurações.
+     * @param {string} contexto - 'equipado' ou 'coletavel' (padrão).
+     */
+    function obterSpriteItem(tipo, config = window.config || {}, contexto = 'coletavel') {
+        // Prioridade 1: Configurações do Motor (Fallbacks para estados de animação)
+        // Se o item estiver equipado, priorizamos as chaves de config do motor de animação
+        if (contexto === 'equipado') {
+            if (tipo === 'revolver' && config.spriteArmaPlayer) return config.spriteArmaPlayer;
+            if (tipo === 'escudo' && config.spriteEscudoPlayer) return config.spriteEscudoPlayer;
+            if (tipo === 'bota' && config.spriteBotaParado) return config.spriteBotaParado;
+            if (tipo === 'jetpack' && config.spriteJetpackPlayer) return config.spriteJetpackPlayer;
+            if (tipo === 'garra' && config.spriteGarraPlayer) return config.spriteGarraPlayer;
+            if (tipo === 'cinto' && config.spriteCintoPlayer) return config.spriteCintoPlayer;
+            if (tipo === 'colete' && config.spriteColeteParado) return config.spriteColeteParado;
+        }
+
+        // Prioridade 2: Definições dinâmicas de itens (JSONs/itens.js)
         if (window.itemDefinitions && window.itemDefinitions[tipo]) {
             const def = window.itemDefinitions[tipo];
+            if (contexto === 'equipado') return def.spriteEquipado || def.spriteColetavel || '';
             return def.spriteColetavel || def.spriteEquipado || '';
         }
 
-        // Prioridade 2: Configurações globais ou Fallbacks conhecidos
-        if (tipo === 'revolver') return config.spriteItemRevolver || config.spriteArmaPlayer || '../../assets/personagem/revolver_pegavel.png';
-        if (tipo === 'escudo') return config.spriteItemEscudo || config.spriteEscudoPlayer || '../../assets/personagem/escudo_pegavel.png';
-        if (tipo === 'bota') return config.spriteItemBota || config.spriteBotaParado || '../../assets/personagem/bota_pegavel.png';
-        if (tipo === 'jetpack') return config.spriteItemJetpack || config.spriteJetpackPlayer || '../../assets/personagem/jetpack_pegavel.png';
-        if (tipo === 'garra') return config.spriteItemGarra || config.spriteGarraPlayer || '../../assets/personagem/garra_coletavel.png';
-        if (tipo === 'cinto') return config.spriteItemCinto || config.spriteCintoPlayer || '../../assets/personagem/cinto_coletavel.png';
-        if (tipo === 'colete') return config.spriteItemColete || config.spriteColeteParado || '../../assets/personagem/colete_coletavel.png';
+        // Prioridade 3: Fallbacks conhecidos para itens no chão (coletáveis)
+        if (contexto !== 'equipado') {
+            if (tipo === 'revolver') return config.spriteItemRevolver || '../../assets/personagem/revolver_pegavel.png';
+            if (tipo === 'escudo') return config.spriteItemEscudo || '../../assets/personagem/escudo_pegavel.png';
+            if (tipo === 'bota') return config.spriteItemBota || '../../assets/personagem/bota_pegavel.png';
+            if (tipo === 'jetpack') return config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
+            if (tipo === 'garra') return config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
+            if (tipo === 'cinto') return config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
+            if (tipo === 'colete') return config.spriteItemColete || '../../assets/personagem/colete_coletavel.png';
+        }
+
         if (tipo === 'restauracao') return '../../assets/personagem/restauracao.png';
         if (tipo === 'base_portatil') {
             return typeof window.obterSpriteCraftNivel === 'function'

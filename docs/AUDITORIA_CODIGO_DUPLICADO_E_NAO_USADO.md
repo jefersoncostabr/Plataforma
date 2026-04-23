@@ -10,6 +10,10 @@ Registrar os principais pontos do projeto onde existem trechos duplicados, lógi
 ## 1. Código duplicado
 
 ### 1.2 Checagem de escudo ativo
+Status:
+- [x] Centralizado. Verificações manuais substituídas por `window.temEscudoAtivoPadrao` (Item 1.2).
+- [x] Sincronizado entre Jogador, Inimigos e Projéteis.
+
 
 ### 1.3 Lógica de restauração e reparo
 Arquivos:
@@ -74,14 +78,13 @@ Status:
 
 ### Alta prioridade
 - [x] Unificar cálculo de knockback (Centralizado em `inicial.js`)
-- Unificar rotina de restauração/reparo
-- Unificar regra de escudo ativo
+- [x] Unificar rotina de restauração/reparo (Centralizado em `inventario.js`)
+- [x] Unificar regra de escudo ativo (Ver item 1.2)
 
 
-*****************CONTINUAR AQUI!!!*********************************
 ### Média prioridade
-- Centralizar função de sprite de item
-- Reduzir duplicação das rotinas visuais do cinto/equipamentos
+- [x] Centralizar função de sprite de item (Ver item 1.4)
+- [x] Reduzir duplicação das rotinas visuais do cinto/equipamentos (Centralizado em `sincronizacao-visual.js`)
 
 ### Baixa prioridade
 - Revisar e remover exports globais órfãos
