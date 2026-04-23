@@ -12,6 +12,7 @@ chefe grande e demorado
 ao zerar ganhar skin diferente
 macacão de cor diferente que faz algo
 parte do jogo que é melhor sem os itens
+sistema de dia e noite
 
 
 

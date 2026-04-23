@@ -397,10 +397,10 @@
         if (tipo === 'feno') return '../../assets/personagem/alvoFeno.png';
         
         // Frames específicos de animação procedural
-        if (tipo === 'garra_using1') return '../../assets/personagem/garra_using1.png';
-        if (tipo === 'garra_using2') return '../../assets/personagem/garra_using2.png';
-        if (tipo === 'garra_braco') return '../../assets/personagem/garra_braco.png';
-        if (tipo === 'garra_catching') return '../../assets/personagem/garra_catching.png';
+        if (tipo === 'garra_using1') return config.spriteGarraUsing1 || '../../assets/personagem/garra_using1.png';
+        if (tipo === 'garra_using2') return config.spriteGarraUsing2 || '../../assets/personagem/garra_using2.png';
+        if (tipo === 'garra_braco') return config.spriteGarraBraco || '../../assets/personagem/garra_braco.png';
+        if (tipo === 'garra_catching') return config.spriteGarraCatching || '../../assets/personagem/garra_catching.png';
         
         if (tipo === 'restauracao') return '../../assets/personagem/restauracao.png';
         if (tipo === 'base_portatil') {

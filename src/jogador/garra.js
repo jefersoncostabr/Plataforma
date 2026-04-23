@@ -1,6 +1,6 @@
 (function () {
     function criarImpactoVerticalGarraGlobal(x, y) {
-        const palco = document.getElementById('game-stage') || document.body;
+        const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
         const impacto = document.createElement('img');
         impacto.src = '../../assets/personagem/impacto.png';
         impacto.style.position = 'absolute';
@@ -77,7 +77,7 @@
                 controle.garraBracos.forEach(b => b?.remove());
                 controle.garraBracos = [];
             }
-            garraElemento.src = config.spriteGarraPlayer || '../../assets/personagem/garra.png';
+            garraElemento.src = window.obterSpriteItem('garra', config, 'equipado');
             atualizarVisualEstadoGarra();
         }
 
@@ -351,7 +351,7 @@
             garraElemento.style.transform = (controle.garraDirecaoAnim === 'e' ? 'scaleX(-1)' : 'scaleX(1)');
 
             if (controle.garraAnimEstado === 'prep') {
-                garraElemento.src = '../../assets/personagem/garra_using1.png';
+                garraElemento.src = window.obterSpriteItem('garra_using1', config);
                 controle.garraTimer--;
                 if (controle.garraTimer <= 0) {
                     controle.garraAnimEstado = 'esticando';
@@ -367,12 +367,11 @@
                     registrarImpactoSolidoGarra();
                     controle.garraAnimEstado = 'catching';
                     controle.garraTimer = 18;
-                    garraElemento.src = '../../assets/personagem/garra_catching.png';
+                    garraElemento.src = window.obterSpriteItem('garra_catching', config);
                 } else {
                     controle.garraDist = proxDist;
                 }
-
-                garraElemento.src = '../../assets/personagem/garra_using1.png';
+                garraElemento.src = window.obterSpriteItem('garra_using1', config);
                 if (controle.garraDist > distMax) {
                     controle.garraDist = distMax;
                 }
@@ -402,7 +401,7 @@
                             inimigo.foiAtingidoNesteChute = false;
                             window.inimigos.splice(j, 1);
                             controle.garraAnimEstado = 'voltando';
-                            garraElemento.src = '../../assets/personagem/garra_catching.png';
+                            garraElemento.src = window.obterSpriteItem('garra_catching', config);
                             grabbedSomething = true;
                             break;
                         }
@@ -429,7 +428,7 @@
                             controle.garraItemCarregado = item;
                             window.itensColetaveis.splice(i, 1);
                             controle.garraAnimEstado = 'voltando';
-                            garraElemento.src = '../../assets/personagem/garra_catching.png';
+                            garraElemento.src = window.obterSpriteItem('garra_catching', config);
                             break;
                         }
                     }
@@ -437,7 +436,7 @@
 
                 if (controle.garraDist > 0 && controle.garraDist % 32 < velGarra && controle.garraDist <= distMax) {
                     const braco = document.createElement('img');
-                    braco.src = (controle.garraBracos.length === 0) ? '../../assets/personagem/garra_using2.png' : '../../assets/personagem/garra_braco.png';
+                    braco.src = (controle.garraBracos.length === 0) ? window.obterSpriteItem('garra_using2', config) : window.obterSpriteItem('garra_braco', config);
                     braco.className = 'player-claw-arm';
                     braco.style.position = 'absolute';
                     braco.style.width = '32px';
@@ -457,7 +456,7 @@
                 if (controle.garraDist >= distMax && controle.garraItemCarregado === null) {
                     controle.garraAnimEstado = 'catching';
                     controle.garraTimer = 18;
-                    garraElemento.src = '../../assets/personagem/garra_catching.png';
+                    garraElemento.src = window.obterSpriteItem('garra_catching', config);
                 }
             }
             else if (controle.garraAnimEstado === 'catching') {
@@ -469,7 +468,8 @@
             else if (controle.garraAnimEstado === 'voltando') {
                 controle.garraDist -= velGarra;
 
-                if (controle.garraItemCarregado) {
+                if (controle.garraItemCarregado && controle.garraItemCarregado.elemento) {
+                    garraElemento.src = window.obterSpriteItem('garra_catching', config); // Mantém o sprite de "pegando" durante a retração
                     const carried = controle.garraItemCarregado;
                     carried.elemento.style.left = garraElemento.style.left;
                     carried.elemento.style.bottom = garraElemento.style.bottom;
@@ -492,42 +492,6 @@
                                 transform: carried.elemento.style.transform,
                                 forçarSincroniaGarra: true
                             });
-                        } else {
-                            if (carried.armaElemento) {
-                                carried.armaElemento.style.left = garraElemento.style.left;
-                                carried.armaElemento.style.bottom = garraElemento.style.bottom;
-                                carried.armaElemento.style.transform = carried.elemento.style.transform;
-                            }
-                            if (carried.botaElemento) {
-                                carried.botaElemento.style.left = garraElemento.style.left;
-                                carried.botaElemento.style.bottom = garraElemento.style.bottom;
-                                carried.botaElemento.style.transform = carried.elemento.style.transform;
-                            }
-                            if (carried.escudoElemento) {
-                                carried.escudoElemento.style.left = garraElemento.style.left;
-                                carried.escudoElemento.style.bottom = garraElemento.style.bottom;
-                                carried.escudoElemento.style.transform = carried.elemento.style.transform;
-                            }
-                            if (carried.jetpackElemento) {
-                                carried.jetpackElemento.style.left = garraElemento.style.left;
-                                carried.jetpackElemento.style.bottom = garraElemento.style.bottom;
-                                carried.jetpackElemento.style.transform = carried.elemento.style.transform;
-                            }
-                            if (carried.garraElemento) {
-                                carried.garraElemento.style.left = garraElemento.style.left;
-                                carried.garraElemento.style.bottom = garraElemento.style.bottom;
-                                carried.garraElemento.style.transform = carried.elemento.style.transform;
-                            }
-                            if (carried.cintoElemento) {
-                                carried.cintoElemento.style.left = garraElemento.style.left;
-                                carried.cintoElemento.style.bottom = garraElemento.style.bottom;
-                                carried.cintoElemento.style.transform = carried.elemento.style.transform;
-                            }
-                            if (carried.coleteElemento) {
-                                carried.coleteElemento.style.left = garraElemento.style.left;
-                                carried.coleteElemento.style.bottom = garraElemento.style.bottom;
-                                carried.coleteElemento.style.transform = carried.elemento.style.transform;
-                            }
                         }
                     }
                 }
@@ -607,4 +571,5 @@
     }
 
     window.criarSistemaGarraJogador = criarSistemaGarraJogador;
+
 })();
