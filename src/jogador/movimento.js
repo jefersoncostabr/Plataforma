@@ -71,6 +71,10 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         throw new Error('Erro ao carregar combate-corpo-a-corpo.js: sistema de combate corpo a corpo indisponível.');
     }
 
+    if (typeof window.aplicarDesaceleracaoHorizontal !== 'function') {
+        throw new Error('Erro ao carregar desaceleracao-horizontal.js: sistema de desaceleração horizontal indisponível.');
+    }
+
     function virarFenoParaFonteDano(inimigo, fonteX) {
         if (!inimigo || inimigo.tipo !== window.GAME_CONSTANTS.INIMIGO_FENO_ID || !inimigo.elemento) return;
         const centroX = inimigo.x + ((inimigo.largura || 32) / 2);
@@ -216,7 +220,8 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         airdropUsadoNoNivel: false,
         estaAgachado: false,
         debugVelocidadeAtivo: false,
-        ultimoLogVelocidadeMs: 0,
+        ultimoLogVelocidadeMs: 0, 
+        velocidadeHorizontalAtual: 0, // Nova propriedade para a desaceleração gradual
         velocidadeXAtual: 0,
         velocidadeTotalAtual: 0,
         teclas: {},
@@ -830,19 +835,25 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         atualizarEstadoPesoJogador();
 
         const dashDisponivel = !!controle.dashHabilitado && window.temSkill?.((window.SKILLS || {}).DASH);
-        if (dashDisponivel && controle.dashSolicitado && (controle.cooldownDash || 0) === 0) {
+        if (dashDisponivel && controle.dashSolicitado && (controle.cooldownDash || 0) === 0 && !controle.estaAgachado) {
             window.AudioManager?.playSFX('dash', 0.5);
             const duracaoDash = Math.max(1, Number(controle.dashDuracao ?? 8));
             const distanciaDashBase = Math.max(0, Number(controle.distanciaDash ?? 64));
             const multiplicadorDashBota = controle.leveComBota ? 2 : 1;
             const distanciaDash = controle.pesado
                 ? (distanciaDashBase / 2)
-                : (distanciaDashBase * multiplicadorDashBota);
+                : (distanciaDashBase * multiplicadorDashBota); // Distância total do dash
             controle.dashDirecao = controle.dashSolicitado;
             controle.dashFramesRestantes = duracaoDash;
-            controle.velocidadeDashSkill = distanciaDash / duracaoDash;
+            controle.velocidadeDashSkill = distanciaDash / duracaoDash; // Velocidade por frame do dash
             controle.cooldownDash = Math.max(1, Number(controle.cooldownDashMax ?? 45));
 
+            // Ao iniciar um dash, zera a velocidade horizontal atual para o dash assumir o controle
+            controle.velocidadeHorizontalAtual = 0;
+            
+            // Se o dash for para a esquerda, a direção do player deve ser 'e'
+            if (controle.dashDirecao === 'e') controle.direcao = 'e';
+            
             if (controle.temBota && !controle.itensGuardadosNoCinto && !controle.botaVermelha) {
                 const maxUsosBota = Math.max(1, Number(config.botaDashsAteDesgastar ?? 3));
                 controle.botaUsosDash = Number(controle.botaUsosDash || 0) + 1;
@@ -859,24 +870,40 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
             controle.dashSolicitado = null;
         }
 
-        // Movimentação Horizontal
+        // Movimentação Horizontal (Input do Jogador)
+        let inputHorizontalAtivo = false;
         if (acaoAtiva('esquerda')) {
-            controle.x -= velAtiva;
+            controle.velocidadeHorizontalAtual = -velAtiva;
             if (!controle.chutando) controle.direcao = 'e';
             controle.movendoHorizontal = true;
+            inputHorizontalAtivo = true;
         }
         if (acaoAtiva('direita')) {
-            controle.x += velAtiva;
+            controle.velocidadeHorizontalAtual = velAtiva;
             if (!controle.chutando) controle.direcao = 'd';
             controle.movendoHorizontal = true;
+            inputHorizontalAtivo = true;
         }
 
+        // Aplica a velocidade horizontal atual (se não houver dash ou knockback)
+        // Dash e Knockback têm prioridade e movem o personagem diretamente
+        if (!inputHorizontalAtivo && (controle.dashFramesRestantes || 0) === 0 && (controle.framesKnockbackRestante || 0) === 0) {
+            // Se não há input ativo, aplica desaceleração
+            window.aplicarDesaceleracaoHorizontal(controle, config);
+            // Atualiza movendoHorizontal com base na velocidade residual
+            controle.movendoHorizontal = Math.abs(controle.velocidadeHorizontalAtual) > (config.limiteVelocidadeMinimaHorizontal ?? 0.1);
+        } else if (inputHorizontalAtivo) {
+            // Se há input ativo, aplica a velocidade calculada
+            controle.x += controle.velocidadeHorizontalAtual;
+        }
+        
         if ((controle.dashFramesRestantes || 0) > 0) {
             const direcaoDashSkill = controle.dashDirecao === 'd' ? 1 : -1;
             controle.x += (controle.velocidadeDashSkill || 0) * direcaoDashSkill;
             if (!controle.chutando) controle.direcao = controle.dashDirecao;
             controle.movendoHorizontal = true;
             controle.dashFramesRestantes--;
+            controle.velocidadeHorizontalAtual = 0; // Zera a velocidade horizontal para o dash ter controle total
         }
 
         // Sistema de combate corpo a corpo
@@ -892,6 +919,7 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
                 maxPasso: Number(config.playerKnockbackPassoMax ?? 1),
                 cancelarKnockbackAoColidir: true
             });
+            controle.velocidadeHorizontalAtual = 0; // Zera a velocidade horizontal para o knockback ter controle total
             controle.framesKnockbackRestante--;
         }
 

@@ -116,6 +116,8 @@
     "escalaPalco": 1.5,
     "tempoColetaItem": 100,
     "tempoColetaAirdrop": 100,
+    "desaceleracaoHorizontal": 0.9,
+    "limiteVelocidadeMinimaHorizontal": 0.5,
     "airdrop1": {
         "espera": 10,
         "conteudos": ["skillpoint", "xp", "item", "restauracao", "skill"]
