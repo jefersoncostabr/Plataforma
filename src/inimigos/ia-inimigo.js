@@ -322,7 +322,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
             const tipo = dado.tipo !== undefined ? dado.tipo : 1;
             if (tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID) {
                 // Tenta pegar da config local, depois da global, e por fim o caminho fixo
-                inimigoImg.src = config.spriteAlvoFeno || window.config?.spriteAlvoFeno || '../../assets/personagem/alvoFeno.png';
+                inimigoImg.src = window.obterSpriteItem('feno', config, 'equipado');
             } else {
                 inimigoImg.src = spriteParado;
             }
@@ -369,8 +369,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 cooldownGarra: 60,
                 cooldownDanoEspinho: 0,
                 estaAgachado: false,
-                spriteParadoAgachado: config.spriteAgachadoPlayer || '../../assets/personagem/per_agachado.png',
-                spriteAndandoAgachado: config.spriteAgachadoAndandoPlayer || '../../assets/personagem/per_agachado2.png'
+                spriteParadoAgachado: window.obterSpriteItem('agachado', config, 'equipado'),
+                spriteAndandoAgachado: window.obterSpriteItem('agachado2', config, 'equipado')
             });
 
             const inimigoObj = window.inimigos[window.inimigos.length - 1];
@@ -744,7 +744,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.garraElemento.style.transform = (inimigo.garraDirecaoAnim === 'e' ? 'scaleX(-1)' : 'scaleX(1)');
 
                     if (inimigo.garraAnimEstado === 'prep') {
-                        inimigo.garraElemento.src = '../../assets/personagem/garra_using1.png';
+                        inimigo.garraElemento.src = window.obterSpriteItem('garra_using1', config);
                         inimigo.garraTimer--;
                         if (inimigo.garraTimer <= 0) {
                             inimigo.garraAnimEstado = 'esticando';
@@ -766,7 +766,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             inimigo.garraDist = proxDist;
                         }
 
-                        inimigo.garraElemento.src = '../../assets/personagem/garra_using1.png';
+                        inimigo.garraElemento.src = window.obterSpriteItem('garra_using1', config);
                         if (inimigo.garraDist > distMax) {
                             inimigo.garraDist = distMax;
                         }

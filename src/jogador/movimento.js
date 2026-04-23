@@ -86,8 +86,8 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         }
     }
 
-    const spriteAgachado = '../../assets/personagem/per_agachado.png';
-    const spriteAgachado2 = '../../assets/personagem/per_agachado2.png';
+    const spriteAgachado = window.obterSpriteItem('agachado', config, 'equipado');
+    const spriteAgachado2 = window.obterSpriteItem('agachado2', config, 'equipado');
 
     function atualizarVisualEscudo() {
         if ((controle.temEscudo || controle.escudoVermelho) && !controle.itensGuardadosNoCinto) {
@@ -96,7 +96,7 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
             escudoElemento.style.display = 'none';
         }
 
-        escudoElemento.src = config.spriteEscudoPlayer || '../../assets/personagem/escudo.png';
+        escudoElemento.src = window.obterSpriteItem('escudo', config, 'equipado');
         escudoElemento.style.filter = controle.escudoVermelho ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
     }
 
@@ -1176,7 +1176,7 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
                 });
             }
             const impacto = document.createElement('img');
-            impacto.src = '../../assets/personagem/impacto.png';
+            impacto.src = window.obterSpriteItem('impacto', config);
             impacto.style.position = 'absolute';
             impacto.style.width = '64px'; impacto.style.height = '32px';
             impacto.style.left = (ctrl.x - 16) + 'px'; impacto.style.bottom = ctrl.y + 'px';

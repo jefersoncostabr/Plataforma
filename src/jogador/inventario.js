@@ -365,6 +365,10 @@
             if (tipo === 'garra' && config.spriteGarraPlayer) return config.spriteGarraPlayer;
             if (tipo === 'cinto' && config.spriteCintoPlayer) return config.spriteCintoPlayer;
             if (tipo === 'colete' && config.spriteColeteParado) return config.spriteColeteParado;
+            // Estados de animação e Personagem
+            if (tipo === 'agachado' && config.spriteAgachadoPlayer) return config.spriteAgachadoPlayer;
+            if (tipo === 'agachado2' && config.spriteAgachadoAndandoPlayer) return config.spriteAgachadoAndandoPlayer;
+            if (tipo === 'feno' && config.spriteAlvoFeno) return config.spriteAlvoFeno;
         }
 
         // Prioridade 2: Definições dinâmicas de itens (JSONs/itens.js)
@@ -385,6 +389,19 @@
             if (tipo === 'colete') return config.spriteItemColete || '../../assets/personagem/colete_coletavel.png';
         }
 
+        // Prioridade 4: Efeitos e Elementos de Jogo (Centralização 5.3)
+        if (tipo === 'impacto') return config.spriteImpacto || '../../assets/personagem/impacto.png';
+        if (tipo === 'explosao') return config.spriteExplosao || '../../assets/personagem/explosao.png';
+        if (tipo === 'airdrop') return config.spriteAirdrop || '../../assets/personagem/airdrop.png';
+        if (tipo === 'paraquedas') return config.spriteParaquedas || '../../assets/personagem/paraquedas.png';
+        if (tipo === 'feno') return '../../assets/personagem/alvoFeno.png';
+        
+        // Frames específicos de animação procedural
+        if (tipo === 'garra_using1') return '../../assets/personagem/garra_using1.png';
+        if (tipo === 'garra_using2') return '../../assets/personagem/garra_using2.png';
+        if (tipo === 'garra_braco') return '../../assets/personagem/garra_braco.png';
+        if (tipo === 'garra_catching') return '../../assets/personagem/garra_catching.png';
+        
         if (tipo === 'restauracao') return '../../assets/personagem/restauracao.png';
         if (tipo === 'base_portatil') {
             return typeof window.obterSpriteCraftNivel === 'function'
