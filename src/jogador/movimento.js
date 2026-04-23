@@ -1344,10 +1344,11 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
                                 // Inimigo tipo 5 é Feno (alvo de treino) - você verá dano no comportamento
                             }
                             
-                            // Knockback por subpassos para impedir atravessar blocos em impactos fortes.
+                            // Knockback por subpassos para impedir atravessar blocos em impactos fortes (Correção: adicionado window.plataformas)
                             window.aplicarDeslocamentoHorizontalComColisaoPadrao(
                                 inimigo,
                                 window.obterKnockbackPadrao(config, 'playerProjetil') * proj.direcao,
+                                window.plataformas,
                                 {
                                     largura: inimigo.largura,
                                     altura: inimigo.altura,
@@ -1431,9 +1432,15 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
                             }
                         }
 
-                        // Knockback no Jogador baseado na direção do tiro
+                        // Knockback no Jogador baseado na direção do tiro (com subpassos para evitar atravessar blocos)
                         const forcaRecuo = window.obterForcaKnockback(config, 'inimigoProjetil');
-                        window.aplicarKnockback(controle, forcaRecuo, proj.direcao, 12);
+                        window.aplicarDeslocamentoHorizontalComColisaoPadrao(controle, forcaRecuo * proj.direcao, window.plataformas, {
+                            largura: controle.largura,
+                            altura: controle.altura,
+                            offsetX: controle.offsetX || 0,
+                            maxPasso: Number(config.playerKnockbackPassoMax ?? 1),
+                            cancelarKnockbackAoColidir: true
+                        });
 
                         hitAlvo = true;
                     }
