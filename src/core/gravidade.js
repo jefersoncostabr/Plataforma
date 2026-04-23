@@ -7,6 +7,55 @@
  * @param {number} gravidade - A força da gravidade por quadro (padrão 0.6).
  * @param {number} cooldownValor - O tempo de espera para o próximo pulo.
  */
+
+/**
+ * Centraliza a lógica de "Snap" (ajuste fino de posição) após uma colisão horizontal ou vertical.
+ * Resolve o item 5.2 da auditoria.
+ * 
+ * @param {number} valor - Coordenada atual (x ou y).
+ * @param {number} offset - Offset da hitbox no eixo correspondente.
+ * @param {number} dimensao - Largura ou altura da hitbox.
+ * @param {Object} hit - O objeto de colisão retornado por verificarColisaoComTiles.
+ * @param {string} direcao - 'direita', 'esquerda', 'cima' ou 'baixo'.
+ * @returns {number} A nova coordenada ajustada.
+ */
+window.aplicarSnapColisaoPadrao = function(valor, offset, dimensao, hit, direcao) {
+    const EPSILON = 0.01;
+    const tamanhoTile = 32;
+
+    if (direcao === 'direita') {
+        const bordaEsquerda = (hit && hit.esquerdaReal !== undefined) 
+            ? hit.esquerdaReal 
+            : Math.floor((valor + offset + dimensao) / tamanhoTile) * tamanhoTile;
+        return bordaEsquerda - dimensao - offset - EPSILON;
+    }
+
+    if (direcao === 'esquerda') {
+        const bordaDireita = (hit && hit.direitaReal !== undefined)
+            ? hit.direitaReal
+            : (Math.floor((valor + offset) / tamanhoTile) + 1) * tamanhoTile;
+        return bordaDireita - offset + EPSILON;
+    }
+
+    if (direcao === 'cima') {
+        return (hit && hit.topoReal !== undefined)
+            ? hit.topoReal
+            : Math.floor((valor + EPSILON) / tamanhoTile + 1) * tamanhoTile;
+    }
+
+    if (direcao === 'baixo') {
+        const bordaInferior = (hit && hit.baseReal !== undefined)
+            ? hit.baseReal
+            : Math.floor((valor + dimensao) / tamanhoTile) * tamanhoTile;
+        return bordaInferior - dimensao;
+    }
+
+    return valor;
+};
+
+// Alias global para compatibilidade com sistema de movimento e IA
+window.aplicarSnapColisao = window.aplicarSnapColisaoPadrao;
+
 function temEscudoAtivoPadrao(entidade) {
     return !!(entidade?.temEscudo && !entidade?.escudoVermelho && !entidade?.itensGuardadosNoCinto);
 }

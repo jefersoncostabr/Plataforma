@@ -98,10 +98,6 @@ Status:
 - [x] Removido. A função local redundante foi excluída; o projeto agora utiliza exclusivamente o motor de `sincronizacao-visual.js`.
 
 ### 5.2 Duplicação de Lógica de "Snap" de Colisão
-**Problema:** `ia-inimigo.js` (função `verificarSnapInimigo`) e `movimento.js` (função `aplicarSnapColisao`) possuem lógicas quase idênticas para "colar" a entidade na parede ao colidir.
-**Ação:** Mover essa lógica para `colisoes.js` ou `gravidade.js` como uma função de utilidade global.
-
-### 5.3 Limpeza de Sprites Hardcoded
 **Problema:** Ainda existem caminhos de strings como `../../assets/personagem/...` espalhados por `ia-inimigo.js` e `movimento.js`.
 **Ação:** Garantir que 100% desses acessos usem a `window.obterSpriteItem`.
 

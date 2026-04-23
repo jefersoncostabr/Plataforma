@@ -482,13 +482,13 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     }
 
                     // Colisão Horizontal com as laterais das plataformas (Snap) para o feno
-                    if (typeof verificarColisaoComTiles === 'function' && 
-                        verificarColisaoComTiles(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura, window.plataformas)) {
-                        
-                        if (inimigo.x > xAnteriorFeno) { // Empurrado para Direita
-                            inimigo.x = Math.floor((inimigo.x + (inimigo.offsetX || 0) + inimigo.largura) / 32) * 32 - inimigo.largura - (inimigo.offsetX || 0) - EPSILON;
-                        } else if (inimigo.x < xAnteriorFeno) { // Empurrado para Esquerda
-                            inimigo.x = (Math.floor((inimigo.x + (inimigo.offsetX || 0)) / 32) + 1) * 32 - (inimigo.offsetX || 0) + EPSILON;
+                    const hitFenoH = typeof verificarColisaoComTiles === 'function' ? 
+                        verificarColisaoComTiles(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura, window.plataformas) : null;
+                    if (hitFenoH) {
+                        if (inimigo.x > xAnteriorFeno) { // Direita
+                            inimigo.x = window.aplicarSnapColisaoPadrao(inimigo.x, inimigo.offsetX || 0, inimigo.largura, hitFenoH, 'direita');
+                        } else if (inimigo.x < xAnteriorFeno) { // Esquerda
+                            inimigo.x = window.aplicarSnapColisaoPadrao(inimigo.x, inimigo.offsetX || 0, inimigo.largura, hitFenoH, 'esquerda');
                         }
                     }
 
@@ -514,11 +514,12 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     inimigo.elemento.style.bottom = inimigo.y + 'px';
                     
                     // Verifica colisão com solo para o alvo não atravessar o chão no knockback
-                    if (typeof verificarColisaoComTiles === 'function' && 
-                        verificarColisaoComTiles(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura, window.plataformas)) {
+                    const hitFenoV = typeof verificarColisaoComTiles === 'function' ? 
+                        verificarColisaoComTiles(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura, window.plataformas) : null;
+                    if (hitFenoV) {
                         inimigo.noChao = true;
                         inimigo.velocidadeY = 0;
-                        inimigo.y = Math.floor((inimigo.y + EPSILON) / 32 + 1) * 32;
+                        inimigo.y = window.aplicarSnapColisaoPadrao(inimigo.y, 0, inimigo.altura, hitFenoV, 'cima');
                     }
                     continue; 
                 }
@@ -1125,12 +1126,12 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     if (inimigo.velocidadeY < 0) {
                         inimigo.noChao = true;
                         inimigo.velocidadeY = 0;
-                        inimigo.y = (typeof hitV === 'object') ? hitV.topoReal : Math.floor((inimigo.y + EPSILON) / 32 + 1) * 32;
+                        inimigo.y = window.aplicarSnapColisaoPadrao(inimigo.y, 0, inimigo.altura, hitV, 'cima');
                         inimigo.puloTimer = 0;
                         inimigo.jumpQueued = false;
                     } else if (inimigo.velocidadeY > 0) {
                         inimigo.velocidadeY = 0;
-                        inimigo.y = (typeof hitV === 'object') ? (hitV.baseReal - inimigo.altura) : Math.floor((inimigo.y + inimigo.altura) / 32) * 32 - inimigo.altura;
+                        inimigo.y = window.aplicarSnapColisaoPadrao(inimigo.y, 0, inimigo.altura, hitV, 'baixo');
                     }
                 }
 
@@ -1504,13 +1505,13 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 }
 
                 function verificarSnapInimigo(ent, xAnt) {
-                    if (typeof verificarColisaoComTiles === 'function' && 
-                        verificarColisaoComTiles(ent.x + (ent.offsetX || 0), ent.y, ent.largura, ent.altura, window.plataformas)) {
-                        
+                    const hit = typeof verificarColisaoComTiles === 'function' ? 
+                        verificarColisaoComTiles(ent.x + (ent.offsetX || 0), ent.y, ent.largura, ent.altura, window.plataformas) : null;
+                    if (hit) {
                         if (ent.x > xAnt) { // Direita
-                            ent.x = Math.floor((ent.x + (ent.offsetX || 0) + ent.largura) / 32) * 32 - ent.largura - (ent.offsetX || 0) - EPSILON;
+                            ent.x = window.aplicarSnapColisaoPadrao(ent.x, ent.offsetX || 0, ent.largura, hit, 'direita');
                         } else if (ent.x < xAnt) { // Esquerda
-                            ent.x = (Math.floor((ent.x + (ent.offsetX || 0)) / 32) + 1) * 32 - (ent.offsetX || 0) + EPSILON;
+                            ent.x = window.aplicarSnapColisaoPadrao(ent.x, ent.offsetX || 0, ent.largura, hit, 'esquerda');
                         }
                         return true;
                     }
