@@ -241,6 +241,11 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         }
         inimigo.garraBracos = [];
 
+        if (inimigo._jetpackLoop) {
+            inimigo._jetpackLoop.pause();
+            inimigo._jetpackLoop = null;
+        }
+
         inimigo.temArma = false;
         inimigo.temBota = false;
         inimigo.temEscudo = false;
@@ -1039,6 +1044,15 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 // Executa o pulo ou VOO se o timer chegou a zero e foi agendado
                 if (!iaBloqueadaPorStun && inimigo.puloTimer === 0 && inimigo.jumpQueued) {
                     if (inimigo.temJetpack && !inimigo.itensGuardadosNoCinto && !inimigo.jetpackAtivo && inimigo.cooldownVooJetpack === 0) {
+                        console.log("[IA] Inimigo ativando som de jetpack.");
+                        window.AudioManager?.playSFX('fogueteligando', 0.4);
+                        // Inicia o som de propulsão contínua para o inimigo
+                        if (window.AudioManager && !inimigo._jetpackLoop) {
+                            inimigo._jetpackLoop = typeof window.AudioManager.createSFX === 'function'
+                                ? window.AudioManager.createSFX('trusterhover', 0.2, true)
+                                : null;
+                            inimigo._jetpackLoop?.play().catch(() => {});
+                        }
                         inimigo.jetpackAtivo = true;
                         if (inimigo.timerVooRestante <= 0) {
                             inimigo.timerVooRestante = config.jetpackDuracaoVoo || 360;
@@ -1071,6 +1085,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     // Lógica de Desativação 1: Tanque vazio. 
                     // O inimigo perde a sustentação e o equipamento entra em cooldown.
                     if (inimigo.timerVooRestante <= 0) {
+                        if (inimigo._jetpackLoop) {
+                            inimigo._jetpackLoop.pause();
+                            inimigo._jetpackLoop = null;
+                        }
                         inimigo.jetpackAtivo = false;
                         inimigo.velocidadeY = 0;
                         inimigo.cooldownVooJetpack = config.jetpackCooldown || 180;
@@ -1078,6 +1096,10 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     // Lógica de Desativação 2: Contato com o solo.
                     // O inimigo interrompe o voo ao pousar em uma plataforma, preservando o combustível restante.
                     else if (inimigo.noChao && inimigo.framesVoando > 10) {
+                        if (inimigo._jetpackLoop) {
+                            inimigo._jetpackLoop.pause();
+                            inimigo._jetpackLoop = null;
+                        }
                         inimigo.jetpackAtivo = false;
                         inimigo.velocidadeY = 0;
                     }

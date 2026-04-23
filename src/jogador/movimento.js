@@ -242,6 +242,11 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         const dir = direcaoX !== undefined ? Math.sign(direcaoX) : (controle.direcao === 'd' ? -1 : 1);
         controle.velocidadeKnockback = dir * 5;
 
+        if (controle._jetpackLoop) {
+            controle._jetpackLoop.pause();
+            controle._jetpackLoop = null;
+        }
+
         if (elemento) {
             // Força o sprite de "no ar" (pulo) para a animação de voo
             elemento.src = config.spriteNoArPlayer || spriteNoAr;

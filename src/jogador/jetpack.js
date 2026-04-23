@@ -16,6 +16,15 @@
         }
 
         function iniciarJetpack() {
+            console.log("[Jetpack] Comando iniciarJetpack recebido.");
+            window.AudioManager?.playSFX('fogueteligando', 0.5);
+            // Inicia o som de propulsão contínua (loop)
+            if (window.AudioManager && !controle._jetpackLoop) {
+                controle._jetpackLoop = typeof window.AudioManager.createSFX === 'function' 
+                    ? window.AudioManager.createSFX('trusterhover', 0.3, true) 
+                    : null;
+                controle._jetpackLoop?.play().catch(() => {});
+            }
             controle.jetpackAtivo = true;
             if ((controle.timerVooRestante || 0) <= 0) {
                 controle.timerVooRestante = Number(config.jetpackDuracaoVoo ?? 360);
@@ -25,6 +34,12 @@
         }
 
         function desligarJetpack(iniciarCooldown = false) {
+            console.log("[Jetpack] Desligando jetpack. Cooldown:", iniciarCooldown);
+            // Para o som de propulsão quando o jetpack desliga
+            if (controle._jetpackLoop) {
+                controle._jetpackLoop.pause();
+                controle._jetpackLoop = null;
+            }
             controle.jetpackAtivo = false;
             controle.jetpackHovering = false;
             controle.velocidadeY = 0;
@@ -100,6 +115,8 @@
 
                 if ((controle.timerVooRestante || 0) <= 0) {
                     desligarJetpack(true);
+                } else if (controle.noChao && (controle.framesVoando || 0) > 10) {
+                    desligarJetpack(false);
                 }
 
                 return true;

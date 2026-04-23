@@ -57,6 +57,7 @@
         }
 
         function dispararSinalizador() {
+            window.AudioManager?.playSFX('sinalizador', 0.7);
             const xPartida = controle.x + 12;
             const yPartida = controle.y + 32;
             const alturaSubida = 150;

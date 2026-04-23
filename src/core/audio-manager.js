@@ -8,6 +8,7 @@
         masterVolume: 0.5, // Volume mestre padrão
 
         init: function() {
+            console.log("[AudioManager] Inicializando sistema de som...");
             // Carrega o volume mestre do localStorage, ou usa o padrão
             const savedVolume = localStorage.getItem(VOLUME_STORAGE_KEY);
             if (savedVolume !== null) {
@@ -70,11 +71,34 @@
 
         playSFX: function(nome, volume = 0.5) {
             const caminho = `${GENERAL_SFX_PATH}${nome}.wav`;
+            const volFinal = Math.max(0, Math.min(1, volume * this.masterVolume));
+            console.log(`[AudioManager] playSFX: ${nome} | Vol: ${volFinal.toFixed(2)} | Caminho: ${caminho}`);
+            
             const som = new Audio(caminho);
-            som.volume = Math.max(0, Math.min(1, volume * this.masterVolume)); // Aplica o volume mestre
+            som.volume = volFinal;
             som.play().catch(err => {
                 console.warn(`[AudioManager] Não foi possível tocar ${nome}.wav. Verifique se o arquivo existe em: ${caminho}`, err.message);
             });
+        },
+
+        /**
+         * Cria e retorna uma instância de áudio configurada.
+         * Útil para sons que precisam ser pausados ou que tocam em loop.
+         */
+        createSFX: function(nome, volume = 0.5, loop = false) {
+            const caminho = `${GENERAL_SFX_PATH}${nome}.wav`;
+            const volFinal = Math.max(0, Math.min(1, volume * this.masterVolume));
+            console.log(`[AudioManager] createSFX (Loop): ${nome} | Vol: ${volFinal.toFixed(2)} | Loop: ${loop}`);
+            
+            const som = new Audio(caminho);
+            som.volume = volFinal;
+            som.loop = loop;
+
+            som.addEventListener('error', (e) => {
+                console.error(`[AudioManager] Erro ao carregar arquivo de áudio: ${caminho}`, e);
+            });
+
+            return som;
         },
 
         playPasso: function() {
