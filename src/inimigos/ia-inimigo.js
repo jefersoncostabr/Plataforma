@@ -1306,6 +1306,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                     // Lógica para INICIAR a Garra (se tiver e estiver no alcance)
                     if (inimigo.temGarra && !inimigo.itensGuardadosNoCinto && inimigo.garraAnimEstado === 'idle' && inimigo.cooldownGarra === 0 && distanciaAtual <= (config.garraAlcanceInimigo || 160)) {
+                        window.AudioManager?.playSFX('engrenagem', 0.3);
                         inimigo.garraAnimEstado = 'prep';
                         inimigo.garraTimer = 18;
                         inimigo.garraDirecaoAnim = (inimigo.x < playerX) ? 'd' : 'e';

@@ -544,6 +544,7 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
                 }
             },
             onAcionarGarra: () => {
+                window.AudioManager?.playSFX('engrenagem', 0.5);
                 acionarGarra();
             },
             onToggleDebugGrade: () => {
