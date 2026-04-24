@@ -39,5 +39,9 @@
     ],
     "plataformasEstacaBaixo": [
         "l4", "l10", "l13", "l19"
-    ]
+    ],
+    "plataformasTerraInferior": [
+        "c15"
+    ],
+    "inimigo_escudo": ["h12"]
 }

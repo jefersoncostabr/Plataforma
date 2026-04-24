@@ -23,7 +23,7 @@ let COLS = 20;
 let ROWS = 15; 
 const PHASES_BASE_PATH = '../../config/fases/';
 const PHASES_MANIFEST_PATH = `${PHASES_BASE_PATH}index.json`;
-const PHASE_DISCOVERY_CANDIDATES = ['treino.json', ...Array.from({ length: 10 }, (_, i) => `fase${i + 1}.json`)];
+const PHASE_DISCOVERY_CANDIDATES = ['treino.json', ...Array.from({ length: 50 }, (_, i) => `fase${i + 1}.json`)];
 
 // Estado da fase
 let faseData = createEmptyFaseData();
@@ -38,6 +38,7 @@ const stage = document.getElementById('game-stage');
 const stageArea = document.getElementById('stage-area');
 const btnExport = document.getElementById('btn-export');
 const btnLinkSave = document.getElementById('btn-link-save');
+const btnNewPhase = document.getElementById('btn-new-phase');
 const btnSavePhase = document.getElementById('btn-save-phase');
 const btnImport = document.getElementById('btn-import');
 const btnClear = document.getElementById('btn-clear');
@@ -205,6 +206,55 @@ window.onload = async () => {
         btnLinkSave.onclick = async () => {
             if (!persistenciaEditor) return;
             await persistenciaEditor.vincularArquivoAtual();
+        };
+    }
+
+    if (btnNewPhase) {
+        btnNewPhase.onclick = async () => {
+            // Detecta arquivos existentes para calcular o próximo número
+            const arquivos = await uiEditor.detectarExistentes();
+            let maxNum = 0;
+
+            arquivos.forEach(arq => {
+                const match = arq.match(/fase(\d+)\.json/i);
+                if (match) {
+                    const num = parseInt(match[1]);
+                    if (num > maxNum) maxNum = num;
+                }
+            });
+
+            const novoNome = `fase${maxNum + 1}.json`;
+
+            if (confirm(`Deseja criar a "${novoNome}" do zero?`)) {
+                aplicarFaseDataEditor(createEmptyFaseData({
+                    proporcao: "1x1"
+                }), { arquivoFaseAtual: novoNome });
+
+                atualizarTamanhoStage();
+                if (persistenciaEditor) {
+                    await persistenciaEditor.salvarAutomaticamenteAgora();
+
+                    // Atualiza o manifesto index.json automaticamente
+                    try {
+                        const resp = await fetch(PHASES_MANIFEST_PATH, { cache: 'no-store' });
+                        if (resp.ok) {
+                            const manifesto = await resp.json();
+                            const lista = manifesto.fases || manifesto;
+                            
+                            if (Array.isArray(lista) && !lista.includes(novoNome)) {
+                                lista.push(novoNome);
+                                await fetch('/save', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ arquivo: 'index.json', dados: manifesto })
+                                });
+                                console.log(`[Editor] Manifesto atualizado com a nova fase: ${novoNome}`);
+                                if (uiEditor && uiEditor.detectarExistentes) await uiEditor.detectarExistentes();
+                            }
+                        }
+                    } catch (e) { console.error("Erro ao atualizar index.json:", e); }
+                }
+            }
         };
     }
 
@@ -377,4 +427,3 @@ function atualizarVisual() {
  * Adiciona ou remove blocos da linha inferior (chão).
  * @param {boolean} fill - Se true, preenche; se false, remove.
  */
-

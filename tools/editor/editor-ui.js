@@ -26,6 +26,7 @@
 
         let tooltipElement = null;
         let fillBottomCheckbox = null;
+        let funcaoDetectarFases = null; // Referência interna
         let blockTypeSelect = null;
 
         function configurarPaleta() {
@@ -327,21 +328,24 @@
             const detectarExistentes = async () => {
                 phaseList.innerHTML = '<div class="phase-list-empty">Detectando fases existentes...</div>';
 
-                const arquivosManifesto = await carregarManifestoFases();
-                if (arquivosManifesto.length > 0) {
-                    return renderizarListaFases(arquivosManifesto);
-                }
+                // Tenta carregar o que está no index.json
+                let arquivosEncontrados = await carregarManifestoFases();
 
-                const encontrados = [];
+                // Varre os candidatos para encontrar arquivos que existam na pasta mas não no index.json
                 for (const arquivo of arquivosCandidatos) {
+                    if (arquivosEncontrados.includes(arquivo)) continue;
+
                     const existe = await verificarArquivoExiste(arquivo);
                     if (existe) {
-                        encontrados.push(arquivo);
+                        arquivosEncontrados.push(arquivo);
                     }
                 }
 
-                return renderizarListaFases(encontrados);
+                // Renderiza a lista combinada e sem duplicatas
+                return renderizarListaFases([...new Set(arquivosEncontrados)]);
             };
+
+            funcaoDetectarFases = detectarExistentes;
 
             if (refreshButton) {
                 refreshButton.onclick = () => detectarExistentes();
@@ -360,6 +364,7 @@
             configurarTeclasGlobais,
             configurarSpawnAleatorio,
             configurarSeletorFases,
+            detectarExistentes: () => (typeof funcaoDetectarFases === 'function' ? funcaoDetectarFases() : []),
             fillBottomLayer
         };
     }

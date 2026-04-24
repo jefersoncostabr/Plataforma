@@ -23,10 +23,15 @@
         "f7",
         "g6", "g13", "g14", "g19", "g20",
         "h1", "h2", "h3", "h4", "h5",
-        "j5",
-        "k6", "k7", "k8", "k9", "k11", "k12", "k13", "k14", "k15", "k16", "k17", "k18", "k19"
+        "j2", "j5",
+        "k2", "k6", "k7", "k8", "k9", "k11", "k12", "k13", "k14", "k15", "k16", "k17", "k18", "k19",
+        "l2",
+        "m2"
     ],
     "inimigo_comum": ["b20", "f8", "h6", "l17"],
     "inimigo_revolver": ["b19", "e9", "i19", "l14"],
-    "inimigo_escudo": ["h13"]
+    "inimigo_escudo": ["h13"],
+    "plataformasTerraSuperior2": [
+        "i2"
+    ]
 }

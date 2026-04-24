@@ -175,6 +175,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     }
 
     function inimigoColetarItemGarra(inimigo, item) {
+        if (!item || !item.tipo) return;
+
         // Novo sistema: se itemDefinitions existir e tiver o item, usa o novo fluxo
         if (window.itemDefinitions && window.itemDefinitions[item.tipo]) {
             const itemData = window.itemDefinitions[item.tipo];
@@ -531,12 +533,21 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 let xAnterior = inimigo.x;
 
-                // Refinamento IA: Detecta itens de interesse (AirDrop ou Jetpack se não possuir um)
-                const itemInteresse = window.itensColetaveis?.find(it => 
-                    (it.tipo === 'airdrop' || (it.tipo === 'jetpack' && !inimigo.temJetpack)) && 
-                    Math.abs(it.x - inimigo.x) <= 192 && 
-                    Math.abs(it.y - inimigo.y) <= 128
-                );
+                // Refinamento IA: Detecta itens de interesse (AirDrop ou equipamentos que ainda não possui)
+                const itemInteresse = window.itensColetaveis?.find(it => {
+                    // Se já possui o item e não é consumível, ignora
+                    const jaTem = it.tipo !== 'airdrop' && it.tipo !== 'restauracao' && inimigo.inventario.includes(it.tipo);
+                    if (jaTem) return false;
+
+                    // Se for restauração, só se interessa se estiver sem munição ou com escudo danificado
+                    if (it.tipo === 'restauracao') {
+                        const precisaMunicao = inimigo.temArma && (inimigo.municao || 0) < (config.maxMunicao || 5);
+                        const precisaEscudo = inimigo.temEscudo && (inimigo.escudoVermelho || (inimigo.escudoProtegido || 0) > 0);
+                        if (!precisaMunicao && !precisaEscudo) return false;
+                    }
+
+                    return Math.abs(it.x - inimigo.x) <= 220 && Math.abs(it.y - inimigo.y) <= 160;
+                });
                 
                 // Se houver um item de interesse por perto, ele vira o alvo prioritário da IA
                 const xAlvo = itemInteresse ? itemInteresse.x : playerX;
@@ -1169,9 +1180,12 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (!inimigo.estaColetando && !inimigo.afastando && !estaChutando && window.itensColetaveis) {
                     for (let j = window.itensColetaveis.length - 1; j >= 0; j--) {
                         const item = window.itensColetaveis[j];
-                        // Verifica colisão simples entre inimigo e item
-                        if (inimigo.x < item.x + 32 && inimigo.x + 32 > item.x &&
-                            inimigo.y < item.y + 32 && inimigo.y + 32 > item.y) {
+                        
+                        // Usa a função de hitbox global com margem extra para facilitar a coleta
+                        const hitboxInimigoBody = { x: inimigo.x + (inimigo.offsetX || 0), y: inimigo.y, largura: inimigo.largura, altura: inimigo.altura };
+                        const hitboxItemBody = { x: item.x, y: item.y, largura: 32, altura: 32 };
+
+                        if (typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(hitboxInimigoBody, hitboxItemBody, -6, -6, -6)) {
                             
                             // O inimigo só tenta pegar o que ele ainda não tem
                             if (item.tipo !== 'airdrop' && 
@@ -1206,6 +1220,13 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                 if (inimigo.estaColetando) {
                     inimigo.timerColeta--;
+                    
+                    // Verifica se o item ainda existe (evita coletar itens que já sumiram ou foram pegos)
+                    if (!window.itensColetaveis?.includes(inimigo.itemSendoColetado)) {
+                        inimigo.estaColetando = false;
+                        inimigo.itemSendoColetado = null;
+                    }
+
                     // Olha de um lado para o outro a cada 30 frames
                     if (inimigo.timerColeta % 30 === 0) {
                         inimigo.direcao = (inimigo.direcao === 'd' ? 'e' : 'd');

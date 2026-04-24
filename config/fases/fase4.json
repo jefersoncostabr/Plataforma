@@ -3,9 +3,9 @@
     "posicaoInicialJogador": "b2",
     "objetivo": "f40",
     "itens": {
-        "revolver": "b22",
-        "escudo": "b21",
-        "restauracao": "b9"
+        "revolver": "b21",
+        "restauracao": "b9",
+        "escudo": "c23"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [

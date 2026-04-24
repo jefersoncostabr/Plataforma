@@ -11,10 +11,7 @@
             "m10",
             "ab2"
         ],
-        "colete": [
-            "d1",
-            "d7"
-        ],
+        "colete": "f13",
         "restauracao": "m15"
     },
     "inimigoAleatorio": [1, 0],
@@ -28,5 +25,9 @@
         "ab10", "ab11"
     ],
     "inimigo_comum": ["b9", "b12", "b16", "b18", "b20"],
-    "inimigo_jetpack": ["b14", "v15", "x5"]
+    "inimigo_jetpack": ["b14", "v15", "x5"],
+    "plataformasEstacaBaixo": [
+        "z1",
+        "aa10"
+    ]
 }

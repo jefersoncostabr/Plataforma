@@ -3,19 +3,8 @@
  */
 
 
-const listaArquivosFases = [
-    "fase1.json",
-    "fase2.json",
-    "fase3.json",
-    "fase4.json",
-    "fase5.json",
-    "fase6.json",
-    "fase7.json",
-    "fase8.json",
-    "fase9.json",
-    "fase10.json"
-];
-window.niveis = listaArquivosFases.map(nome => `../../config/fases/${nome}`);
+window.niveis = []; // Será preenchido dinamicamente pelo index.json
+
 window.nivelAtual = 0;
 window.isTraining = false; // Flag para identificar se o jogador está no modo treino
 window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para inimigo aleatório
@@ -74,6 +63,7 @@ function resetarJogadorParaZeroMantendoSkills(opcoes = {}) {
     controle.coleteSlots = Array.from({ length: Math.max(1, Number(window.coleteConfig?.capacidade ?? 6)) }, () => null);
     controle.cintoSlot = null;
     controle.municao = 0;
+    // Nota: Limpeza de flags de movimento movida para função dedicada para garantir execução em transições.
 
     ['player-weapon', 'player-shield', 'player-boots', 'player-jetpack', 'player-claw', 'player-belt', 'player-vest', 'player-jet-fire']
         .forEach((id) => {
@@ -88,6 +78,35 @@ function resetarJogadorParaZeroMantendoSkills(opcoes = {}) {
     if (!preservarEstadoSalvo && typeof window.limparInventarioSalvo === 'function') {
         window.limparInventarioSalvo();
     }
+}
+
+/**
+ * Destrava completamente o personagem e a interface, limpando estados de menus e ações.
+ * Deve ser executado em toda transição de fase ou reinício.
+ */
+function forcarDestravamentoGeral(entidade) {
+    if (!entidade) return;
+    
+    // Limpa estados lógicos de bloqueio
+    entidade.stunned = false;
+    entidade.stunTimer = 0;
+    entidade.vendaEmCurso = false;
+    entidade.vendaTimer = 0;
+    entidade.garraAnimEstado = 'idle';
+    entidade.garraItemCarregado = null;
+    if (Array.isArray(entidade.garraBracos)) {
+        entidade.garraBracos.forEach(b => b.remove?.());
+        entidade.garraBracos = [];
+    }
+    entidade.estaAgachado = false;
+    entidade.estaMorrendo = false;
+
+    // Limpa flags globais de UI que travam o input
+    window.isPaused = false;
+    window.isMenuOpen = false;
+    window.isSkillMenuOpen = false;
+    window.isMochilaMenuOpen = false;
+    window.isInteractionMenuOpen = false;
 }
 
 // ⭐ Escala atual do jogo
@@ -157,6 +176,12 @@ async function carregarFase(nomeArquivo) {
     if (typeof window.fecharTelaInteracao === 'function') {
         window.fecharTelaInteracao();
     }
+
+    const container = document.getElementById('jogo-container');
+    if (container) container.style.filter = 'none';
+
+    forcarDestravamentoGeral(window.playerControle);
+
     window.faseAtualNome = String(nomeArquivo || '').split('/').pop() || String(nomeArquivo || '');
     if (typeof window.removerTodosCrafts === 'function') {
         window.removerTodosCrafts();
@@ -590,6 +615,8 @@ window.reiniciarJogo = async function(porMorte = true) {
         window.playerControle.cooldownVooJetpack = 0;
         window.playerControle.jetpackHovering = false;
 
+        forcarDestravamentoGeral(window.playerControle);
+
         if (window.playerControle.temEscudo || window.playerControle.escudoVermelho) {
             window.playerControle.temEscudo = true;
             window.playerControle.escudoVermelho = false;
@@ -650,6 +677,18 @@ async function iniciarJogo() {
     const respostaConfig = await fetch('../../config/configuracoes.json');
     const config = await respostaConfig.json();
     window.config = config;
+
+    // Carrega a lista de fases dinamicamente do manifesto
+    try {
+        const respManifesto = await fetch('../../config/fases/index.json', { cache: 'no-store' });
+        const manifesto = await respManifesto.json();
+        const listaRaw = manifesto.fases || manifesto;
+
+        // Filtra o arquivo de treino para que ele não faça parte da progressão normal (campanha)
+        const listaCampanha = listaRaw.filter(nome => !String(nome).toLowerCase().includes('treino.json'));
+        window.niveis = listaCampanha.map(nome => `../../config/fases/${nome}`);
+    } catch (e) { console.error("Erro ao carregar lista de fases:", e); }
+
     window.nivelAtual = obterIndiceFaseInicial(config.faseInicial);
 
     // Carrega as definições de itens para o jogo usar os sprites dos JSONs

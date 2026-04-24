@@ -3,7 +3,10 @@
     "posicaoInicialJogador": "b2",
     "objetivo": "f19",
     "itens": {
-        "restauracao": "k20"
+        "restauracao": [
+            "k20",
+            "m4"
+        ]
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
