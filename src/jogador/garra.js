@@ -135,81 +135,8 @@
                 }
             }
 
-            if (window.itemDefinitions && window.itemDefinitions[item.tipo]) {
-                const itemData = window.itemDefinitions[item.tipo];
-                if (window.aplicarEfeitoColeta && typeof window.aplicarEfeitoColeta === 'function') {
-                    window.aplicarEfeitoColeta(controle, itemData);
-                } else if (itemData.efeitos && itemData.efeitos.jogador) {
-                    for (const [chave, valor] of Object.entries(itemData.efeitos.jogador)) {
-                        controle[chave] = valor;
-                    }
-                }
-
-                if (item.tipo === 'restauracao') {
-                    window.aplicarRestauracaoPadrao?.(controle, config, {
-                        atualizarVisualEscudo,
-                        atualizarVisualBota: window.atualizarVisualBota,
-                        atualizarVisualGarra: window.atualizarVisualGarra
-                    });
-                }
-
-                if (item.tipo === 'revolver') {
-                    if (itemData.spriteEquipado) armaElemento.src = itemData.spriteEquipado;
-                    armaElemento.style.display = 'block';
-                    sincronizarEquipamentoNoJogador(armaElemento);
-                } else if (item.tipo === 'escudo') {
-                    if (itemData.spriteEquipado) escudoElemento.src = itemData.spriteEquipado;
-                    escudoElemento.style.display = 'block';
-                    sincronizarEquipamentoNoJogador(escudoElemento);
-                    atualizarVisualEscudo();
-                } else if (item.tipo === 'bota') {
-                    if (itemData.spriteEquipado) botaElemento.src = itemData.spriteEquipado;
-                    botaElemento.style.display = 'block';
-                    sincronizarEquipamentoNoJogador(botaElemento);
-                } else if (item.tipo === 'jetpack') {
-                    if (itemData.spriteEquipado) jetpackElemento.src = itemData.spriteEquipado;
-                    jetpackElemento.style.display = 'block';
-                    sincronizarEquipamentoNoJogador(jetpackElemento);
-                } else if (item.tipo === 'garra') {
-                    controle.garraImpactosSolidos = Number(item.garraImpactosSolidos || 0);
-                    controle.garraVermelha = !!item.garraVermelha;
-                    if (itemData.spriteEquipado) garraElemento.src = itemData.spriteEquipado;
-                    garraElemento.style.display = 'block';
-                    sincronizarEquipamentoNoJogador(garraElemento);
-                    atualizarVisualEstadoGarra();
-                } else if (item.tipo === 'cinto') {
-                    if (itemData.spriteEquipado) cintoElemento.src = itemData.spriteEquipado;
-                    cintoElemento.style.display = 'block';
-                    sincronizarEquipamentoNoJogador(cintoElemento);
-                } else if (item.tipo === 'colete') {
-                    if (itemData.spriteEquipado && coleteElemento) coleteElemento.src = itemData.spriteEquipado;
-                    if (coleteElemento) {
-                        coleteElemento.style.display = 'block';
-                        sincronizarEquipamentoNoJogador(coleteElemento);
-                    }
-                }
-
-                if (!controle.inventario.includes(item.tipo) && item.tipo !== 'airdrop' && item.tipo !== 'restauracao') {
-                    controle.inventario.push(item.tipo);
-                }
-                salvarInventario();
-                return true;
-            }
-
-            if (item.tipo === 'escudo') {
-                controle.temEscudo = true;
-                controle.escudoVermelho = item.escudoVermelho || false;
-                controle.escudoProtegido = item.escudoProtegido || 0;
-                if (!controle.inventario.includes('escudo')) controle.inventario.push('escudo');
-                escudoElemento.style.display = 'block';
-                sincronizarEquipamentoNoJogador(escudoElemento);
-                atualizarVisualEscudo();
-            } else if (item.tipo === 'bota') {
-                controle.temBota = true;
-                if (!controle.inventario.includes('bota')) controle.inventario.push('bota');
-                botaElemento.style.display = 'block';
-                sincronizarEquipamentoNoJogador(botaElemento);
-            } else if (item.tipo === 'jetpack') {
+            // Se o item definitions não for encontrado ou falhar, tentamos a lógica básica de tipos
+            if (item.tipo === 'jetpack') {
                 controle.temJetpack = true;
                 if (!controle.inventario.includes('jetpack')) controle.inventario.push('jetpack');
                 controle.timerVooRestante = config.jetpackDuracaoVoo || 360;

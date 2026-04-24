@@ -12,7 +12,8 @@
         "bota": [
             "h19",
             "l15"
-        ]
+        ],
+        "scrap": "e5"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [

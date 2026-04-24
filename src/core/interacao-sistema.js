@@ -305,6 +305,106 @@
         atualizarDisponibilidadeBotoesModo(overlay, Number(contexto?.nivel || 0));
         atualizarResumoEquipamentoSalvo(overlay);
 
+        // Lógica para popular o inventário no menu de Crafting
+        if (id === 'menu_crafting') {
+            const inventarioContainer = overlay.querySelector('.player-inventory-for-crafting');
+            if (inventarioContainer) {
+                inventarioContainer.innerHTML = ''; // Remove a mensagem de "Seus itens aparecerão aqui"
+
+                const controle = window.playerControle;
+                if (controle) {
+                    const itensParaMostrar = [];
+
+                    // 1. Busca o item que está no slot do Cinto
+                    const slotCinto = typeof window.obterSlotCinto === 'function' ? window.obterSlotCinto() : controle.cintoSlot;
+                    if (slotCinto) itensParaMostrar.push(slotCinto);
+
+                    // 2. Busca os itens que estão nos slots do Colete
+                    const slotsColete = typeof window.obterSlotsColete === 'function' ? window.obterSlotsColete() : (controle.coleteSlots || []);
+                    slotsColete.forEach(slot => {
+                        if (slot) itensParaMostrar.push(slot);
+                    });
+
+                    // 3. Fallback: Se houver 'scrap' no inventário lógico mas não nos slots, adiciona para garantir visibilidade
+                    if (Array.isArray(controle.inventario) && controle.inventario.includes('scrap')) {
+                        const jaEstaNaLista = itensParaMostrar.some(it => it.tipo === 'scrap');
+                        if (!jaEstaNaLista) {
+                            itensParaMostrar.push({
+                                tipo: 'scrap',
+                                nome: 'Sucata (Scrap)',
+                                spriteColetavel: window.obterSpriteItem('scrap', window.config)
+                            });
+                        }
+                    }
+
+                    if (itensParaMostrar.length === 0) {
+                        inventarioContainer.innerHTML = '<p style="color: #666; text-align: center; width: 100%; font-size: 11px;">Sua mochila está vazia.</p>';
+                    } else {
+                        const slot1 = overlay.querySelector('#craft-slot-1');
+                        const slot2 = overlay.querySelector('#craft-slot-2');
+
+                        const adicionarAoSlotLivre = (itemData, btnOrigem) => {
+                            const alvo = !slot1.dataset.ocupado ? slot1 : (!slot2.dataset.ocupado ? slot2 : null);
+                            if (!alvo) return;
+
+                            alvo.innerHTML = '';
+                            alvo.dataset.ocupado = "true";
+                            alvo.dataset.itemTipo = itemData.tipo;
+                            
+                            const imgClone = btnOrigem.querySelector('img').cloneNode();
+                            imgClone.style.width = '32px'; imgClone.style.height = '32px';
+                            alvo.appendChild(imgClone);
+
+                            btnOrigem.style.opacity = '0.3';
+                            btnOrigem.style.pointerEvents = 'none';
+
+                            // Clique no slot para devolver o item
+                            alvo.onclick = () => {
+                                alvo.innerHTML = '?';
+                                delete alvo.dataset.ocupado;
+                                delete alvo.dataset.itemTipo;
+                                btnOrigem.style.opacity = '1';
+                                btnOrigem.style.pointerEvents = 'all';
+                                alvo.onclick = null;
+                            };
+                        };
+
+                        itensParaMostrar.forEach(item => {
+                            const itemQuadrado = document.createElement('button');
+                            itemQuadrado.type = 'button';
+                            itemQuadrado.className = 'crafting-inv-item';
+                            itemQuadrado.style.cssText = `
+                                width: 42px; height: 42px; background: #222; border: 1px solid #444;
+                                display: flex; align-items: center; justify-content: center;
+                                border-radius: 4px; cursor: pointer; transition: border-color 0.2s, background 0.2s;
+                                padding: 0; outline: none;
+                            `;
+
+                            // Efeitos de foco para navegação visual
+                            itemQuadrado.onfocus = () => { itemQuadrado.style.borderColor = '#0f0'; itemQuadrado.style.background = '#2a2a2a'; };
+                            itemQuadrado.onblur = () => { itemQuadrado.style.borderColor = '#444'; itemQuadrado.style.background = '#222'; };
+
+                            const img = document.createElement('img');
+                            img.src = item.spriteColetavel || item.spriteEquipado || (typeof window.obterSpriteItem === 'function' ? window.obterSpriteItem(item.tipo, window.config) : '');
+                            img.style.width = '32px'; img.style.height = '32px'; img.style.imageRendering = 'pixelated';
+                            img.style.pointerEvents = 'none';
+                            
+                            itemQuadrado.appendChild(img);
+                            // Adiciona o item ao DOM antes de adicionar o event listener,
+                            // para que o itemQuadrado seja um elemento válido no DOM
+                            // quando o event listener for adicionado.
+                            // Isso é importante para a navegação por teclado.
+                            inventarioContainer.appendChild(itemQuadrado);
+
+                            itemQuadrado.addEventListener('click', () => {
+                                adicionarAoSlotLivre(item, itemQuadrado);
+                            });
+                        });
+                    }
+                }
+            }
+        }
+
         overlay.addEventListener('click', (event) => {
             if (event.target === overlay) {
                 fecharTelaInteracao();
@@ -435,6 +535,7 @@
         });
 
         onKeyDownAtual = (event) => {
+            const ativo = document.activeElement;
             if (event.key === 'Escape') {
                 event.preventDefault();
 
@@ -460,15 +561,20 @@
             }
 
             // Confirmação apenas com a tecla de chute
-            if (window.controlesConfig && Array.isArray(window.controlesConfig.chute)) {
-                const chuteKeys = window.controlesConfig.chute.map(k => String(k).toLowerCase());
-                if (chuteKeys.includes(event.key.toLowerCase())) {
-                    const ativo = document.activeElement;
-                    if (ativo instanceof HTMLButtonElement && overlay.contains(ativo) && !ativo.disabled) {
-                        event.preventDefault();
-                        ativo.click();
-                        return;
+            if (event.key === 'Enter' || event.key === ' ') { // Usa Enter ou Espaço para ativação geral
+                if (ativo && overlay.contains(ativo) && !ativo.disabled) {
+                    event.preventDefault();
+                    // Verifica se é um slot de crafting (div com tabindex) ou um botão
+                    if (ativo.classList.contains('crafting-slot') && ativo.id.startsWith('craft-slot-')) {
+                        ativo.click(); // Dispara o manipulador de clique do slot
+                    } else if (ativo instanceof HTMLButtonElement) {
+                        ativo.click(); // Dispara o manipulador de clique de botões
                     }
+                    return;
+                }
+            } else if (window.controlesConfig && Array.isArray(window.controlesConfig.chute)) { // Lógica original para a tecla de 'chute'
+                const chuteKeys = window.controlesConfig.chute.map(k => String(k).toLowerCase());
+                if (chuteKeys.includes(event.key.toLowerCase())) { 
                     const primaria = overlay.querySelector('[data-primary-action]');
                     if (primaria && !primaria.disabled) {
                         event.preventDefault();

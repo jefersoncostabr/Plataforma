@@ -1,0 +1,11 @@
+{
+    "id": "scrap",
+    "nome": "Sucata (Scrap)",
+    "spriteColetavel": "../../assets/personagem/scrap_coletavel.png",
+    "spriteEquipado": "",
+    "consumivel": false,
+    "efeitos": {
+        "jogador": {},
+        "inimigo": {}
+    }
+}

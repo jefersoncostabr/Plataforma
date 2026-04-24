@@ -13,7 +13,8 @@
             cinto: { permitidoNoColete: true, equipavel: true, usarSoSePrecisar: true },
             colete: { permitidoNoColete: true, equipavel: true, usarSoSePrecisar: true },
             restauracao: { permitidoNoColete: true, consumivel: true, usarSoSePrecisar: true },
-            base_portatil: { permitidoNoColete: true, consumivel: true, usarSoSePrecisar: true }
+            base_portatil: { permitidoNoColete: true, consumivel: true, usarSoSePrecisar: true },
+            scrap: { permitidoNoColete: true, consumivel: false, usarSoSePrecisar: false }
         }
     };
 
@@ -571,6 +572,7 @@
             if (tipo === 'garra') {
                 return !controle.temGarra || !!controle.garraVermelha || Number(controle.garraImpactosSolidos || 0) > 0;
             }
+            if (tipo === 'scrap') return false;
             return !itemJaAtivoNoCorpo(tipo);
         }
 
@@ -679,6 +681,9 @@
                     sincronizarElementoComJogador(coleteElemento, (controle.estaAgachado && controle.noChao) ? -6 : 0);
                 }
             } else if (itemData?.efeitos?.jogador) {
+                // Se o item não possui efeitos lógicos definidos, ele não deve ser "consumido" ao tentar usar
+                if (Object.keys(itemData.efeitos.jogador).length === 0) return false;
+
                 Object.entries(itemData.efeitos.jogador).forEach(([chave, valor]) => {
                     if (chave !== 'inventarioAdd') {
                         controle[chave] = valor;
@@ -899,6 +904,11 @@
 
         function usarOuDroparItemDoCinto() {
             const slot = obterSlotCinto();
+            // Impede que materiais de crafting sumam ou sejam dropados ao apertar Enter no menu
+            if (slot?.tipo === 'scrap') {
+                return { acao: 'nenhum' };
+            }
+
             if (slot?.tipo === 'base_portatil') {
                 if (usarItemDoCinto()) {
                     return { acao: 'usado' };
@@ -989,6 +999,11 @@
 
         function usarOuDroparItemDoColete(indice) {
             const slot = obterSlotsColete()[indice];
+            // Impede que materiais de crafting sumam ou sejam dropados ao apertar Enter no menu
+            if (slot?.tipo === 'scrap') {
+                return { acao: 'nenhum' };
+            }
+
             if (slot?.tipo === 'base_portatil') {
                 if (usarItemDoColete(indice)) {
                     return { acao: 'usado' };
@@ -1032,11 +1047,21 @@
                 return guardarItemNoCinto(item, itemData) || guardarItemNoColete(item, itemData);
             }
 
-            if (!itemJaAtivoNoCorpo(item.tipo) || precisaDeItemAgora(item.tipo)) {
+            // Apenas tenta aplicar no corpo se for um equipamento vestível (corpo)
+            const ehEquipamentoCorpo = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete'].includes(item.tipo);
+            if (ehEquipamentoCorpo && (!itemJaAtivoNoCorpo(item.tipo) || precisaDeItemAgora(item.tipo))) {
                 return aplicarItemNoCorpo(item.tipo, itemData, item);
             }
 
-            return guardarItemNoColete(item, itemData) || guardarItemNoCinto(item, itemData);
+            const guardouEmSlot = guardarItemNoColete(item, itemData) || guardarItemNoCinto(item, itemData);
+            
+            if (guardouEmSlot) {
+                registrarItemNoInventario(item.tipo);
+                return true;
+            }
+
+            // Se não coube em nenhum lugar, retorna false para o item permanecer no mundo
+            return false;
         }
 
         function droparItemJogador() {
