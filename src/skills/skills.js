@@ -18,7 +18,8 @@ window.SKILLS = Object.freeze({
     VENDER: 'Vender',
     SALTO: 'Salto',
     RESGATE: 'Resgate',
-    KNOCKOUT: 'Knockout'
+    KNOCKOUT: 'Knockout',
+    PRECISAO: 'Precisão'
 });
 window.temSkill = (nomeSkill) => Array.isArray(window.playerSkills) && window.playerSkills.includes(String(nomeSkill || ''));
 const SKILLS_STORAGE_KEY = 'plataformaSkills';
@@ -299,11 +300,11 @@ function abrirMenuSkillsUI() {
     // Ajustamos o container para caber dentro do palco caso a escala seja pequena
     container.style = `
         position: relative; 
-        width: 90%; max-width: 550px; 
-        height: 90%; max-height: 450px; 
+        width: 95%; max-width: 800px; 
+        height: 90%; max-height: 550px; 
         background: #1a1a1a; border: 3px solid #444; border-radius: 12px; 
         box-shadow: 0 0 50px rgba(0,0,0,0.8); margin: auto;
-        overflow: hidden;
+        overflow-y: auto; overflow-x: hidden;
     `;
     
     const header = document.createElement('div');
@@ -352,8 +353,9 @@ function abrirMenuSkillsUI() {
         selectedSkillId = levels[0][0];
     }
 
-    const vGap = 90; // Espaço vertical entre níveis
-    const startY = 140; // Espaço reservado para o cabeçalho interno
+    const containerWidth = 800;
+    const vGap = 110; // Espaço vertical entre níveis aumentado para melhor clareza
+    const startY = 160; // Posição inicial Y ajustada para o novo cabeçalho
 
     Object.keys(window.skillsData).forEach(skillId => {
         // Store button positions during creation
@@ -367,8 +369,8 @@ function abrirMenuSkillsUI() {
         const siblings = levels[depth];
         const indexInLevel = siblings.indexOf(skillId);
         
-        // Distribui os botões do mesmo nível proporcionalmente à largura (550px)
-        const x = (550 / (siblings.length + 1)) * (indexInLevel + 1);
+        // Distribui os botões proporcionalmente à nova largura de 800px
+        const x = (containerWidth / (siblings.length + 1)) * (indexInLevel + 1);
         const y = startY + (depth * vGap);
         buttonPositions[skillId] = { x: x, y: y, width: 90, height: 50 };
 
@@ -442,7 +444,6 @@ function abrirMenuSkillsUI() {
         }
     });
 
-    container.appendChild(header);
     overlay.appendChild(container);
     target.appendChild(overlay);
     atualizarVisualSelecaoSkills();

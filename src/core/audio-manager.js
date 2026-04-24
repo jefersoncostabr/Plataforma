@@ -9,7 +9,6 @@
         masterVolume: 0.5, // Volume mestre padrão
 
         init: function() {
-            console.log("[AudioManager] Inicializando sistema de som...");
             // Carrega o volume mestre do localStorage, ou usa o padrão
             const savedVolume = localStorage.getItem(VOLUME_STORAGE_KEY);
             if (savedVolume !== null) {

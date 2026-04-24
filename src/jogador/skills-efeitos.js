@@ -61,6 +61,11 @@ window.aplicarEfeitosSkills = () => {
                 controle.danoChute += 1;
                 break;
 
+            case skills.PRECISAO:
+                // Habilidade Precisão: aumenta o dano do projétil em +1 (Cumulativo com Atirador)
+                controle.danoProjetil += 1;
+                break;
+
             case skills.DROPAR:
                 // Espaço reservado para efeitos futuros
                 break;
