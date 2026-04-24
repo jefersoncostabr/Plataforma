@@ -162,16 +162,20 @@ async function carregarFase(nomeArquivo) {
         window.removerTodosCrafts();
     }
 
-    // Bloqueia o reset se houver base instalada, se for a última fase ou se virmos de uma transição de nível.
+    // Bloqueia o reset se houver base instalada, checkpoint, se for a última fase ou se virmos de uma transição de nível.
     const isLastPhase = window.nivelAtual === (window.niveis.length - 1);
     const craftSalvo = typeof window.obterCraftPersistido === 'function' ? window.obterCraftPersistido() : null;
     const temBaseNestaFase = craftSalvo && craftSalvo.fase === window.faseAtualNome.toLowerCase();
+    
+    // Verifica se existe um checkpoint de equipamento para evitar limpeza indevida no reinício
+    const temCheckpoint = typeof window.carregarCheckpointEquipamentoSalvo === 'function' && !!window.carregarCheckpointEquipamentoSalvo();
+    
     const vindoDeTransicao = !!window.__transicaoFaseAtiva;
 
     // Regra de Ouro: No reinício (morte ou carregamento), limpamos o jogador para não "vazar" 
     // itens coletados após o save. Apenas transições vitoriosas preservam o estado volátil.
     if (!vindoDeTransicao) {
-        const deveLimparTotal = !isLastPhase && !temBaseNestaFase;
+        const deveLimparTotal = !isLastPhase && !temBaseNestaFase && !temCheckpoint;
         
         if (typeof resetarJogadorParaZeroMantendoSkills === 'function') {
             resetarJogadorParaZeroMantendoSkills({ 
@@ -541,9 +545,7 @@ window.proximoNivel = async function() {
 window.reiniciarJogo = async function(porMorte = true) {
     limparAnimacaoDanoJogador();
 
-    if (typeof window.limparInventarioSalvo === 'function') {
-        window.limparInventarioSalvo();
-    }
+    // A limpeza agora é gerenciada seletivamente dentro de carregarFase para suportar checkpoints e bases.
 
     const temCheckpointEquipamento = typeof window.aplicarCheckpointEquipamentoComoInventarioPadrao === 'function'
         ? !!window.aplicarCheckpointEquipamentoComoInventarioPadrao()
