@@ -243,10 +243,21 @@ window.onload = async () => {
                             
                             if (Array.isArray(lista) && !lista.includes(novoNome)) {
                                 lista.push(novoNome);
-                                await fetch('/save', {
+                                
+                                // Ordena a lista numericamente para evitar que fase11 fique antes da fase2
+                                lista.sort((a, b) => {
+                                    const numA = parseInt(a.match(/\d+/)?.[0] || 0);
+                                    const numB = parseInt(b.match(/\d+/)?.[0] || 0);
+                                    return numA - numB;
+                                });
+
+                                await fetch('/save-phase', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ arquivo: 'index.json', dados: manifesto })
+                                    body: JSON.stringify({ 
+                                        fileName: 'index.json', 
+                                        content: JSON.stringify(manifesto, null, 4) 
+                                    })
                                 });
                                 console.log(`[Editor] Manifesto atualizado com a nova fase: ${novoNome}`);
                                 if (uiEditor && uiEditor.detectarExistentes) await uiEditor.detectarExistentes();

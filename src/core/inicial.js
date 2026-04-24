@@ -508,6 +508,22 @@ window.proximoNivel = async function() {
         return;
     }
 
+    // 1. Recarrega o manifesto para garantir que a fase 11 (ou mais novas) seja detectada
+    try {
+        const respManifesto = await fetch('../../config/fases/index.json', { cache: 'no-store' });
+        if (respManifesto.ok) {
+            const manifesto = await respManifesto.json();
+            const listaRaw = manifesto.fases || manifesto;
+            const listaCampanha = listaRaw.filter(nome => !String(nome).toLowerCase().includes('treino.json'));
+            window.niveis = listaCampanha.map(nome => `../../config/fases/${nome}`);
+        }
+    } catch (e) { console.error("Erro ao atualizar lista de fases na transição:", e); }
+
+    // 2. Sincroniza o nivelAtual com o arquivo que acabamos de completar
+    // Isso evita que o jogo se perca se a lista for reordenada
+    const indiceConfirmado = obterIndiceFasePorNome(window.faseAtualNome);
+    if (indiceConfirmado >= 0) window.nivelAtual = indiceConfirmado;
+
     const proximoIndice = window.nivelAtual + 1;
 
     if (proximoIndice < window.niveis.length) {

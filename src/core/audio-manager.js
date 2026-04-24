@@ -72,7 +72,7 @@
         playSFX: function(nome, volume = 0.5) {
             const caminho = `${GENERAL_SFX_PATH}${nome}.wav`;
             const volFinal = Math.max(0, Math.min(1, volume * this.masterVolume));
-            console.log(`[AudioManager] playSFX: ${nome} | Vol: ${volFinal.toFixed(2)} | Caminho: ${caminho}`);
+            // console.log(`[AudioManager] playSFX: ${nome} | Vol: ${volFinal.toFixed(2)} | Caminho: ${caminho}`);
             
             const som = new Audio(caminho);
             som.volume = volFinal;
@@ -88,7 +88,7 @@
         createSFX: function(nome, volume = 0.5, loop = false) {
             const caminho = `${GENERAL_SFX_PATH}${nome}.wav`;
             const volFinal = Math.max(0, Math.min(1, volume * this.masterVolume));
-            console.log(`[AudioManager] createSFX (Loop): ${nome} | Vol: ${volFinal.toFixed(2)} | Loop: ${loop}`);
+            // console.log(`[AudioManager] createSFX (Loop): ${nome} | Vol: ${volFinal.toFixed(2)} | Loop: ${loop}`);
             
             const som = new Audio(caminho);
             som.volume = volFinal;
