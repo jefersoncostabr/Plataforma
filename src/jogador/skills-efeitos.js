@@ -8,6 +8,7 @@ window.aplicarEfeitosSkills = () => {
     // Define os valores base (padrão) antes de aplicar bônus
     controle.maxVida = 3;
     controle.danoProjetil = 1; // Dano base do projétil
+    controle.danoChute = 1;    // Dano base do chute
     controle.multiplicadorCooldownChute = 1;
     controle.dashHabilitado = false;
     controle.cooldownDashMax = 0;
@@ -55,6 +56,11 @@ window.aplicarEfeitosSkills = () => {
                 controle.janelaDuploToqueDash = 250;
                 break;
             
+            case skills.KNOCKOUT:
+                // Habilidade Knockout: aumenta o dano do chute em +1 (Total 2)
+                controle.danoChute += 1;
+                break;
+
             case skills.DROPAR:
                 // Espaço reservado para efeitos futuros
                 break;
@@ -65,4 +71,3 @@ window.aplicarEfeitosSkills = () => {
         }
     });
 };
-

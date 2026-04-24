@@ -172,6 +172,11 @@ window.obterKnockbackRecebidoPadrao = (ent, config, tipo) => window.obterForcaKn
 
 async function carregarFase(nomeArquivo) {
 
+    // Para todos os sons antes de iniciar a nova fase
+    if (window.AudioManager && typeof window.AudioManager.stopAllSounds === 'function') {
+        window.AudioManager.stopAllSounds();
+    }
+
     limparAnimacaoDanoJogador();
     if (typeof window.fecharTelaInteracao === 'function') {
         window.fecharTelaInteracao();

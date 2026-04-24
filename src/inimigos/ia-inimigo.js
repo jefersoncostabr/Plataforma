@@ -298,6 +298,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
         const dano = Number(config.danoEspinhoInimigo ?? config.danoEspinho ?? 1);
         inimigo.vida = (inimigo.vida || 0) + dano;
+        console.log(`[AMBIENTE] Inimigo recebeu ${dano} de dano (Espinho). Dano acumulado: ${inimigo.vida}/3`);
 
         if (typeof piscaLeve === 'function' && inimigo.elemento) {
             piscaLeve(inimigo.elemento);

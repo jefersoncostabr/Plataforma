@@ -5,6 +5,7 @@
     
     window.AudioManager = {
         _audioPasso: null,
+        _activeSounds: [], // Rastreador de sons ativos
         masterVolume: 0.5, // Volume mestre padrão
 
         init: function() {
@@ -75,6 +76,16 @@
             // console.log(`[AudioManager] playSFX: ${nome} | Vol: ${volFinal.toFixed(2)} | Caminho: ${caminho}`);
             
             const som = new Audio(caminho);
+            
+            // Adiciona ao rastreador e remove quando terminar
+            this._activeSounds.push(som);
+            som.onended = () => {
+                this._activeSounds = this._activeSounds.filter(s => s !== som);
+            };
+            som.onerror = () => {
+                this._activeSounds = this._activeSounds.filter(s => s !== som);
+            };
+
             som.volume = volFinal;
             som.play().catch(err => {
                 console.warn(`[AudioManager] Não foi possível tocar ${nome}.wav. Verifique se o arquivo existe em: ${caminho}`, err.message);
@@ -91,14 +102,29 @@
             // console.log(`[AudioManager] createSFX (Loop): ${nome} | Vol: ${volFinal.toFixed(2)} | Loop: ${loop}`);
             
             const som = new Audio(caminho);
+            this._activeSounds.push(som);
+            
             som.volume = volFinal;
             som.loop = loop;
 
             som.addEventListener('error', (e) => {
+                this._activeSounds = this._activeSounds.filter(s => s !== som);
                 console.error(`[AudioManager] Erro ao carregar arquivo de áudio: ${caminho}`, e);
             });
 
             return som;
+        },
+
+        /**
+         * Interrompe todos os sons rastreados (SFX, Loops e Passos).
+         */
+        stopAllSounds: function() {
+            this._activeSounds.forEach(som => {
+                som.pause();
+                som.currentTime = 0;
+            });
+            this._activeSounds = [];
+            this.stopPasso();
         },
 
         playPasso: function() {

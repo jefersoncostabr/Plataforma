@@ -16,7 +16,6 @@
         }
 
         function iniciarJetpack() {
-            console.log("[Jetpack] Comando iniciarJetpack recebido.");
             window.AudioManager?.playSFX('fogueteligando', 0.5);
             // Inicia o som de propulsão contínua (loop)
             if (window.AudioManager && !controle._jetpackLoop) {
@@ -34,7 +33,6 @@
         }
 
         function desligarJetpack(iniciarCooldown = false) {
-            console.log("[Jetpack] Desligando jetpack. Cooldown:", iniciarCooldown);
             // Para o som de propulsão quando o jetpack desliga
             if (controle._jetpackLoop) {
                 controle._jetpackLoop.pause();

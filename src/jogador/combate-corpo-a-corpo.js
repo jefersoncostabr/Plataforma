@@ -124,7 +124,9 @@
             inimigo.foiAtingidoNesteChute = true;
             inimigo.estaColetando = false;
             inimigo.timerColeta = 0;
-            inimigo.vida = (inimigo.vida || 0) + 1;
+            const dano = Number(controle.danoChute || 1);
+            inimigo.vida = (inimigo.vida || 0) + dano;
+            console.log(`[COMBATE] Inimigo recebeu ${dano} de dano (Chute). Dano acumulado: ${inimigo.vida}/3`);
 
             window.AudioManager?.playSFX('impacto', 0.6);
 

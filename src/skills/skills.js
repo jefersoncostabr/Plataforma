@@ -17,7 +17,8 @@ window.SKILLS = Object.freeze({
     AIRDROP: 'Airdrop',
     VENDER: 'Vender',
     SALTO: 'Salto',
-    RESGATE: 'Resgate'
+    RESGATE: 'Resgate',
+    KNOCKOUT: 'Knockout'
 });
 window.temSkill = (nomeSkill) => Array.isArray(window.playerSkills) && window.playerSkills.includes(String(nomeSkill || ''));
 const SKILLS_STORAGE_KEY = 'plataformaSkills';
@@ -451,4 +452,3 @@ function fecharMenuSkillsUI() {
     const overlay = document.getElementById('skill-tree-overlay');
     if (overlay) overlay.remove();
 }
-
