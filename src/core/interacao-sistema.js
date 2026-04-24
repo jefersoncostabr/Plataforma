@@ -352,6 +352,26 @@
         });
 
         const botaoRecolher = overlay.querySelector('[data-interaction-action="recolher-base"]');
+
+        // Insere o botão 'Crafting' dinamicamente antes do botão 'Recolher' no menu da base
+        if (id === 'craft_base' && botaoRecolher && !overlay.querySelector('[data-interaction-action="abrir-crafting"]')) {
+            const btnCrafting = document.createElement('button');
+            btnCrafting.type = 'button';
+            btnCrafting.textContent = 'Crafting';
+            btnCrafting.setAttribute('data-interaction-action', 'abrir-crafting');
+            botaoRecolher.before(btnCrafting);
+            
+            btnCrafting.addEventListener('click', () => abrirTelaInteracao('menu_crafting', contexto));
+        }
+
+        // Gerencia o botão "Voltar para Base" se ele existir no HTML carregado (ex: no menu de crafting)
+        const btnVoltar = overlay.querySelector('#btn-voltar-base');
+        if (btnVoltar) {
+            btnVoltar.addEventListener('click', () => {
+                abrirTelaInteracao('craft_base', contexto);
+            });
+        }
+
         if (botaoRecolher) {
             const atualizarBotao = () => {
                 const podeRecolher = typeof window.podeRecolherBasePorId === 'function'
@@ -417,7 +437,13 @@
         onKeyDownAtual = (event) => {
             if (event.key === 'Escape') {
                 event.preventDefault();
-                fecharTelaInteracao();
+
+                // Se estivermos no menu de crafting, o ESC volta para o menu principal da base
+                if (id === 'menu_crafting') {
+                    abrirTelaInteracao('craft_base', contexto);
+                } else {
+                    fecharTelaInteracao();
+                }
                 return;
             }
 

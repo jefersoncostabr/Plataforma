@@ -6,6 +6,8 @@
       "arquivo": "src/ui/interacoes/telas/base-craft.html",
       "sprite": "assets/craft/craft_nivel1.png",
       "titulo": "Base de Campanha"
-    }
+    },
+    { "id": "menu_crafting", "titulo": "Criação de Itens", "arquivo": "config/interacoes/crafting.html" }
+
   ]
 }
