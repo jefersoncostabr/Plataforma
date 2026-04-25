@@ -248,15 +248,20 @@
             
             // Empilhamento (Stacking): Canto superior direito, fundo verde
             const quantidade = celula?.item?.quantidade || 1;
-            const ehEmpilhavel = ['scrap'].includes(celula?.item?.tipo);
+            const ehEmpilhavel = ['scrap'].includes(celula?.item?.tipo) || celula?.item?.tipo?.endsWith('_plus');
             const badgeStack = (quantidade > 1 && ehEmpilhavel)
                 ? `<span style="position: absolute; top: 5px; right: 5px; background: #00ff00; color: #000; font-size: 10px; font-weight: bold; padding: 0 4px; border-radius: 4px; z-index: 2; box-shadow: 0 0 3px rgba(0,0,0,0.5);">${quantidade}</span>`
+                : '';
+
+            // Sinal azul de "+" para itens melhorados
+            const badgePlus = (celula?.item?.tipo?.endsWith('_plus'))
+                ? `<span style="position: absolute; top: 3px; left: 5px; color: #0088ff; font-weight: 900; font-size: 16px; text-shadow: 0 0 2px #000; z-index: 2;">+</span>`
                 : '';
 
             slotEl.style.opacity = ehPlaceholder ? '0.45' : '1';
             slotEl.style.position = 'relative'; // Garante posicionamento do badge
             slotEl.innerHTML = `
-                ${badgeStack}
+                ${badgeStack}${badgePlus}
                 ${info.sprite ? `<img src="${info.sprite}" alt="${info.titulo}" style="width: 28px; height: 28px; image-rendering: pixelated; margin-bottom: 6px;">` : ''}
                 <div style="font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #f2f2f2; text-transform: uppercase; text-align: center;">${info.titulo}</div>
                 <div style="font-size: 10px; color: ${info.cor}; margin-top: 6px; text-align: center;">${info.subtitulo}</div>
@@ -271,14 +276,19 @@
             
             // Empilhamento (Stacking): Canto superior direito, fundo verde
             const quantidade = slotData?.quantidade || 1;
-            const ehEmpilhavel = ['scrap'].includes(slotData?.tipo);
+            const ehEmpilhavel = ['scrap'].includes(slotData?.tipo) || slotData?.tipo?.endsWith('_plus');
             const badgeStack = (quantidade > 1 && ehEmpilhavel)
                 ? `<span style="position: absolute; top: 5px; right: 5px; background: #00ff00; color: #000; font-size: 10px; font-weight: bold; padding: 0 4px; border-radius: 4px; z-index: 2; box-shadow: 0 0 3px rgba(0,0,0,0.5);">${quantidade}</span>`
                 : '';
 
+            // Sinal azul de "+" para itens melhorados
+            const badgePlus = (slotData?.tipo?.endsWith('_plus'))
+                ? `<span style="position: absolute; top: 3px; left: 5px; color: #0088ff; font-weight: 900; font-size: 18px; text-shadow: 0 0 2px #000; z-index: 2;">+</span>`
+                : '';
+
             slotEl.style.position = 'relative';
             slotEl.innerHTML = `
-                ${badgeStack}
+                ${badgeStack}${badgePlus}
                 ${info.sprite ? `<img src="${info.sprite}" alt="${info.titulo}" style="width: 30px; height: 30px; image-rendering: pixelated; margin-bottom: 6px;">` : ''}
                 <div style="font-size: 12px; font-weight: bold; letter-spacing: 1px; color: #f2f2f2; text-transform: uppercase; text-align: center;">${info.titulo}</div>
                 <div style="font-size: 11px; color: ${info.cor}; margin-top: 8px; text-align: center;">${info.subtitulo}</div>

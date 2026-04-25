@@ -459,6 +459,8 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
             return true;
         }
 
+        
+
         if (typeof flashElement === 'function') {
             flashElement(elemento, 120, 4);
         }
@@ -793,15 +795,17 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         // --- LÓGICA DE COMBINAÇÕES DE ENTRADA ---
         const segurandoBaixo = acaoAtiva('baixo');
 
-        // Combinação: Dropar Item (Baixo + Pulo no chão)
+        // Combinação: Dropar Item
         if (segurandoBaixo && acaoAtiva('pulo') && controle.noChao) {
             consumirAcao('pulo'); 
             droparItemJogador();
         }
 
-
         // Atualiza a interface de visão
         atualizarHUD();
+
+        // Sistema de auto-reparo de itens Plus
+        if (typeof window.verificarAutoReparoEquipamentos === 'function') window.verificarAutoReparoEquipamentos();
 
         if (window.isPaused) {
             requestAnimationFrame(atualizar);

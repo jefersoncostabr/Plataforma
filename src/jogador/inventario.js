@@ -66,6 +66,22 @@
         const itemData = (tipo && window.itemDefinitions && window.itemDefinitions[tipo]) ? window.itemDefinitions[tipo] : null;
         const dadosOriginais = (raw?.dados && typeof raw.dados === 'object') ? raw.dados : {};
 
+        // Suporte para itens melhorados (plus) sem definição explícita no JSON
+        if (!itemData && tipo && tipo.endsWith('_plus')) {
+            const baseTipo = tipo.replace('_plus', '');
+            const baseDef = window.itemDefinitions?.[baseTipo];
+            return {
+                tipo,
+                nome: (baseDef?.nome || baseTipo) + ' +',
+                spriteColetavel: baseDef?.spriteColetavel || obterSpriteItem(baseTipo, window.config || {}) || '',
+                spriteEquipado: baseDef?.spriteEquipado || '',
+                consumivel: false,
+                usarSoSePrecisar: false,
+                quantidade: Number.isFinite(raw?.quantidade) ? Math.max(1, raw.quantidade) : 1,
+                dados: { ...dadosOriginais }
+            };
+        }
+
         return {
             tipo,
             nome: raw?.nome || itemData?.nome || tipo || 'Item',
@@ -106,7 +122,7 @@
     }
 
     function obterRegraColete(tipo) {
-        return window.coleteConfig?.itens?.[tipo] || COLETE_CONFIG_PADRAO.itens?.[tipo] || null;
+        return window.coleteConfig?.itens?.[tipo] || COLETE_CONFIG_PADRAO.itens?.[tipo] || (tipo?.endsWith('_plus') ? { permitidoNoColete: true } : null);
     }
 
     function itemPodeIrParaColete(tipo) {
@@ -710,11 +726,11 @@
             if (!controle.temColete) return false;
             if (!itemPodeIrParaColete(item?.tipo)) return false;
 
-            // Tenta empilhar se for scrap (Limite 5)
-            if (item?.tipo === 'scrap') {
+            // Tenta empilhar se for scrap ou item plus (Limite 5)
+            if (item?.tipo === 'scrap' || item?.tipo?.endsWith('_plus')) {
                 for (let i = 0; i < (controle.coleteSlots || []).length; i++) {
                     const slot = normalizarEntradaArmazenada(controle.coleteSlots[i]);
-                    if (slot && slot.tipo === 'scrap' && slot.quantidade < 5) {
+                    if (slot && slot.tipo === item.tipo && slot.quantidade < 5) {
                         slot.quantidade++;
                         controle.coleteSlots[i] = slot;
                         salvarInventario();
@@ -731,6 +747,116 @@
             salvarInventario();
             atualizarMochilaUI();
             return true;
+        }
+
+        /**
+         * Sistema de reparo automático: Consome versões "+" dos itens para restaurar
+         * equipamentos que ficaram vermelhos (quebrados) instantaneamente.
+         */
+        function verificarAutoReparoEquipamentos() {
+            const alvos = [
+                { tipo: 'bota', quebrado: !!controle.botaVermelha },
+                { tipo: 'escudo', quebrado: !!controle.escudoVermelho },
+                { tipo: 'garra', quebrado: !!controle.garraVermelha }
+            ];
+
+            alvos.forEach(alvo => {
+                if (alvo.quebrado) {
+                    const tipoPlus = alvo.tipo + '_plus';
+                    let consumiu = false;
+
+                    // 1. Procura no Cinto primeiro
+                    const slotC = normalizarEntradaArmazenada(controle.cintoSlot);
+                    if (slotC && slotC.tipo === tipoPlus && slotC.quantidade > 0) {
+                        slotC.quantidade--;
+                        controle.cintoSlot = slotC.quantidade > 0 ? slotC : null;
+                        consumiu = true;
+                    }
+
+                    // 2. Procura nos slots do Colete se não achou no cinto
+                    if (!consumiu && Array.isArray(controle.coleteSlots)) {
+                        for (let i = 0; i < (controle.coleteSlots || []).length; i++) {
+                            const slot = normalizarEntradaArmazenada(controle.coleteSlots[i]);
+                            if (slot && slot.tipo === tipoPlus && slot.quantidade > 0) {
+                                slot.quantidade--;
+                                controle.coleteSlots[i] = slot.quantidade > 0 ? slot : null;
+                                consumiu = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (consumiu) {
+                        // Executa a restauração baseada no tipo para limpar o estado "vermelho"
+                        if (alvo.tipo === 'bota') { 
+                            controle.botaUsosDash = 0; controle.botaVermelha = false; if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
+                        } else if (alvo.tipo === 'escudo') { 
+                            controle.escudoProtegido = 0; controle.escudoVermelho = false; if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
+                        } else if (alvo.tipo === 'garra') { 
+                            controle.garraImpactosSolidos = 0; controle.garraVermelha = false; if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
+                        }
+
+                        window.AudioManager?.playSFX('recarga', 0.8);
+                        salvarInventario();
+                        if (typeof window.atualizarMochilaUI === 'function') window.atualizarMochilaUI(controle);
+                    }
+                }
+            });
+        }
+
+        /**
+         * Sistema de reparo automático: Consome versões "+" dos itens para restaurar
+         * equipamentos que ficaram vermelhos (quebrados) instantaneamente.
+         */
+        function verificarAutoReparoEquipamentos() {
+            const alvos = [
+                { tipo: 'bota', quebrado: !!controle.botaVermelha },
+                { tipo: 'escudo', quebrado: !!controle.escudoVermelho },
+                { tipo: 'garra', quebrado: !!controle.garraVermelha }
+            ];
+
+            alvos.forEach(alvo => {
+                if (alvo.quebrado) {
+                    const tipoPlus = alvo.tipo + '_plus';
+                    let consumiu = false;
+
+                    // 1. Procura no Cinto primeiro
+                    const slotC = normalizarEntradaArmazenada(controle.cintoSlot);
+                    if (slotC && slotC.tipo === tipoPlus && slotC.quantidade > 0) {
+                        slotC.quantidade--;
+                        controle.cintoSlot = slotC.quantidade > 0 ? slotC : null;
+                        consumiu = true;
+                    }
+
+                    // 2. Procura nos slots do Colete se não achou no cinto
+                    if (!consumiu && Array.isArray(controle.coleteSlots)) {
+                        for (let i = 0; i < (controle.coleteSlots || []).length; i++) {
+                            const slot = normalizarEntradaArmazenada(controle.coleteSlots[i]);
+                            if (slot && slot.tipo === tipoPlus && slot.quantidade > 0) {
+                                slot.quantidade--;
+                                controle.coleteSlots[i] = slot.quantidade > 0 ? slot : null;
+                                consumiu = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (consumiu) {
+                        // Executa a restauração baseada no tipo para limpar o estado "vermelho"
+                        if (alvo.tipo === 'bota') { 
+                            controle.botaUsosDash = 0; controle.botaVermelha = false; if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
+                        } else if (alvo.tipo === 'escudo') { 
+                            controle.escudoProtegido = 0; controle.escudoVermelho = false; if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
+                        } else if (alvo.tipo === 'garra') { 
+                            controle.garraImpactosSolidos = 0; controle.garraVermelha = false; if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
+                        }
+
+                        window.AudioManager?.playSFX('recarga', 0.8);
+                        salvarInventario();
+                        if (typeof window.atualizarMochilaUI === 'function') window.atualizarMochilaUI(controle);
+                    }
+                }
+            });
         }
 
         function obterDadosExtrasDoItemAtivo(tipo) {
@@ -896,9 +1022,9 @@
             if (!item?.tipo) return false;
             if (!itemPodeIrParaColete(item.tipo)) return false;
 
-            // Tenta empilhar no cinto se for scrap (Limite 5)
+            // Tenta empilhar no cinto se for scrap ou item plus (Limite 5)
             const slotCintoAtual = normalizarEntradaArmazenada(controle.cintoSlot);
-            if (item.tipo === 'scrap' && slotCintoAtual && slotCintoAtual.tipo === 'scrap' && slotCintoAtual.quantidade < 5) {
+            if ((item.tipo === 'scrap' || item.tipo?.endsWith('_plus')) && slotCintoAtual && slotCintoAtual.tipo === item.tipo && slotCintoAtual.quantidade < 5) {
                 slotCintoAtual.quantidade++;
                 controle.cintoSlot = slotCintoAtual;
                 salvarInventario();
@@ -929,6 +1055,61 @@
             salvarInventario();
             atualizarMochilaUI();
             return true;
+        }
+
+        /**
+         * Sistema de reparo automático: Consome versões "+" dos itens para restaurar
+         * equipamentos que ficaram vermelhos (quebrados) instantaneamente.
+         */
+        function verificarAutoReparoEquipamentos() {
+            const alvos = [
+                { tipo: 'bota', quebrado: !!controle.botaVermelha },
+                { tipo: 'escudo', quebrado: !!controle.escudoVermelho },
+                { tipo: 'garra', quebrado: !!controle.garraVermelha }
+            ];
+
+            alvos.forEach(alvo => {
+                if (alvo.quebrado) {
+                    const tipoPlus = alvo.tipo + '_plus';
+                    let consumiu = false;
+
+                    // 1. Procura no Cinto primeiro
+                    const slotC = normalizarEntradaArmazenada(controle.cintoSlot);
+                    if (slotC && slotC.tipo === tipoPlus && slotC.quantidade > 0) {
+                        slotC.quantidade--;
+                        controle.cintoSlot = slotC.quantidade > 0 ? slotC : null;
+                        consumiu = true;
+                    }
+
+                    // 2. Procura nos slots do Colete se não achou no cinto
+                    if (!consumiu && Array.isArray(controle.coleteSlots)) {
+                        for (let i = 0; i < (controle.coleteSlots || []).length; i++) {
+                            const slot = normalizarEntradaArmazenada(controle.coleteSlots[i]);
+                            if (slot && slot.tipo === tipoPlus && slot.quantidade > 0) {
+                                slot.quantidade--;
+                                controle.coleteSlots[i] = slot.quantidade > 0 ? slot : null;
+                                consumiu = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (consumiu) {
+                        // Executa a restauração baseada no tipo para limpar o estado "vermelho"
+                        if (alvo.tipo === 'bota') { 
+                            controle.botaUsosDash = 0; controle.botaVermelha = false; if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
+                        } else if (alvo.tipo === 'escudo') { 
+                            controle.escudoProtegido = 0; controle.escudoVermelho = false; if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
+                        } else if (alvo.tipo === 'garra') { 
+                            controle.garraImpactosSolidos = 0; controle.garraVermelha = false; if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
+                        }
+
+                        window.AudioManager?.playSFX('recarga', 0.8);
+                        salvarInventario();
+                        if (typeof window.atualizarMochilaUI === 'function') window.atualizarMochilaUI(controle);
+                    }
+                }
+            });
         }
 
         function droparItemDoCinto() {
@@ -1336,6 +1517,7 @@
             return resultado;
         };
         window.tentarColetarItemJogador = tentarColetarItemJogador;
+        window.verificarAutoReparoEquipamentos = verificarAutoReparoEquipamentos;
         window.removerItemDoCorpoSemDropar = removerItemDoCorpoSemDropar;
         window.usarOuDroparItemColete = usarOuDroparItemDoColete;
         window.droparItemColete = droparItemDoColete;

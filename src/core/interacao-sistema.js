@@ -336,52 +336,15 @@
         atualizarDisponibilidadeBotoesModo(overlay, Number(contexto?.nivel || 0));
         atualizarResumoEquipamentoSalvo(overlay);
 
-        // Lógica para popular o inventário no menu de Crafting
         if (id === 'menu_crafting') {
             const inventarioContainer = overlay.querySelector('.player-inventory-for-crafting');
             if (inventarioContainer) {
-                inventarioContainer.innerHTML = ''; // Remove a mensagem de "Seus itens aparecerão aqui"
-
                 const controle = window.playerControle;
                 if (controle) {
-                    const itensParaMostrar = [];
+                    const slot1 = overlay.querySelector('#craft-slot-1');
+                    const slot2 = overlay.querySelector('#craft-slot-2');
 
-                    // 1. Busca o item que está no slot do Cinto
-                    const slotCinto = typeof window.obterSlotCinto === 'function' ? window.obterSlotCinto() : controle.cintoSlot;
-                    if (slotCinto) itensParaMostrar.push(slotCinto);
-
-                    // 2. Busca os itens que estão nos slots do Colete
-                    const slotsColete = typeof window.obterSlotsColete === 'function' ? window.obterSlotsColete() : (controle.coleteSlots || []);
-                    slotsColete.forEach(slot => {
-                        if (slot) itensParaMostrar.push(slot);
-                    });
-
-                    // 3. Fallback: Se houver 'scrap' no inventário lógico mas não nos slots, adiciona para garantir visibilidade
-                    if (Array.isArray(controle.inventario) && controle.inventario.includes('scrap')) {
-                        const jaEstaNaLista = itensParaMostrar.some(it => it.tipo === 'scrap');
-                        if (!jaEstaNaLista) {
-                            itensParaMostrar.push({
-                                tipo: 'scrap',
-                                nome: 'Sucata (Scrap)',
-                                spriteColetavel: window.obterSpriteItem('scrap', window.config)
-                            });
-                        }
-                    }
-
-                    // Adiciona a Experiência (XP) como um item visual empilhável
-                    const xpTotal = Number(window.playerXP || 0);
-                    itensParaMostrar.unshift({
-                        tipo: 'xp_display',
-                        nome: 'Experiência (XP)',
-                        quantidade: xpTotal,
-                        isXP: true
-                    });
-
-                    if (itensParaMostrar.length === 0) {
-                        inventarioContainer.innerHTML = '<p style="color: #666; text-align: center; width: 100%; font-size: 11px;">Sua mochila está vazia.</p>';
-                    } else {
-                        const slot1 = overlay.querySelector('#craft-slot-1');
-                        const slot2 = overlay.querySelector('#craft-slot-2');
+                    if (slot1 && slot2) {
 
                         const atualizarResultadoCrafting = () => {
                             // Tenta encontrar o slot de resultado de várias formas
@@ -408,7 +371,14 @@
                             const temXP = s1EhXP || s2EhXP;
                             const temItem = s1EhItem || s2EhItem;
 
-                            if (temItem && temXP) {
+                            // Receita 2: (Item não restrito) + (Scrap) -> Item Plus
+                            const restritoPlus = ['cinto', 'colete', 'revolver', 'scrap'];
+                            const itemElegivelPlus = (s1EhItem && !s1EhXP && !restritoPlus.includes(s1.itemTipo)) ? s1 : 
+                                                    ((s2EhItem && !s2EhXP && !restritoPlus.includes(s2.itemTipo)) ? s2 : null);
+                            const temScrapParaPlus = (s1EhItem && s1.itemTipo === 'scrap') || (s2EhItem && s2.itemTipo === 'scrap');
+                            const podeCraftarPlus = !!(itemElegivelPlus && temScrapParaPlus);
+
+                            if (temItem && temXP && !podeCraftarPlus) {
                                 rSlot.innerHTML = '';
                                 const scrapSprite = typeof window.obterSpriteItem === 'function' ? window.obterSpriteItem('scrap', window.config) : '';
                                 const img = document.createElement('img');
@@ -424,10 +394,37 @@
 
                                 rSlot.style.cursor = 'pointer';
                                 rSlot.dataset.podeCraftar = "true";
+                                rSlot.dataset.tipoResultado = 'scrap';
+                            } else if (podeCraftarPlus) {
+                                rSlot.innerHTML = '';
+                                const baseTipo = itemElegivelPlus.itemTipo;
+                                const sprite = typeof window.obterSpriteItem === 'function' ? window.obterSpriteItem(baseTipo, window.config) : '';
+                                
+                                const img = document.createElement('img');
+                                img.src = sprite;
+                                img.style.width = '32px'; img.style.height = '32px';
+                                img.style.imageRendering = 'pixelated';
+                                rSlot.appendChild(img);
+
+                                // Sinal azul de "+" no canto superior esquerdo
+                                const plusSign = document.createElement('span');
+                                plusSign.textContent = '+';
+                                plusSign.style.cssText = 'position: absolute; top: -2px; left: 2px; color: #0088ff; font-weight: 900; font-size: 16px; text-shadow: 0 0 2px #000; pointer-events: none;';
+                                rSlot.appendChild(plusSign);
+
+                                const badge = document.createElement('span');
+                                badge.textContent = 'CRAFTAR';
+                                badge.style.cssText = 'position: absolute; bottom: -12px; font-size: 8px; color: #0f0; font-weight: bold; text-transform: uppercase; white-space: nowrap;';
+                                rSlot.appendChild(badge);
+
+                                rSlot.style.cursor = 'pointer';
+                                rSlot.dataset.podeCraftar = "true";
+                                rSlot.dataset.tipoResultado = baseTipo + '_plus';
                             } else {
                                 rSlot.innerHTML = '?';
                                 rSlot.style.cursor = 'default';
                                 delete rSlot.dataset.podeCraftar;
+                                delete rSlot.dataset.tipoResultado;
                             }
                         };
 
@@ -482,9 +479,17 @@
                                         img.style.pointerEvents = 'none';
                                         itemQuadrado.appendChild(img);
                                     }
+                                    
+                                    // Adiciona o sinal azul de "+" se for item melhorado
+                                    if (item.tipo && item.tipo.endsWith('_plus')) {
+                                        const plusLabel = document.createElement('span');
+                                        plusLabel.textContent = '+';
+                                        plusLabel.style.cssText = 'position: absolute; top: -1px; left: 2px; color: #0088ff; font-weight: 900; font-size: 14px; text-shadow: 0 0 2px #000; pointer-events: none;';
+                                        itemQuadrado.appendChild(plusLabel);
+                                    }
 
                                     let badgeEl = null;
-                                    const ehEmpilhavel = ['scrap'].includes(item.tipo) || item.isXP;
+                                    const ehEmpilhavel = ['scrap'].includes(item.tipo) || item.isXP || (item.tipo && item.tipo.endsWith('_plus'));
                                     if (ehEmpilhavel && item.quantidade > 0) {
                                         badgeEl = document.createElement('span');
                                         badgeEl.style.cssText = `position: absolute; top: 2px; right: 2px; background: ${item.isXP ? '#8e24aa' : '#00ff00'}; color: ${item.isXP ? '#fff' : '#000'}; font-size: 10px; font-weight: bold; padding: 0 4px; border-radius: 4px; pointer-events: none; line-height: 1.2;`;
@@ -504,7 +509,7 @@
                             const alvo = !slot1.dataset.ocupado ? slot1 : (!slot2.dataset.ocupado ? slot2 : null);
                             if (!alvo) return;
 
-                            const ehEmpilhavel = ['scrap'].includes(itemData.tipo) || itemData.isXP;
+                            const ehEmpilhavel = ['scrap'].includes(itemData.tipo) || itemData.isXP || (itemData.tipo && itemData.tipo.endsWith('_plus'));
                             if (ehEmpilhavel) {
                                 if (itemData.quantidade <= 0) return;
                                 itemData.quantidade--;
@@ -569,9 +574,10 @@
                                 // Verifica se as funções necessárias existem para evitar crash
                                 const ganharXP = typeof window.ganharXP === 'function';
                                 const removerItem = typeof window.removerItemDoCorpoSemDropar === 'function';
+                                const tipoResultado = rBtn.dataset.tipoResultado;
 
                                 // 1. Consumir XP real
-                                if (ganharXP) {
+                                if (ganharXP && tipoResultado === 'scrap') {
                                     window.ganharXP(-1);
                                 }
 
@@ -579,7 +585,7 @@
                                 [slot1, slot2].forEach(s => {
                                     const item = s._itemRef;
                                    if (item && !item.isXP) {
-                                        const ehEmpilhavel = ['scrap'].includes(item.tipo);
+                                        const ehEmpilhavel = ['scrap'].includes(item.tipo) || (item.tipo && item.tipo.endsWith('_plus'));
                                         const c = window.playerControle;
 
                                         // Se for equipamento (não empilhável) ou se o stack acabou (quantidade 0)
@@ -597,33 +603,31 @@
                                                     if (idxInv !== -1) c.inventario.splice(idxInv, 1);
                                                 }
                                             }
-                                            // 3. Remove os flags de uso do corpo (temBota, temArma, etc)
-                                            if (!ehEmpilhavel && removerItem) {
-                                                window.removerItemDoCorpoSemDropar(item.tipo);
-                                            }
                                         }
-                                    }
+                                        
+                                    
+                                }
                                 });
 
                                 // Salva as alterações no inventário imediatamente para persistência
                                 if (typeof window.salvarInventario === 'function') {
                                     window.salvarInventario();
                                 }
-                                // 3. Entregar o resultado (Scrap)
+                                // 3. Entregar o resultado
                                 const coletado = typeof window.tentarColetarItemJogador === 'function' 
-                                    ? window.tentarColetarItemJogador({ tipo: 'scrap' }) 
+                                    ? window.tentarColetarItemJogador({ tipo: tipoResultado }) 
                                     : false;
 
                                 if (!coletado) {
                                     // Dropa no chão se o inventário estiver cheio
                                     if (window.playerControle && typeof window.obterSpriteItem === 'function') {
                                         const imgItem = document.createElement('img');
-                                        imgItem.src = window.obterSpriteItem('scrap', window.config);
+                                        imgItem.src = window.obterSpriteItem(tipoResultado.replace('_plus', ''), window.config);
                                         imgItem.style.cssText = 'position: absolute; width: 32px; height: 32px; image-rendering: pixelated;';
                                         if (window.LAYERS?.ITENS) window.adicionarAoLayer(imgItem, window.LAYERS.ITENS);
                                         
                                         window.itensColetaveis.push({
-                                            tipo: 'scrap',
+                                            tipo: tipoResultado,
                                             x: window.playerControle.x,
                                             y: window.playerControle.y,
                                             elemento: imgItem,
@@ -858,13 +862,14 @@
             consumirAcao = () => {}
         } = opcoes;
 
-        if (!controle || !acaoAtiva('interagir')) return false;
+        if (!controle) return false;
+        if (!acaoAtiva('interagir')) return false;
+
         if (window.isPaused || window.isMenuOpen || window.isSkillMenuOpen || window.isMochilaMenuOpen || window.isInteractionMenuOpen) {
             return false;
         }
-        if (controle.estaAgachado) {
-            return false;
-        }
+        
+        if (controle.estaAgachado) return false;
 
         const craft = obterCraftSobJogador(controle);
         if (!craft) return false;
