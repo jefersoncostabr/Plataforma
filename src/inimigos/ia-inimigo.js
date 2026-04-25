@@ -177,10 +177,27 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
     function inimigoColetarItemGarra(inimigo, item) {
         if (!item || !item.tipo) return;
 
-        // Novo sistema: se itemDefinitions existir e tiver o item, usa o novo fluxo
+        const tipo = item.tipo;
+
+        // 1. Atualiza estado lógico (Flags fundamentais para comportamento e visual)
+        if (tipo === 'revolver') {
+            inimigo.temArma = true;
+            inimigo.municao = config.maxMunicao || 5;
+        } else if (tipo === 'escudo') {
+            inimigo.temEscudo = true;
+            inimigo.escudoVermelho = false;
+            inimigo.escudoProtegido = 0;
+        } else if (tipo === 'bota') {
+            inimigo.temBota = true;
+            inimigo.botaVermelha = false;
+        } else if (tipo === 'jetpack') inimigo.temJetpack = true;
+        else if (tipo === 'garra') inimigo.temGarra = true;
+        else if (tipo === 'cinto') inimigo.temCinto = true;
+        else if (tipo === 'colete') inimigo.temColete = true;
+
+        // 2. Aplica efeitos do itemDefinitions se disponível
         if (window.itemDefinitions && window.itemDefinitions[item.tipo]) {
             const itemData = window.itemDefinitions[item.tipo];
-            // Aplica efeitos do item ao inimigo
             if (window.aplicarEfeitoColeta && typeof window.aplicarEfeitoColeta === 'function') {
                 window.aplicarEfeitoColeta(inimigo, itemData);
             } else if (itemData.efeitos && itemData.efeitos.inimigo) {
@@ -189,7 +206,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 }
             }
 
-            if (item.tipo === 'restauracao') {
+            if (tipo === 'restauracao') {
                 window.aplicarRestauracaoPadrao?.(inimigo, config, {
                     atualizarVisualEscudo: () => {
                         if (inimigo.escudoElemento) {
@@ -198,22 +215,18 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     }
                 });
             }
-            // Exibe visual se aplicável
-            if (item.tipo === 'revolver' && inimigo.armaElemento) inimigo.armaElemento.style.display = 'block';
-            else if (item.tipo === 'escudo' && inimigo.escudoElemento) inimigo.escudoElemento.style.display = 'block';
-            else if (item.tipo === 'bota' && inimigo.botaElemento) inimigo.botaElemento.style.display = 'block';
-            else if (item.tipo === 'jetpack' && inimigo.jetpackElemento) inimigo.jetpackElemento.style.display = 'block';
-            else if (item.tipo === 'garra' && inimigo.garraElemento) inimigo.garraElemento.style.display = 'block';
-            else if (item.tipo === 'cinto' && inimigo.cintoElemento) inimigo.cintoElemento.style.display = 'block';
-            // Adiciona ao inventário se não for consumível
-            if (item.tipo !== 'airdrop' && item.tipo !== 'restauracao' && !inimigo.inventario.includes(item.tipo)) {
-                inimigo.inventario.push(item.tipo);
-            }
-            if (item.elemento && typeof item.elemento.remove === 'function') item.elemento.remove();
-            return;
         }
-        // Fallback: sistema antigo
-        // ...fallback já presente acima, bloco duplicado removido...
+
+        // 3. Atualiza o visual via helper centralizado (Sincroniza flags com o DOM)
+        if (typeof window.inicializarVisualEquipamentoEntidade === 'function') {
+            window.inicializarVisualEquipamentoEntidade(inimigo, inimigo.elemento.parentElement, config);
+        }
+
+        // 4. Registra no inventário e limpa o item físico
+        if (tipo !== 'airdrop' && tipo !== 'restauracao' && !inimigo.inventario.includes(tipo)) {
+            inimigo.inventario.push(tipo);
+        }
+        if (item.elemento && typeof item.elemento.remove === 'function') item.elemento.remove();
     }
 
     function limparVisuaisInimigo(inimigo) {
