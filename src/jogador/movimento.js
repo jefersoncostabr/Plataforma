@@ -171,6 +171,7 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         timerPuloDuplo: 0,
         doubleJumpUsedInAir: false, // Nova flag para controlar o cooldown do pulo duplo
         cooldownPuloDuplo: 0, // Cooldown para o pulo duplo
+        superPuloFramesRestantes: 0, // Contador para o rastro do pulo duplo (subida)
         minVelocidadePousoSom: -6, // Velocidade mínima de queda (negativa) para tocar o som
         cooldownPosSuperDescida: 0, // Cooldown de 1s após a Super Descida
         superDescidaAtiva: false, // Rastreador de uso da Super Descida
@@ -220,6 +221,7 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         airdropUsadoNoNivel: false,
         estaAgachado: false,
         debugVelocidadeAtivo: false,
+        visualFrameCounter: 0, // Contador para sincronizar frequência de efeitos
         ultimoLogVelocidadeMs: 0, 
         velocidadeHorizontalAtual: 0, // Nova propriedade para a desaceleração gradual
         velocidadeXAtual: 0,
@@ -910,6 +912,12 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         if ((controle.dashFramesRestantes || 0) > 0) {
             const direcaoDashSkill = controle.dashDirecao === 'd' ? 1 : -1;
             controle.x += (controle.velocidadeDashSkill || 0) * direcaoDashSkill;
+
+            // Aplica o efeito de sombra a cada 2 frames do dash para rastro de velocidade
+            if (typeof window.criarSombraDash === 'function' && controle.dashFramesRestantes % 1 === 0) {
+                window.criarSombraDash(elemento);
+            }
+
             if (!controle.chutando) controle.direcao = controle.dashDirecao;
             controle.movendoHorizontal = true;
             controle.dashFramesRestantes--;
@@ -1119,8 +1127,20 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
             controle.velocidadeY = forcaPuloFinal * 1.25;
             window.AudioManager?.playSFX('pulo', 0.5);
             window.AudioManager?.playSFX('dash', 0.5);
+            
+            // Ativa rastro de sombras na subida (Super Pulo) por 10 frames
+            controle.superPuloFramesRestantes = 10;
+
             controle.pulosRealizados = 2; // Consome o segundo salto até tocar o chão novamente
             controle.doubleJumpUsedInAir = true; // Marca que o pulo duplo foi usado no ar
+        }
+
+        // Processa o rastro de sombras do Super Pulo (Subida)
+        if ((controle.superPuloFramesRestantes || 0) > 0) {
+            if (typeof window.criarSombraDash === 'function' && controle.visualFrameCounter % 2 === 0) {
+                window.criarSombraDash(elemento);
+            }
+            controle.superPuloFramesRestantes--;
         }
 
         atualizarJetpack({
@@ -1132,6 +1152,12 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         // Mecânica de Super Descida e Paraquedas
         if (!controle.noChao && controle.velocidadeY < 0 && acaoAtiva('pulo') && !controle.usandoParaquedas && controle.pulosRealizados === 2) {
             controle.velocidadeY = -20; 
+            
+            // Rastro contínuo durante a Super Descida (a cada 2 frames)
+            if (typeof window.criarSombraDash === 'function' && controle.visualFrameCounter % 2 === 0) {
+                window.criarSombraDash(elemento);
+            }
+
             if (!controle.superDescidaAtiva) {
                 window.AudioManager?.playSFX('dash', 0.5);
                 const jaEraPesado = !!controle.pesado;

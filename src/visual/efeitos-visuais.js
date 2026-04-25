@@ -229,4 +229,44 @@ function flashComVibacao(elemento) {
     }
 }
 
+/**
+ * Cria uma sombra temporária (rastro) para um elemento.
+ * Usado principalmente para efeitos de dash/velocidade.
+ * 
+ * @param {HTMLElement} elementoOriginal - O elemento base para clonar visualmente.
+ */
+window.criarSombraDash = function(elementoOriginal) {
+    if (!elementoOriginal || !elementoOriginal.parentElement) return;
 
+    const sombra = document.createElement('img');
+    
+    // Copia atributos visuais essenciais do frame atual
+    sombra.src = elementoOriginal.src;
+    sombra.style.position = 'absolute';
+    sombra.style.width = elementoOriginal.style.width || '32px';
+    sombra.style.height = elementoOriginal.style.height || '32px';
+    sombra.style.left = elementoOriginal.style.left;
+    sombra.style.bottom = elementoOriginal.style.bottom;
+    sombra.style.transform = elementoOriginal.style.transform;
+    sombra.style.imageRendering = 'pixelated';
+    sombra.style.pointerEvents = 'none';
+    
+    // Estética da sombra: semi-transparente e com um filtro de brilho
+    sombra.style.zIndex = (parseInt(elementoOriginal.style.zIndex) || 5) - 1;
+    sombra.style.opacity = '0.5';
+    sombra.style.filter = 'brightness(1.5) saturate(0.5)';
+
+    elementoOriginal.parentElement.appendChild(sombra);
+
+    // Animação de fade-out e remoção automática
+    let opacidade = 0.5;
+    const animacao = setInterval(() => {
+        opacidade -= 0.05;
+        if (opacidade <= 0) {
+            clearInterval(animacao);
+            sombra.remove();
+        } else {
+            sombra.style.opacity = opacidade;
+        }
+    }, 30);
+};
