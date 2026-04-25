@@ -1374,7 +1374,6 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
                             if (!bloqueouEscudoInimigo) {
                                 const danoTomado = (controle.danoProjetil || 1);
                                 inimigo.vida = (inimigo.vida || 0) + danoTomado;
-                                console.log(`[COMBATE] Inimigo recebeu ${danoTomado} de dano (Projétil). Dano acumulado: ${inimigo.vida}/3`);
                                 if (inimigo.vida < 3) animarDanoAlvo(inimigo);
                                 // Inimigo tipo 5 é Feno (alvo de treino) - você verá dano no comportamento
                             }

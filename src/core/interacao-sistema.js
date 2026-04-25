@@ -383,6 +383,123 @@
                         const slot1 = overlay.querySelector('#craft-slot-1');
                         const slot2 = overlay.querySelector('#craft-slot-2');
 
+                        const atualizarResultadoCrafting = () => {
+                            // Tenta encontrar o slot de resultado de várias formas
+                            const rSlot = overlay.querySelector('#craft-result') || 
+                                         overlay.querySelector('#craft-result-slot') || 
+                                         overlay.querySelector('.craft-result') || 
+                                         overlay.querySelector('[data-interaction-field="resultado"]');
+                            
+                            if (!slot1 || !slot2 || !rSlot) {
+                                return;
+                            }
+                            
+                            const s1 = slot1.dataset;
+                            const s2 = slot2.dataset;
+                            const slot1Ocupado = s1.ocupado === "true";
+                            const slot2Ocupado = s2.ocupado === "true";
+
+                            // Normalização da comparação para evitar problemas de tipo
+                            const s1EhXP = slot1Ocupado && String(s1.isXP) === "true";
+                            const s2EhXP = slot2Ocupado && String(s2.isXP) === "true";
+                            const s1EhItem = slot1Ocupado && String(s1.isXP) !== "true";
+                            const s2EhItem = slot2Ocupado && String(s2.isXP) !== "true";
+
+                            const temXP = s1EhXP || s2EhXP;
+                            const temItem = s1EhItem || s2EhItem;
+
+                            if (temItem && temXP) {
+                                rSlot.innerHTML = '';
+                                const scrapSprite = typeof window.obterSpriteItem === 'function' ? window.obterSpriteItem('scrap', window.config) : '';
+                                const img = document.createElement('img');
+                                img.src = scrapSprite;
+                                img.style.width = '32px'; img.style.height = '32px';
+                                img.style.imageRendering = 'pixelated';
+                                rSlot.appendChild(img);
+                                
+                                const badge = document.createElement('span');
+                                badge.textContent = 'CRAFTAR';
+                                badge.style.cssText = 'position: absolute; bottom: -12px; font-size: 8px; color: #0f0; font-weight: bold; text-transform: uppercase; white-space: nowrap;';
+                                rSlot.appendChild(badge);
+
+                                rSlot.style.cursor = 'pointer';
+                                rSlot.dataset.podeCraftar = "true";
+                            } else {
+                                rSlot.innerHTML = '?';
+                                rSlot.style.cursor = 'default';
+                                delete rSlot.dataset.podeCraftar;
+                            }
+                        };
+
+                        const renderizarListaInventario = () => {
+                            inventarioContainer.innerHTML = '';
+                            const itensParaMostrar = [];
+
+                            // 1. Coleta itens do cinto e colete
+                            const slotCinto = typeof window.obterSlotCinto === 'function' ? window.obterSlotCinto() : controle.cintoSlot;
+                            if (slotCinto) itensParaMostrar.push(slotCinto);
+
+                            const slotsColete = typeof window.obterSlotsColete === 'function' ? window.obterSlotsColete() : (controle.coleteSlots || []);
+                            slotsColete.forEach(slot => { if (slot) itensParaMostrar.push(slot); });
+
+                            // 2. Garante que o Scrap apareça se estiver no inventário lógico
+                            if (Array.isArray(controle.inventario) && controle.inventario.includes('scrap')) {
+                                if (!itensParaMostrar.some(it => it.tipo === 'scrap')) {
+                                    itensParaMostrar.push({
+                                        tipo: 'scrap',
+                                        nome: 'Sucata (Scrap)',
+                                        spriteColetavel: window.obterSpriteItem('scrap', window.config)
+                                    });
+                                }
+                            }
+
+                            // 3. Adiciona o XP como o primeiro item (pilha)
+                            itensParaMostrar.unshift({
+                                tipo: 'xp_display',
+                                nome: 'Experiência (XP)',
+                                quantidade: Number(window.playerXP || 0),
+                                isXP: true
+                            });
+
+                            if (itensParaMostrar.length === 0) {
+                                inventarioContainer.innerHTML = '<p style="color: #666; text-align: center; width: 100%; font-size: 11px;">Sua mochila está vazia.</p>';
+                            } else {
+                                itensParaMostrar.forEach(item => {
+                                    const itemQuadrado = document.createElement('button');
+                                    itemQuadrado.type = 'button';
+                                    itemQuadrado.className = 'crafting-inv-item';
+                                    itemQuadrado.style.cssText = `width: 42px; height: 42px; background: #222; border: 1px solid #444; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative; padding: 0; outline: none;`;
+
+                                    if (item.isXP) {
+                                        const xpLabel = document.createElement('div');
+                                        xpLabel.textContent = 'XP';
+                                        xpLabel.style.cssText = 'font-weight: 900; color: #8e24aa; font-size: 14px; pointer-events: none;';
+                                        itemQuadrado.appendChild(xpLabel);
+                                    } else {
+                                        const img = document.createElement('img');
+                                        img.src = item.spriteColetavel || item.spriteEquipado || (typeof window.obterSpriteItem === 'function' ? window.obterSpriteItem(item.tipo, window.config) : '');
+                                        img.style.width = '32px'; img.style.height = '32px'; img.style.imageRendering = 'pixelated';
+                                        img.style.pointerEvents = 'none';
+                                        itemQuadrado.appendChild(img);
+                                    }
+
+                                    let badgeEl = null;
+                                    const ehEmpilhavel = ['scrap'].includes(item.tipo) || item.isXP;
+                                    if (ehEmpilhavel && item.quantidade > 0) {
+                                        badgeEl = document.createElement('span');
+                                        badgeEl.style.cssText = `position: absolute; top: 2px; right: 2px; background: ${item.isXP ? '#8e24aa' : '#00ff00'}; color: ${item.isXP ? '#fff' : '#000'}; font-size: 10px; font-weight: bold; padding: 0 4px; border-radius: 4px; pointer-events: none; line-height: 1.2;`;
+                                        badgeEl.textContent = item.quantidade;
+                                        itemQuadrado.appendChild(badgeEl);
+                                    }
+
+                                    inventarioContainer.appendChild(itemQuadrado);
+                                    itemQuadrado.addEventListener('click', () => {
+                                        adicionarAoSlotLivre(item, itemQuadrado, badgeEl);
+                                    });
+                                });
+                            }
+                        };
+
                         const adicionarAoSlotLivre = (itemData, btnOrigem, badgeEl) => {
                             const alvo = !slot1.dataset.ocupado ? slot1 : (!slot2.dataset.ocupado ? slot2 : null);
                             if (!alvo) return;
@@ -400,6 +517,7 @@
                                 btnOrigem.style.opacity = '0.3';
                                 btnOrigem.style.pointerEvents = 'none';
                             }
+                            alvo._itemRef = itemData; // Guarda referência para o item sendo usado
 
                             alvo.innerHTML = '';
                             alvo.dataset.ocupado = "true";
@@ -417,6 +535,8 @@
                                 imgClone.style.width = '32px'; imgClone.style.height = '32px';
                                 alvo.appendChild(imgClone);
                             }
+
+                            atualizarResultadoCrafting();
 
                             // Clique no slot para devolver o item
                             alvo.onclick = () => {
@@ -436,66 +556,98 @@
                                 btnOrigem.style.opacity = '1';
                                 btnOrigem.style.pointerEvents = 'all';
                                 alvo.onclick = null;
+                                atualizarResultadoCrafting();
                             };
                         };
 
-                        itensParaMostrar.forEach(item => {
-                            const itemQuadrado = document.createElement('button');
-                            itemQuadrado.type = 'button';
-                            itemQuadrado.className = 'crafting-inv-item';
-                            itemQuadrado.style.cssText = `
-                                width: 42px; height: 42px; background: #222; border: 1px solid #444;
-                                display: flex; align-items: center; justify-content: center;
-                                border-radius: 4px; cursor: pointer; transition: border-color 0.2s, background 0.2s;
-                                position: relative;
-                                padding: 0; outline: none;
-                            `;
+                        // Adiciona o evento de clique no resultado dinamicamente
+                        overlay.addEventListener('click', (e) => {
+                            const rBtn = e.target.closest('#craft-result, #craft-result-slot, .craft-result');
+                            if (rBtn && rBtn.dataset.podeCraftar === "true") {
+                                e.stopPropagation();
+                                
+                                // Verifica se as funções necessárias existem para evitar crash
+                                const ganharXP = typeof window.ganharXP === 'function';
+                                const removerItem = typeof window.removerItemDoCorpoSemDropar === 'function';
 
-                            // Efeitos de foco para navegação visual
-                            itemQuadrado.onfocus = () => { itemQuadrado.style.borderColor = '#0f0'; itemQuadrado.style.background = '#2a2a2a'; };
-                            itemQuadrado.onblur = () => { itemQuadrado.style.borderColor = '#444'; itemQuadrado.style.background = '#222'; };
+                                // 1. Consumir XP real
+                                if (ganharXP) {
+                                    window.ganharXP(-1);
+                                }
 
-                            if (item.isXP) {
-                                const xpLabel = document.createElement('div');
-                                xpLabel.textContent = 'XP';
-                                xpLabel.style.cssText = 'font-weight: 900; color: #8e24aa; font-size: 14px; pointer-events: none;';
-                                itemQuadrado.appendChild(xpLabel);
-                                itemQuadrado.style.cursor = 'default';
-                                itemQuadrado.title = 'Sua experiência atual';
-                            } else {
-                                const img = document.createElement('img');
-                                img.src = item.spriteColetavel || item.spriteEquipado || (typeof window.obterSpriteItem === 'function' ? window.obterSpriteItem(item.tipo, window.config) : '');
-                                img.style.width = '32px'; img.style.height = '32px'; img.style.imageRendering = 'pixelated';
-                                img.style.pointerEvents = 'none';
-                                itemQuadrado.appendChild(img);
+                                // 2. Consumir Item real da mochila/corpo
+                                [slot1, slot2].forEach(s => {
+                                    const item = s._itemRef;
+                                   if (item && !item.isXP) {
+                                        const ehEmpilhavel = ['scrap'].includes(item.tipo);
+                                        const c = window.playerControle;
+
+                                        // Se for equipamento (não empilhável) ou se o stack acabou (quantidade 0)
+                                        if (!ehEmpilhavel || (ehEmpilhavel && item.quantidade <= 0)) {
+                                            if (c) {
+                                                // 1. Remove a referência do slot físico (colete ou cinto)
+                                                if (c.cintoSlot === item) c.cintoSlot = null;
+                                                if (Array.isArray(c.coleteSlots)) {
+                                                    const idxSlot = c.coleteSlots.indexOf(item);
+                                                    if (idxSlot !== -1) c.coleteSlots[idxSlot] = null;
+                                                }
+                                                // 2. Remove do inventário lógico (lista de tipos conquistados)
+                                                if (Array.isArray(c.inventario)) {
+                                                    const idxInv = c.inventario.indexOf(item.tipo);
+                                                    if (idxInv !== -1) c.inventario.splice(idxInv, 1);
+                                                }
+                                            }
+                                            // 3. Remove os flags de uso do corpo (temBota, temArma, etc)
+                                            if (!ehEmpilhavel && removerItem) {
+                                                window.removerItemDoCorpoSemDropar(item.tipo);
+                                            }
+                                        }
+                                    }
+                                });
+
+                                // Salva as alterações no inventário imediatamente para persistência
+                                if (typeof window.salvarInventario === 'function') {
+                                    window.salvarInventario();
+                                }
+                                // 3. Entregar o resultado (Scrap)
+                                const coletado = typeof window.tentarColetarItemJogador === 'function' 
+                                    ? window.tentarColetarItemJogador({ tipo: 'scrap' }) 
+                                    : false;
+
+                                if (!coletado) {
+                                    // Dropa no chão se o inventário estiver cheio
+                                    if (window.playerControle && typeof window.obterSpriteItem === 'function') {
+                                        const imgItem = document.createElement('img');
+                                        imgItem.src = window.obterSpriteItem('scrap', window.config);
+                                        imgItem.style.cssText = 'position: absolute; width: 32px; height: 32px; image-rendering: pixelated;';
+                                        if (window.LAYERS?.ITENS) window.adicionarAoLayer(imgItem, window.LAYERS.ITENS);
+                                        
+                                        window.itensColetaveis.push({
+                                            tipo: 'scrap',
+                                            x: window.playerControle.x,
+                                            y: window.playerControle.y,
+                                            elemento: imgItem,
+                                            velocidadeY: 5
+                                        });
+                                    }
+                                }
+
+                                // 4. Finalização visual e sincronia
+                                [slot1, slot2].forEach(s => {
+                                    s.innerHTML = '?';
+                                    delete s.dataset.ocupado;
+                                    delete s.dataset.itemTipo;
+                                    delete s.dataset.isXP;
+                                    s.onclick = null;
+                                    delete s._itemRef;
+                                });
+                                atualizarResultadoCrafting();
+                                renderizarListaInventario();
+                                window.AudioManager?.playSFX('recarga', 0.8);
                             }
-
-                            // Exibe a quantidade da pilha no menu de Crafting
-                            let badgeEl = null;
-                            const ehEmpilhavel = ['scrap'].includes(item.tipo) || item.isXP;
-                            if (ehEmpilhavel && item.quantidade > 0) {
-                                badgeEl = document.createElement('span');
-                                badgeEl.style.cssText = `
-                                    position: absolute; top: 2px; right: 2px;
-                                    background: ${item.isXP ? '#8e24aa' : '#00ff00'}; color: ${item.isXP ? '#fff' : '#000'}; font-size: 10px;
-                                    font-weight: bold; padding: 0 4px; border-radius: 4px;
-                                    pointer-events: none; line-height: 1.2;
-                                `;
-                                badgeEl.textContent = item.quantidade;
-                                itemQuadrado.appendChild(badgeEl);
-                            }
-
-                            // Adiciona o item ao DOM antes de adicionar o event listener,
-                            // para que o itemQuadrado seja um elemento válido no DOM
-                            // quando o event listener for adicionado.
-                            // Isso é importante para a navegação por teclado.
-                            inventarioContainer.appendChild(itemQuadrado);
-
-                            itemQuadrado.addEventListener('click', () => {
-                                // Agora permite clicar no XP para enviar para o slot
-                                adicionarAoSlotLivre(item, itemQuadrado, badgeEl);
-                            });
                         });
+
+                        renderizarListaInventario();
                     }
                 }
             }
