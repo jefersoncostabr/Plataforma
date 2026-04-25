@@ -142,16 +142,24 @@
 
         const vistos = new Set();
         const itens = [];
-        const adicionarItem = (tipo, rotulo) => {
+        const adicionarItem = (tipo, rotulo, quantidade = 1) => {
             const chave = String(tipo || '').trim().toLowerCase();
-            if (!chave || vistos.has(chave)) return;
-            vistos.add(chave);
+            if (!chave) return;
 
+            if (vistos.has(chave)) {
+                // Se o item já foi visto (ex: scrap em vários slots), soma a quantidade no resumo
+                const existente = itens.find(it => it.tipo === chave);
+                if (existente) existente.quantidade += quantidade;
+                return;
+            }
+
+            vistos.add(chave);
             const definicao = window.itemDefinitions?.[chave] || null;
             itens.push({
                 tipo: chave,
                 rotulo: rotulo || definicao?.nome || chave,
-                sprite: definicao?.spriteColetavel || definicao?.spriteEquipado || ''
+                sprite: definicao?.spriteColetavel || definicao?.spriteEquipado || '',
+                quantidade: quantidade
             });
         };
 
@@ -165,6 +173,11 @@
 
         const inventario = Array.isArray(checkpoint.inventario) ? checkpoint.inventario : [];
         inventario.forEach((tipo) => adicionarItem(tipo));
+        
+        const slotsColete = Array.isArray(checkpoint.coleteSlots) ? checkpoint.coleteSlots : [];
+        slotsColete.forEach(s => { if (s?.tipo) adicionarItem(s.tipo, s.nome, s.quantidade || 1); });
+
+        if (checkpoint.cintoSlot?.tipo) adicionarItem(checkpoint.cintoSlot.tipo, checkpoint.cintoSlot.nome, checkpoint.cintoSlot.quantidade || 1);
 
         const salvoEm = Number(checkpoint.salvoEm || 0);
         const meta = Number.isFinite(salvoEm) && salvoEm > 0
@@ -197,6 +210,7 @@
             resumo.itens.forEach((item) => {
                 const icone = document.createElement('span');
                 icone.className = 'base-saved-icon';
+                icone.style.position = 'relative'; // Garante que as badges fiquem presas ao ícone
                 icone.title = item.rotulo || item.tipo;
                 icone.setAttribute('aria-label', item.rotulo || item.tipo);
 
@@ -205,9 +219,30 @@
                 img.src = item.sprite || '';
                 icone.appendChild(img);
 
+                // Exibe badge de quantidade para itens empilháveis (quantidade > 1)
+                const ehEmpilhavel = ['scrap'].includes(item.tipo);
+                if (item.quantidade > 1 && ehEmpilhavel) {
+                    const badge = document.createElement('span');
+                    badge.style.cssText = `
+                        position: absolute; top: 1px; right: 1px;
+                        background: #00ff00; color: #000; font-size: 9px;
+                        font-weight: bold; padding: 0 4px; border-radius: 3px;
+                        pointer-events: none; line-height: 1.2; z-index: 3;
+                        box-shadow: 0 0 2px rgba(0,0,0,0.5);
+                    `;
+                    badge.textContent = String(item.quantidade);
+                    icone.appendChild(badge);
+                }
+
                 if (item.tipo === 'revolver' && resumo.municao > 0) {
                     const badge = document.createElement('span');
-                    badge.className = 'base-saved-count';
+                    badge.style.cssText = `
+                        position: absolute; bottom: 1px; right: 1px;
+                        background: rgba(0,0,0,0.85); color: #fff; font-size: 9px;
+                        font-weight: bold; padding: 0 4px; border-radius: 3px;
+                        pointer-events: none; line-height: 1.2; 
+                        border: 1px solid rgba(255,255,255,0.2);
+                    `;
                     badge.textContent = String(resumo.municao);
                     icone.appendChild(badge);
                 }
@@ -271,6 +306,15 @@
         const overlay = document.createElement('div');
         overlay.className = 'interaction-overlay';
         overlay.innerHTML = `
+            <style>
+                .interaction-modal, .interaction-body, [data-interaction-saved-equip], .player-inventory-for-crafting {
+                    -ms-overflow-style: none !important;
+                    scrollbar-width: none !important;
+                }
+                .interaction-modal::-webkit-scrollbar, .interaction-body::-webkit-scrollbar, [data-interaction-saved-equip]::-webkit-scrollbar, .player-inventory-for-crafting::-webkit-scrollbar {
+                    display: none !important;
+                }
+            </style>
             <div class="interaction-modal" role="dialog" aria-modal="true" aria-label="${definicao.titulo || 'Interação'}">
                 <div class="interaction-header">
                     <img data-interaction-sprite alt="Interação">
@@ -377,6 +421,7 @@
                                 width: 42px; height: 42px; background: #222; border: 1px solid #444;
                                 display: flex; align-items: center; justify-content: center;
                                 border-radius: 4px; cursor: pointer; transition: border-color 0.2s, background 0.2s;
+                                position: relative;
                                 padding: 0; outline: none;
                             `;
 
@@ -390,6 +435,40 @@
                             img.style.pointerEvents = 'none';
                             
                             itemQuadrado.appendChild(img);
+
+                            // Exibe a quantidade da pilha no menu de Crafting
+                            const ehEmpilhavel = ['scrap'].includes(item.tipo);
+                            if (item.quantidade > 1 && ehEmpilhavel) {
+                                const badge = document.createElement('span');
+                                badge.style.cssText = `
+                                    position: absolute; top: 2px; right: 2px;
+                                    background: #00ff00; color: #000; font-size: 10px;
+                                    font-weight: bold; padding: 0 4px; border-radius: 4px;
+                                    pointer-events: none; line-height: 1.2;
+                                `;
+                                badge.textContent = item.quantidade;
+                                itemQuadrado.appendChild(badge);
+                            }
+
+                            // Exibe a durabilidade (usos restantes) no menu de Crafting
+                            let durVal = null;
+                            if (item.tipo === 'revolver') durVal = item.dados?.municao;
+                            else if (item.tipo === 'escudo') durVal = (window.config?.escudoTirosProtegidos || 3) - (item.dados?.escudoProtegido || 0);
+                            else if (item.tipo === 'bota') durVal = (window.config?.botaDashsAteDesgastar || 3) - (item.dados?.botaUsosDash || 0);
+                            else if (item.tipo === 'garra') durVal = (window.config?.garraImpactosAteDanificar || 3) - (item.dados?.garraImpactosSolidos || 0);
+
+                            if (durVal !== null && durVal !== undefined) {
+                                const badgeDur = document.createElement('span');
+                                badgeDur.style.cssText = `
+                                    position: absolute; bottom: 2px; right: 2px;
+                                    background: rgba(0,0,0,0.6); color: #fff; font-size: 10px;
+                                    font-weight: bold; padding: 0 4px; border-radius: 4px;
+                                    pointer-events: none; line-height: 1.2;
+                                `;
+                                badgeDur.textContent = durVal;
+                                itemQuadrado.appendChild(badgeDur);
+                            }
+
                             // Adiciona o item ao DOM antes de adicionar o event listener,
                             // para que o itemQuadrado seja um elemento válido no DOM
                             // quando o event listener for adicionado.

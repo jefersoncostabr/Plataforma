@@ -77,6 +77,7 @@
             usarSoSePrecisar: raw?.usarSoSePrecisar != null
                 ? !!raw.usarSoSePrecisar
                 : !!(regra.usarSoSePrecisar || tipo === 'restauracao' || tipo === 'base_portatil'),
+            quantidade: Number.isFinite(raw?.quantidade) ? Math.max(1, raw.quantidade) : 1,
             dados: {
                 ...dadosOriginais,
                 municao: Number.isFinite(Number(raw?.municao ?? dadosOriginais?.municao)) ? Number(raw?.municao ?? dadosOriginais?.municao) : undefined,
@@ -123,6 +124,7 @@
             spriteEquipado: itemData?.spriteEquipado || item?.spriteEquipado || '',
             consumivel: !!(itemData?.consumivel || regra.consumivel),
             usarSoSePrecisar: !!regra.usarSoSePrecisar,
+            quantidade: Number.isFinite(item?.quantidade) ? Math.max(1, item.quantidade) : 1,
             dados: {
                 ...dadosOriginais,
                 municao: Number.isFinite(Number(item?.municao ?? dadosOriginais?.municao)) ? Number(item?.municao ?? dadosOriginais?.municao) : undefined,
@@ -708,6 +710,20 @@
             if (!controle.temColete) return false;
             if (!itemPodeIrParaColete(item?.tipo)) return false;
 
+            // Tenta empilhar se for scrap (Limite 5)
+            if (item?.tipo === 'scrap') {
+                for (let i = 0; i < (controle.coleteSlots || []).length; i++) {
+                    const slot = normalizarEntradaArmazenada(controle.coleteSlots[i]);
+                    if (slot && slot.tipo === 'scrap' && slot.quantidade < 5) {
+                        slot.quantidade++;
+                        controle.coleteSlots[i] = slot;
+                        salvarInventario();
+                        if (typeof window.atualizarMochilaUI === 'function') window.atualizarMochilaUI(controle);
+                        return true;
+                    }
+                }
+            }
+
             const indiceLivre = encontrarSlotLivreColete();
             if (indiceLivre < 0) return false;
 
@@ -759,6 +775,39 @@
                 controle.municao = 0;
                 if (armaElemento) armaElemento.style.display = 'none';
                 return true;
+            }
+            // Lógica para materiais empilháveis (ex: scrap)
+            if (tipo === 'scrap') {
+                // Tenta remover 1 unidade do colete
+                if (Array.isArray(controle.coleteSlots)) {
+                    for (let i = controle.coleteSlots.length - 1; i >= 0; i--) {
+                        const slot = normalizarEntradaArmazenada(controle.coleteSlots[i]);
+                        if (slot && slot.tipo === 'scrap') {
+                            if (slot.quantidade > 1) {
+                                slot.quantidade--;
+                                controle.coleteSlots[i] = slot;
+                            } else {
+                                controle.coleteSlots[i] = null;
+                            }
+                            salvarInventario();
+                            if (typeof window.atualizarMochilaUI === 'function') window.atualizarMochilaUI(controle);
+                            return true;
+                        }
+                    }
+                }
+                // Tenta remover do cinto
+                const slotC = normalizarEntradaArmazenada(controle.cintoSlot);
+                if (slotC && slotC.tipo === 'scrap') {
+                    if (slotC.quantidade > 1) {
+                        slotC.quantidade--;
+                        controle.cintoSlot = slotC;
+                    } else {
+                        controle.cintoSlot = null;
+                    }
+                    salvarInventario();
+                    if (typeof window.atualizarMochilaUI === 'function') window.atualizarMochilaUI(controle);
+                    return true;
+                }
             }
             if (tipo === 'escudo') {
                 controle.temEscudo = false;
@@ -846,6 +895,16 @@
             if (!controle.temCinto) return false;
             if (!item?.tipo) return false;
             if (!itemPodeIrParaColete(item.tipo)) return false;
+
+            // Tenta empilhar no cinto se for scrap (Limite 5)
+            const slotCintoAtual = normalizarEntradaArmazenada(controle.cintoSlot);
+            if (item.tipo === 'scrap' && slotCintoAtual && slotCintoAtual.tipo === 'scrap' && slotCintoAtual.quantidade < 5) {
+                slotCintoAtual.quantidade++;
+                controle.cintoSlot = slotCintoAtual;
+                salvarInventario();
+                if (typeof window.atualizarMochilaUI === 'function') window.atualizarMochilaUI(controle);
+                return true;
+            }
 
             controle.cintoSlot = normalizarEntradaArmazenada(controle.cintoSlot);
             if (controle.cintoSlot) return false;
@@ -1163,7 +1222,13 @@
 
             const registrarDrop = (tipo, extras = {}) => {
                 if (!tipo) return;
-                itensParaDropar.push({ tipo, extras });
+                // Se o item tem quantidade, dropa unidades individuais no chão
+                const qty = extras.quantidade || 1;
+                const extrasSemQty = { ...extras };
+                delete extrasSemQty.quantidade;
+                for (let i = 0; i < qty; i++) {
+                    itensParaDropar.push({ tipo, extras: extrasSemQty });
+                }
                 tiposRegistrados.add(tipo);
             };
 
