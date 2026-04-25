@@ -253,23 +253,10 @@
                 ? `<span style="position: absolute; top: 5px; right: 5px; background: #00ff00; color: #000; font-size: 10px; font-weight: bold; padding: 0 4px; border-radius: 4px; z-index: 2; box-shadow: 0 0 3px rgba(0,0,0,0.5);">${quantidade}</span>`
                 : '';
 
-            // Durabilidade (Usos/Saúde): Canto inferior direito
-            let durVal = null;
-            const itCinto = celula?.item;
-            if (itCinto) {
-                if (itCinto.tipo === 'revolver') durVal = itCinto.dados?.municao;
-                else if (itCinto.tipo === 'escudo') durVal = (window.config?.escudoTirosProtegidos || 3) - (itCinto.dados?.escudoProtegido || 0);
-                else if (itCinto.tipo === 'bota') durVal = (window.config?.botaDashsAteDesgastar || 3) - (itCinto.dados?.botaUsosDash || 0);
-                else if (itCinto.tipo === 'garra') durVal = (window.config?.garraImpactosAteDanificar || 3) - (itCinto.dados?.garraImpactosSolidos || 0);
-            }
-            const badgeDur = (durVal !== null && durVal !== undefined)
-                ? `<span style="position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.75); color: #fff; font-size: 10px; font-weight: bold; padding: 0 4px; border-radius: 4px; z-index: 2; border: 1px solid rgba(255,255,255,0.1);">${durVal}</span>`
-                : '';
-
             slotEl.style.opacity = ehPlaceholder ? '0.45' : '1';
             slotEl.style.position = 'relative'; // Garante posicionamento do badge
             slotEl.innerHTML = `
-                ${badgeStack}${badgeDur}
+                ${badgeStack}
                 ${info.sprite ? `<img src="${info.sprite}" alt="${info.titulo}" style="width: 28px; height: 28px; image-rendering: pixelated; margin-bottom: 6px;">` : ''}
                 <div style="font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #f2f2f2; text-transform: uppercase; text-align: center;">${info.titulo}</div>
                 <div style="font-size: 10px; color: ${info.cor}; margin-top: 6px; text-align: center;">${info.subtitulo}</div>
@@ -289,21 +276,9 @@
                 ? `<span style="position: absolute; top: 5px; right: 5px; background: #00ff00; color: #000; font-size: 10px; font-weight: bold; padding: 0 4px; border-radius: 4px; z-index: 2; box-shadow: 0 0 3px rgba(0,0,0,0.5);">${quantidade}</span>`
                 : '';
 
-            // Durabilidade (Usos/Saúde): Canto inferior direito
-            let durVal = null;
-            if (slotData) {
-                if (slotData.tipo === 'revolver') durVal = slotData.dados?.municao;
-                else if (slotData.tipo === 'escudo') durVal = (window.config?.escudoTirosProtegidos || 3) - (slotData.dados?.escudoProtegido || 0);
-                else if (slotData.tipo === 'bota') durVal = (window.config?.botaDashsAteDesgastar || 3) - (slotData.dados?.botaUsosDash || 0);
-                else if (slotData.tipo === 'garra') durVal = (window.config?.garraImpactosAteDanificar || 3) - (slotData.dados?.garraImpactosSolidos || 0);
-            }
-            const badgeDur = (durVal !== null && durVal !== undefined)
-                ? `<span style="position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.75); color: #fff; font-size: 10px; font-weight: bold; padding: 0 4px; border-radius: 4px; z-index: 2; border: 1px solid rgba(255,255,255,0.1);">${durVal}</span>`
-                : '';
-
             slotEl.style.position = 'relative';
             slotEl.innerHTML = `
-                ${badgeStack}${badgeDur}
+                ${badgeStack}
                 ${info.sprite ? `<img src="${info.sprite}" alt="${info.titulo}" style="width: 30px; height: 30px; image-rendering: pixelated; margin-bottom: 6px;">` : ''}
                 <div style="font-size: 12px; font-weight: bold; letter-spacing: 1px; color: #f2f2f2; text-transform: uppercase; text-align: center;">${info.titulo}</div>
                 <div style="font-size: 11px; color: ${info.cor}; margin-top: 8px; text-align: center;">${info.subtitulo}</div>

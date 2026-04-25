@@ -234,19 +234,6 @@
                     icone.appendChild(badge);
                 }
 
-                if (item.tipo === 'revolver' && resumo.municao > 0) {
-                    const badge = document.createElement('span');
-                    badge.style.cssText = `
-                        position: absolute; bottom: 1px; right: 1px;
-                        background: rgba(0,0,0,0.85); color: #fff; font-size: 9px;
-                        font-weight: bold; padding: 0 4px; border-radius: 3px;
-                        pointer-events: none; line-height: 1.2; 
-                        border: 1px solid rgba(255,255,255,0.2);
-                    `;
-                    badge.textContent = String(resumo.municao);
-                    icone.appendChild(badge);
-                }
-
                 lista.appendChild(icone);
             });
         }
@@ -381,32 +368,71 @@
                         }
                     }
 
+                    // Adiciona a Experiência (XP) como um item visual empilhável
+                    const xpTotal = Number(window.playerXP || 0);
+                    itensParaMostrar.unshift({
+                        tipo: 'xp_display',
+                        nome: 'Experiência (XP)',
+                        quantidade: xpTotal,
+                        isXP: true
+                    });
+
                     if (itensParaMostrar.length === 0) {
                         inventarioContainer.innerHTML = '<p style="color: #666; text-align: center; width: 100%; font-size: 11px;">Sua mochila está vazia.</p>';
                     } else {
                         const slot1 = overlay.querySelector('#craft-slot-1');
                         const slot2 = overlay.querySelector('#craft-slot-2');
 
-                        const adicionarAoSlotLivre = (itemData, btnOrigem) => {
+                        const adicionarAoSlotLivre = (itemData, btnOrigem, badgeEl) => {
                             const alvo = !slot1.dataset.ocupado ? slot1 : (!slot2.dataset.ocupado ? slot2 : null);
                             if (!alvo) return;
+
+                            const ehEmpilhavel = ['scrap'].includes(itemData.tipo) || itemData.isXP;
+                            if (ehEmpilhavel) {
+                                if (itemData.quantidade <= 0) return;
+                                itemData.quantidade--;
+                                if (badgeEl) badgeEl.textContent = itemData.quantidade;
+                                if (itemData.quantidade <= 0) {
+                                    btnOrigem.style.opacity = '0.3';
+                                    btnOrigem.style.pointerEvents = 'none';
+                                }
+                            } else {
+                                btnOrigem.style.opacity = '0.3';
+                                btnOrigem.style.pointerEvents = 'none';
+                            }
 
                             alvo.innerHTML = '';
                             alvo.dataset.ocupado = "true";
                             alvo.dataset.itemTipo = itemData.tipo;
-                            
-                            const imgClone = btnOrigem.querySelector('img').cloneNode();
-                            imgClone.style.width = '32px'; imgClone.style.height = '32px';
-                            alvo.appendChild(imgClone);
+                            alvo.dataset.isXP = itemData.isXP ? "true" : "false";
 
-                            btnOrigem.style.opacity = '0.3';
-                            btnOrigem.style.pointerEvents = 'none';
+                            if (itemData.isXP) {
+                                // Representação visual do XP no slot de crafting
+                                const xpLabel = document.createElement('div');
+                                xpLabel.textContent = '1 XP';
+                                xpLabel.style.cssText = 'font-weight: 900; color: #8e24aa; font-size: 11px; pointer-events: none;';
+                                alvo.appendChild(xpLabel);
+                            } else {
+                                const imgClone = btnOrigem.querySelector('img').cloneNode();
+                                imgClone.style.width = '32px'; imgClone.style.height = '32px';
+                                alvo.appendChild(imgClone);
+                            }
 
                             // Clique no slot para devolver o item
                             alvo.onclick = () => {
+                                if (ehEmpilhavel) {
+                                    itemData.quantidade++;
+                                    if (badgeEl) badgeEl.textContent = itemData.quantidade;
+                                    btnOrigem.style.opacity = '1';
+                                    btnOrigem.style.pointerEvents = 'all';
+                                } else {
+                                    btnOrigem.style.opacity = '1';
+                                    btnOrigem.style.pointerEvents = 'all';
+                                }
                                 alvo.innerHTML = '?';
                                 delete alvo.dataset.ocupado;
                                 delete alvo.dataset.itemTipo;
+                                delete alvo.dataset.isXP;
                                 btnOrigem.style.opacity = '1';
                                 btnOrigem.style.pointerEvents = 'all';
                                 alvo.onclick = null;
@@ -429,44 +455,34 @@
                             itemQuadrado.onfocus = () => { itemQuadrado.style.borderColor = '#0f0'; itemQuadrado.style.background = '#2a2a2a'; };
                             itemQuadrado.onblur = () => { itemQuadrado.style.borderColor = '#444'; itemQuadrado.style.background = '#222'; };
 
-                            const img = document.createElement('img');
-                            img.src = item.spriteColetavel || item.spriteEquipado || (typeof window.obterSpriteItem === 'function' ? window.obterSpriteItem(item.tipo, window.config) : '');
-                            img.style.width = '32px'; img.style.height = '32px'; img.style.imageRendering = 'pixelated';
-                            img.style.pointerEvents = 'none';
-                            
-                            itemQuadrado.appendChild(img);
-
-                            // Exibe a quantidade da pilha no menu de Crafting
-                            const ehEmpilhavel = ['scrap'].includes(item.tipo);
-                            if (item.quantidade > 1 && ehEmpilhavel) {
-                                const badge = document.createElement('span');
-                                badge.style.cssText = `
-                                    position: absolute; top: 2px; right: 2px;
-                                    background: #00ff00; color: #000; font-size: 10px;
-                                    font-weight: bold; padding: 0 4px; border-radius: 4px;
-                                    pointer-events: none; line-height: 1.2;
-                                `;
-                                badge.textContent = item.quantidade;
-                                itemQuadrado.appendChild(badge);
+                            if (item.isXP) {
+                                const xpLabel = document.createElement('div');
+                                xpLabel.textContent = 'XP';
+                                xpLabel.style.cssText = 'font-weight: 900; color: #8e24aa; font-size: 14px; pointer-events: none;';
+                                itemQuadrado.appendChild(xpLabel);
+                                itemQuadrado.style.cursor = 'default';
+                                itemQuadrado.title = 'Sua experiência atual';
+                            } else {
+                                const img = document.createElement('img');
+                                img.src = item.spriteColetavel || item.spriteEquipado || (typeof window.obterSpriteItem === 'function' ? window.obterSpriteItem(item.tipo, window.config) : '');
+                                img.style.width = '32px'; img.style.height = '32px'; img.style.imageRendering = 'pixelated';
+                                img.style.pointerEvents = 'none';
+                                itemQuadrado.appendChild(img);
                             }
 
-                            // Exibe a durabilidade (usos restantes) no menu de Crafting
-                            let durVal = null;
-                            if (item.tipo === 'revolver') durVal = item.dados?.municao;
-                            else if (item.tipo === 'escudo') durVal = (window.config?.escudoTirosProtegidos || 3) - (item.dados?.escudoProtegido || 0);
-                            else if (item.tipo === 'bota') durVal = (window.config?.botaDashsAteDesgastar || 3) - (item.dados?.botaUsosDash || 0);
-                            else if (item.tipo === 'garra') durVal = (window.config?.garraImpactosAteDanificar || 3) - (item.dados?.garraImpactosSolidos || 0);
-
-                            if (durVal !== null && durVal !== undefined) {
-                                const badgeDur = document.createElement('span');
-                                badgeDur.style.cssText = `
-                                    position: absolute; bottom: 2px; right: 2px;
-                                    background: rgba(0,0,0,0.6); color: #fff; font-size: 10px;
+                            // Exibe a quantidade da pilha no menu de Crafting
+                            let badgeEl = null;
+                            const ehEmpilhavel = ['scrap'].includes(item.tipo) || item.isXP;
+                            if (ehEmpilhavel && item.quantidade > 0) {
+                                badgeEl = document.createElement('span');
+                                badgeEl.style.cssText = `
+                                    position: absolute; top: 2px; right: 2px;
+                                    background: ${item.isXP ? '#8e24aa' : '#00ff00'}; color: ${item.isXP ? '#fff' : '#000'}; font-size: 10px;
                                     font-weight: bold; padding: 0 4px; border-radius: 4px;
                                     pointer-events: none; line-height: 1.2;
                                 `;
-                                badgeDur.textContent = durVal;
-                                itemQuadrado.appendChild(badgeDur);
+                                badgeEl.textContent = item.quantidade;
+                                itemQuadrado.appendChild(badgeEl);
                             }
 
                             // Adiciona o item ao DOM antes de adicionar o event listener,
@@ -476,7 +492,8 @@
                             inventarioContainer.appendChild(itemQuadrado);
 
                             itemQuadrado.addEventListener('click', () => {
-                                adicionarAoSlotLivre(item, itemQuadrado);
+                                // Agora permite clicar no XP para enviar para o slot
+                                adicionarAoSlotLivre(item, itemQuadrado, badgeEl);
                             });
                         });
                     }
