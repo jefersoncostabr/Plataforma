@@ -983,7 +983,6 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                 if (inimigo.stunned) {
                     if (inimigo.stunTimer <= 0) {
                         inimigo.stunned = false; // Fim do stun
-                        console.log(`Inimigo em x:${inimigo.x} não está mais atordoado.`);
                     } else {
                         iaBloqueadaPorStun = true;
                         // Faz o inimigo olhar de um lado para o outro

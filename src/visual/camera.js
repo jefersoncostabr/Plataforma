@@ -1,3 +1,33 @@
+// =========================
+// EFEITO DE TREMOR NA CÂMERA
+// =========================
+
+// Estado do tremor
+window.cameraTremorAtivo = false;
+window.cameraTremorIntensidade = 4; // pixels
+window.cameraTremorTempoRestante = 0;
+
+/**
+ * Ativa o efeito de tremor vertical na câmera
+ * @param {number} duracaoMs - Duração do tremor em milissegundos
+ * @param {number} intensidade - Intensidade do tremor em pixels (opcional)
+ */
+window.ativarTremorCamera = function(duracaoMs = 300, intensidade = 4) {
+    window.cameraTremorAtivo = true;
+    window.cameraTremorIntensidade = intensidade;
+    window.cameraTremorTempoRestante = duracaoMs;
+};
+
+// Atualiza o tempo do tremor a cada frame
+window.atualizarTremorCamera = function(deltaMs) {
+    if (window.cameraTremorAtivo) {
+        window.cameraTremorTempoRestante -= deltaMs;
+        if (window.cameraTremorTempoRestante <= 0) {
+            window.cameraTremorAtivo = false;
+            window.cameraTremorTempoRestante = 0;
+        }
+    }
+};
 /**
  * Gerenciador de Câmera e Viewport
  * Suporta duas estratégias: Tela Pequena e Tela Grande
@@ -47,11 +77,15 @@ const cameraPequena = function(alvoX, alvoY, mundoW, mundoH) {
         window.cameraY = 0;
     }
 
-    // Aplica transform sem escala
+    // Aplica transform sem escala + tremor
     const stage = document.getElementById('game-stage');
     if (stage) {
-        const x = Math.round(window.cameraX);
-        const y = Math.round(window.cameraY);
+        let x = Math.round(window.cameraX);
+        let y = Math.round(window.cameraY);
+        // Aplica tremor vertical se ativo
+        if (window.cameraTremorAtivo) {
+            y += (Math.random() * window.cameraTremorIntensidade) - (window.cameraTremorIntensidade / 2);
+        }
         stage.style.transform = `translate(${-x}px, ${-y}px)`;
     }
 };
@@ -124,11 +158,15 @@ const cameraGrande = function(alvoX, alvoY, mundoW, mundoH) {
         window.cameraY = targetClampedY;
     }
     
-    // Aplica transform ao stage
+    // Aplica transform ao stage + tremor
     const stage = document.getElementById('game-stage');
     if (stage) {
-        const x = Math.round(window.cameraX);
-        const y = Math.round(window.cameraY);
+        let x = Math.round(window.cameraX);
+        let y = Math.round(window.cameraY);
+        // Aplica tremor vertical se ativo
+        if (window.cameraTremorAtivo) {
+            y += (Math.random() * window.cameraTremorIntensidade) - (window.cameraTremorIntensidade / 2);
+        }
         stage.style.transform = `translate(${-x}px, ${-y}px)`;
     }
 };
@@ -155,6 +193,9 @@ window.resetarCamera = function() {
  * @param {number} mundoH - Altura total do mundo.
  */
 window.atualizarCamera = function(alvoX, alvoY, mundoW, mundoH) {
+    // Atualiza o timer do tremor (aproximadamente 60fps = 16.6ms por frame)
+    window.atualizarTremorCamera(16.6);
+
     // Detecta qual câmera deveria ser usada
     const modo = window.detectarTamanhoCâmera();
     

@@ -1121,7 +1121,6 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
             window.AudioManager?.playSFX('dash', 0.5);
             controle.pulosRealizados = 2; // Consome o segundo salto até tocar o chão novamente
             controle.doubleJumpUsedInAir = true; // Marca que o pulo duplo foi usado no ar
-            console.log("Habilidade Salto: Pulo duplo rápido executado!");
         }
 
         atualizarJetpack({
@@ -1222,6 +1221,13 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
             adicionarAoLayer(impacto, window.LAYERS.EFEITOS);
             requestAnimationFrame(() => { impacto.style.transform = 'scale(.2)'; impacto.style.opacity = '0'; });
             setTimeout(() => impacto.remove(), 400);
+
+            // Aciona o tremor de câmera no impacto da Super Descida
+            if (typeof window.ativarTremorCamera === 'function') {
+                const duracao = Number(config.superDescidaTremorDuracao ?? 250);
+                const intensidade = Number(config.superDescidaTremorIntensidade ?? 10);
+                window.ativarTremorCamera(duracao, intensidade);
+            }
         }
 
         // Detecta toque no chão: APENAS se houver colisão real com tiles de plataforma
