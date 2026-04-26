@@ -11,6 +11,7 @@ window.aplicarEfeitosSkills = () => {
     controle.danoChute = 1;    // Dano base do chute
     controle.multiplicadorCooldownChute = 1;
     controle.dashHabilitado = false;
+    controle.superDashHabilitado = false;
     controle.cooldownDashMax = 0;
     controle.dashDuracao = 0;
     controle.distanciaDash = 0;
@@ -56,6 +57,10 @@ window.aplicarEfeitosSkills = () => {
                 controle.janelaDuploToqueDash = 250;
                 break;
             
+            case skills.SUPERDASH:
+                controle.superDashHabilitado = true;
+                break;
+
             case skills.KNOCKOUT:
                 // Habilidade Knockout: aumenta o dano do chute em +1 (Total 2)
                 controle.danoChute += 1;

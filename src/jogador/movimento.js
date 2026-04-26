@@ -913,6 +913,34 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
             const direcaoDashSkill = controle.dashDirecao === 'd' ? 1 : -1;
             controle.x += (controle.velocidadeDashSkill || 0) * direcaoDashSkill;
 
+            // Lógica do SuperDash: Atordoa inimigos ao passar por eles
+            if (controle.superDashHabilitado && window.inimigos) {
+                const hitboxPlayer = { 
+                    x: controle.x + (controle.offsetX || 0), 
+                    y: controle.y, 
+                    largura: controle.largura, 
+                    altura: controle.altura 
+                };
+                
+                window.inimigos.forEach(inimigo => {
+                    if (inimigo.estaMorto || inimigo.stunned) return;
+                    
+                    const hitboxInimigo = {
+                        x: inimigo.x + (inimigo.offsetX || 0),
+                        y: inimigo.y,
+                        largura: inimigo.largura,
+                        altura: inimigo.altura
+                    };
+
+                    if (typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(hitboxPlayer, hitboxInimigo, 0, 0, 0)) {
+                        inimigo.stunned = true;
+                        inimigo.stunTimer = Number(config.superDescidaStunDuracaoInimigos ?? 180);
+                        // Efeito visual opcional: flash rápido no inimigo atingido
+                        if (typeof window.flashRapido === 'function') window.flashRapido(inimigo.elemento);
+                    }
+                });
+            }
+
             // Aplica o efeito de sombra a cada 2 frames do dash para rastro de velocidade
             if (typeof window.criarSombraDash === 'function' && controle.dashFramesRestantes % 1 === 0) {
                 window.criarSombraDash(elemento);
