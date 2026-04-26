@@ -757,7 +757,8 @@
             const alvos = [
                 { tipo: 'bota', quebrado: !!controle.botaVermelha },
                 { tipo: 'escudo', quebrado: !!controle.escudoVermelho },
-                { tipo: 'garra', quebrado: !!controle.garraVermelha }
+                { tipo: 'garra', quebrado: !!controle.garraVermelha },
+                { tipo: 'jetpack', quebrado: !!(controle.temJetpack && (controle.cooldownVooJetpack || 0) > 0) }
             ];
 
             alvos.forEach(alvo => {
@@ -794,6 +795,10 @@
                             controle.escudoProtegido = 0; controle.escudoVermelho = false; if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
                         } else if (alvo.tipo === 'garra') { 
                             controle.garraImpactosSolidos = 0; controle.garraVermelha = false; if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
+                        } else if (alvo.tipo === 'jetpack') {
+                            controle.cooldownVooJetpack = 0; controle.timerVooRestante = Number(config?.jetpackDuracaoVoo || 400);
+                            if (typeof controle.iniciarJetpack === 'function') { controle.iniciarJetpack(); } else { controle.jetpackAtivo = true; }
+                            console.log("[AUTO-REPARO] Jetpack Plus utilizado! Tanque restaurado e voo acionado.");
                         }
 
                         window.AudioManager?.playSFX('recarga', 0.8);
@@ -812,7 +817,8 @@
             const alvos = [
                 { tipo: 'bota', quebrado: !!controle.botaVermelha },
                 { tipo: 'escudo', quebrado: !!controle.escudoVermelho },
-                { tipo: 'garra', quebrado: !!controle.garraVermelha }
+                { tipo: 'garra', quebrado: !!controle.garraVermelha },
+                { tipo: 'jetpack', quebrado: !!(controle.temJetpack && (controle.cooldownVooJetpack || 0) > 0) }
             ];
 
             alvos.forEach(alvo => {
@@ -849,6 +855,10 @@
                             controle.escudoProtegido = 0; controle.escudoVermelho = false; if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
                         } else if (alvo.tipo === 'garra') { 
                             controle.garraImpactosSolidos = 0; controle.garraVermelha = false; if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
+                        } else if (alvo.tipo === 'jetpack') {
+                            controle.cooldownVooJetpack = 0; controle.timerVooRestante = Number(config?.jetpackDuracaoVoo || 400);
+                            if (typeof controle.iniciarJetpack === 'function') { controle.iniciarJetpack(); } else { controle.jetpackAtivo = true; }
+                            console.log("[AUTO-REPARO] Jetpack Plus utilizado! Tanque restaurado e voo acionado.");
                         }
 
                         window.AudioManager?.playSFX('recarga', 0.8);
@@ -1065,7 +1075,8 @@
             const alvos = [
                 { tipo: 'bota', quebrado: !!controle.botaVermelha },
                 { tipo: 'escudo', quebrado: !!controle.escudoVermelho },
-                { tipo: 'garra', quebrado: !!controle.garraVermelha }
+                { tipo: 'garra', quebrado: !!controle.garraVermelha },
+                { tipo: 'jetpack', quebrado: !!(controle.temJetpack && (controle.cooldownVooJetpack || 0) > 0) }
             ];
 
             alvos.forEach(alvo => {
@@ -1102,6 +1113,10 @@
                             controle.escudoProtegido = 0; controle.escudoVermelho = false; if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
                         } else if (alvo.tipo === 'garra') { 
                             controle.garraImpactosSolidos = 0; controle.garraVermelha = false; if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
+                        } else if (alvo.tipo === 'jetpack') {
+                            controle.cooldownVooJetpack = 0; controle.timerVooRestante = Number(config?.jetpackDuracaoVoo || 400);
+                            if (typeof controle.iniciarJetpack === 'function') { controle.iniciarJetpack(); } else { controle.jetpackAtivo = true; }
+                            console.log("[AUTO-REPARO] Jetpack Plus utilizado! Tanque restaurado e voo acionado.");
                         }
 
                         window.AudioManager?.playSFX('recarga', 0.8);

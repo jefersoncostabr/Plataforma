@@ -32,6 +32,9 @@
             controle.timerAtivacaoJetpack = 0;
         }
 
+        // Expõe para ativação externa (ex: auto-reparo no inventário)
+        controle.iniciarJetpack = iniciarJetpack;
+
         function desligarJetpack(iniciarCooldown = false) {
             // Para o som de propulsão quando o jetpack desliga
             if (controle._jetpackLoop) {
