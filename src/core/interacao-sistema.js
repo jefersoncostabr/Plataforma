@@ -343,75 +343,59 @@
                 if (controle) {
                     const slot1 = overlay.querySelector('#craft-slot-1');
                     const slot2 = overlay.querySelector('#craft-slot-2');
+                    
+                    // Definição de Receitas (Fácil de expandir)
+                    const RECEITAS = [
+                        { 
+                            id: 'upgrade_plus', 
+                            resultado: (tipo) => tipo + '_plus',
+                            check: (s1, s2) => {
+                                const restrito = ['cinto', 'colete', 'scrap'];
+                                const temScrap = s1.itemTipo === 'scrap' || s2.itemTipo === 'scrap';
+                                const itemBase = s1.itemTipo === 'scrap' ? s2 : s1;
+                                return temScrap && itemBase.ocupado === "true" && s1.isXP !== "true" && s2.isXP !== "true" && !restrito.includes(itemBase.itemTipo);
+                            }
+                        },
+                        {
+                            id: 'reciclagem',
+                            resultado: () => 'scrap',
+                            check: (s1, s2) => (s1.ocupado === "true" && s2.ocupado === "true") && (s1.isXP === "true" || s2.isXP === "true") && s1.itemTipo !== 'scrap' && s2.itemTipo !== 'scrap'
+                        }
+                    ];
 
                     if (slot1 && slot2) {
-
                         const atualizarResultadoCrafting = () => {
-                            // Tenta encontrar o slot de resultado de várias formas
                             const rSlot = overlay.querySelector('#craft-result') || 
                                          overlay.querySelector('#craft-result-slot') || 
                                          overlay.querySelector('.craft-result') || 
                                          overlay.querySelector('[data-interaction-field="resultado"]');
                             
-                            if (!slot1 || !slot2 || !rSlot) {
-                                return;
-                            }
+                            if (!slot1 || !slot2 || !rSlot) return;
                             
                             const s1 = slot1.dataset;
                             const s2 = slot2.dataset;
-                            const slot1Ocupado = s1.ocupado === "true";
-                            const slot2Ocupado = s2.ocupado === "true";
 
-                            // Normalização da comparação para evitar problemas de tipo
-                            const s1EhXP = slot1Ocupado && String(s1.isXP) === "true";
-                            const s2EhXP = slot2Ocupado && String(s2.isXP) === "true";
-                            const s1EhItem = slot1Ocupado && String(s1.isXP) !== "true";
-                            const s2EhItem = slot2Ocupado && String(s2.isXP) !== "true";
+                            const receita = RECEITAS.find(r => r.check(s1, s2));
 
-                            const temXP = s1EhXP || s2EhXP;
-                            const temItem = s1EhItem || s2EhItem;
-
-                            // Receita 2: (Item não restrito) + (Scrap) -> Item Plus
-                            const restritoPlus = ['cinto', 'colete', 'revolver', 'scrap'];
-                            const itemElegivelPlus = (s1EhItem && !s1EhXP && !restritoPlus.includes(s1.itemTipo)) ? s1 : 
-                                                    ((s2EhItem && !s2EhXP && !restritoPlus.includes(s2.itemTipo)) ? s2 : null);
-                            const temScrapParaPlus = (s1EhItem && s1.itemTipo === 'scrap') || (s2EhItem && s2.itemTipo === 'scrap');
-                            const podeCraftarPlus = !!(itemElegivelPlus && temScrapParaPlus);
-
-                            if (temItem && temXP && !podeCraftarPlus) {
-                                rSlot.innerHTML = '';
-                                const scrapSprite = typeof window.obterSpriteItem === 'function' ? window.obterSpriteItem('scrap', window.config) : '';
-                                const img = document.createElement('img');
-                                img.src = scrapSprite;
-                                img.style.width = '32px'; img.style.height = '32px';
-                                img.style.imageRendering = 'pixelated';
-                                rSlot.appendChild(img);
+                            if (receita) {
+                                const itemBase = s1.itemTipo === 'scrap' ? s2 : (s1.isXP === "true" ? s2 : s1);
+                                const tipoResultado = receita.resultado(itemBase.itemTipo);
                                 
-                                const badge = document.createElement('span');
-                                badge.textContent = 'CRAFTAR';
-                                badge.style.cssText = 'position: absolute; bottom: -12px; font-size: 8px; color: #0f0; font-weight: bold; text-transform: uppercase; white-space: nowrap;';
-                                rSlot.appendChild(badge);
-
-                                rSlot.style.cursor = 'pointer';
-                                rSlot.dataset.podeCraftar = "true";
-                                rSlot.dataset.tipoResultado = 'scrap';
-                            } else if (podeCraftarPlus) {
                                 rSlot.innerHTML = '';
-                                const baseTipo = itemElegivelPlus.itemTipo;
-                                const sprite = typeof window.obterSpriteItem === 'function' ? window.obterSpriteItem(baseTipo, window.config) : '';
+                                const sprite = typeof window.obterSpriteItem === 'function' ? window.obterSpriteItem(tipoResultado, window.config) : '';
                                 
                                 const img = document.createElement('img');
                                 img.src = sprite;
-                                img.style.width = '32px'; img.style.height = '32px';
-                                img.style.imageRendering = 'pixelated';
+                                img.style.cssText = 'width: 32px; height: 32px; image-rendering: pixelated;';
                                 rSlot.appendChild(img);
 
-                                // Sinal azul de "+" no canto superior esquerdo
-                                const plusSign = document.createElement('span');
-                                plusSign.textContent = '+';
-                                plusSign.style.cssText = 'position: absolute; top: -2px; left: 2px; color: #0088ff; font-weight: 900; font-size: 16px; text-shadow: 0 0 2px #000; pointer-events: none;';
-                                rSlot.appendChild(plusSign);
-
+                                if (receita.id === 'upgrade_plus') {
+                                    const plus = document.createElement('span');
+                                    plus.textContent = '+';
+                                    plus.style.cssText = 'position: absolute; top: -2px; left: 2px; color: #0088ff; font-weight: 900; font-size: 16px; text-shadow: 0 0 2px #000; pointer-events: none;';
+                                    rSlot.appendChild(plus);
+                                }
+                                
                                 const badge = document.createElement('span');
                                 badge.textContent = 'CRAFTAR';
                                 badge.style.cssText = 'position: absolute; bottom: -12px; font-size: 8px; color: #0f0; font-weight: bold; text-transform: uppercase; white-space: nowrap;';
@@ -419,7 +403,7 @@
 
                                 rSlot.style.cursor = 'pointer';
                                 rSlot.dataset.podeCraftar = "true";
-                                rSlot.dataset.tipoResultado = baseTipo + '_plus';
+                                rSlot.dataset.tipoResultado = tipoResultado;
                             } else {
                                 rSlot.innerHTML = '?';
                                 rSlot.style.cursor = 'default';

@@ -64,5 +64,6 @@
     "inimigo_revolver": ["c36"],
     "plataformasTerraSuperior": [
         "w14"
-    ]
+    ],
+    "inimigo_completo": ["k12", "k29", "w1"]
 }

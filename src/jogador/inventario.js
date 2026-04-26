@@ -70,10 +70,11 @@
         if (!itemData && tipo && tipo.endsWith('_plus')) {
             const baseTipo = tipo.replace('_plus', '');
             const baseDef = window.itemDefinitions?.[baseTipo];
+            const isRevolverPlus = tipo === 'revolver_plus';
             return {
                 tipo,
-                nome: (baseDef?.nome || baseTipo) + ' +',
-                spriteColetavel: baseDef?.spriteColetavel || obterSpriteItem(baseTipo, window.config || {}) || '',
+                nome: isRevolverPlus ? 'Caixa de Munição' : ((baseDef?.nome || baseTipo) + ' +'),
+                spriteColetavel: obterSpriteItem(tipo, window.config || {}) || baseDef?.spriteColetavel || obterSpriteItem(baseTipo, window.config || {}) || '',
                 spriteEquipado: baseDef?.spriteEquipado || '',
                 consumivel: false,
                 usarSoSePrecisar: false,
@@ -406,6 +407,7 @@
             if (tipo === 'garra') return config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
             if (tipo === 'cinto') return config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
             if (tipo === 'colete') return config.spriteItemColete || '../../assets/personagem/colete_coletavel.png';
+            if (tipo === 'revolver_plus') return '../../assets/personagem/cx_municao.png';
         }
 
         // Prioridade 4: Efeitos e Elementos de Jogo (Centralização 5.3)
@@ -754,11 +756,13 @@
          * equipamentos que ficaram vermelhos (quebrados) instantaneamente.
          */
         function verificarAutoReparoEquipamentos() {
+            if (!controle) return;
             const alvos = [
                 { tipo: 'bota', quebrado: !!controle.botaVermelha },
                 { tipo: 'escudo', quebrado: !!controle.escudoVermelho },
                 { tipo: 'garra', quebrado: !!controle.garraVermelha },
-                { tipo: 'jetpack', quebrado: !!(controle.temJetpack && (controle.cooldownVooJetpack || 0) > 0) }
+                { tipo: 'jetpack', quebrado: !!(controle.temJetpack && (controle.cooldownVooJetpack || 0) > 0) },
+                { tipo: 'revolver', quebrado: !!(controle.temArma && (controle.municao || 0) <= 0) }
             ];
 
             alvos.forEach(alvo => {
@@ -798,67 +802,19 @@
                         } else if (alvo.tipo === 'jetpack') {
                             controle.cooldownVooJetpack = 0; controle.timerVooRestante = Number(config?.jetpackDuracaoVoo || 400);
                             if (typeof controle.iniciarJetpack === 'function') { controle.iniciarJetpack(); } else { controle.jetpackAtivo = true; }
-                            console.log("[AUTO-REPARO] Jetpack Plus utilizado! Tanque restaurado e voo acionado.");
-                        }
-
-                        window.AudioManager?.playSFX('recarga', 0.8);
-                        salvarInventario();
-                        if (typeof window.atualizarMochilaUI === 'function') window.atualizarMochilaUI(controle);
-                    }
-                }
-            });
-        }
-
-        /**
-         * Sistema de reparo automático: Consome versões "+" dos itens para restaurar
-         * equipamentos que ficaram vermelhos (quebrados) instantaneamente.
-         */
-        function verificarAutoReparoEquipamentos() {
-            const alvos = [
-                { tipo: 'bota', quebrado: !!controle.botaVermelha },
-                { tipo: 'escudo', quebrado: !!controle.escudoVermelho },
-                { tipo: 'garra', quebrado: !!controle.garraVermelha },
-                { tipo: 'jetpack', quebrado: !!(controle.temJetpack && (controle.cooldownVooJetpack || 0) > 0) }
-            ];
-
-            alvos.forEach(alvo => {
-                if (alvo.quebrado) {
-                    const tipoPlus = alvo.tipo + '_plus';
-                    let consumiu = false;
-
-                    // 1. Procura no Cinto primeiro
-                    const slotC = normalizarEntradaArmazenada(controle.cintoSlot);
-                    if (slotC && slotC.tipo === tipoPlus && slotC.quantidade > 0) {
-                        slotC.quantidade--;
-                        controle.cintoSlot = slotC.quantidade > 0 ? slotC : null;
-                        consumiu = true;
-                    }
-
-                    // 2. Procura nos slots do Colete se não achou no cinto
-                    if (!consumiu && Array.isArray(controle.coleteSlots)) {
-                        for (let i = 0; i < (controle.coleteSlots || []).length; i++) {
-                            const slot = normalizarEntradaArmazenada(controle.coleteSlots[i]);
-                            if (slot && slot.tipo === tipoPlus && slot.quantidade > 0) {
-                                slot.quantidade--;
-                                controle.coleteSlots[i] = slot.quantidade > 0 ? slot : null;
-                                consumiu = true;
-                                break;
+                        } else if (alvo.tipo === 'revolver') {
+                            const maxBalas = Number(config?.maxMunicao || window.config?.maxMunicao || 5);
+                            controle.municao = maxBalas;
+                            
+                            // Efeito Visual de Recarga Plus
+                            const armaEl = obterElementos().armaElemento;
+                            if (armaEl) {
+                                const filtroOriginal = armaEl.style.filter;
+                                armaEl.style.filter = 'hue-rotate(90deg) brightness(2) drop-shadow(0 0 8px #0f0)';
+                                if (typeof window.flashElement === 'function') window.flashElement(armaEl, 400, 10);
+                                setTimeout(() => { if (armaEl) armaEl.style.filter = filtroOriginal; }, 500);
                             }
-                        }
-                    }
-
-                    if (consumiu) {
-                        // Executa a restauração baseada no tipo para limpar o estado "vermelho"
-                        if (alvo.tipo === 'bota') { 
-                            controle.botaUsosDash = 0; controle.botaVermelha = false; if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
-                        } else if (alvo.tipo === 'escudo') { 
-                            controle.escudoProtegido = 0; controle.escudoVermelho = false; if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
-                        } else if (alvo.tipo === 'garra') { 
-                            controle.garraImpactosSolidos = 0; controle.garraVermelha = false; if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
-                        } else if (alvo.tipo === 'jetpack') {
-                            controle.cooldownVooJetpack = 0; controle.timerVooRestante = Number(config?.jetpackDuracaoVoo || 400);
-                            if (typeof controle.iniciarJetpack === 'function') { controle.iniciarJetpack(); } else { controle.jetpackAtivo = true; }
-                            console.log("[AUTO-REPARO] Jetpack Plus utilizado! Tanque restaurado e voo acionado.");
+                            console.log("[AUTO-RECARGA] Caixa de Munição (revolver_plus) consumida!");
                         }
 
                         window.AudioManager?.playSFX('recarga', 0.8);
@@ -1072,11 +1028,13 @@
          * equipamentos que ficaram vermelhos (quebrados) instantaneamente.
          */
         function verificarAutoReparoEquipamentos() {
+            if (!controle) return;
             const alvos = [
                 { tipo: 'bota', quebrado: !!controle.botaVermelha },
                 { tipo: 'escudo', quebrado: !!controle.escudoVermelho },
                 { tipo: 'garra', quebrado: !!controle.garraVermelha },
-                { tipo: 'jetpack', quebrado: !!(controle.temJetpack && (controle.cooldownVooJetpack || 0) > 0) }
+                { tipo: 'jetpack', quebrado: !!(controle.temJetpack && (controle.cooldownVooJetpack || 0) > 0) },
+                { tipo: 'revolver', quebrado: !!(controle.temArma && (controle.municao || 0) <= 0) }
             ];
 
             alvos.forEach(alvo => {
@@ -1116,7 +1074,8 @@
                         } else if (alvo.tipo === 'jetpack') {
                             controle.cooldownVooJetpack = 0; controle.timerVooRestante = Number(config?.jetpackDuracaoVoo || 400);
                             if (typeof controle.iniciarJetpack === 'function') { controle.iniciarJetpack(); } else { controle.jetpackAtivo = true; }
-                            console.log("[AUTO-REPARO] Jetpack Plus utilizado! Tanque restaurado e voo acionado.");
+                        } else if (alvo.tipo === 'revolver') {
+                            controle.municao = Number(config?.maxMunicao || window.config?.maxMunicao || 5);
                         }
 
                         window.AudioManager?.playSFX('recarga', 0.8);
@@ -1418,6 +1377,18 @@
 
             const registrarDrop = (tipo, extras = {}) => {
                 if (!tipo) return;
+
+            // Regra de Durabilidade: Se o item estiver esgotado ou quebrado (vermelho), ele é destruído.
+            const estaQuebradoOuVazio = 
+                (tipo === 'revolver' && (extras.municao ?? 0) <= 0) ||
+                (tipo === 'escudo' && !!extras.escudoVermelho) ||
+                (tipo === 'bota' && !!extras.botaVermelha) ||
+                (tipo === 'garra' && !!extras.garraVermelha);
+
+            if (estaQuebradoOuVazio) {
+                return; // Item destruído, não prossegue com o drop
+            }
+
                 // Se o item tem quantidade, dropa unidades individuais no chão
                 const qty = extras.quantidade || 1;
                 const extrasSemQty = { ...extras };
@@ -1431,7 +1402,7 @@
             if (Array.isArray(inimigo.inventario)) {
                 [...inimigo.inventario].reverse().forEach((tipo) => {
                     const extras = {};
-                    if (tipo === 'revolver') extras.municao = Number(inimigo.municao || config?.maxMunicao || 5);
+                if (tipo === 'revolver') extras.municao = Number(inimigo.municao ?? config?.maxMunicao ?? 5);
                     if (tipo === 'escudo') {
                         extras.escudoProtegido = Number(inimigo.escudoProtegido || 0);
                         extras.escudoVermelho = !!inimigo.escudoVermelho;
@@ -1464,7 +1435,7 @@
             };
 
             adicionarEquipamentoAtivo('revolver', !!inimigo.temArma, {
-                municao: Number(inimigo.municao || config?.maxMunicao || 5)
+            municao: Number(inimigo.municao ?? config?.maxMunicao ?? 5)
             });
             adicionarEquipamentoAtivo('escudo', !!(inimigo.temEscudo || inimigo.escudoVermelho), {
                 escudoProtegido: Number(inimigo.escudoProtegido || 0),
