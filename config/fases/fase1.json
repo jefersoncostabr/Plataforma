@@ -23,6 +23,7 @@
     "plataformasTerraInferior2": [
         "f35"
     ],
-    "inimigo_comum": ["b23", "b35", "d35"],
-    "inimigo_feno": ["b7"]
+    "inimigo_comum": ["b26", "b35", "d35"],
+    "inimigo_feno": ["b7"],
+    "posicaoCachorro": "b11"
 }

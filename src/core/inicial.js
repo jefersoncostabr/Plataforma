@@ -435,6 +435,19 @@ async function carregarFase(nomeArquivo) {
 
         // Garante visual limpo do jogador após reposicionamento no spawn.
         limparAnimacaoDanoJogador();
+
+        // Inicializa o cachorro NPC se houver posição definida no JSON da fase (via Editor)
+        console.log("[DEBUG CAO] Verificando spawn. Função existe:", (typeof window.inicializarCaoNPC === 'function'), "| Dados no JSON:", fase.posicaoCachorro);
+
+        if (typeof window.inicializarCaoNPC === 'function') {
+            const posCaoStr = fase.posicaoCachorro;
+            const posCao = posCaoStr ? (window.gridParaPixels ? window.gridParaPixels(posCaoStr) : null) : null;
+            
+            if (posCao) {
+                console.log("[DEBUG CAO] Executando inicialização em pixels:", posCao);
+                window.inicializarCaoNPC(posCao.x, posCao.y);
+            }
+        }
     }
 
     // Carrega inimigos da fase

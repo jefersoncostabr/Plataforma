@@ -33,3 +33,5 @@ gp.testarConectividade()
 git config --get user.email; git config --get user.name
 
 https://gamepad-tester.com/
+
+colisão do cachorro no 11º inicia um quadrado 12x12px

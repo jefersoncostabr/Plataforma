@@ -421,6 +421,7 @@ function removerElemento(coord) {
 
     if (faseData.posicaoInicialJogador === coord) faseData.posicaoInicialJogador = '';
     if (faseData.objetivo === coord) faseData.objetivo = '';
+    if (faseData.posicaoCachorro === coord) faseData.posicaoCachorro = '';
 
     aplicarFaseDataEditor(faseData);
 }

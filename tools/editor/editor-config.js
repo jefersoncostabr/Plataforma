@@ -30,7 +30,8 @@
 
     const SYSTEM_DEFS = [
         { type: 'player', stateKey: 'posicaoInicialJogador', sprite: '../../assets/personagem/Personagem_parado.png', label: 'Ponto Inicial do Jogador', className: 'player-filter', kind: 'single' },
-        { type: 'objetivo', stateKey: 'objetivo', sprite: '../../assets/personagem/objetivo.png', label: 'Objetivo da Fase', kind: 'single' }
+        { type: 'objetivo', stateKey: 'objetivo', sprite: '../../assets/personagem/objetivo.png', label: 'Objetivo da Fase', kind: 'single' },
+        { type: 'cachorro', stateKey: 'posicaoCachorro', sprite: '../../assets/personagem/cao_parado.png', label: 'Cachorro (NPC)', kind: 'single' }
     ];
 
     const ALL_DEFS = [...PLATFORM_DEFS, ...ENEMY_DEFS, ...SYSTEM_DEFS];
