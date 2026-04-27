@@ -1556,6 +1556,11 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
             }
         }
 
+        // Atualiza a lógica da gaiola, se existir e o cão não tiver sido resgatado
+        if (typeof window.atualizarGaiola === 'function' && !window.isCaoResgatado) {
+            window.atualizarGaiola();
+        }
+
         // 5. Atualização de Itens Coletáveis (Gravidade e Colisão)
         if (window.itensColetaveis && Array.isArray(window.itensColetaveis)) {
             for (let i = window.itensColetaveis.length - 1; i >= 0; i--) {

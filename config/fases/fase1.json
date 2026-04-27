@@ -2,6 +2,8 @@
     "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
     "objetivo": "e40",
+    "posicaoGaiola": "b9",
+    "posicaoCachorro": "",
     "itens": {
         "revolver": "o3",
         "cinto": "o6"
@@ -24,6 +26,5 @@
         "f35"
     ],
     "inimigo_comum": ["b26", "b35", "d35"],
-    "inimigo_feno": ["b7"],
-    "posicaoCachorro": "b11"
+    "inimigo_feno": ["b7"]
 }

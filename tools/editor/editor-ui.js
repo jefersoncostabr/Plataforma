@@ -30,7 +30,7 @@
         let blockTypeSelect = null;
 
         function configurarPaleta() {
-            const items = document.querySelectorAll('.palette-item');
+            const items = palette.querySelectorAll('.palette-item');
             items.forEach(item => {
                 item.onclick = () => {
                     items.forEach(i => i.classList.remove('selected'));
@@ -63,6 +63,49 @@
             }
 
             configurarPaleta();
+        }
+
+        function configurarPaletaGaiola() {
+            console.group("[EditorUI] Injeção de Itens Especiais");
+            const categorias = Array.from(palette.querySelectorAll('.category'));
+            console.log("Categorias encontradas na paleta:", categorias.map(c => c.querySelector('h4')?.innerText));
+
+            const catSistemas = categorias.find(cat => {
+                const texto = (cat.querySelector('h4')?.innerText || "").trim().toLowerCase();
+                // Adicionado 'sistema' para suportar o título exato encontrado no seu log
+                return ['sistema', 'sistemas', 'configuração', 'especial', 'npcs', 'geral'].some(termo => texto.includes(termo));
+            });
+
+            if (catSistemas) {
+                console.log("Categoria alvo identificada:", catSistemas.querySelector('h4')?.innerText);
+                
+                // Injeção da Gaiola
+                if (!catSistemas.querySelector('[data-type="gaiola"]')) {
+                    const img = document.createElement('img');
+                    img.src = '../../assets/personagem/gaiola1.png';
+                    img.className = 'palette-item';
+                    img.setAttribute('data-type', 'gaiola');
+                    img.title = 'Gaiola com Cão';
+                    catSistemas.appendChild(img);
+                    console.log("Item 'gaiola' injetado com sucesso.");
+                }
+
+                // Injeção do Cão (NPC) livre
+                if (!catSistemas.querySelector('[data-type="cachorro"]')) {
+                    const imgCao = document.createElement('img');
+                    imgCao.src = '../../assets/personagem/cao_parado.png';
+                    imgCao.className = 'palette-item';
+                    imgCao.setAttribute('data-type', 'cachorro');
+                    imgCao.title = 'Cachorro (NPC)';
+                    catSistemas.appendChild(imgCao);
+                    console.log("Item 'cachorro' injetado com sucesso.");
+                }
+
+                configurarPaleta(); // Re-vincula os eventos de clique para os novos itens
+            } else {
+                console.warn("[EditorUI] Categoria de sistemas não encontrada na paleta. Verifique os títulos H4 no HTML.");
+            }
+            console.groupEnd();
         }
 
         function addBlocks(coordsArray) {
@@ -357,6 +400,7 @@
         return {
             configurarPaleta,
             configurarPaletaDinamicaItens,
+            configurarPaletaGaiola,
             configurarFerramentasAutomaticas,
             configurarControlesDimensoes,
             configurarTooltip,

@@ -4,13 +4,6 @@
 
 const TILE_SIZE = window.EditorConfig?.TILE_SIZE || 32;
 const {
-    PLATFORM_DEFS = [],
-    ENEMY_DEFS = [],
-    SYSTEM_DEFS = [],
-    COORD_ARRAY_KEYS = [],
-    createEmptyFaseData = () => ({})
-} = window.EditorConfig || {};
-const {
     rowToLetters = (row) => String.fromCharCode(97 + row),
     pointToCoord = () => 'a1',
     coordToParts = () => null,
@@ -26,7 +19,7 @@ const PHASES_MANIFEST_PATH = `${PHASES_BASE_PATH}index.json`;
 const PHASE_DISCOVERY_CANDIDATES = ['treino.json', ...Array.from({ length: 50 }, (_, i) => `fase${i + 1}.json`)];
 
 // Estado da fase
-let faseData = createEmptyFaseData();
+let faseData = window.EditorConfig?.createEmptyFaseData() || {};
 
 // Novo: dicionário de definições de itens carregados dos JSONs
 let itemDefinitions = {};
@@ -126,9 +119,15 @@ function aplicarFaseDataEditor(novoEstado, opcoes = {}) {
 }
 
 function obterLegendaCoord(coord) {
+    const PLATFORM_DEFS = window.EditorConfig?.PLATFORM_DEFS || [];
+    const ENEMY_DEFS = window.EditorConfig?.ENEMY_DEFS || [];
+    const SYSTEM_DEFS = window.EditorConfig?.SYSTEM_DEFS || [];
+
     for (const def of [...PLATFORM_DEFS, ...ENEMY_DEFS]) {
         if ((faseData[def.stateKey] || []).includes(coord)) return def.label;
     }
+
+    if (faseData.posicaoGaiola === coord) return 'Gaiola com Cão';
 
     for (const def of SYSTEM_DEFS) {
         if (faseData[def.stateKey] === coord) return def.label;
@@ -146,6 +145,17 @@ function obterLegendaCoord(coord) {
 // Inicialização
 
 window.onload = async () => {
+    console.group("🚀 [Editor] Inicialização");
+    console.log("Configurações detectadas:", { 
+        TileSize: TILE_SIZE,
+        HasConfig: !!window.EditorConfig,
+        SystemCount: window.EditorConfig?.SYSTEM_DEFS?.length,
+        PaletaID: !!document.getElementById('palette'),
+        StageID: !!document.getElementById('game-stage')
+    });
+
+    const createEmptyFaseData = window.EditorConfig?.createEmptyFaseData || (() => ({}));
+
     await carregarItemDefinitions();
 
     renderizadorEditor = window.criarRenderizadorEditor({
@@ -291,6 +301,7 @@ window.onload = async () => {
     uiEditor.configurarControlesDimensoes();
     atualizarTamanhoStage();
     uiEditor.configurarPaletaDinamicaItens();
+    uiEditor.configurarPaletaGaiola();
     uiEditor.configurarStage();
     uiEditor.configurarFerramentasAutomaticas();
     uiEditor.configurarSpawnAleatorio();
@@ -303,6 +314,8 @@ window.onload = async () => {
         arquivosCandidatos: PHASE_DISCOVERY_CANDIDATES,
         aoCarregarFase: (arquivo) => definirArquivoFaseAtual(arquivo)
     });
+
+    console.groupEnd();
 
     btnExport.onclick = () => persistenciaEditor.exportarJSON();
     btnImport.onclick = () => persistenciaEditor.importarJSON();
@@ -375,6 +388,7 @@ function configurarGrade() {
 
 
 function adicionarElemento(coord) {
+    console.log(`[Editor] adicionarElemento: tipo=${itemSelecionado}, coord=${coord}`);
     removerElemento(coord);
 
     const definition = window.EditorConfig?.getDefinitionByType(itemSelecionado);
@@ -404,6 +418,10 @@ function adicionarElemento(coord) {
 }
 
 function removerElemento(coord) {
+    console.log(`[Editor] removerElemento na coord=${coord}`);
+    const COORD_ARRAY_KEYS = window.EditorConfig?.COORD_ARRAY_KEYS || [];
+    const SYSTEM_DEFS = window.EditorConfig?.SYSTEM_DEFS || [];
+
     COORD_ARRAY_KEYS.forEach((key) => {
         faseData[key] = (faseData[key] || []).filter(c => c !== coord);
     });
@@ -419,9 +437,10 @@ function removerElemento(coord) {
         else faseData.itens[tipo] = filtradas;
     });
 
-    if (faseData.posicaoInicialJogador === coord) faseData.posicaoInicialJogador = '';
-    if (faseData.objetivo === coord) faseData.objetivo = '';
-    if (faseData.posicaoCachorro === coord) faseData.posicaoCachorro = '';
+    // Limpeza dinâmica baseada nas definições de sistema
+    SYSTEM_DEFS.forEach(def => {
+        if (faseData[def.stateKey] === coord) faseData[def.stateKey] = '';
+    });
 
     aplicarFaseDataEditor(faseData);
 }

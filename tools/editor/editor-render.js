@@ -1,10 +1,5 @@
 (function () {
     const TILE_SIZE = window.EditorConfig?.TILE_SIZE || 32;
-    const {
-        PLATFORM_DEFS = [],
-        ENEMY_DEFS = [],
-        SYSTEM_DEFS = []
-    } = window.EditorConfig || {};
     const { coordToParts, rowToLetters, iterarItensData = () => [] } = window.EditorUtils || {};
 
     function criarRenderizadorEditor(opcoes = {}) {
@@ -69,6 +64,12 @@
         function atualizarVisual() {
             const faseData = getFaseData();
             const itemDefinitions = typeof getItemDefinitions === 'function' ? getItemDefinitions() : {};
+            
+            // Captura dinâmica das definições para evitar que fiquem vazias no carregamento
+            const PLATFORM_DEFS = window.EditorConfig?.PLATFORM_DEFS || [];
+            const ENEMY_DEFS = window.EditorConfig?.ENEMY_DEFS || [];
+            const SYSTEM_DEFS = window.EditorConfig?.SYSTEM_DEFS || [];
+
             const elementos = stage.querySelectorAll('img');
             elementos.forEach(el => el.remove());
 
@@ -97,7 +98,14 @@
 
             SYSTEM_DEFS.forEach((def) => {
                 const coord = faseData[def.stateKey];
-                if (coord) criarIcone(coord, def.sprite, def.className || '');
+                if (coord) {
+                    console.log(`[EditorRender] Renderizando sistema: ${def.type} em ${coord}`);
+                    // Para a gaiola, renderizamos o cão atrás para feedback visual fiel ao jogo
+                    if (def.type === 'gaiola') {
+                        criarIcone(coord, '../../assets/personagem/cao_parado.png', 'editor-npc-fundo');
+                    }
+                    criarIcone(coord, def.sprite, def.className || '');
+                }
             });
 
             console.debug('[EditorRender] render finalizado', {

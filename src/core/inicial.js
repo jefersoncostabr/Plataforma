@@ -436,16 +436,28 @@ async function carregarFase(nomeArquivo) {
         // Garante visual limpo do jogador após reposicionamento no spawn.
         limparAnimacaoDanoJogador();
 
-        // Inicializa o cachorro NPC se houver posição definida no JSON da fase (via Editor)
-        console.log("[DEBUG CAO] Verificando spawn. Função existe:", (typeof window.inicializarCaoNPC === 'function'), "| Dados no JSON:", fase.posicaoCachorro);
+        // --- LÓGICA DE RESGATE DO CÃO ---
+        const cãoJáResgatado = window.isCaoResgatado === true;
+        console.log(`[DEBUG GAIOLA] Estado de resgate global: ${cãoJáResgatado}`);
 
-        if (typeof window.inicializarCaoNPC === 'function') {
-            const posCaoStr = fase.posicaoCachorro;
-            const posCao = posCaoStr ? (window.gridParaPixels ? window.gridParaPixels(posCaoStr) : null) : null;
-            
-            if (posCao) {
-                console.log("[DEBUG CAO] Executando inicialização em pixels:", posCao);
-                window.inicializarCaoNPC(posCao.x, posCao.y);
+        if (cãoJáResgatado) {
+            // Se já foi resgatado, o cão aparece livre próximo ao jogador
+            if (typeof window.iniciarCao === 'function') {
+                console.log("[DEBUG GAIOLA] Cão já resgatado. Spawnando aliado seguindo o player.");
+                window.iniciarCao({ x: pos.x - 32, y: pos.y }, window.config);
+            }
+        } else if (fase.posicaoGaiola) {
+            // Se não foi resgatado e a fase tem uma gaiola, cria a gaiola
+            if (typeof window.criarGaiola === 'function') {
+                const posGaiola = window.gridParaPixels(fase.posicaoGaiola);
+                console.log(`[DEBUG GAIOLA] Criando gaiola na coord ${fase.posicaoGaiola} (Pixels: x:${posGaiola.x}, y:${posGaiola.y})`);
+                window.criarGaiola(posGaiola, window.config);
+            } else {
+                console.error("[DEBUG GAIOLA] Erro: Função window.criarGaiola não encontrada! Verifique se docs/gaiola.js foi carregado.");
+            }
+        } else {
+            if (fase.posicaoCachorro) {
+                console.warn("[DEBUG GAIOLA] Aviso: fase.posicaoCachorro ignorada. Use posicaoGaiola no editor.");
             }
         }
     }
