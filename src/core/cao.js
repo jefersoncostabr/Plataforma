@@ -1,13 +1,12 @@
 (function () {
-    console.log("%c[SISTEMA CAO] Tentando carregar módulo do cão...", "color: cyan;");
-    
+    console.log("[SISTEMA CAO] Arquivo cao.js carregado e ativo.");
     window.isCaoResgatado = typeof window.isCaoResgatado !== 'undefined' ? window.isCaoResgatado : false;
 
     // Caminhos padronizados para os assets
     const SPRITE_PARADO = '../../assets/personagem/cao_parado.png';
     const SPRITE_MOV = '../../assets/personagem/cao_mov.png';
     const SPRITE_MORDENDO = '../../assets/personagem/cao_mordendo.png';
-
+    
     const DISTANCIA_PARA_SEGUIR = 45; 
     const DISTANCIA_MAX_PLAYER = 600; // Teleporta se ficar muito para trás
     const VELOCIDADE_CAO = 3;
@@ -21,8 +20,6 @@
      * Inicializa ou reposiciona o cachorro NPC próximo ao jogador.
      */
     window.inicializarCaoNPC = function (x, y, gameConfig) {
-        console.log("[CAO] Função inicializarCaoNPC chamada para criar/reposicionar o cão.");
-        console.log("[CAO] Criando entidade lógica em:", x, y);
         const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
         if (!palco) return;
 
@@ -73,7 +70,6 @@
         // REGISTRO GLOBAL: Essencial para o movimento.js encontrar o cachorro
         window.caoEntidade = cao;
         
-        console.log(`[SISTEMA CAO] Cachorro inicializado com ID: ${meuId}. Iniciando Loop...`);
         // Só inicia o loop se não houver um rodando
         if (!loopAtivoGlobal) {
             loopAtivoGlobal = true;
@@ -104,14 +100,6 @@
 
             if (window.controlandoCao) {
                 const teclas = window.playerControle?.teclas || {};
-                
-                // DEBUG PROFUNDO: Verifica o estado bruto do objeto de teclas
-                if (teclas['k'] || teclas['K'] || teclas['KeyK'] || teclas['v'] || teclas['V']) {
-                    console.log("[DEBUG CAO] Tecla de ataque detectada no loop:", {
-                        k: teclas['k'], K: teclas['K'], KeyK: teclas['KeyK'],
-                        v: teclas['v'], V: teclas['V']
-                    });
-                }
 
                 cao.movendoHorizontal = false;
                 let deslocX = 0;
@@ -135,6 +123,7 @@
                 }
 
                 if (typeof window.aplicarFisica === 'function') {
+                    // Mapeia Espaço, W ou Seta Cima para o pulo do cão
                     const mockTeclas = { ' ': !!(teclas[' '] || teclas['w'] || teclas['W'] || teclas['ArrowUp']) };
                     window.aplicarFisica(cao, mockTeclas, 8.5, config.inimigoGravidade || 0.6, 0);
                     if (cao.velocidadeY > 0) cao.noChao = false;
@@ -151,16 +140,7 @@
                     (window.playerControle?.acoesDiscretas?.chute)
                 );
 
-                // LOG DE PRESSIONAMENTO SIMPLES (Solicitado)
-                if (kPressionado) {
-                    console.log("[DEBUG CAO] Loop detectou tecla K pressionada!");
-                }
-
                 cao.kPressionadoAnterior = kPressionado;
-
-                if (apertandoChute !== cao.mordendo) {
-                    console.log(`%c[DEBUG CAO] Mudança Visual Mordida: ${apertandoChute}`, "color: #00ff00");
-                }
 
                 cao.mordendo = apertandoChute;
 
@@ -242,7 +222,6 @@
                                          window.detectarColisaoHitbox(hitboxCaoBase, hitboxPlayerTopo, 0, 0, 0);
 
                 if (colidiuTrampolim) {
-                    console.log("%c[SISTEMA] Salto Trampolim Ativado!", "color: #ffaa00; font-weight: bold;");
                     cao.velocidadeY = config.forcaPuloTrampolim || 12; 
                     cao.noChao = false;
                     window.AudioManager?.playSFX('pulo', 0.6);
@@ -280,20 +259,6 @@
 
     // ESCUTA GLOBAL DE EVENTOS (Deep Debug)
     document.addEventListener('keydown', (e) => {
-        // Se for a tecla K, logamos com destaque
-        if (e.key.toLowerCase() === 'k') {
-            console.log("%c[DEBUG HARDWARE] Tecla 'K' detectada pelo navegador!", "background: #222; color: #bada55; padding: 2px 5px;");
-            console.log({
-                key: e.key,
-                code: e.code,
-                controlandoCao: window.controlandoCao,
-                isPaused: window.isPaused,
-                isCaoResgatado: window.isCaoResgatado
-            });
-        }
-
-        // Log para identificar se algum script está bloqueando o evento
-        console.log(`[TECLA DETECTADA] Key: ${e.key} | Code: ${e.code} | Target: ${e.target.tagName}`);
     }, true); // O parâmetro 'true' (capture) garante que peguemos a tecla antes de outros scripts
 
     /**
@@ -301,7 +266,6 @@
      * Chamada pelo gaiola.js quando o player colide.
      */
     window.libertarCao = function (gaiolaObj) {
-        console.log("[CAO] window.libertarCao executada!");
         if (window.isCaoResgatado) return;
 
         window.isCaoResgatado = true;
