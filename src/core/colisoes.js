@@ -342,3 +342,5 @@ function detectarColisaoHitbox(objA, objB, pX = 4, pTopo = 4, pBase = 4) {
             a.base < b.topo);
 }
 
+// Expondo globalmente para ser usada por outros sistemas (como o cao.js e movimento.js)
+window.detectarColisaoHitbox = detectarColisaoHitbox;

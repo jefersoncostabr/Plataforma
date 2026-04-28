@@ -7,6 +7,7 @@ window.niveis = []; // Será preenchido dinamicamente pelo index.json
 
 window.nivelAtual = 0;
 window.isTraining = false; // Flag para identificar se o jogador está no modo treino
+window.controlandoCao = false; // Flag para identificar se o jogador está controlando o cachorro
 window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para inimigo aleatório
 window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro inimigo
 
@@ -438,19 +439,17 @@ async function carregarFase(nomeArquivo) {
 
         // --- LÓGICA DE RESGATE DO CÃO ---
         const cãoJáResgatado = window.isCaoResgatado === true;
-        console.log(`[DEBUG GAIOLA] Estado de resgate global: ${cãoJáResgatado}`);
 
         if (cãoJáResgatado) {
+            console.log("[SISTEMA] Cão resgatado detectado. Tentando spawnar o cão próximo ao jogador.");
             // Se já foi resgatado, o cão aparece livre próximo ao jogador
             if (typeof window.iniciarCao === 'function') {
-                console.log("[DEBUG GAIOLA] Cão já resgatado. Spawnando aliado seguindo o player.");
                 window.iniciarCao({ x: pos.x - 32, y: pos.y }, window.config);
             }
         } else if (fase.posicaoGaiola) {
             // Se não foi resgatado e a fase tem uma gaiola, cria a gaiola
             if (typeof window.criarGaiola === 'function') {
                 const posGaiola = window.gridParaPixels(fase.posicaoGaiola);
-                console.log(`[DEBUG GAIOLA] Criando gaiola na coord ${fase.posicaoGaiola} (Pixels: x:${posGaiola.x}, y:${posGaiola.y})`);
                 window.criarGaiola(posGaiola, window.config);
             } else {
                 console.error("[DEBUG GAIOLA] Erro: Função window.criarGaiola não encontrada! Verifique se docs/gaiola.js foi carregado.");

@@ -9,6 +9,7 @@
 
     let caoElemento = null;
     let caoControle = null;
+    let loopIniciado = false;
     let config = {};
 
     /**
@@ -39,8 +40,9 @@
             caoControle = {
                 x: pos.x,
                 y: pos.y,
-                largura: 32,
-                altura: 32,
+                largura: 12, // Hitbox precisa de 12x12
+                altura: 12,
+                offsetX: 11, // Iniciando no 11º pixel horizontal (centralizado na base)
                 elemento: caoElemento,
                 velocidade: config.velocidadeCao || 2,
                 direcao: 'd',
@@ -52,7 +54,14 @@
                 spriteParado: config.spriteCao || '../../assets/personagem/cao_parado.png',
                 spriteAndando: config.spriteCaoAndando || '../../assets/personagem/cao_mov.png'
             };
-            window.cicloVidaCao(); // Inicia o comportamento de seguir
+
+            // Registro global para sincronia com movimento.js e câmera
+            window.caoEntidade = caoControle;
+
+            if (!loopIniciado) {
+                loopIniciado = true;
+                window.cicloVidaCao(); 
+            }
         }
     };
 
@@ -60,43 +69,109 @@
      * Lógica principal de comportamento do cão (seguir o jogador).
      */
     window.cicloVidaCao = function () {
-        if (!window.isCaoResgatado || !caoControle || !window.playerControle) {
+        if (!caoControle || !window.playerControle) {
             requestAnimationFrame(window.cicloVidaCao);
             return;
         }
 
         const player = window.playerControle;
-        const distanciaX = player.x - caoControle.x;
-        const distanciaY = player.y - caoControle.y;
-        const distanciaMinima = config.distanciaMinimaCaoSeguir || 48; // Distância para o cão começar a se mover
-
         let movendoHorizontal = false;
 
-        if (Math.abs(distanciaX) > distanciaMinima) {
-            if (distanciaX > 0) {
-                caoControle.x += caoControle.velocidade;
-                caoControle.direcao = 'd';
+        if (!window.isPaused) {
+            if (window.controlandoCao) {
+                const teclas = player.teclas || {};
+                let deslocX = 0;
+
+                // --- COMANDOS DE MOVIMENTO MANUAL ---
+                if (teclas['a'] || teclas['A'] || teclas['ArrowLeft']) {
+                    deslocX = -(config.velocidadeCao || 3);
+                    caoControle.direcao = 'e';
+                    movendoHorizontal = true;
+                } else if (teclas['d'] || teclas['D'] || teclas['ArrowRight']) {
+                    deslocX = (config.velocidadeCao || 3);
+                    caoControle.direcao = 'd';
+                    movendoHorizontal = true;
+                }
+
+                if (deslocX !== 0) {
+                    // Aplica deslocamento com colisão
+                    if (typeof window.aplicarDeslocamentoHorizontalComColisaoPadrao === 'function') {
+                        window.aplicarDeslocamentoHorizontalComColisaoPadrao(caoControle, deslocX, window.plataformas, { 
+                            maxPasso: 1,
+                            largura: caoControle.largura,
+                            altura: caoControle.altura,
+                            offsetX: caoControle.offsetX
+                        });
+                    } else {
+                        caoControle.x += deslocX;
+                    }
+                }
+
+                // --- COMANDO DE PULO ---
+                if (typeof window.aplicarFisica === 'function') {
+                    // Mapeia Espaço, W ou Seta Cima para o pulo do cão
+                    const mockTeclas = { ' ': !!(teclas[' '] || teclas['w'] || teclas['W'] || teclas['ArrowUp']) };
+                    window.aplicarFisica(caoControle, mockTeclas, 8.5, config.gravidadeCao || 0.6, 0);
+                    if (caoControle.velocidadeY > 0) caoControle.noChao = false;
+                }
+
+                // Lógica de retorno (Baixo + Q)
+                const segurandoBaixo = teclas['s'] || teclas['S'] || teclas['ArrowDown'];
+                const apertandoQ = teclas['q'] || teclas['Q'];
+                if (segurandoBaixo && apertandoQ) {
+                    const colidindo = typeof window.detectarColisaoHitbox === 'function' && 
+                                     window.detectarColisaoHitbox(caoControle, player, -10, -10, -10);
+                    if (colidindo) {
+                        window.controlandoCao = false;
+                        teclas['q'] = false;
+                    }
+                }
             } else {
-                caoControle.x -= caoControle.velocidade;
-                caoControle.direcao = 'e';
+                // Inteligência de Seguimento (NPC)
+                const distanciaX = player.x - caoControle.x;
+                const distanciaMinima = config.distanciaMinimaCaoSeguir || 48;
+
+                if (Math.abs(distanciaX) > distanciaMinima && !player.estaMorrendo && !window.isPaused) {
+                    const dir = Math.sign(distanciaX);
+                    const deslocX = dir * (config.velocidadeCao || 2.5);
+                    
+                    if (typeof window.aplicarDeslocamentoHorizontalComColisaoPadrao === 'function') {
+                        window.aplicarDeslocamentoHorizontalComColisaoPadrao(caoControle, deslocX, window.plataformas, { 
+                            maxPasso: 1,
+                            largura: caoControle.largura,
+                            altura: caoControle.altura,
+                            offsetX: caoControle.offsetX
+                        });
+                    } else {
+                        caoControle.x += deslocX;
+                    }
+                    
+                    caoControle.direcao = dir > 0 ? 'd' : 'e';
+                    movendoHorizontal = true;
+                }
+
+                if (typeof window.aplicarFisica === 'function') {
+                    window.aplicarFisica(caoControle, {}, 0, config.gravidadeCao || 0.6, 0);
+                }
             }
-            movendoHorizontal = true;
+
+            // Colisão Vertical (Solo)
+            caoControle.noChao = false;
+            const hitV = typeof window.verificarColisaoComTiles === 'function' ? 
+                            window.verificarColisaoComTiles(caoControle.x + caoControle.offsetX, caoControle.y, caoControle.largura, caoControle.altura, window.plataformas) : null;
+            if (hitV) {
+                if (caoControle.velocidadeY < 0) {
+                    caoControle.noChao = true;
+                    caoControle.y = window.aplicarSnapColisaoPadrao(caoControle.y, 0, caoControle.altura, hitV, 'cima');
+                } else if (caoControle.velocidadeY > 0) {
+                    caoControle.y = window.aplicarSnapColisaoPadrao(caoControle.y, 0, caoControle.altura, hitV, 'baixo');
+                }
+                caoControle.velocidadeY = 0;
+            }
         }
 
-        // Aplica gravidade ao cão
-        if (typeof aplicarFisica === 'function') {
-            aplicarFisica(caoControle, {}, config.forcaPuloCao || 8, config.gravidadeCao || 0.6, config.cooldownPuloCao || 30);
-        }
-
-        // Colisão vertical simples para o cão (chão)
-        caoControle.noChao = false;
-        const hitV = typeof verificarColisaoComTiles === 'function' ? verificarColisaoComTiles(caoControle.x, caoControle.y, caoControle.largura, caoControle.altura, window.plataformas) : null;
-        if (hitV) {
-            caoControle.noChao = true;
-            caoControle.velocidadeY = 0;
-            caoControle.y = window.aplicarSnapColisaoPadrao(caoControle.y, 0, caoControle.altura, hitV, 'cima');
-        }
-
+        // Sincronização Visual
+        caoControle.movendoHorizontal = movendoHorizontal;
         caoControle.elemento.style.left = caoControle.x + 'px';
         caoControle.elemento.style.bottom = caoControle.y + 'px';
         caoControle.elemento.style.transform = caoControle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
@@ -134,7 +209,6 @@
 
         // Spawna o cão livre na posição da gaiola
         window.iniciarCao({ x: gaiolaObj.x, y: gaiolaObj.y }, config || window.config);
-        console.log("Cão resgatado!");
 
         // TODO: Adicionar a flag isCaoResgatado ao sistema de salvamento
         // if (typeof window.saveGame === 'function') {

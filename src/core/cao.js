@@ -8,25 +8,29 @@
     const VELOCIDADE_CAO = 3;
 
     let cao = null;
-    let loopAtivo = false;
+    let loopAtivoGlobal = false;
     let idLoopAtual = 0;
 
     /**
      * Inicializa ou reposiciona o cachorro NPC próximo ao jogador.
      */
     window.inicializarCaoNPC = function (x, y) {
+        console.log("[CAO] Função inicializarCaoNPC chamada para criar/reposicionar o cão.");
+        console.log("[CAO] Criando entidade lógica em:", x, y);
         const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
         if (!palco) return;
 
         // Cancela loops anteriores para evitar que a física duplique (causando quedas através do chão)
         idLoopAtual++;
         const meuId = idLoopAtual;
+        window.idCaoAtivo = meuId;
 
         // Remove instância anterior se houver (evita duplicidade em trocas de fase)
         if (cao && cao.elemento) cao.elemento.remove();
 
         const img = document.createElement('img');
         img.src = SPRITE_PARADO;
+        img.id = 'cao-aliado'; // ID fixo para busca direta via getElementById
         img.className = 'npc-cao';
         // Z-index 100 para garantir que ele fique sempre visível sobre o cenário
         img.style.cssText = `position: absolute; width: 32px; height: 32px; image-rendering: pixelated; z-index: 100; pointer-events: none;`;
@@ -54,21 +58,91 @@
             frameAtual: 0,
             idAtivo: meuId
         };
-
-        requestAnimationFrame(() => cicloVidaCao(meuId));
+        // REGISTRO GLOBAL: Essencial para o movimento.js encontrar o cachorro
+        window.caoEntidade = cao;
+        
+        // Só inicia o loop se não houver um rodando
+        if (!loopAtivoGlobal) {
+            loopAtivoGlobal = true;
+            requestAnimationFrame(() => cicloVidaCao(meuId));
+        }
     };
+    // Cria o alias para a função que o inicial.js está chamando
+    window.iniciarCao = (pos, cfg) => window.inicializarCaoNPC(pos.x, pos.y);
 
     function cicloVidaCao(idControle) {
         // Se o cachorro foi reinicializado, este loop antigo deve morrer
-        if (!cao || cao.idAtivo !== idControle) {
+        if (window.idCaoAtivo !== idControle) {
+            loopAtivoGlobal = false;
             return;
+        }
+
+        // AUTO-CONEXÃO: Se o objeto local sumiu mas o global existe (recuperado pelo DOM), sincroniza
+        if (!cao && window.caoEntidade) {
+            cao = window.caoEntidade;
+            cao.idAtivo = idControle;
         }
 
         const player = window.playerControle;
         
         // 1. Processamento de Lógica e Física (Apenas se o jogo NÃO estiver pausado)
-        if (!window.isPaused) {
+        if (!window.isPaused && cao) {
             const cfg = window.config || {};
+
+            if (window.controlandoCao) {
+                const teclas = window.playerControle?.teclas || {};
+                cao.movendoHorizontal = false;
+                let deslocX = 0;
+
+                // Controle manual do cachorro
+                if (teclas['a'] || teclas['A'] || teclas['ArrowLeft']) {
+                    deslocX = -VELOCIDADE_CAO;
+                    cao.direcao = 'e';
+                    cao.movendoHorizontal = true;
+                } else if (teclas['d'] || teclas['D'] || teclas['ArrowRight']) {
+                    deslocX = VELOCIDADE_CAO;
+                    cao.direcao = 'd';
+                    cao.movendoHorizontal = true;
+                }
+
+                if (deslocX !== 0) {
+                    window.aplicarDeslocamentoHorizontalComColisaoPadrao(cao, deslocX, window.plataformas, {
+                        maxPasso: 1,
+                        cancelarKnockbackAoColidir: true
+                    });
+                }
+
+                if (typeof window.aplicarFisica === 'function') {
+                    const mockTeclas = { ' ': !!(teclas[' '] || teclas['w'] || teclas['W'] || teclas['ArrowUp']) };
+                    window.aplicarFisica(cao, mockTeclas, 8.5, cfg.inimigoGravidade || 0.6, 0);
+                    if (cao.velocidadeY > 0) cao.noChao = false;
+                }
+
+                // Lógica de retorno ao player: Baixo + Q + Colisão
+                const segurandoBaixo = teclas['s'] || teclas['S'] || teclas['ArrowDown'];
+                const apertandoQ = teclas['q'] || teclas['Q'];
+                
+                if (segurandoBaixo && apertandoQ && player) {
+                    const hitboxCao = { x: cao.x, y: cao.y, largura: cao.largura, altura: cao.altura };
+                    const hitboxPlayer = { 
+                        x: player.x + (player.offsetX || 0),
+                        y: player.y, 
+                        largura: player.largura, 
+                        altura: player.altura 
+                    };
+                    const colidindo = typeof window.detectarColisaoHitbox === 'function' && 
+                                     window.detectarColisaoHitbox(hitboxCao, hitboxPlayer, -15, -15, -15);
+                    
+                    console.log("[DEBUG CAO] Colisão com Player:", colidindo);
+
+                    if (colidindo) {
+                        console.log("[SISTEMA] Troca realizada: Cachorro -> Jogador");
+                        window.controlandoCao = false;
+                        teclas['q'] = false; // Consome a tecla para evitar re-trigger imediato
+                        teclas['Q'] = false;
+                    }
+                }
+            } else {
             const deltaX = player ? (player.x - cao.x) : 0;
             cao.movendoHorizontal = false;
 
@@ -108,6 +182,7 @@
                     cao.y = player.y;
                     cao.velocidadeY = 0;
                 }
+            }
             }
 
             // 4. Colisão Vertical (Solo)

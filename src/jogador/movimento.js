@@ -768,6 +768,75 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
             }
         }
 
+        // --- LÓGICA DE TROCA DE PERSONAGEM (PRIORIDADE MÁXIMA) ---
+        // Verifica se o jogador quer assumir o controle do cachorro (Abaixar + Colisão + 'Q')
+        const apertouQ = (controle.teclas['q'] || controle.teclas['Q']);
+        
+        if (!window.controlandoCao && apertouQ) {
+            // TENTATIVA DE AUTO-RECUPERAÇÃO: Se o objeto sumiu mas o cachorro está na tela
+            if (!window.caoEntidade) {
+                // Procura por ID novo, ID antigo ou Classe
+                const elementoCaoNaTela = document.getElementById('cao-aliado') || 
+                                         document.getElementById('cao') || 
+                                         document.querySelector('.npc-cao');
+
+                if (elementoCaoNaTela) {
+                    console.log(`[SISTEMA] Cão detectado via DOM (ID: ${elementoCaoNaTela.id || 'sem id'}). Restaurando conexão...`);
+                    // Tenta reconstruir o objeto básico para não quebrar a troca
+                    window.caoEntidade = {
+                        elemento: elementoCaoNaTela,
+                        x: parseInt(elementoCaoNaTela.style.left) || 0,
+                        y: parseInt(elementoCaoNaTela.style.bottom) || 0,
+                        largura: 20, altura: 20, offsetX: 5,
+                        velocidadeY: 0,
+                        noChao: false,
+                        movendoHorizontal: false,
+                        direcao: 'd',
+                        contadorAnimacao: 0,
+                        frameAtual: 0
+                    };
+                    console.log("[SISTEMA] window.caoEntidade reconstruído via DOM.");
+                }
+            }
+
+            if (!window.caoEntidade) {
+                console.warn("[TROCA NEGADA] O sistema não encontrou o cachorro. Verifique se ele foi resgatado e está visível.");
+                return;
+            }
+
+            const distancia = Math.hypot(controle.x - window.caoEntidade.x, window.caoEntidade.y - controle.y);
+            console.log(`[DEBUG SWAP] Tecla Q + Agachado: ${controle.estaAgachado} | Distância: ${distancia.toFixed(1)}px`);
+            
+            if (!controle.estaAgachado) return; // Se apertou Q mas não agachou, não faz nada mas já logou acima
+
+            if (window.caoEntidade) {
+                const hitboxPlayer = { x: controle.x + (controle.offsetX || 0), y: controle.y, largura: controle.largura, altura: controle.altura };
+                const hitboxCao = { x: window.caoEntidade.x, y: window.caoEntidade.y, largura: window.caoEntidade.largura, altura: window.caoEntidade.altura };
+                
+                // Margem generosa (-15) para facilitar a detecção da troca
+                const colidindo = typeof window.detectarColisaoHitbox === 'function' && 
+                                 window.detectarColisaoHitbox(hitboxPlayer, hitboxCao, -15, -15, -15);
+                
+                console.log("[DEBUG SWAP] Colisão com cachorro detectada:", colidindo);
+
+                if (colidindo) {
+                    console.log("[SISTEMA] Troca realizada: Jogador -> Cachorro");
+                    window.controlandoCao = true;
+                    controle.teclas['q'] = false; // Consome a tecla para evitar comandos residuais
+                    controle.teclas['Q'] = false;
+                    window.AudioManager?.playSFX('engrenagem', 0.5);
+                    requestAnimationFrame(atualizar);
+                    return;
+                }
+            }
+        }
+
+        if (window.controlandoCao) {
+            processarEsperaJogador();
+            requestAnimationFrame(atualizar);
+            return;
+        }
+
         if (processarAcoesEspeciais()) {
             atualizarHUD();
             requestAnimationFrame(atualizar);
@@ -812,6 +881,33 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         if (window.isPaused) {
             requestAnimationFrame(atualizar);
             return;
+        }
+
+        // Função auxiliar para manter o jogador no chão enquanto o cachorro se move
+        function processarEsperaJogador() {
+            controle.movendoHorizontal = false;
+            controle.velocidadeHorizontalAtual = 0;
+            
+            if (typeof aplicarFisica === 'function') {
+                aplicarFisica(controle, {}, 0, config.inimigoGravidade || 0.6, 0);
+            }
+            const hitV = typeof verificarColisaoComTiles === 'function' ? verificarColisaoComTiles(controle.x + controle.offsetX, controle.y, controle.largura, controle.altura, window.plataformas) : null;
+            if (hitV && controle.velocidadeY < 0) {
+                controle.noChao = true;
+                controle.velocidadeY = 0;
+                if (typeof window.aplicarSnapColisaoPadrao === 'function') {
+                    controle.y = window.aplicarSnapColisaoPadrao(controle.y, 0, controle.altura, hitV, 'cima');
+                }
+            }
+            elemento.style.left = controle.x + 'px';
+            elemento.style.bottom = controle.y + 'px';
+            if (typeof atualizarAnimacao === 'function') {
+                atualizarAnimacao(controle, elemento, config.spriteParadoPlayer || spriteParado, config.spriteAndandoPlayer || spriteAndando, config.spriteNoArPlayer || spriteNoAr, config.spriteAgachadoPlayer || spriteAgachado, config.spriteAgachadoAndandoPlayer || spriteAgachado2);
+            }
+            sincronizarVisuaisEquipamentos();
+            if (typeof window.atualizarCamera === 'function' && window.caoEntidade) {
+                window.atualizarCamera(window.caoEntidade.x + 16, window.caoEntidade.y + 16, window.mundoLargura, window.mundoAltura);
+            }
         }
 
         // Resetamos o estado horizontal, mas o noChao será validado pelas colisões abaixo
