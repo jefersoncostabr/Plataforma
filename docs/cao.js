@@ -131,19 +131,39 @@
                 const distanciaX = player.x - caoControle.x;
                 const distanciaMinima = config.distanciaMinimaCaoSeguir || 48;
 
-                if (Math.abs(distanciaX) > distanciaMinima && !player.estaMorrendo && !window.isPaused) {
+                if (Math.abs(distanciaX) > distanciaMinima && !player.estaMorrendo) {
                     const dir = Math.sign(distanciaX);
                     const deslocX = dir * (config.velocidadeCao || 2.5);
                     
+                    const paramsColisao = { 
+                        maxPasso: 1,
+                        largura: caoControle.largura,
+                        altura: caoControle.altura,
+                        offsetX: caoControle.offsetX
+                    };
+
                     if (typeof window.aplicarDeslocamentoHorizontalComColisaoPadrao === 'function') {
-                        window.aplicarDeslocamentoHorizontalComColisaoPadrao(caoControle, deslocX, window.plataformas, { 
-                            maxPasso: 1,
-                            largura: caoControle.largura,
-                            altura: caoControle.altura,
-                            offsetX: caoControle.offsetX
-                        });
+                        window.aplicarDeslocamentoHorizontalComColisaoPadrao(caoControle, deslocX, window.plataformas, paramsColisao);
                     } else {
                         caoControle.x += deslocX;
+                    }
+                    
+                    // --- SALTO DE OBSTRUÇÃO ---
+                    // Se o cão estiver no chão e houver um bloco à frente, ele pula para tentar subir
+                    if (caoControle.noChao && typeof window.verificarColisaoComTiles === 'function') {
+                        const margemCheck = dir > 0 ? (caoControle.offsetX + caoControle.largura + 4) : (caoControle.offsetX - 6);
+                        const bloqueioFrente = window.verificarColisaoComTiles(
+                            caoControle.x + margemCheck, 
+                            caoControle.y + 2, 
+                            2, 
+                            8, 
+                            window.plataformas
+                        );
+                        
+                        if (bloqueioFrente) {
+                            caoControle.velocidadeY = config.forcaPuloCao || 8.5;
+                            caoControle.noChao = false;
+                        }
                     }
                     
                     caoControle.direcao = dir > 0 ? 'd' : 'e';
@@ -153,19 +173,53 @@
                 if (typeof window.aplicarFisica === 'function') {
                     window.aplicarFisica(caoControle, {}, 0, config.gravidadeCao || 0.6, 0);
                 }
+
+                // --- SALTO PARA ALCANÇAR O PLAYER ---
+                // Se o player estiver acima do cão e próximo horizontalmente, o cão pula para subir
+                if (caoControle.noChao && player.y > (caoControle.y + 32) && Math.abs(distanciaX) < 80) {
+                    caoControle.velocidadeY = (config.forcaPuloCao || 8.5) + 0.5;
+                    caoControle.noChao = false;
+                }
             }
 
-            // Colisão Vertical (Solo)
+            // --- COLISÃO VERTICAL REFINADA ---
             caoControle.noChao = false;
-            const hitV = typeof window.verificarColisaoComTiles === 'function' ? 
-                            window.verificarColisaoComTiles(caoControle.x + caoControle.offsetX, caoControle.y, caoControle.largura, caoControle.altura, window.plataformas) : null;
-            if (hitV) {
-                if (caoControle.velocidadeY < 0) {
-                    caoControle.noChao = true;
-                    caoControle.y = window.aplicarSnapColisaoPadrao(caoControle.y, 0, caoControle.altura, hitV, 'cima');
-                } else if (caoControle.velocidadeY > 0) {
-                    caoControle.y = window.aplicarSnapColisaoPadrao(caoControle.y, 0, caoControle.altura, hitV, 'baixo');
+            if (typeof window.verificarColisaoComTiles === 'function') {
+                // Lógica para queda/parado (Verifica apenas a base para suporte de chão)
+                if (caoControle.velocidadeY <= 0) {
+                    const hitSolo = window.verificarColisaoComTiles(
+                        caoControle.x + caoControle.offsetX, 
+                        caoControle.y, 
+                        caoControle.largura, 
+                        6, // Checa apenas os 6px de baixo
+                        window.plataformas
+                    );
+                    if (hitSolo) {
+                        caoControle.noChao = true;
+                        caoControle.y = window.aplicarSnapColisaoPadrao(caoControle.y, 0, caoControle.altura, hitSolo, 'cima');
+                        caoControle.velocidadeY = 0;
+                    }
+                } 
+                // Lógica para subida (Verifica apenas o topo para evitar snap falso no chão)
+                else if (caoControle.velocidadeY > 0) {
+                    const hitTeto = window.verificarColisaoComTiles(
+                        caoControle.x + caoControle.offsetX, 
+                        caoControle.y + 6, // Começa do meio da hitbox para cima
+                        caoControle.largura, 
+                        6, // Checa os 6px de cima
+                        window.plataformas
+                    );
+                    if (hitTeto) {
+                        caoControle.y = window.aplicarSnapColisaoPadrao(caoControle.y, 0, caoControle.altura, hitTeto, 'baixo');
+                        caoControle.velocidadeY = 0;
+                    }
                 }
+            }
+
+            // Segurança: Teleporte se o cão cair no buraco ou sumir do mapa
+            if (caoControle.y < -128 || (Math.abs(player.x - caoControle.x) > 800)) {
+                caoControle.x = player.x;
+                caoControle.y = player.y + 10;
                 caoControle.velocidadeY = 0;
             }
         }
