@@ -18,6 +18,15 @@ Este documento descreve os comandos do jogo, o menu de controles e como o remape
 - `chute`
 - `tiro`
 - `garra`
+- `cinto`
+- `airdrop`
+- `mochila`
+- `interagir`
+- `Debug: Próxima Fase`
+- `Debug: Spawn Inimigo`
+- `Debug: Reset Total`
+- `Pausar Jogo`
+- `Grade de Debug`
 
 ## Como remapear no jogo
 
@@ -36,16 +45,24 @@ Observacoes:
 ## Mapeamento padrao
 
 ```json
-{
-  "esquerda": ["ArrowLeft", "a", "A"],
-  "direita": ["ArrowRight", "d", "D"],
-  "cima": ["ArrowUp", "w", "W"],
-  "baixo": ["ArrowDown", "s", "S"],
-  "pulo": [" "],
-  "chute": ["k", "K"],
-  "tiro": ["i", "I"],
-  "garra": ["j", "J"]
-}
+"esquerda": ["ArrowLeft", "a", "A"],
+"direita": ["ArrowRight", "d", "D"],
+"cima": ["ArrowUp", "w", "W"],
+"baixo": ["ArrowDown", "s", "S"],
+"pulo": [" "],
+"chute": ["k", "K"],
+"tiro": ["i", "I"],
+"garra": ["j", "J"],
+"cinto": ["l", "L"],
+"airdrop": ["u", "U"],
+"mochila": ["Enter"],
+"interagir": ["e", "E"],
+"debugProximoNivel": ["4"],
+"debugSpawnInimigo": ["6"],
+"debugReset": ["0"],
+"pause": ["Escape"],
+"debugGrade": ["G"]
+
 ```
 
 ## Teclas de debug (nao remapeadas pelo menu)
