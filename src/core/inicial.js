@@ -452,7 +452,7 @@ async function carregarFase(nomeArquivo) {
                 const posGaiola = window.gridParaPixels(fase.posicaoGaiola);
                 window.criarGaiola(posGaiola, window.config);
             } else {
-                console.error("[DEBUG GAIOLA] Erro: Função window.criarGaiola não encontrada! Verifique se docs/gaiola.js foi carregado.");
+                console.error("[DEBUG GAIOLA] Erro: Função window.criarGaiola não encontrada! Verifique se src/core/gaiola.js foi carregado.");
             }
         } else {
             if (fase.posicaoCachorro) {
@@ -719,9 +719,11 @@ async function iniciarJogo() {
     window.isFirstStart = true;
 
     // Carrega configurações globais
-    const respostaConfig = await fetch('../../config/configuracoes.json');
+    const respostaConfig = await fetch('../../config/configuracoes.json', { cache: 'no-store' });
     const config = await respostaConfig.json();
     window.config = config;
+    // console.log("Configurações carregadas:", config);
+    console.log(config.velocidadePlayer);
 
     // Carrega a lista de fases dinamicamente do manifesto
     try {
@@ -828,7 +830,6 @@ async function iniciarJogo() {
     // Inicializa sistemas de movimento, IA e renderização
     await iniciarMovimentacao(
         'player',
-        config.velocidadePlayer || 4,
         '../../assets/personagem/Personagem_parado.png',
         '../../assets/personagem/Personagem_andando.png',
         '../../assets/personagem/personagem_chute2.png',

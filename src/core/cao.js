@@ -1,16 +1,7 @@
 (function () {
-    console.log("[SISTEMA CAO] Arquivo cao.js carregado e ativo.");
     window.isCaoResgatado = typeof window.isCaoResgatado !== 'undefined' ? window.isCaoResgatado : false;
 
     // Caminhos padronizados para os assets
-    const SPRITE_PARADO = '../../assets/personagem/cao_parado.png';
-    const SPRITE_MOV = '../../assets/personagem/cao_mov.png';
-    const SPRITE_MORDENDO = '../../assets/personagem/cao_mordendo.png';
-    
-    const DISTANCIA_PARA_SEGUIR = 45; 
-    const DISTANCIA_MAX_PLAYER = 600; // Teleporta se ficar muito para trás
-    const VELOCIDADE_CAO = 3;
-
     let cao = null;
     let loopAtivoGlobal = false;
     let idLoopAtual = 0;
@@ -34,7 +25,7 @@
         if (cao && cao.elemento) cao.elemento.remove();
 
         const img = document.createElement('img');
-        img.src = SPRITE_PARADO;
+        img.src = config.spriteCao || '../../assets/personagem/cao_parado.png';
         img.id = 'cao-aliado'; // ID fixo para busca direta via getElementById
         img.className = 'npc-cao';
         // Z-index 100 para garantir que ele fique sempre visível sobre o cenário
@@ -64,6 +55,9 @@
             idAtivo: meuId,
             mordendo: false,
             kPressionadoAnterior: false,
+            spriteParado: config.spriteCao || '../../assets/personagem/cao_parado.png',
+            spriteAndando: config.spriteCaoAndando || '../../assets/personagem/cao_mov.png',
+            estaSeguindo: true,    // Novo: controla se o NPC deve seguir o player
             ultimoToqueQ: 0,       // Restaurado para Double Tap
             qPressionadoAnterior: false // Restaurado para Double Tap
         };
@@ -106,11 +100,11 @@
 
                 // Controle manual do cachorro
                 if (teclas['a'] || teclas['A'] || teclas['ArrowLeft']) {
-                    deslocX = -VELOCIDADE_CAO;
+                    deslocX = -(config.velocidadeCao || 3);
                     cao.direcao = 'e';
                     cao.movendoHorizontal = true;
                 } else if (teclas['d'] || teclas['D'] || teclas['ArrowRight']) {
-                    deslocX = VELOCIDADE_CAO;
+                    deslocX = (config.velocidadeCao || 3);
                     cao.direcao = 'd';
                     cao.movendoHorizontal = true;
                 }
@@ -125,7 +119,7 @@
                 if (typeof window.aplicarFisica === 'function') {
                     // Mapeia Espaço, W ou Seta Cima para o pulo do cão
                     const mockTeclas = { ' ': !!(teclas[' '] || teclas['w'] || teclas['W'] || teclas['ArrowUp']) };
-                    window.aplicarFisica(cao, mockTeclas, 8.5, config.inimigoGravidade || 0.6, 0);
+                    window.aplicarFisica(cao, mockTeclas, config.forcaPuloCaoManual || config.forcaPuloCaoObstaculo || 8.5, config.gravidadeCao || config.inimigoGravidade || 0.6, 0);
                     if (cao.velocidadeY > 0) cao.noChao = false;
                 }
 
@@ -151,6 +145,7 @@
                     if (agora - (cao.ultimoToqueQ || 0) < 300) {
                         console.log("[SISTEMA] Double Tap Q: Retornando controle ao Jogador");
                         window.controlandoCao = false;
+                        cao.estaSeguindo = false; // Fica parado ao voltar pro player até que o player o toque
                         
                         // CONSUMIR ENTRADA: Limpa o estado do Q para evitar que o movimento.js
                         // detecte a tecla e retome o controle do cão imediatamente.
@@ -166,13 +161,20 @@
 
             } else {
             cao.mordendo = false; // Garante que não morda sozinho quando NPC
+
+            // Re-ativa o seguimento se o player encostar (Melhoria vinda do docs/cao.js)
+            const colidindoComPlayer = typeof window.detectarColisaoHitbox === 'function' && 
+                                      window.detectarColisaoHitbox(cao, player, 0, 0, 0);
+            if (colidindoComPlayer) cao.estaSeguindo = true;
+
             const deltaX = player ? (player.x - cao.x) : 0;
+            const distSeguir = config.distanciaMinimaCaoSeguir || 45;
             cao.movendoHorizontal = false;
 
             // Inteligência de Seguimento e Movimento Horizontal com Colisão
-            if (player && !player.estaMorrendo && Math.abs(deltaX) > DISTANCIA_PARA_SEGUIR) {
+            if (cao.estaSeguindo && player && !player.estaMorrendo && Math.abs(deltaX) > distSeguir) {
                 const direcaoX = Math.sign(deltaX);
-                const deslocX = direcaoX * VELOCIDADE_CAO;
+                const deslocX = direcaoX * (config.velocidadeCao || 3);
                 
                 // Usa o sistema global de movimento para evitar atravessar paredes
                 window.aplicarDeslocamentoHorizontalComColisaoPadrao(cao, deslocX, window.plataformas, {
@@ -184,16 +186,19 @@
                 cao.movendoHorizontal = true;
 
                 // Salto de Obstrução (Se bater em algo e estiver no chão, tenta pular)
-                const bloqueioFrente = window.verificarColisaoComTiles(cao.x + (direcaoX > 0 ? 25 : -5), cao.y + 5, 5, 5, window.plataformas);
-                if (bloqueioFrente && cao.noChao) cao.velocidadeY = 8.5;
+                const margemCheck = direcaoX > 0 ? 25 : -5;
+                const bloqueioFrente = window.verificarColisaoComTiles(cao.x + margemCheck, cao.y + 5, 5, 5, window.plataformas);
+                if (bloqueioFrente && cao.noChao) cao.velocidadeY = config.forcaPuloCaoObstaculo || 8.5;
             }
 
             // Salta se o jogador estiver acima (em plataformas altas)
-            if (player && cao.noChao && player.y > cao.y + 32 && Math.abs(deltaX) < 80) {
-                cao.velocidadeY = 9.0;
+            const alcancePuloY = config.caoAlcancePuloY || 32;
+            if (cao.estaSeguindo && player && cao.noChao && player.y > cao.y + alcancePuloY && Math.abs(deltaX) < (config.caoAlcancePuloX || 80)) {
+                cao.velocidadeY = config.forcaPuloCaoPlayerAcima || 9.0;
             }
             // Segurança: Teleporte se estiver muito longe ou caiu em buraco
-            if (cao.y < -128 || (player && Math.abs(player.x - cao.x) > DISTANCIA_MAX_PLAYER)) {
+            const distMax = config.distanciaMaxTeleporteCao || 600;
+            if (cao.y < -128 || (player && Math.abs(player.x - cao.x) > distMax)) {
                 if (player && player.noChao) {
                     cao.x = player.x - (player.direcao === 'd' ? 32 : -32);
                     cao.y = player.y;
@@ -222,7 +227,7 @@
                                          window.detectarColisaoHitbox(hitboxCaoBase, hitboxPlayerTopo, 0, 0, 0);
 
                 if (colidiuTrampolim) {
-                    cao.velocidadeY = config.forcaPuloTrampolim || 12; 
+                    cao.velocidadeY = config.forcaPuloCaoTrampolim || 12; 
                     cao.noChao = false;
                     window.AudioManager?.playSFX('pulo', 0.6);
                 }
@@ -230,25 +235,46 @@
 
             // Gravidade e Física Vertical (Sempre ativa)
             if (typeof window.aplicarFisica === 'function') {
-                window.aplicarFisica(cao, {}, 0, config.inimigoGravidade || 0.6, 0);
+                window.aplicarFisica(cao, {}, 0, config.gravidadeCao || config.inimigoGravidade || 0.6, 0);
             }
 
-            // 4. Colisão Vertical (Solo)
+            // 4. Colisão Vertical REFINADA (Melhoria vinda do docs/cao.js)
             cao.noChao = false;
-            const hitV = typeof window.verificarColisaoComTiles === 'function' && 
-                            window.verificarColisaoComTiles(cao.x + cao.offsetX, cao.y, cao.largura, cao.altura, window.plataformas);
-            if (hitV) {
-                if (cao.velocidadeY < 0) { cao.noChao = true; cao.y = window.aplicarSnapColisaoPadrao(cao.y, 0, cao.altura, hitV, 'cima'); }
-                else if (cao.velocidadeY > 0) { cao.y = window.aplicarSnapColisaoPadrao(cao.y, 0, cao.altura, hitV, 'baixo'); }
-                cao.velocidadeY = 0;
+            if (typeof window.verificarColisaoComTiles === 'function') {
+                if (cao.velocidadeY <= 0) {
+                    const hitSolo = window.verificarColisaoComTiles(
+                        cao.x + cao.offsetX, 
+                        cao.y, 
+                        cao.largura, 
+                        6, // Checa apenas os 6px de baixo para maior estabilidade
+                        window.plataformas
+                    );
+                    if (hitSolo) {
+                        cao.noChao = true;
+                        cao.y = window.aplicarSnapColisaoPadrao(cao.y, 0, cao.altura, hitSolo, 'cima');
+                        cao.velocidadeY = 0;
+                    }
+                } else if (cao.velocidadeY > 0) {
+                    const hitTeto = window.verificarColisaoComTiles(
+                        cao.x + cao.offsetX, 
+                        cao.y + 6, // Começa do meio da hitbox para cima
+                        cao.largura, 
+                        6, // Checa os 6px de cima
+                        window.plataformas
+                    );
+                    if (hitTeto) {
+                        cao.y = window.aplicarSnapColisaoPadrao(cao.y, 0, cao.altura, hitTeto, 'baixo');
+                        cao.velocidadeY = 0;
+                    }
+                }
             }
         }
 
         // Sincronização Visual
         if (cao.mordendo) {
-            cao.elemento.src = SPRITE_MORDENDO;
+            cao.elemento.src = config.spriteCaoMordendo || '../../assets/personagem/cao_mordendo.png';
         } else if (typeof window.atualizarAnimacao === 'function') {
-            window.atualizarAnimacao(cao, cao.elemento, SPRITE_PARADO, SPRITE_MOV, null, null, null);
+            window.atualizarAnimacao(cao, cao.elemento, cao.spriteParado, cao.spriteAndando, null, null, null);
         }
 
         cao.elemento.style.left = cao.x + 'px';
@@ -288,5 +314,4 @@
         }
     };
 
-    console.log("%c[SISTEMA CAO] Arquivo cao.js carregado com sucesso!", "color: yellow; font-weight: bold;");
 })();

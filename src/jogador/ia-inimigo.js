@@ -8,10 +8,8 @@
  * @param {string} spriteChute - Caminho da imagem chutando.
  * @param {string} spriteNoAr - Caminho da imagem no ar (usado para morte).
  */
-async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteChute, spriteNoAr) {
-    // Busca as configurações do arquivo JSON
-    const resposta = await fetch('../../config/configuracoes.json');
-    const config = await resposta.json();
+function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteChute, spriteNoAr) {
+    const config = window.config || {}; // Usa o window.config que já foi iniciado no inicial.js
 
     if (typeof window.sincronizarAcessoriosEntidade !== 'function') {
         console.error('IA: Erro ao carregar sincronizacao-visual.js. A IA visual pode falhar.');
@@ -42,8 +40,8 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
         inimigo.estaColetando = false;
 
         inimigo.estaMorrendo = true;
-        inimigo.framesMorrendo = 35; // Duração do voo
-        inimigo.velocidadeY = 9;    // Impulso para cima
+        inimigo.framesMorrendo = config.inimigoMorteDuracaoVoo ?? 35; // Duração do voo
+        inimigo.velocidadeY = config.inimigoMorteImpulsoY ?? 9;    // Impulso para cima
         
         // Direção: usa a informada ou a oposta da face do inimigo
         const dir = direcaoX !== undefined ? Math.sign(direcaoX) : (inimigo.direcao === 'd' ? -1 : 1);
@@ -788,7 +786,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             if (typeof window.criarImpactoVerticalGarra === 'function') {
                                 window.criarImpactoVerticalGarra(tipX, inimigo.y);
                             }
-                            inimigo.garraAnimEstado = 'catching';
+                            inimigo.garraAnimEstado = 'catching'; // Estado de "pegando"
                             inimigo.garraTimer = 18;
                             inimigo.garraElemento.src = window.obterSpriteItem('garra_catching', config);
                         } else {
@@ -820,7 +818,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             window.playerControle.stunned = true;
                             window.playerControle.stunTimer = config.garraStunDurationPlayer || 120; // Default 2 seconds
                             window.playerControle.elemento.style.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)';
-                            inimigo.garraAnimEstado = 'voltando';
+                            inimigo.garraAnimEstado = 'voltando'; // Estado de "voltando" com o item
                             inimigo.garraElemento.src = window.obterSpriteItem('garra_catching', config);
                             grabbedSomething = true;
                         }
@@ -833,7 +831,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                                 if (detectarColisaoHitbox(hitboxGarra, hitboxItem, 0, 0, 0)) {
                                     inimigo.garraItemCarregado = item;
                                     window.itensColetaveis.splice(k, 1);
-                                    inimigo.garraAnimEstado = 'voltando';
+                                    inimigo.garraAnimEstado = 'voltando'; // Estado de "voltando" com o item
                                     inimigo.garraElemento.src = window.obterSpriteItem('garra_catching', config);
                                     grabbedSomething = true;
                                     break;
@@ -843,7 +841,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
 
                         // Cria segmentos do braço
                         if (inimigo.garraDist > 0 && inimigo.garraDist % 32 < velGarra && inimigo.garraDist <= distMax) {
-                            const braco = document.createElement('img');
+                            const braco = document.createElement('img'); // Segmento do braço
                             braco.src = (inimigo.garraBracos.length === 0) ? window.obterSpriteItem('garra_using2', config) : window.obterSpriteItem('garra_braco', config);
                             braco.className = 'enemy-claw-arm';
                             braco.style.position = 'absolute';
@@ -859,7 +857,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             inimigo.elemento.parentElement.appendChild(braco);
                             inimigo.garraBracos.push(braco);
                         }
-                        if (inimigo.garraDist >= distMax && inimigo.garraItemCarregado === null) {
+                        if (inimigo.garraDist >= distMax && inimigo.garraItemCarregado === null) { // Garra atingiu o limite e não pegou nada
                             inimigo.garraAnimEstado = 'catching';
                             inimigo.garraTimer = 18;
                             inimigo.garraElemento.src = window.obterSpriteItem('garra_catching', config);
@@ -867,7 +865,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                     } else if (inimigo.garraAnimEstado === 'catching') {
                         inimigo.garraTimer--;
                         if (inimigo.garraTimer <= 0) inimigo.garraAnimEstado = 'voltando';
-                    } else if (inimigo.garraAnimEstado === 'voltando') {
+                    } else if (inimigo.garraAnimEstado === 'voltando') { // Retraindo a garra
                         inimigo.garraDist -= velGarra;
                         if (inimigo.garraItemCarregado && inimigo.garraItemCarregado.elemento) {
                             inimigo.garraElemento.src = window.obterSpriteItem('garra_catching', config); // Mantém o sprite de "pegando" durante a retração
@@ -953,7 +951,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                             }
                             inimigo.garraItemCarregado = null;
                             inimigo.garraAnimEstado = 'idle';
-                            inimigo.garraElemento.src = window.obterSpriteItem('garra', config, 'equipado');
+                            inimigo.garraElemento.src = config.spriteGarraPlayer || '../../assets/personagem/garra.png'; // Volta ao sprite normal da garra
                             inimigo.garraBracos.forEach(b => b.remove());
                             inimigo.garraBracos = [];
                             inimigo.cooldownGarra = 120; // Define cooldown de 2 segundos (120 frames)
@@ -961,7 +959,7 @@ async function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, sp
                         if (inimigo.garraDist <= 0 && inimigo.garraItemCarregado === null) {
                             inimigo.garraAnimEstado = 'idle';
                             inimigo.garraElemento.src = window.obterSpriteItem('garra', config, 'equipado');
-                            inimigo.garraBracos.forEach(b => b.remove());
+                            inimigo.garraBracos.forEach(b => b.remove()); // Remove os segmentos do braço
                             inimigo.garraBracos = [];
                             inimigo.cooldownGarra = 120; // Define cooldown de 2 segundos (120 frames)
                         }

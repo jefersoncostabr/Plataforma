@@ -8,16 +8,14 @@
  * @param {string} spriteChute - Caminho da imagem chutando.
  * @param {string} spriteNoAr - Caminho da imagem no ar.
  */
-window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, spriteAndando, spriteChute, spriteNoAr) {
+window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spriteChute, spriteNoAr) {
     const elemento = document.getElementById(id);
     if (!elemento) return;
 
     elemento.style.zIndex = '5'; // Define o jogador na camada 5
 
-    // Busca as configurações do arquivo JSON
-    const resposta = await fetch('../../config/configuracoes.json');
-    if (!resposta.ok) throw new Error(`Erro ao carregar configuracoes.json: ${resposta.statusText}`);
-    const config = await resposta.json();
+    // Usa as configurações globais carregadas no inicial.js
+    const config = window.config || {};
 
     if (typeof window.criarSistemaInventarioJogador !== 'function') {
         throw new Error('Erro ao carregar inventario.js: sistema de inventário indisponível.');
@@ -925,14 +923,14 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         const xAnterior = controle.x;
         const yAnterior = controle.y;
 
-        const velBase = config.velocidadePlayer || velocidade; // ... (rest of the code)
+        const velBase = config.velocidadePlayer || 2;
         let velAtiva = window.temEscudoAtivoPadrao(controle)
             ? Math.max(0, velBase - (config.escudoVelocidadeReduzida ?? 2))
             : velBase;
 
         // Aplica o bônus de velocidade se estiver usando a bota
         if (controle.temBota && !controle.botaVermelha && !controle.itensGuardadosNoCinto) {
-            velAtiva += Number(config.bonusVelocidadeBota || 2);
+            velAtiva += Number(config.bonusVelocidadeBota ?? 2);
         }
 
         if (controle.estaAgachado) {
@@ -945,8 +943,8 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         const dashDisponivel = !!controle.dashHabilitado && window.temSkill?.((window.SKILLS || {}).DASH);
         if (dashDisponivel && controle.dashSolicitado && (controle.cooldownDash || 0) === 0 && !controle.estaAgachado) {
             window.AudioManager?.playSFX('dash', 0.5);
-            const duracaoDash = Math.max(1, Number(controle.dashDuracao ?? 8));
-            const distanciaDashBase = Math.max(0, Number(controle.distanciaDash ?? 64));
+            const duracaoDash = Math.max(1, Number(config.dashDuracao ?? 8));
+            const distanciaDashBase = Math.max(0, Number(config.distanciaDash ?? 64));
             const multiplicadorDashBota = controle.leveComBota ? 2 : 1;
             const distanciaDash = controle.pesado
                 ? (distanciaDashBase / 2)
@@ -954,7 +952,7 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
             controle.dashDirecao = controle.dashSolicitado;
             controle.dashFramesRestantes = duracaoDash;
             controle.velocidadeDashSkill = distanciaDash / duracaoDash; // Velocidade por frame do dash
-            controle.cooldownDash = Math.max(1, Number(controle.cooldownDashMax ?? 45));
+            controle.cooldownDash = Math.max(1, Number(config.cooldownDashPlayer ?? 45));
 
             // Ao iniciar um dash, zera a velocidade horizontal atual para o dash assumir o controle
             controle.velocidadeHorizontalAtual = 0;
@@ -1213,8 +1211,8 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
 
         // Calcula a força do pulo final: se tiver a bota, soma o bônus definido nas configurações
         const forcaPuloFinal = (controle.temBota && !controle.botaVermelha && !controle.itensGuardadosNoCinto)
-            ? (config.inimigoForcaPulo + (config.bonusPuloBota || 1.5)) 
-            : config.inimigoForcaPulo;
+            ? ((config.forcaPuloPlayer || 12) + (config.bonusPuloBota || 1.5)) 
+            : (config.forcaPuloPlayer || 12);
 
         // Decrementa o timer da janela de clique duplo (timing para a skill Salto)
         if (controle.timerPuloDuplo > 0) controle.timerPuloDuplo--;
@@ -1229,7 +1227,7 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         // Lógica da Skill Passiva "Salto" - Pulo Duplo
         const teclaPuloAtiva = acaoAtiva('pulo') && controle.cooldownPosSuperDescida === 0;
         const puloAcabouDeSerPressionado = teclaPuloAtiva && !controle.espacoPressionado;
-        controle.espacoPressionado = !!teclaPuloAtiva;
+        controle.espacoPressionado = teclaPuloAtiva;
 
         if (controle.noChao) {
             // Se o pulo duplo foi usado no ar, inicia o cooldown agora que o jogador tocou o chão
@@ -1238,17 +1236,17 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
                 controle.doubleJumpUsedInAir = false; // Reseta a flag
             }
 
-            if (puloAcabouDeSerPressionado) {
+            if (puloAcabouDeSerPressionado && controle.cooldownPulo === 0) { // Adicionado cooldownPulo para evitar pulo imediato
                 window.AudioManager?.playSFX('pulo', 0.5);
                 controle.pulosRealizados = 1;
-                controle.timerPuloDuplo = 12; // Janela de tempo mais rigorosa: 10 frames (aprox. 0.16s)
+                controle.timerPuloDuplo = config.janelaPuloDuplo ?? 12; // Janela de tempo mais rigorosa: 10 frames (aprox. 0.16s)
             } else {
                 controle.pulosRealizados = 0;
                 // O cooldown do pulo duplo não é resetado aqui, ele deve contar até o fim.
             }
         } else if (puloAcabouDeSerPressionado && window.temSkill?.((window.SKILLS || {}).SALTO) && controle.pulosRealizados === 1 && controle.timerPuloDuplo > 0 && controle.cooldownPuloDuplo === 0) {
             // Segundo salto: agora com 1.25x da força (um quarto a mais) e com timing mais exigente
-            controle.velocidadeY = forcaPuloFinal * 1.25;
+            controle.velocidadeY = forcaPuloFinal * (config.multiplicadorPuloDuplo ?? 1.25);
             window.AudioManager?.playSFX('pulo', 0.5);
             window.AudioManager?.playSFX('dash', 0.5);
             
@@ -1275,7 +1273,7 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
 
         // Mecânica de Super Descida e Paraquedas
         if (!controle.noChao && controle.velocidadeY < 0 && acaoAtiva('pulo') && !controle.usandoParaquedas && controle.pulosRealizados === 2) {
-            controle.velocidadeY = -20; 
+            controle.velocidadeY = config.superDescidaVelocidadeInicial ?? -20; 
             
             // Rastro contínuo durante a Super Descida (a cada 2 frames)
             if (typeof window.criarSombraDash === 'function' && controle.visualFrameCounter % 2 === 0) {
@@ -1332,7 +1330,7 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
                     if (ctrl.superDescidaAtiva) {
                         aplicarImpactoSuperDescida(ctrl);
                         ctrl.superDescidaAtiva = false;
-                        ctrl.cooldownPosSuperDescida = 60;
+                        ctrl.cooldownPosSuperDescida = config.cooldownPosSuperDescida ?? 60;
                     }
                     ctrl.velocidadeY = 0;
                     // Usa função centralizada de snap
@@ -1384,7 +1382,7 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         if (controle.noChao && controle.velocidadeY <= 0) {
             if (!noChaoAnterior) {
                 // Só reproduz o som se a velocidade de queda for maior que o limite definido
-                if (velocidadeAntesImpacto < (controle.minVelocidadePousoSom || -6)) {
+                if (velocidadeAntesImpacto < (config.minVelocidadePousoSom ?? -6)) {
                     window.AudioManager?.playSFX('pouso', 0.3);
                 }
             }
@@ -1478,7 +1476,7 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         if (window.projeteis) {
             for (let i = window.projeteis.length - 1; i >= 0; i--) {
                 const proj = window.projeteis[i];
-                proj.x += config.velocidadeProjetil * proj.direcao;
+                proj.x += (config.velocidadeProjetil ?? 8) * proj.direcao;
                 proj.elemento.style.left = proj.x + 'px';
 
                 let hitAlvo = false;
@@ -1718,6 +1716,12 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
 
         controle.velocidadeXAtual = Number((controle.x - xAnterior).toFixed(2));
         controle.velocidadeTotalAtual = Number(Math.hypot(controle.velocidadeXAtual, Number(controle.velocidadeY || 0)).toFixed(2));
+       
+                // Log de velocidade solicitado (exibe a cada 30 frames para não sobrecarregar o console)
+        if (controle.visualFrameCounter % 30 === 0) {
+            console.log(`[PLAYER SPEED] Total: ${controle.velocidadeTotalAtual} | X: ${controle.velocidadeXAtual} | Y: ${controle.velocidadeY.toFixed(2)}`);
+        }
+
         if (controle.debugVelocidadeAtivo) {
             const agoraLog = (typeof performance !== 'undefined' && typeof performance.now === 'function')
                 ? performance.now()
@@ -1734,6 +1738,9 @@ window.iniciarMovimentacao = async function(id, velocidade = 4, spriteParado, sp
         elemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
 
         sincronizarVisuaisEquipamentos();
+        
+        // Incrementa o contador de frames (necessário para logs e efeitos visuais)
+        controle.visualFrameCounter++;
 
         // ATUALIZAÇÃO DA CÂMERA: Mantém o jogador centralizado
         if (typeof window.atualizarCamera === 'function') {
