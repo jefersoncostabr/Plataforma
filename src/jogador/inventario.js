@@ -1375,19 +1375,10 @@
             const itensParaDropar = [];
             const tiposRegistrados = new Set();
 
+            // Inimigos sempre dropam seus itens, independentemente do estado de durabilidade
+            // A regra de durabilidade (item quebrado/vazio) se aplica apenas ao jogador
             const registrarDrop = (tipo, extras = {}) => {
                 if (!tipo) return;
-
-            // Regra de Durabilidade: Se o item estiver esgotado ou quebrado (vermelho), ele é destruído.
-            const estaQuebradoOuVazio = 
-                (tipo === 'revolver' && (extras.municao ?? 0) <= 0) ||
-                (tipo === 'escudo' && !!extras.escudoVermelho) ||
-                (tipo === 'bota' && !!extras.botaVermelha) ||
-                (tipo === 'garra' && !!extras.garraVermelha);
-
-            if (estaQuebradoOuVazio) {
-                return; // Item destruído, não prossegue com o drop
-            }
 
                 // Se o item tem quantidade, dropa unidades individuais no chão
                 const qty = extras.quantidade || 1;
