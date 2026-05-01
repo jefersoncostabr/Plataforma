@@ -87,7 +87,10 @@
 
             som.volume = volFinal;
             som.play().catch(err => {
-                console.warn(`[AudioManager] Não foi possível tocar ${nome}.wav. Verifique se o arquivo existe em: ${caminho}`, err.message);
+                // Ignora o erro de interrupção por pause(), que é esperado em trocas de estado rápidas
+                if (err.name !== 'AbortError') {
+                    console.warn(`[AudioManager] Não foi possível tocar ${nome}.wav. Verifique se o arquivo existe em: ${caminho}`, err.message);
+                }
             });
         },
 

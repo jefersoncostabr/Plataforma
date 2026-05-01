@@ -1393,18 +1393,40 @@
             if (Array.isArray(inimigo.inventario)) {
                 [...inimigo.inventario].reverse().forEach((tipo) => {
                     const extras = {};
-                if (tipo === 'revolver') extras.municao = Number(inimigo.municao ?? config?.maxMunicao ?? 5);
+                    if (tipo === 'revolver') {
+                        // Se munição estiver vazia (0), dropa com 1 bala para ainda ser utilizável
+                        const municaoAtual = Number(inimigo.municao ?? 0);
+                        extras.municao = municaoAtual <= 0 ? 1 : municaoAtual;
+                    }
                     if (tipo === 'escudo') {
-                        extras.escudoProtegido = Number(inimigo.escudoProtegido || 0);
-                        extras.escudoVermelho = !!inimigo.escudoVermelho;
+                        // Se escudo estiver vermelho (quebrado), dropa com durabilidade 1
+                        if (inimigo.escudoVermelho) {
+                            extras.escudoProtegido = 1;
+                            extras.escudoVermelho = true;
+                        } else {
+                            extras.escudoProtegido = Number(inimigo.escudoProtegido || 0);
+                            extras.escudoVermelho = false;
+                        }
                     }
                     if (tipo === 'bota') {
-                        extras.botaUsosDash = Number(inimigo.botaUsosDash || 0);
-                        extras.botaVermelha = !!inimigo.botaVermelha;
+                        // Se bota estiver vermelha (quebrada), dropa com durabilidade 1
+                        if (inimigo.botaVermelha) {
+                            extras.botaUsosDash = 1;
+                            extras.botaVermelha = true;
+                        } else {
+                            extras.botaUsosDash = Number(inimigo.botaUsosDash || 0);
+                            extras.botaVermelha = false;
+                        }
                     }
                     if (tipo === 'garra') {
-                        extras.garraImpactosSolidos = Number(inimigo.garraImpactosSolidos || 0);
-                        extras.garraVermelha = !!inimigo.garraVermelha;
+                        // Se garra estiver vermelha (quebrada), dropa com durabilidade 1
+                        if (inimigo.garraVermelha) {
+                            extras.garraImpactosSolidos = 1;
+                            extras.garraVermelha = true;
+                        } else {
+                            extras.garraImpactosSolidos = Number(inimigo.garraImpactosSolidos || 0);
+                            extras.garraVermelha = false;
+                        }
                     }
                     registrarDrop(tipo, extras);
                 });
@@ -1425,20 +1447,28 @@
                 registrarDrop(tipo, extras);
             };
 
+            // Revólver: se munição estiver vazia, dropa com 1 bala
+            const municaoRevolver = Math.max(1, Number(inimigo.municao ?? 0));
             adicionarEquipamentoAtivo('revolver', !!inimigo.temArma, {
-            municao: Number(inimigo.municao ?? config?.maxMunicao ?? 5)
+                municao: municaoRevolver
             });
+            // Escudo: se estiver vermelho, dropa com durabilidade 1
+            const escudoProtegido = inimigo.escudoVermelho ? 1 : Number(inimigo.escudoProtegido || 0);
             adicionarEquipamentoAtivo('escudo', !!(inimigo.temEscudo || inimigo.escudoVermelho), {
-                escudoProtegido: Number(inimigo.escudoProtegido || 0),
+                escudoProtegido: escudoProtegido,
                 escudoVermelho: !!inimigo.escudoVermelho
             });
+            // Bota: se estiver vermelha, dropa com durabilidade 1
+            const botaUsos = inimigo.botaVermelha ? 1 : Number(inimigo.botaUsosDash || 0);
             adicionarEquipamentoAtivo('bota', !!inimigo.temBota, {
-                botaUsosDash: Number(inimigo.botaUsosDash || 0),
+                botaUsosDash: botaUsos,
                 botaVermelha: !!inimigo.botaVermelha
             });
             adicionarEquipamentoAtivo('jetpack', !!inimigo.temJetpack);
+            // Garra: se estiver vermelha, dropa com durabilidade 1
+            const garraImpactos = inimigo.garraVermelha ? 1 : Number(inimigo.garraImpactosSolidos || 0);
             adicionarEquipamentoAtivo('garra', !!inimigo.temGarra, {
-                garraImpactosSolidos: Number(inimigo.garraImpactosSolidos || 0),
+                garraImpactosSolidos: garraImpactos,
                 garraVermelha: !!inimigo.garraVermelha
             });
             adicionarEquipamentoAtivo('cinto', !!inimigo.temCinto);

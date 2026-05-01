@@ -448,7 +448,6 @@
 
                         inimigoAtingido.foiAtingidoNesteChute = true;
                         inimigoAtingido.vida = (inimigoAtingido.vida || 0) + 1;
-                        console.log(`[COMBATE] Inimigo recebeu 1 de dano (Garra). Dano acumulado: ${inimigoAtingido.vida}/3`);
 
                         if (inimigoAtingido.vida < 3) animarDanoAlvo(inimigoAtingido);
 

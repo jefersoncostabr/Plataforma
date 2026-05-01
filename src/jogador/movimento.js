@@ -1716,11 +1716,6 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
         controle.velocidadeXAtual = Number((controle.x - xAnterior).toFixed(2));
         controle.velocidadeTotalAtual = Number(Math.hypot(controle.velocidadeXAtual, Number(controle.velocidadeY || 0)).toFixed(2));
-       
-                // Log de velocidade solicitado (exibe a cada 30 frames para não sobrecarregar o console)
-        if (controle.visualFrameCounter % 30 === 0) {
-            console.log(`[PLAYER SPEED] Total: ${controle.velocidadeTotalAtual} | X: ${controle.velocidadeXAtual} | Y: ${controle.velocidadeY.toFixed(2)}`);
-        }
 
         if (controle.debugVelocidadeAtivo) {
             const agoraLog = (typeof performance !== 'undefined' && typeof performance.now === 'function')

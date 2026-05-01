@@ -1,13 +1,14 @@
 (function () {
     const TILE_SIZE = 32;
-    const NIVEL_MAXIMO_CRAFT = 3;
+    const NIVEL_MAXIMO_CRAFT = 4;
     const CRAFT_PERSISTENCE_KEY = 'plataformaCraftPersistente';
     const TIPO_ITEM_BASE_PORTATIL = 'base_portatil';
-    const MODOS_RENASCIMENTO_VALIDOS = new Set(['spawnpoint', 'memoria']);
+    const MODOS_RENASCIMENTO_VALIDOS = new Set(['spawnpoint', 'memoria', 'ambos']);
     const SPRITES_CRAFT = {
         1: '../../assets/craft/craft_nivel1.png',
         2: '../../assets/craft/craft_nivel2.png',
-        3: '../../assets/craft/craft_nivel3.png'
+        3: '../../assets/craft/craft_nivel3.png',
+        4: '../../assets/craft/craft_nivel3.png'
     };
 
     function normalizarModoRenascimento(valor) {
@@ -19,7 +20,13 @@
         const modoNormalizado = normalizarModoRenascimento(modo);
         if (modoNormalizado === 'memoria') return 2;
         if (modoNormalizado === 'spawnpoint') return 3;
+        if (modoNormalizado === 'ambos') return 4;
         return Number.POSITIVE_INFINITY;
+    }
+
+    // Nível 4 permite ter ambos os modos ativados simultaneamente
+    function podeTerAmbosModos(craft) {
+        return craft && Number(craft.nivel || 0) >= 4;
     }
 
     function lerCraftPersistidoStorage() {
@@ -36,7 +43,8 @@
         const temaPorNivel = {
             1: { fundo: '#355cdd', detalhe: '#9fc1ff', brilho: '#e9f2ff', texto: 'I' },
             2: { fundo: '#6a3fd2', detalhe: '#d4b3ff', brilho: '#ffe88c', texto: 'II' },
-            3: { fundo: '#1d9b5f', detalhe: '#86f0b8', brilho: '#fff1a6', texto: 'III' }
+            3: { fundo: '#1d9b5f', detalhe: '#86f0b8', brilho: '#fff1a6', texto: 'III' },
+            4: { fundo: '#1d9b5f', detalhe: '#ffd700', brilho: '#fff1a6', texto: 'IV' }
         };
 
         const tema = temaPorNivel[nivel] || temaPorNivel[1];
@@ -442,30 +450,58 @@
                 return { ok: false, motivo: 'Modo inválido.' };
             }
 
-            const nivelMinimo = obterNivelMinimoModoRenascimento(modoNormalizado);
-            if (Number(craft.nivel || 0) < nivelMinimo) {
-                return {
-                    ok: false,
-                    motivo: modoNormalizado === 'memoria'
-                        ? 'A Memória libera na base nível 2.'
-                        : 'O Spawnpoint libera na base nível 3.'
-                };
-            }
-
-            craft.modoRenascimento = craft.modoRenascimento === modoNormalizado ? null : modoNormalizado;
-            salvarCraftPersistido(craft);
-
-            const mensagem = craft.modoRenascimento === 'spawnpoint'
-                ? 'Spawnpoint ativado. O personagem nascerá nesta base.'
-                : craft.modoRenascimento === 'memoria'
-                    ? 'Memória ativada. O personagem renascerá do zero, mas lembrando as skills.'
-                    : 'Modo especial da base desativado.';
-
+        const nivelMinimo = obterNivelMinimoModoRenascimento(modoNormalizado);
+        if (Number(craft.nivel || 0) < nivelMinimo) {
             return {
-                ok: true,
-                modoRenascimento: craft.modoRenascimento,
-                motivo: mensagem
+                ok: false,
+                motivo: modoNormalizado === 'memoria'
+                    ? 'A Memória libera na base nível 2.'
+                    : 'O Spawnpoint libera na base nível 3.'
             };
+        }
+
+        // Nível 4 permite ter ambos os modos ativados simultaneamente
+        const temAmbosModos = podeTerAmbosModos(craft);
+        
+        if (temAmbosModos) {
+            const modoAtual = craft.modoRenascimento;
+            if (modoAtual === 'ambos') {
+                // Se já tem ambos, remove apenas o que foi clicado
+                craft.modoRenascimento = (modoNormalizado === 'spawnpoint') ? 'memoria' : 'spawnpoint';
+            } else if (modoAtual === modoNormalizado) {
+                // Se clicou no que já estava ativo (sendo o único), desativa
+                craft.modoRenascimento = null;
+            } else if (modoAtual) {
+                // Se tem o modo oposto ativo, combina os dois
+                craft.modoRenascimento = 'ambos';
+            } else {
+                craft.modoRenascimento = modoNormalizado;
+            }
+        } else {
+            craft.modoRenascimento = craft.modoRenascimento === modoNormalizado ? null : modoNormalizado;
+        }
+        salvarCraftPersistido(craft);
+
+        let mensagem;
+        if (craft.modoRenascimento === 'ambos') {
+            mensagem = 'Base Nível 4: Spawnpoint E Memória ativados! Você nascerá nesta base mantendo as skills.';
+        } else if (craft.modoRenascimento === 'spawnpoint') {
+            mensagem = temAmbosModos 
+                ? 'Spawnpoint ativado. Clique em Memória para ativar ambos.' 
+                : 'Spawnpoint ativado. O personagem nascerá nesta base.';
+        } else if (craft.modoRenascimento === 'memoria') {
+            mensagem = temAmbosModos 
+                ? 'Memória ativada. Clique em Spawnpoint para ativar ambos.' 
+                : 'Memória ativada. O personagem renascerá do zero, mas lembrando as skills.';
+        } else {
+            mensagem = 'Modo especial da base desativado.';
+        }
+
+        return {
+            ok: true,
+            modoRenascimento: craft.modoRenascimento,
+            motivo: mensagem
+        };
         }
 
         function obterConfigRenascimentoBase() {

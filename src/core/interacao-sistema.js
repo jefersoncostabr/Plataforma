@@ -88,7 +88,8 @@
 
     function atualizarEstadoBotoesModo(container, modoAtual = null) {
         container.querySelectorAll('[data-interaction-mode]').forEach((botao) => {
-            const ativo = botao.getAttribute('data-interaction-mode') === modoAtual;
+            const modoBotao = botao.getAttribute('data-interaction-mode');
+            const ativo = modoBotao === modoAtual || modoAtual === 'ambos';
             botao.classList.toggle('active', ativo);
             botao.setAttribute('aria-pressed', ativo ? 'true' : 'false');
         });
@@ -155,10 +156,17 @@
 
             vistos.add(chave);
             const definicao = window.itemDefinitions?.[chave] || null;
+            
+            // Tenta obter o sprite via função global para suportar itens dinâmicos (como _plus)
+            let sprite = definicao?.spriteColetavel || definicao?.spriteEquipado || '';
+            if (!sprite && typeof window.obterSpriteItem === 'function') {
+                sprite = window.obterSpriteItem(chave, window.config || {});
+            }
+
             itens.push({
                 tipo: chave,
                 rotulo: rotulo || definicao?.nome || chave,
-                sprite: definicao?.spriteColetavel || definicao?.spriteEquipado || '',
+                sprite: sprite,
                 quantidade: quantidade
             });
         };
@@ -219,8 +227,20 @@
                 img.src = item.sprite || '';
                 icone.appendChild(img);
 
+                // Adiciona o sinal azul de "+" se for item melhorado (plus)
+                if (item.tipo && item.tipo.endsWith('_plus')) {
+                    const plusLabel = document.createElement('span');
+                    plusLabel.textContent = '+';
+                    plusLabel.style.cssText = `
+                        position: absolute; top: -1px; left: 2px; 
+                        color: #0088ff; font-weight: 900; font-size: 14px; 
+                        text-shadow: 0 0 2px #000; pointer-events: none; z-index: 3;
+                    `;
+                    icone.appendChild(plusLabel);
+                }
+
                 // Exibe badge de quantidade para itens empilháveis (quantidade > 1)
-                const ehEmpilhavel = ['scrap'].includes(item.tipo);
+                const ehEmpilhavel = ['scrap'].includes(item.tipo) || (item.tipo && item.tipo.endsWith('_plus'));
                 if (item.quantidade > 1 && ehEmpilhavel) {
                     const badge = document.createElement('span');
                     badge.style.cssText = `

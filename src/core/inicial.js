@@ -37,7 +37,8 @@ function obterConfigRenascimentoBaseAtiva() {
     if (typeof window.obterConfigRenascimentoBase !== 'function') return null;
     const craft = window.obterConfigRenascimentoBase();
     const modo = String(craft?.modoRenascimento || '').trim().toLowerCase();
-    return (craft && (modo === 'spawnpoint' || modo === 'memoria')) ? craft : null;
+    // Suporta 'spawnpoint', 'memoria' e 'ambos' (nível 4)
+    return (craft && (modo === 'spawnpoint' || modo === 'memoria' || modo === 'ambos')) ? craft : null;
 }
 
 function resetarJogadorParaZeroMantendoSkills(opcoes = {}) {
@@ -399,7 +400,8 @@ async function carregarFase(nomeArquivo) {
     // Inicializa posição do jogador
     if (window.playerControle) {
         const renascimentoBase = obterConfigRenascimentoBaseAtiva();
-        const usarSpawnpointDaBase = renascimentoBase?.modoRenascimento === 'spawnpoint'
+        const modo = renascimentoBase?.modoRenascimento;
+        const usarSpawnpointDaBase = (modo === 'spawnpoint' || modo === 'ambos')
             && String(renascimentoBase?.fase || '').trim().toLowerCase() === String(window.faseAtualNome || '').trim().toLowerCase();
 
         const pos = usarSpawnpointDaBase
@@ -441,7 +443,6 @@ async function carregarFase(nomeArquivo) {
         const cãoJáResgatado = window.isCaoResgatado === true;
 
         if (cãoJáResgatado) {
-            console.log("[SISTEMA] Cão resgatado detectado. Tentando spawnar o cão próximo ao jogador.");
             // Se já foi resgatado, o cão aparece livre próximo ao jogador
             if (typeof window.iniciarCao === 'function') {
                 window.iniciarCao({ x: pos.x - 32, y: pos.y }, window.config);
@@ -622,8 +623,9 @@ window.reiniciarJogo = async function(porMorte = true) {
         : false;
 
     const renascimentoBase = obterConfigRenascimentoBaseAtiva();
-    const usarSpawnpointDaBase = renascimentoBase?.modoRenascimento === 'spawnpoint';
-    const usarMemoriaDaBase = !!(porMorte && renascimentoBase?.modoRenascimento === 'memoria');
+    const modo = renascimentoBase?.modoRenascimento;
+    const usarSpawnpointDaBase = modo === 'spawnpoint' || modo === 'ambos';
+    const usarMemoriaDaBase = !!(porMorte && (modo === 'memoria' || modo === 'ambos'));
     const skillsMemorizadas = usarMemoriaDaBase ? [...(window.playerSkills || [])] : [];
 
     // Cancela spawns de inimigos aleatórios

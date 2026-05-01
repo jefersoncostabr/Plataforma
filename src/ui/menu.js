@@ -283,10 +283,10 @@ function criarPainelResumoSalvo() {
     baseInfo.style.gap = '4px';
 
     if (nivelBase > 0) {
-        baseInfo.appendChild(criarChipResumo(`N${nivelBase}`, '#00695c'));
+        baseInfo.appendChild(criarChipResumo(`N${nivelBase}`, nivelBase >= 4 ? '#ffd700' : '#00695c'));
         baseInfo.appendChild(criarChipResumo(
-            modoBase === 'spawnpoint' ? 'SP' : modoBase === 'memoria' ? 'MEM' : 'OFF',
-            modoBase === 'spawnpoint' ? '#1565c0' : modoBase === 'memoria' ? '#8e24aa' : '#555'
+            modoBase === 'ambos' ? 'SP+MEM' : modoBase === 'spawnpoint' ? 'SP' : modoBase === 'memoria' ? 'MEM' : 'OFF',
+            modoBase === 'ambos' ? '#ff6f00' : modoBase === 'spawnpoint' ? '#1565c0' : modoBase === 'memoria' ? '#8e24aa' : '#555'
         ));
         baseInfo.appendChild(criarChipResumo(formatarFaseResumo(baseSalva?.faseOriginal || baseSalva?.fase), '#424242'));
     } else {

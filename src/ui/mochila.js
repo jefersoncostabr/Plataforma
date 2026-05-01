@@ -316,7 +316,7 @@
 
     function criarCelulaPadrao() {
         const slot = document.createElement('div');
-        slot.style = `
+        const baseStyle = `
             min-height: 96px;
             background: linear-gradient(180deg, #2a2a2a 0%, #1c1c1c 100%);
             border: 2px solid #4a4a4a;
@@ -326,9 +326,40 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+            transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+            cursor: pointer;
+            user-select: none;
         `;
+        slot.style.cssText = baseStyle;
+        
+        // Efeito de hover
+        slot.addEventListener('mouseenter', () => {
+            slot.style.background = 'linear-gradient(180deg, #3a3a3a 0%, #2c2c2c 100%)';
+        });
+        slot.addEventListener('mouseleave', () => {
+            slot.style.background = 'linear-gradient(180deg, #2a2a2a 0%, #1c1c1c 100%)';
+        });
+        
         return slot;
+    }
+
+    function criarCelulaCinto() {
+        const celula = document.createElement('div');
+        celula.style = `
+            min-height: 84px;
+            background: linear-gradient(180deg, #2a2a2a 0%, #1c1c1c 100%);
+            border: 2px solid #4a4a4a;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+            cursor: pointer;
+            user-select: none;
+        `;
+        return celula;
     }
 
     function abrirMenuMochilaUI(controle = window.playerControle) {
@@ -352,11 +383,43 @@
         `;
 
         const header = document.createElement('div');
-        header.style = 'padding: 18px 20px 14px; border-bottom: 1px solid #333; background: #222; text-align: center;';
-        header.innerHTML = `
-            <h2 style="margin: 0; letter-spacing: 2px; text-transform: uppercase;">Slots do Cinto e Colete</h2>
-            <p style="margin: 8px 0 0; color: #d0d0d0; font-size: 13px;">Cinto com 1 slot central • Colete com ${capacidadeColete()} slots</p>
+        header.style = 'padding: 18px 20px 14px; border-bottom: 1px solid #333; background: #222; text-align: center; position: relative;';
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✕';
+        closeBtn.style = `
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 18px;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
         `;
+        closeBtn.onmouseenter = () => { closeBtn.style.background = 'rgba(255,100,100,0.3)'; };
+        closeBtn.onmouseleave = () => { closeBtn.style.background = 'rgba(255,255,255,0.1)'; };
+        closeBtn.onclick = () => {
+            window.toggleMochilaMenu(window.playerControle);
+        };
+        header.appendChild(closeBtn);
+
+        const title = document.createElement('h2');
+        title.style = 'margin: 0; letter-spacing: 2px; text-transform: uppercase;';
+        title.textContent = 'Slots do Cinto e Colete';
+        header.appendChild(title);
+
+        const subtitle = document.createElement('p');
+        subtitle.style = 'margin: 8px 0 0; color: #d0d0d0; font-size: 13px;';
+        subtitle.textContent = `Cinto com 1 slot central • Colete com ${capacidadeColete()} slots`;
+        header.appendChild(subtitle);
 
         const body = document.createElement('div');
         body.style = 'padding: 20px; display: flex; flex-direction: column; gap: 16px;';
@@ -373,8 +436,35 @@
         const grid = document.createElement('div');
         grid.style = 'display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;';
 
-        mochilaSlotElements = Array.from({ length: capacidadeColete() }, () => {
+        mochilaSlotElements = Array.from({ length: capacidadeColete() }, (_, indice) => {
             const slot = criarCelulaPadrao();
+            
+            // Evento de clique para selecionar o slot
+            slot.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mochilaAreaSelecionada = 'colete';
+                mochilaSlotSelecionado = indice;
+                atualizarSelecaoSlots();
+            });
+            
+            // Duplo clique para acionar a ação (usar/dropar)
+            slot.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                mochilaAreaSelecionada = 'colete';
+                mochilaSlotSelecionado = indice;
+                acionarSelecaoAtual();
+            });
+            
+            // Botão direito do mouse para dropar
+            slot.addEventListener('contextmenu', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                mochilaAreaSelecionada = 'colete';
+                mochilaSlotSelecionado = indice;
+                droparSelecaoAtual();
+            });
+            
             grid.appendChild(slot);
             return slot;
         });
@@ -390,9 +480,46 @@
             const linhaCinto = document.createElement('div');
             linhaCinto.style = 'display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px;';
 
-            cintoSlotElements = Array.from({ length: TOTAL_CELULAS_CINTO }, () => {
+            cintoSlotElements = Array.from({ length: TOTAL_CELULAS_CINTO }, (_, indice) => {
                 const celula = criarCelulaPadrao();
                 celula.style.minHeight = '84px';
+                
+                // Evento de clique para selecionar o slot do cinto
+                celula.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // Verifica se a célula é válida para seleção (não é placeholder)
+                    const celulaAtual = cintoLinhaAtual[indice];
+                    if (!celulaAtual || celulaAtual.tipoUI === 'placeholder') return;
+                    
+                    mochilaAreaSelecionada = 'cinto';
+                    cintoSlotSelecionado = indice;
+                    atualizarSelecaoSlots();
+                });
+                
+                // Duplo clique para acionar a ação
+                celula.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    const celulaAtual = cintoLinhaAtual[indice];
+                    if (!celulaAtual || celulaAtual.tipoUI === 'placeholder') return;
+                    
+                    mochilaAreaSelecionada = 'cinto';
+                    cintoSlotSelecionado = indice;
+                    acionarSelecaoAtual();
+                });
+                
+                // Botão direito do mouse para dropar
+                celula.addEventListener('contextmenu', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    const celulaAtual = cintoLinhaAtual[indice];
+                    if (!celulaAtual || celulaAtual.tipoUI === 'placeholder') return;
+                    
+                    mochilaAreaSelecionada = 'cinto';
+                    cintoSlotSelecionado = indice;
+                    droparSelecaoAtual();
+                });
+                
                 linhaCinto.appendChild(celula);
                 return celula;
             });
@@ -405,7 +532,7 @@
 
         const footer = document.createElement('div');
         footer.style = 'padding-top: 8px; text-align: center; font-size: 11px; color: #888; text-transform: uppercase;';
-        footer.textContent = 'ESC fecha • ENTER guarda, usa ou larga • CHUTE larga direto';
+        footer.textContent = 'CLIQUE seleciona • DUPLO CLIQUE usa • BOTÃO DIR. dropa • ESC fecha';
 
         body.appendChild(footer);
         container.appendChild(header);

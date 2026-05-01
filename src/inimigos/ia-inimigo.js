@@ -309,7 +309,6 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
         const dano = Number(config.danoEspinhoInimigo ?? config.danoEspinho ?? 1);
         inimigo.vida = (inimigo.vida || 0) + dano;
-        console.log(`[AMBIENTE] Inimigo recebeu ${dano} de dano (Espinho). Dano acumulado: ${inimigo.vida}/3`);
 
         if (typeof piscaLeve === 'function' && inimigo.elemento) {
             piscaLeve(inimigo.elemento);
@@ -719,6 +718,11 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                     inimigo.stunned = false; // Inicializa estado de stun
                     inimigo.stunTimer = 0;  // Inicializa timer de stun
+                    
+                    // Inicializa sprites de agachado (garante consistência para todos os inimigos)
+                    inimigo.spriteParadoAgachado = window.obterSpriteItem('agachado', config, 'equipado');
+                    inimigo.spriteAndandoAgachado = window.obterSpriteItem('agachado2', config, 'equipado');
+                    
                     // Preenche inventário inicial baseado no tipo
                     if (inimigo.temArma) inimigo.inventario.push('revolver');
                     if (inimigo.temEscudo) inimigo.inventario.push('escudo');
@@ -1065,7 +1069,6 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 // Executa o pulo ou VOO se o timer chegou a zero e foi agendado
                 if (!iaBloqueadaPorStun && inimigo.puloTimer === 0 && inimigo.jumpQueued) {
                     if (inimigo.temJetpack && !inimigo.itensGuardadosNoCinto && !inimigo.jetpackAtivo && inimigo.cooldownVooJetpack === 0) {
-                        console.log("[IA] Inimigo ativando som de jetpack.");
                         window.AudioManager?.playSFX('fogueteligando', 0.4);
                         // Inicia o som de propulsão contínua para o inimigo
                         if (window.AudioManager && !inimigo._jetpackLoop) {
