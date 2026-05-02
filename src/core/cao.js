@@ -3,7 +3,6 @@
 
     // Caminhos padronizados para os assets
     let cao = null;
-    let loopAtivoGlobal = false;
     let idLoopAtual = 0;
     let config = {}; // Variável para armazenar as configurações do jogo
 
@@ -64,20 +63,16 @@
         // REGISTRO GLOBAL: Essencial para o movimento.js encontrar o cachorro
         window.caoEntidade = cao;
         
-        // Só inicia o loop se não houver um rodando
-        if (!loopAtivoGlobal) {
-            loopAtivoGlobal = true;
-            requestAnimationFrame(() => cicloVidaCao(meuId));
-        }
+        // Sempre inicia um novo ciclo de vida para o cachorro com o novo ID único.
+        // Isso garante que o loop seja reiniciado corretamente em transições de fase.
+        requestAnimationFrame(() => cicloVidaCao(meuId));
     };
     // Cria o alias para a função que o inicial.js está chamando
     window.iniciarCao = (pos, gameConfig) => window.inicializarCaoNPC(pos.x, pos.y, gameConfig);
 
     function cicloVidaCao(idControle) {
-        if (!loopAtivoGlobal) loopAtivoGlobal = true;
         // Se o cachorro foi reinicializado, este loop antigo deve morrer
         if (window.idCaoAtivo !== idControle) {
-            loopAtivoGlobal = false;
             return;
         }
 

@@ -936,6 +936,10 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                                     })?.bloqueou || false;
                                 }
 
+                                if (!escudoBloqueou) {
+                                    playerAtingido.dano = (playerAtingido.dano || 0) + (window.playerControle?.danoChute || 1); // Aplica o dano do chute do jogador
+                                }
+
                                 // Knockback player
                                 const direcaoKnockback = (inimigo.direcao === 'd' ? 1 : -1);
                                 const forca = window.obterForcaKnockback(config, 'inimigoChute');
