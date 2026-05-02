@@ -1,5 +1,6 @@
 (function () {
-    window.isCaoResgatado = typeof window.isCaoResgatado !== 'undefined' ? window.isCaoResgatado : false;
+    const CAO_STORAGE_KEY = 'plataformaCaoResgatado';
+    window.isCaoResgatado = localStorage.getItem(CAO_STORAGE_KEY) === 'true';
 
     // Caminhos padronizados para os assets
     let cao = null;
@@ -370,6 +371,7 @@
         if (window.isCaoResgatado) return;
 
         window.isCaoResgatado = true;
+        localStorage.setItem(CAO_STORAGE_KEY, 'true');
         
         if (window.AudioManager) {
             window.AudioManager.playSFX('madeiraQuebrando', 0.7);
@@ -387,6 +389,11 @@
                 window.criarEfeitoParticulas(gaiolaObj.x + 16, gaiolaObj.y + 16, 'madeira');
             }
         }
+    };
+
+    window.resetarResgateCao = function() {
+        window.isCaoResgatado = false;
+        localStorage.removeItem(CAO_STORAGE_KEY);
     };
 
 })();

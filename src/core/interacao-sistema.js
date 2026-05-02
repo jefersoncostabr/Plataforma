@@ -276,6 +276,33 @@
         feedback.style.background = erro ? 'rgba(255, 120, 120, 0.14)' : 'rgba(124, 201, 255, 0.12)';
     }
 
+    /**
+     * Injeta o ícone do cão resgatado na linha superior (header) do menu da base.
+     */
+    function injetarIconeCaoNoMenu(container) {
+        if (!window.isCaoResgatado) return;
+
+        const header = container.querySelector('.interaction-header');
+        const closeBtn = header?.querySelector('.interaction-close');
+        if (!header || !closeBtn) return;
+
+        const dogBadge = document.createElement('div');
+        dogBadge.title = "Cão Aliado Resgatado";
+        dogBadge.style.cssText = `
+            width: 32px; height: 32px; background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.2); border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            margin-left: auto; margin-right: 12px;
+        `;
+
+        const dogImg = document.createElement('img');
+        dogImg.src = window.config?.spriteCao || '../../assets/personagem/cao_parado.png';
+        dogImg.style.cssText = 'width: 24px; height: 24px; image-rendering: pixelated;';
+        
+        dogBadge.appendChild(dogImg);
+        header.insertBefore(dogBadge, closeBtn);
+    }
+
     function fecharTelaInteracao() {
         removerEventosAtuais();
 
@@ -355,6 +382,9 @@
         atualizarEstadoBotoesModo(overlay, contexto?.modoRenascimento || null);
         atualizarDisponibilidadeBotoesModo(overlay, Number(contexto?.nivel || 0));
         atualizarResumoEquipamentoSalvo(overlay);
+
+        // Adiciona o indicador visual do aliado se disponível
+        injetarIconeCaoNoMenu(overlay);
 
         if (id === 'menu_crafting') {
             const inventarioContainer = overlay.querySelector('.player-inventory-for-crafting');

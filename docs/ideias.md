@@ -4,7 +4,6 @@ resgata cachorro
 o personagem é um bebê pilotando um mecha
 granada de concussão
 stealth de esconder na moita
-andar deitado
 efeito de câmera(impáctos)
 efeitos especiais 
 efeitos sonoros
@@ -21,5 +20,3 @@ sistema de dia e noite
 salvar jogo
 capacete
 plant and defuse bomb
-resgatar cachorro
-colete ( medico, combate)
