@@ -88,10 +88,11 @@
         const player = window.playerControle;
         
         // 1. Processamento de Lógica e Física (Apenas se o jogo NÃO estiver pausado)
-        if (!window.isPaused && cao) {
+        if (!window.isPaused && cao && window.config) {
             
-            const forcaPulo = config.gravidadeUniversal ? (config.forcaGravidade?.forcaPulo ?? 7) : (config.forcaPuloCao ?? 7);
-            const gravidade = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.15) : (config.gravidadeCao ?? 0.5);
+            // Refresca os valores baseados no toggle universal a cada frame
+            const forcaPulo = window.config.gravidadeUniversal ? (window.config.forcaGravidade?.forcaPulo ?? 10) : (window.config.forcaPuloCao ?? 10);
+            const gravidade = window.config.gravidadeUniversal ? (window.config.forcaGravidade?.gravidade ?? 0.5) : (window.config.gravidadeCao ?? 0.5);
             let teclasParaFisica = {}; // Centraliza intenção de pulo
 
             // Decrementa o tempo de espera do pulo a cada frame

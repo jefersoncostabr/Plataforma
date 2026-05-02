@@ -681,6 +681,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
     } = sistemaCombateCorpoACorpo;
 
     function atualizar() {
+        // Garante que o Player use a configuração global atualizada a cada frame
+        const config = window.config || {};
         // DEBUG: Logar estado das ações de movimento e teclas virtuais
         if (window.DEBUG_CONTROLE_MOVIMENTO) {
             const acoes = ['esquerda', 'direita', 'cima', 'baixo'];
@@ -697,7 +699,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
         // --- LÓGICA DE MORTE (FLYING DEATH) ---
         if (controle.estaMorrendo) {
-            const gravMorte = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.15) : (config.gravidadePlayer ?? config.inimigoGravidade ?? 0.6);
+            const gravMorte = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.5) : (config.gravidadePlayer ?? 0.5);
             controle.velocidadeY -= gravMorte;
             controle.y += controle.velocidadeY;
             controle.x += controle.velocidadeKnockback;
@@ -1208,7 +1210,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         }
 
         // Calcula a força do pulo final: se tiver a bota, soma o bônus definido nas configurações
-        const baseForcaPulo = config.gravidadeUniversal ? (config.forcaGravidade?.forcaPulo ?? 12) : (config.forcaPuloPlayer || 12);
+        const baseForcaPulo = config.gravidadeUniversal ? (config.forcaGravidade?.forcaPulo ?? 10) : (config.forcaPuloPlayer || 10);
         const forcaPuloFinal = (controle.temBota && !controle.botaVermelha && !controle.itensGuardadosNoCinto)
             ? (baseForcaPulo + (config.bonusPuloBota || 1.5)) 
             : baseForcaPulo; // Clique duplo (timing para a skill Salto)
@@ -1265,7 +1267,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
         // Gravidade e Física Vertical (Sempre ativa, exceto se jetpack ativo)
         if (typeof aplicarFisica === 'function' && !controle.jetpackAtivo) {
-            const gravidadePlayerAtual = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.15) : (config.gravidadePlayer ?? 0.5);
+            const gravidadePlayerAtual = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.5) : (config.gravidadePlayer ?? 0.5);
             // Passamos a intenção de pulo para a física para garantir sincronia total
             aplicarFisica(controle, { ' ': puloAcabouDeSerPressionado }, forcaPuloFinal, gravidadePlayerAtual, 0);
         }
@@ -1677,7 +1679,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 }
 
                 // Aplica Gravidade
-                const gravidadeItem = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.15) : (config.inimigoGravidade ?? 0.6);
+                const gravidadeItem = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.5) : (config.inimigoGravidade ?? 0.5);
                 item.velocidadeY -= gravidadeItem;
                 item.y += item.velocidadeY;
 

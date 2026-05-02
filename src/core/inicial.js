@@ -725,7 +725,6 @@ async function iniciarJogo() {
     const config = await respostaConfig.json();
     window.config = config;
     // console.log("Configurações carregadas:", config);
-    console.log(config.velocidadePlayer);
 
     // Carrega a lista de fases dinamicamente do manifesto
     try {

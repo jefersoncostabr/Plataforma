@@ -9,7 +9,6 @@
  * @param {string} spriteNoAr - Caminho da imagem no ar (usado para morte).
  */
 function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteChute, spriteNoAr) {
-    const config = window.config || {}; // Usa o window.config que já foi iniciado no inicial.js
 
     if (typeof window.sincronizarAcessoriosEntidade !== 'function') {
         console.error('IA: Erro ao carregar sincronizacao-visual.js. A IA visual pode falhar.');
@@ -417,6 +416,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
     };
 
     function atualizarIA() {
+        const config = window.config || {};
         if (window.isPaused) {
             requestAnimationFrame(atualizarIA);
             return;
@@ -1125,7 +1125,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     }
                 } else if (typeof aplicarFisica === 'function') {
                     const inimigoTeclasParaFisica = { ' ': window.debugInimigoTeclas && window.debugInimigoTeclas[' '] };
-                    aplicarFisica(inimigo, inimigoTeclasParaFisica, forcaPuloInimigo, config.inimigoGravidade, config.inimigoPuloCooldown);
+                    aplicarFisica(inimigo, inimigoTeclasParaFisica, forcaPuloInimigo, gravidadeInimigoAtual, config.inimigoPuloCooldown || 0);
                 }
 
                 // Colisão Vertical constante para garantir que o inimigo pule e caia corretamente

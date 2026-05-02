@@ -417,6 +417,9 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
     };
 
     function atualizarIA() {
+        // Atualiza a referência das configurações no topo para evitar erro de inicialização
+        const config = window.config || {};
+
         if (window.isPaused) {
             requestAnimationFrame(atualizarIA);
             return;
@@ -438,8 +441,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             const distanciaAtivacao = config.inimigoDistanciaAtivacao || 300; // Distância para o inimigo começar a perseguir o jogador
 
             const velAtivaBase = Number(config.velocidadeInimigoBase ?? velocidade);
-            const gravidadeInimigoAtual = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.15) : (config.inimigoGravidade ?? 0.5);
-            const forcaPuloInimigoBase = config.gravidadeUniversal ? (config.forcaGravidade?.forcaPulo ?? 7) : (config.inimigoForcaPulo ?? 12);
+            const gravidadeInimigoAtual = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.5) : (config.inimigoGravidade ?? 0.5);
+            const forcaPuloInimigoBase = config.gravidadeUniversal ? (config.forcaGravidade?.forcaPulo ?? 10) : (config.inimigoForcaPulo ?? 10);
 
             // Usamos um loop for reverso para permitir a remoção segura de inimigos que caem no buraco
             for (let i = window.inimigos.length - 1; i >= 0; i--) {

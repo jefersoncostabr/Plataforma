@@ -140,8 +140,8 @@
     "limiteVelocidadeMinimaHorizontal": 0.5,
     "gravidadeUniversal": true,
     "forcaGravidade": {
-        "forcaPulo": 4,
-        "gravidade": 0.05
+        "forcaPulo": 10,
+        "gravidade": 0.5
     },
     "forcaPuloPlayer": 10,
     "gravidadePlayer": 0.5,
