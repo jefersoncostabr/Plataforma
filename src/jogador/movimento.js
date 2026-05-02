@@ -803,9 +803,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             }
 
             const distancia = Math.hypot(controle.x - window.caoEntidade.x, window.caoEntidade.y - controle.y);
-            console.log(`[DEBUG SWAP] Tecla Q + Agachado: ${controle.estaAgachado} | Distância: ${distancia.toFixed(1)}px`);
-            
-            if (!controle.estaAgachado) return; // Se apertou Q mas não agachou, não faz nada mas já logou acima
+
+            if (!controle.estaAgachado) return;
 
             if (window.caoEntidade) {
                 const hitboxPlayer = { x: controle.x + (controle.offsetX || 0), y: controle.y, largura: controle.largura, altura: controle.altura };
@@ -815,10 +814,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 const colidindo = typeof window.detectarColisaoHitbox === 'function' && 
                                  window.detectarColisaoHitbox(hitboxPlayer, hitboxCao, -15, -15, -15);
                 
-                console.log("[DEBUG SWAP] Colisão com cachorro detectada:", colidindo);
-
                 if (colidindo) {
-                    console.log("[SISTEMA] Troca realizada: Jogador -> Cachorro");
                     window.controlandoCao = true;
                     controle.teclas['q'] = false; // Consome a tecla para evitar comandos residuais
                     controle.teclas['Q'] = false;

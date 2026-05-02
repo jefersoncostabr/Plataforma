@@ -58,7 +58,9 @@
             spriteAndando: config.spriteCaoAndando || '../../assets/personagem/cao_mov.png',
             estaSeguindo: true,    // Novo: controla se o NPC deve seguir o player
             ultimoToqueQ: 0,       // Restaurado para Double Tap
-            qPressionadoAnterior: false // Restaurado para Double Tap
+            qPressionadoAnterior: false, // Restaurado para Double Tap
+            inimigoPreso: null,    // NOVO: Referência ao inimigo segurado
+            latidoPressionadoAnterior: false // NOVO: Controle discreto para detecção de clique do latido
         };
         // REGISTRO GLOBAL: Essencial para o movimento.js encontrar o cachorro
         window.caoEntidade = cao;
@@ -123,22 +125,47 @@
                 const vPressionado = teclas['v'] || teclas['V'] || teclas['KeyV'];
                 const xPressionado = teclas['x'] || teclas['X'] || teclas['KeyX'];
                 
-                const apertandoChute = !!(
-                    kPressionado || vPressionado || xPressionado ||
+                const latidoAtivo = !!(kPressionado || vPressionado || xPressionado);
+
+                // --- LÓGICA DE AGARRAR/SOLTAR INIMIGO (Bark interaction) ---
+                if (latidoAtivo && !cao.latidoPressionadoAnterior) {
+                    if (cao.inimigoPreso) {
+                        // Solta o inimigo
+                        cao.inimigoPreso.stunTimer = 60; // Mantém stun por 1s ao soltar
+                        cao.inimigoPreso = null;
+                        window.AudioManager?.playSFX('pulo', 0.5);
+                    } else {
+                        // Tenta agarrar um inimigo próximo
+                        if (window.inimigos && typeof window.detectarColisaoHitbox === 'function') {
+                            for (let inimigo of window.inimigos) {
+                                if (inimigo.estaMorto || inimigo.estaMorrendo || inimigo.tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID) continue;
+                                
+                                // Detecção com margem negativa (-10px) para EXPANDIR a área e facilitar a captura
+                                if (window.detectarColisaoHitbox(cao, inimigo, -10, -10, -10)) {
+                                    cao.inimigoPreso = inimigo;
+                                    inimigo.stunned = true;
+                                    inimigo.stunTimer = 100;
+                                    window.AudioManager?.playSFX('madeiraQuebrando', 0.6);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                cao.latidoPressionadoAnterior = latidoAtivo;
+
+                const apertandoChute = latidoAtivo || !!(
                     (window.teclasPressionadas && (window.teclasPressionadas['k'] || window.teclasPressionadas['K'])) ||
                     (window.playerControle?.acoesDiscretas?.chute)
                 );
 
-                cao.kPressionadoAnterior = kPressionado;
-
-                cao.mordendo = apertandoChute;
+                cao.mordendo = apertandoChute || !!cao.inimigoPreso;
 
                 // --- LÓGICA DE RETORNO (Double Tap Q) ---
                 const apertouQ = !!(teclas['q'] || teclas['Q'] || teclas['KeyQ']);
                 if (apertouQ && !cao.qPressionadoAnterior) {
                     const agora = Date.now();
                     if (agora - (cao.ultimoToqueQ || 0) < 300) {
-                        console.log("[SISTEMA] Double Tap Q: Retornando controle ao Jogador");
                         window.controlandoCao = false;
                         cao.estaSeguindo = false; // Fica parado ao voltar pro player até que o player o toque
                         
@@ -155,7 +182,7 @@
                 cao.qPressionadoAnterior = apertouQ;
 
             } else {
-            cao.mordendo = false; // Garante que não morda sozinho quando NPC
+            cao.mordendo = !!cao.inimigoPreso; // Mantém o visual de segurando mesmo em modo NPC
 
             // Re-ativa o seguimento se o player encostar (Melhoria vinda do docs/cao.js)
             const colidindoComPlayer = typeof window.detectarColisaoHitbox === 'function' && 
@@ -260,6 +287,41 @@
                     if (hitTeto) {
                         cao.y = window.aplicarSnapColisaoPadrao(cao.y, 0, cao.altura, hitTeto, 'baixo');
                         cao.velocidadeY = 0;
+                    }
+                }
+            }
+
+            // --- LÓGICA DE MANTER INIMIGO PRESO (Executa em ambos os modos) ---
+            if (cao.inimigoPreso) {
+                const inimigo = cao.inimigoPreso;
+                // Se o inimigo morrer (pelo ataque do player), o cão solta automaticamente
+                if (inimigo.estaMorto || inimigo.estaMorrendo) {
+                    cao.inimigoPreso = null;
+                } else {
+                    inimigo.x = cao.x;
+                    inimigo.y = cao.y;
+                    inimigo.stunned = true;
+                    // Renova o stun para garantir que o inimigo não tente fugir ou atacar enquanto preso
+                    if (inimigo.stunTimer < 30) inimigo.stunTimer = 60;
+                    inimigo.noChao = cao.noChao;
+                    inimigo.velocidadeY = cao.velocidadeY;
+                    
+                    // Atualização visual imediata do inimigo
+                    if (inimigo.elemento) {
+                        inimigo.elemento.style.left = inimigo.x + 'px';
+                        inimigo.elemento.style.bottom = inimigo.y + 'px';
+                    }
+                    // Sincroniza todos os equipamentos que o inimigo possa ter coletado
+                    if (typeof window.sincronizarAcessoriosEntidade === 'function') {
+                        window.sincronizarAcessoriosEntidade(inimigo, {
+                            armaElemento: inimigo.armaElemento,
+                            escudoElemento: inimigo.escudoElemento,
+                            botaElemento: inimigo.botaElemento,
+                            jetpackElemento: inimigo.jetpackElemento,
+                            garraElemento: inimigo.garraElemento,
+                            cintoElemento: inimigo.cintoElemento,
+                            coleteElemento: inimigo.coleteElemento
+                        });
                     }
                 }
             }
