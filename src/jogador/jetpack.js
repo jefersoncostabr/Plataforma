@@ -69,14 +69,6 @@
                 if (controle.jetpackAtivo) {
                     desligarJetpack(false);
                 }
-
-                aplicarFisica(
-                    controle,
-                    { ...controle.teclas, ' ': teclaPuloAtiva },
-                    forcaPuloFinal,
-                    config.inimigoGravidade,
-                    config.inimigoPuloCooldown
-                );
                 return false;
             }
 
@@ -122,14 +114,6 @@
 
                 return true;
             }
-
-            aplicarFisica(
-                controle,
-                { ...controle.teclas, ' ': teclaPuloAtiva },
-                forcaPuloFinal,
-                config.inimigoGravidade,
-                config.inimigoPuloCooldown
-            );
 
             return false;
         }

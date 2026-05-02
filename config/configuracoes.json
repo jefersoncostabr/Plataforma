@@ -80,8 +80,6 @@
     "PROJETIL_ATTACK_ALTURA": 320,
     "inimigoMorteImpulsoY": 9,
     "inimigoMorteImpulsoX": 4,
-    "inimigoForcaPulo": 12,
-    "inimigoGravidade": 0.6,
     "inimigoPuloDistanciaAlerta": 240,
     "inimigoPuloCooldown": 35,
     "inimigoPuloDelayMin": 0,
@@ -132,7 +130,6 @@
     "jetpackTempoAtivacao": 120,
     "jetpackDuracaoVoo": 400,
     "jetpackCooldown": 180,
-    "forcaPuloPlayer": 12,
     "caoAlcancePuloY": 32,
     "caoAlcancePuloX": 80,
     "faseInicial": 1,
@@ -141,8 +138,17 @@
     "tempoColetaAirdrop": 100,
     "desaceleracaoHorizontal": 0.9,
     "limiteVelocidadeMinimaHorizontal": 0.5,
-    "forcaPuloCaoManual": 10,
-    "gravidadeCao": 0.6,
+    "gravidadeUniversal": true,
+    "forcaGravidade": {
+        "forcaPulo": 4,
+        "gravidade": 0.05
+    },
+    "forcaPuloPlayer": 10,
+    "gravidadePlayer": 0.5,
+    "forcaPuloCao": 10,
+    "gravidadeCao": 0.5,
+    "inimigoForcaPulo": 10,
+    "inimigoGravidade": 0.5,
     "airdrop1": {
         "espera": 10,
         "conteudos": ["skillpoint", "xp", "item", "restauracao", "skill"]

@@ -756,20 +756,11 @@ async function iniciarJogo() {
         await window.carregarDadosSkills();
     }
 
-    // Calcula escala máxima proporcionalmente ao tamanho da tela
-    const baseWidth = 640;   // Viewport base
+    const baseWidth = 640;
     const baseHeight = 480;
-    const maxWidth = window.innerWidth;
-    const maxHeight = window.innerHeight;
     
-    // Qual a maior escala que cabe em cada dimensão
-    const scaleX = Math.floor(maxWidth / baseWidth);
-    const scaleY = Math.floor(maxHeight / baseHeight);
-    const maxScale = Math.max(1, Math.min(scaleX, scaleY, 4)); // Limita a 4x e garante mínimo 1x
-    
-    // Nota: opção 1 - viewport lógico fica fixo em 640x480
-    // A ampliação é aplicada no container (wrapper), não na câmera.
-    window.escalaAtual = config.escalaPalco; // Mantém zoom conforme config
+    // REVERTIDO: Prioriza o valor exato do JSON (ex: 1.5) em vez do cálculo automático com arredondamento para baixo.
+    window.escalaAtual = Number(config.escalaPalco) || 1;
 
     // Configura viewport base fixa e aplica escala visual no container
     const container = document.getElementById('jogo-container');
@@ -782,48 +773,19 @@ async function iniciarJogo() {
         container.style.margin = '0 auto';
         container.style.top = '0';
         container.style.left = '0';
-        container.style.transform = `scale(${maxScale})`;
+        container.style.transform = `scale(${window.escalaAtual})`;
         container.style.transformOrigin = 'center center';
         
-        // Armazena a escala automática para debug/seleção de modo
-        window.autoScaleMultiplier = maxScale;
+        window.autoScaleMultiplier = window.escalaAtual;
     }
 
     // Função para recalcular escala ao redimensionar a tela
     let resizeTimeout = null;
     window.recalcularTamanhoJogo = function() {
-        // Debounce: evita recalcular muitas vezes enquanto o usuário arrasta
-        if (resizeTimeout) clearTimeout(resizeTimeout);
-        
-        resizeTimeout = setTimeout(() => {
-            const baseWidth = 640;
-            const baseHeight = 480;
-            const maxWidth = window.innerWidth;
-            const maxHeight = window.innerHeight;
-            
-            // Recalcula escala máxima
-            const scaleX = Math.floor(maxWidth / baseWidth);
-            const scaleY = Math.floor(maxHeight / baseHeight);
-            const newMaxScale = Math.max(1, Math.min(scaleX, scaleY, 4));
-            
-            // Apenas atualiza se a escala mudou
-            if (newMaxScale !== window.autoScaleMultiplier) {
-                window.autoScaleMultiplier = newMaxScale;
-                
-                const container = document.getElementById('jogo-container');
-                if (container) {
-                    container.style.width = baseWidth + 'px';
-                    container.style.height = baseHeight + 'px';
-                    container.style.transform = `scale(${newMaxScale})`;
-                    container.style.transformOrigin = 'center center';
-                }
-                
-                // Reaplica a câmera com nova escala
-                if (typeof window.resetarCamera === 'function') {
-                    window.resetarCamera();
-                }
-            }
-        }, 150); // Aguarda 150ms após parar de redimensionar
+        // Se existir o sistema de ajuste centralizado, utiliza-o para manter a consistência
+        if (typeof window.aplicarEscalaJogo === 'function') {
+            window.aplicarEscalaJogo();
+        }
     };
     
     // Listener para redimensionamento da tela

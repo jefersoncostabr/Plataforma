@@ -697,7 +697,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
         // --- LÓGICA DE MORTE (FLYING DEATH) ---
         if (controle.estaMorrendo) {
-            controle.velocidadeY -= config.inimigoGravidade || 0.6;
+            const gravMorte = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.15) : (config.gravidadePlayer ?? config.inimigoGravidade ?? 0.6);
+            controle.velocidadeY -= gravMorte;
             controle.y += controle.velocidadeY;
             controle.x += controle.velocidadeKnockback;
 
@@ -882,8 +883,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             controle.movendoHorizontal = false;
             controle.velocidadeHorizontalAtual = 0;
             
-            if (typeof aplicarFisica === 'function') {
-                aplicarFisica(controle, {}, 0, config.inimigoGravidade || 0.6, 0);
+            if (typeof aplicarFisica === 'function') { // A gravidade é aplicada aqui para o jogador quando o cão está sendo controlado
+                const gravEspera = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.15) : (config.gravidadePlayer ?? 0.5);
+                aplicarFisica(controle, {}, 0, gravEspera, 0);
             }
             const hitV = typeof verificarColisaoComTiles === 'function' ? verificarColisaoComTiles(controle.x + controle.offsetX, controle.y, controle.largura, controle.altura, window.plataformas) : null;
             if (hitV && controle.velocidadeY < 0) {
@@ -1206,11 +1208,10 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         }
 
         // Calcula a força do pulo final: se tiver a bota, soma o bônus definido nas configurações
+        const baseForcaPulo = config.gravidadeUniversal ? (config.forcaGravidade?.forcaPulo ?? 12) : (config.forcaPuloPlayer || 12);
         const forcaPuloFinal = (controle.temBota && !controle.botaVermelha && !controle.itensGuardadosNoCinto)
-            ? ((config.forcaPuloPlayer || 12) + (config.bonusPuloBota || 1.5)) 
-            : (config.forcaPuloPlayer || 12);
-
-        // Decrementa o timer da janela de clique duplo (timing para a skill Salto)
+            ? (baseForcaPulo + (config.bonusPuloBota || 1.5)) 
+            : baseForcaPulo; // Clique duplo (timing para a skill Salto)
         if (controle.timerPuloDuplo > 0) controle.timerPuloDuplo--;
 
         // Decrementa o cooldown do pulo duplo
@@ -1235,6 +1236,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             if (puloAcabouDeSerPressionado && controle.cooldownPulo === 0) { // Adicionado cooldownPulo para evitar pulo imediato
                 window.AudioManager?.playSFX('pulo', 0.5);
                 controle.pulosRealizados = 1;
+                controle.velocidadeY = forcaPuloFinal; // CORREÇÃO: Aplica a força do pulo no chão
                 controle.timerPuloDuplo = config.janelaPuloDuplo ?? 12; // Janela de tempo mais rigorosa: 10 frames (aprox. 0.16s)
             } else {
                 controle.pulosRealizados = 0;
@@ -1259,6 +1261,13 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 window.criarSombraDash(elemento);
             }
             controle.superPuloFramesRestantes--;
+        }
+
+        // Gravidade e Física Vertical (Sempre ativa, exceto se jetpack ativo)
+        if (typeof aplicarFisica === 'function' && !controle.jetpackAtivo) {
+            const gravidadePlayerAtual = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.15) : (config.gravidadePlayer ?? 0.5);
+            // Passamos a intenção de pulo para a física para garantir sincronia total
+            aplicarFisica(controle, { ' ': puloAcabouDeSerPressionado }, forcaPuloFinal, gravidadePlayerAtual, 0);
         }
 
         atualizarJetpack({
@@ -1668,7 +1677,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 }
 
                 // Aplica Gravidade
-                item.velocidadeY -= config.inimigoGravidade || 0.6;
+                const gravidadeItem = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.15) : (config.inimigoGravidade ?? 0.6);
+                item.velocidadeY -= gravidadeItem;
                 item.y += item.velocidadeY;
 
                 // Colisão Vertical (Chão e Plataformas)

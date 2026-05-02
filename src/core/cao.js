@@ -51,6 +51,7 @@
             direcao: 'd',
             contadorAnimacao: 0,
             frameAtual: 0,
+            cooldownPulo: 0,
             idAtivo: meuId,
             mordendo: false,
             kPressionadoAnterior: false,
@@ -88,6 +89,15 @@
         
         // 1. Processamento de Lógica e Física (Apenas se o jogo NÃO estiver pausado)
         if (!window.isPaused && cao) {
+            
+            const forcaPulo = config.gravidadeUniversal ? (config.forcaGravidade?.forcaPulo ?? 7) : (config.forcaPuloCao ?? 7);
+            const gravidade = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.15) : (config.gravidadeCao ?? 0.5);
+            let teclasParaFisica = {}; // Centraliza intenção de pulo
+
+            // Decrementa o tempo de espera do pulo a cada frame
+            if (cao.cooldownPulo > 0) {
+                cao.cooldownPulo--;
+            }
 
             if (window.controlandoCao) {
                 const teclas = window.playerControle?.teclas || {};
@@ -115,13 +125,9 @@
                     });
                 }
 
-                if (typeof window.aplicarFisica === 'function') {
-                    // Mapeia Espaço, W ou Seta Cima para o pulo do cão
-                    const mockTeclas = { ' ': !!(teclas[' '] || teclas['w'] || teclas['W'] || teclas['ArrowUp']) };
-                    window.aplicarFisica(cao, mockTeclas, config.forcaPuloCaoManual || config.forcaPuloCaoObstaculo || 8.5, config.gravidadeCao || config.inimigoGravidade || 0.6, 0);
-                    if (cao.velocidadeY > 0) cao.noChao = false;
-                }
-
+                // Mapeia teclas de pulo para o sistema de física
+                teclasParaFisica[' '] = !!(teclas[' '] || teclas['w'] || teclas['W'] || teclas['ArrowUp']);
+                
                 // Lógica de mordida: Enquanto 'k', 'v' ou 'x' estiverem pressionados
                 const kPressionado = teclas['k'] || teclas['K'] || teclas['KeyK'];
                 const vPressionado = teclas['v'] || teclas['V'] || teclas['KeyV'];
@@ -213,13 +219,17 @@
                 // Salto de Obstrução (Se bater em algo e estiver no chão, tenta pular)
                 const margemCheck = direcaoX > 0 ? 25 : -5;
                 const bloqueioFrente = window.verificarColisaoComTiles(cao.x + margemCheck, cao.y + 5, 5, 5, window.plataformas);
-                if (bloqueioFrente && cao.noChao) cao.velocidadeY = config.forcaPuloCaoObstaculo || 8.5;
+                if (bloqueioFrente && cao.noChao && cao.cooldownPulo === 0) {
+                    cao.velocidadeY = forcaPulo;
+                    cao.cooldownPulo = 20; // Pequena pausa antes de poder pular de novo por IA
+                }
             }
 
             // Salta se o jogador estiver acima (em plataformas altas)
             const alcancePuloY = config.caoAlcancePuloY || 32;
-            if (cao.estaSeguindo && player && cao.noChao && player.y > cao.y + alcancePuloY && Math.abs(deltaX) < (config.caoAlcancePuloX || 80)) {
-                cao.velocidadeY = config.forcaPuloCaoPlayerAcima || 9.0;
+            if (cao.estaSeguindo && player && cao.noChao && cao.cooldownPulo === 0 && (player.y > cao.y + alcancePuloY) && Math.abs(deltaX) < (config.caoAlcancePuloX || 80)) {
+                cao.velocidadeY = forcaPulo;
+                cao.cooldownPulo = 20;
             }
             // Segurança: Teleporte se estiver muito longe ou caiu em buraco
             const distMax = config.distanciaMaxTeleporteCao || 600;
@@ -252,15 +262,15 @@
                                          window.detectarColisaoHitbox(hitboxCaoBase, hitboxPlayerTopo, 0, 0, 0);
 
                 if (colidiuTrampolim) {
-                    cao.velocidadeY = config.forcaPuloCaoTrampolim || 12; 
+                    cao.velocidadeY = config.forcaPuloCaoTrampolim || 10; 
                     cao.noChao = false;
                     window.AudioManager?.playSFX('pulo', 0.6);
                 }
             }
 
             // Gravidade e Física Vertical (Sempre ativa)
-            if (typeof window.aplicarFisica === 'function') {
-                window.aplicarFisica(cao, {}, 0, config.gravidadeCao || config.inimigoGravidade || 0.6, 0);
+            if (typeof window.aplicarFisica === 'function') { 
+                window.aplicarFisica(cao, teclasParaFisica, forcaPulo, gravidade, 12);
             }
 
             // 4. Colisão Vertical REFINADA (Melhoria vinda do docs/cao.js)

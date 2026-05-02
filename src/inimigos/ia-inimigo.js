@@ -435,10 +435,11 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             const playerX = parseInt(player.style.left) || 0;
             const playerY = parseInt(player.style.bottom) || 0;
             const alcanceTiro = Number(config.distanciaTiroInimigo ?? 300);
-            
             const distanciaAtivacao = config.inimigoDistanciaAtivacao || 300; // Distância para o inimigo começar a perseguir o jogador
 
             const velAtivaBase = Number(config.velocidadeInimigoBase ?? velocidade);
+            const gravidadeInimigoAtual = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.15) : (config.inimigoGravidade ?? 0.5);
+            const forcaPuloInimigoBase = config.gravidadeUniversal ? (config.forcaGravidade?.forcaPulo ?? 7) : (config.inimigoForcaPulo ?? 12);
 
             // Usamos um loop for reverso para permitir a remoção segura de inimigos que caem no buraco
             for (let i = window.inimigos.length - 1; i >= 0; i--) {
@@ -446,8 +447,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 if (!inimigo) continue;
 
                 if (inimigo && inimigo.estaMorrendo) {
-
-                    inimigo.velocidadeY -= config.inimigoGravidade || 0.6;
+                    // Usa a gravidade universal ou a gravidade específica do inimigo
+                    inimigo.velocidadeY -= gravidadeInimigoAtual;
                     inimigo.y += inimigo.velocidadeY;
                     inimigo.x += inimigo.velocidadeKnockback;
 
@@ -524,7 +525,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     // Aplica gravidade continuamente para o feno não ficar "flutuando"
                     inimigo.noChao = false;
                     if (typeof aplicarFisica === 'function') {
-                        aplicarFisica(inimigo, {}, 0, config.inimigoGravidade, 0);
+                        aplicarFisica(inimigo, {}, 0, gravidadeInimigoAtual, 0);
                     }
                     // Sincroniza posição visual e pula toda a IA
                     inimigo.elemento.style.left = inimigo.x + 'px';
@@ -1052,8 +1053,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 }) : null;
 
                 // Unificação da força de pulo: todos os tipos usam a mesma base numérica
-                let forcaPuloInimigo = Number(config.inimigoForcaPulo ?? 12);
-                if (inimigo.tipo === window.GAME_CONSTANTS.TIPOS_INIMIGO[3].id) {
+                let forcaPuloInimigo = forcaPuloInimigoBase;
+                if (inimigo.tipo === window.GAME_CONSTANTS.TIPOS_INIMIGO[3].id) { // Inimigo com bota
                     forcaPuloInimigo += Number(config.bonusPuloBota ?? 1.5);
                 }
 
@@ -1133,7 +1134,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     }
                 } else if (typeof aplicarFisica === 'function') {
                     const inimigoTeclasParaFisica = { ' ': window.debugInimigoTeclas && window.debugInimigoTeclas[' '] };
-                    aplicarFisica(inimigo, inimigoTeclasParaFisica, forcaPuloInimigo, config.inimigoGravidade, config.inimigoPuloCooldown);
+                    aplicarFisica(inimigo, inimigoTeclasParaFisica, forcaPuloInimigo, gravidadeInimigoAtual, config.inimigoPuloCooldown || 0);
                 }
 
                 // Colisão Vertical constante para garantir que o inimigo pule e caia corretamente
