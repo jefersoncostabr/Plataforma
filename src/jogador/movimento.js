@@ -1532,18 +1532,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                                 // Inimigo tipo 5 é Feno (alvo de treino) - você verá dano no comportamento
                             }
                             
-                            // Knockback por subpassos para impedir atravessar blocos em impactos fortes (Correção: adicionado window.plataformas)
-                            window.aplicarDeslocamentoHorizontalComColisaoPadrao(
-                                inimigo,
-                                window.obterKnockbackPadrao(config, 'playerProjetil') * proj.direcao,
-                                window.plataformas,
-                                {
-                                    largura: inimigo.largura,
-                                    altura: inimigo.altura,
-                                    offsetX: inimigo.offsetX || 0,
-                                    maxPasso: Number(config.inimigoKnockbackPassoMax ?? 1)
-                                }
-                            );
+                            // Knockback unificado via frames (permite que o cão detecte o acerto e solte o inimigo)
+                            const forcaRecuo = window.obterKnockbackPadrao(config, 'playerProjetil');
+                            window.aplicarKnockback(inimigo, forcaRecuo, proj.direcao, 15);
 
                             virarFenoParaFonteDano(inimigo, proj.x);
 

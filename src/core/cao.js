@@ -96,12 +96,14 @@
                 let deslocX = 0;
 
                 // Controle manual do cachorro
+                const velocidadeFinal = (config.velocidadeCao || 3) * (cao.inimigoPreso ? 0.3 : 1);
+
                 if (teclas['a'] || teclas['A'] || teclas['ArrowLeft']) {
-                    deslocX = -(config.velocidadeCao || 3);
+                    deslocX = -velocidadeFinal;
                     cao.direcao = 'e';
                     cao.movendoHorizontal = true;
                 } else if (teclas['d'] || teclas['D'] || teclas['ArrowRight']) {
-                    deslocX = (config.velocidadeCao || 3);
+                    deslocX = velocidadeFinal;
                     cao.direcao = 'd';
                     cao.movendoHorizontal = true;
                 }
@@ -196,7 +198,8 @@
             // Inteligência de Seguimento e Movimento Horizontal com Colisão
             if (cao.estaSeguindo && player && !player.estaMorrendo && Math.abs(deltaX) > distSeguir) {
                 const direcaoX = Math.sign(deltaX);
-                const deslocX = direcaoX * (config.velocidadeCao || 3);
+                const velocidadeSeguir = (config.velocidadeCao || 3) * (cao.inimigoPreso ? 0.3 : 1);
+                const deslocX = direcaoX * velocidadeSeguir;
                 
                 // Usa o sistema global de movimento para evitar atravessar paredes
                 window.aplicarDeslocamentoHorizontalComColisaoPadrao(cao, deslocX, window.plataformas, {
@@ -220,7 +223,7 @@
             }
             // Segurança: Teleporte se estiver muito longe ou caiu em buraco
             const distMax = config.distanciaMaxTeleporteCao || 600;
-            if (cao.y < -128 || (player && Math.abs(player.x - cao.x) > distMax)) {
+            if (!cao.inimigoPreso && (cao.y < -128 || (player && Math.abs(player.x - cao.x) > distMax))) {
                 if (player && player.noChao) {
                     cao.x = player.x - (player.direcao === 'd' ? 32 : -32);
                     cao.y = player.y;
@@ -294,8 +297,12 @@
             // --- LÓGICA DE MANTER INIMIGO PRESO (Executa em ambos os modos) ---
             if (cao.inimigoPreso) {
                 const inimigo = cao.inimigoPreso;
-                // Se o inimigo morrer (pelo ataque do player), o cão solta automaticamente
-                if (inimigo.estaMorto || inimigo.estaMorrendo) {
+                // Ajuste: Se o inimigo morrer ou receber knockback (atingido), o cão solta automaticamente
+                if (inimigo.estaMorto || inimigo.estaMorrendo || (inimigo.framesKnockbackRestante > 0)) {
+                    if (inimigo.framesKnockbackRestante > 0) {
+                        inimigo.stunned = false; // Sai do stun da mordida para receber o knockback normalmente
+                        inimigo.stunTimer = 0;
+                    }
                     cao.inimigoPreso = null;
                 } else {
                     inimigo.x = cao.x;
