@@ -776,7 +776,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         const apertouQ = (controle.teclas['q'] || controle.teclas['Q']);
         
         if (!window.controlandoCao && !window.controlandoGato && apertouQ) {
-            if (!window.temSkill?.((window.SKILLS || {}).ADESTRAMENTO)) {
+            // Verifica se o jogador possui a habilidade necessária para controlar pets
+            if (window.PetAbilities && !window.PetAbilities.podeSerControlado(true)) {
                 // Trava de Habilidade: Se não tiver a skill, apenas sinaliza o erro e continua o loop
                 if (typeof flashElement === 'function') {
                     flashElement(elemento, 120, 4); // Feedback visual de erro
