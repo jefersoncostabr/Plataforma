@@ -32,7 +32,9 @@
         { type: 'player', stateKey: 'posicaoInicialJogador', sprite: '../../assets/personagem/Personagem_parado.png', label: 'Ponto Inicial do Jogador', className: 'player-filter', kind: 'single' },
         { type: 'objetivo', stateKey: 'objetivo', sprite: '../../assets/personagem/objetivo.png', label: 'Objetivo da Fase', kind: 'single' },
         { type: 'gaiola', stateKey: 'posicaoGaiola', sprite: '../../assets/personagem/gaiola1.png', label: 'Gaiola com Cão', kind: 'single' },
-        { type: 'cachorro', stateKey: 'posicaoCachorro', sprite: '../../assets/personagem/cao_parado.png', label: 'Cachorro (NPC)', kind: 'single' }
+        { type: 'cachorro', stateKey: 'posicaoCachorro', sprite: '../../assets/personagem/cao_parado.png', label: 'Cachorro (NPC)', kind: 'single' },
+        { type: 'gaiolaGato', stateKey: 'posicaoGaiolaGato', sprite: '../../assets/personagem/gaiola1.png', label: 'Gaiola com Gato', kind: 'single' },
+        { type: 'gato', stateKey: 'posicaoGato', sprite: '../../assets/personagem/gato_parado.png', label: 'Gato (NPC)', kind: 'single' }
     ];
 
     const ALL_DEFS = [...PLATFORM_DEFS, ...ENEMY_DEFS, ...SYSTEM_DEFS];
@@ -45,6 +47,8 @@
             objetivo: 'f19',
             posicaoGaiola: '',
             posicaoCachorro: '',
+            posicaoGaiolaGato: '',
+            posicaoGato: '',
             itens: {},
             inimigoAleatorio: [1, 0]
         };

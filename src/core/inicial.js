@@ -442,23 +442,22 @@ async function carregarFase(nomeArquivo) {
         // Garante visual limpo do jogador após reposicionamento no spawn.
         limparAnimacaoDanoJogador();
 
-        // --- LÓGICA DE RESGATE DO CÃO ---
-        const cãoJáResgatado = window.isCaoResgatado === true;
+        // --- LÓGICA DE PETS ---
+        if (typeof window.limparGaiolas === 'function') window.limparGaiolas();
 
-        if (cãoJáResgatado) {
-            // Se já foi resgatado, o cão aparece livre próximo ao jogador
-            if (typeof window.iniciarCao === 'function') {
-                window.iniciarCao({ x: pos.x - 32, y: pos.y }, window.config);
+        const processarPet = (tipo, resgatado, naBase, posGaiola, spawnFunc) => {
+            if (resgatado && !naBase) {
+                if (typeof spawnFunc === 'function') spawnFunc({ x: pos.x - 32, y: pos.y }, window.config);
+            } else if (posGaiola && typeof window.criarGaiola === 'function') {
+                const posG = window.gridParaPixels(posGaiola);
+                window.criarGaiola(posG, window.config, tipo);
             }
-        } else if (fase.posicaoGaiola) {
-            // Se não foi resgatado e a fase tem uma gaiola, cria a gaiola
-            if (typeof window.criarGaiola === 'function') {
-                const posGaiola = window.gridParaPixels(fase.posicaoGaiola);
-                window.criarGaiola(posGaiola, window.config);
-            } else {
-                console.error("[DEBUG GAIOLA] Erro: Função window.criarGaiola não encontrada! Verifique se src/core/gaiola.js foi carregado.");
-            }
-        } else {
+        };
+
+        processarPet('cao', window.isCaoResgatado, window.caoNaBase, fase.posicaoGaiola, window.iniciarCao);
+        processarPet('gato', window.isGatoResgatado, window.gatoNaBase, fase.posicaoGaiolaGato, window.iniciarGato);
+
+        if (!fase.posicaoGaiola && !fase.posicaoGaiolaGato) {
             if (fase.posicaoCachorro) {
                 console.warn("[DEBUG GAIOLA] Aviso: fase.posicaoCachorro ignorada. Use posicaoGaiola no editor.");
             }

@@ -101,6 +101,28 @@
                     console.log("Item 'cachorro' injetado com sucesso.");
                 }
 
+                // Injeção da Gaiola com Gato
+                if (!catSistemas.querySelector('[data-type="gaiolaGato"]')) {
+                    const img = document.createElement('img');
+                    img.src = '../../assets/personagem/gaiola1.png';
+                    img.className = 'palette-item';
+                    img.setAttribute('data-type', 'gaiolaGato');
+                    img.title = 'Gaiola com Gato';
+                    catSistemas.appendChild(img);
+                    console.log("Item 'gaiolaGato' injetado com sucesso.");
+                }
+
+                // Injeção do Gato (NPC) livre
+                if (!catSistemas.querySelector('[data-type="gato"]')) {
+                    const imgGato = document.createElement('img');
+                    imgGato.src = '../../assets/personagem/gato_parado.png';
+                    imgGato.className = 'palette-item';
+                    imgGato.setAttribute('data-type', 'gato');
+                    imgGato.title = 'Gato (NPC)';
+                    catSistemas.appendChild(imgGato);
+                    console.log("Item 'gato' injetado com sucesso.");
+                }
+
                 configurarPaleta(); // Re-vincula os eventos de clique para os novos itens
             } else {
                 console.warn("[EditorUI] Categoria de sistemas não encontrada na paleta. Verifique os títulos H4 no HTML.");

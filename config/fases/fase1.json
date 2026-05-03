@@ -4,6 +4,8 @@
     "objetivo": "e40",
     "posicaoGaiola": "b9",
     "posicaoCachorro": "",
+    "posicaoGaiolaGato": "b10",
+    "posicaoGato": "",
     "itens": {
         "revolver": "o3",
         "cinto": "o6"

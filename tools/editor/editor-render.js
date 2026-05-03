@@ -103,6 +103,8 @@
                     // Para a gaiola, renderizamos o cão atrás para feedback visual fiel ao jogo
                     if (def.type === 'gaiola') {
                         criarIcone(coord, '../../assets/personagem/cao_parado.png', 'editor-npc-fundo');
+                    } else if (def.type === 'gaiolaGato') {
+                        criarIcone(coord, '../../assets/personagem/gato_parado.png', 'editor-npc-fundo');
                     }
                     criarIcone(coord, def.sprite, def.className || '');
                 }

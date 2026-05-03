@@ -3,33 +3,39 @@
  * A gaiola é um objeto estático que o jogador pode colidir para libertar o cão.
  */
 (function () {
-    let gaiolaObj = null;
+    let gaiolasAtivas = [];
     let config = {};
 
     /**
      * Cria e posiciona a gaiola no cenário.
      * @param {Object} pos - Posição da gaiola (x, y).
      * @param {Object} gameConfig - Configurações do jogo.
+     * @param {string} tipo - Tipo de pet ('cao' ou 'gato').
      * @returns {Object} O objeto da gaiola criada.
      */
-    window.criarGaiola = function (pos, gameConfig) {
+    window.criarGaiola = function (pos, gameConfig, tipo = 'cao') {
         config = gameConfig;
 
-        if (window.isCaoResgatado) {
-            return null; // Não cria a gaiola se o cão já foi resgatado
+        const resgatado = tipo === 'cao' ? window.isCaoResgatado : window.isGatoResgatado;
+        if (resgatado) {
+            return null; // Não cria a gaiola se o pet já foi resgatado
         }
 
-        // Sprite do cão (fundo)
-        const elementoCaoFundo = document.createElement('img');
-        elementoCaoFundo.src = config.spriteCao || '../../assets/personagem/cao_parado.png';
-        elementoCaoFundo.style.position = 'absolute';
-        elementoCaoFundo.style.width = '32px';
-        elementoCaoFundo.style.height = '32px';
-        elementoCaoFundo.style.left = pos.x + 'px';
-        elementoCaoFundo.style.bottom = pos.y + 'px';
-        elementoCaoFundo.style.zIndex = window.LAYERS.ITENS - 1; // Atrás da gaiola
-        elementoCaoFundo.style.imageRendering = 'pixelated';
-        window.adicionarAoLayer(elementoCaoFundo, window.LAYERS.ITENS);
+        // Sprite do pet (fundo)
+        const elementoPetFundo = document.createElement('img');
+        const spritePet = tipo === 'cao' 
+            ? (config.spriteCao || '../../assets/personagem/cao_parado.png')
+            : (config.spriteGato || '../../assets/personagem/gato_parado.png');
+            
+        elementoPetFundo.src = spritePet;
+        elementoPetFundo.style.position = 'absolute';
+        elementoPetFundo.style.width = '32px';
+        elementoPetFundo.style.height = '32px';
+        elementoPetFundo.style.left = pos.x + 'px';
+        elementoPetFundo.style.bottom = pos.y + 'px';
+        elementoPetFundo.style.zIndex = window.LAYERS.ITENS - 1; // Atrás da gaiola
+        elementoPetFundo.style.imageRendering = 'pixelated';
+        window.adicionarAoLayer(elementoPetFundo, window.LAYERS.ITENS);
 
         // Sprite da gaiola (frente)
         const elementoGaiola = document.createElement('img');
@@ -43,13 +49,14 @@
         elementoGaiola.style.imageRendering = 'pixelated';
         window.adicionarAoLayer(elementoGaiola, window.LAYERS.ITENS);
 
-        gaiolaObj = {
+        const gaiolaObj = {
             x: pos.x,
             y: pos.y,
+            tipo: tipo,
             largura: 32,
             altura: 32,
             elementoGaiola: elementoGaiola,
-            elementoCao: elementoCaoFundo,
+            elementoPet: elementoPetFundo,
             // Hitbox de colisão conforme especificado: 12x12px, 11º pixel da esquerda, na base
             hitbox: {
                 x: pos.x + 11,
@@ -58,16 +65,23 @@
                 altura: 12
             }
         };
+        gaiolasAtivas.push(gaiolaObj);
         return gaiolaObj;
+    };
+
+    window.limparGaiolas = () => { 
+        gaiolasAtivas.forEach(g => {
+            if (g.elementoGaiola) g.elementoGaiola.remove();
+            if (g.elementoPet) g.elementoPet.remove();
+        });
+        gaiolasAtivas = []; 
     };
 
     /**
      * Atualiza a lógica da gaiola, verificando colisão com o jogador.
      */
     window.atualizarGaiola = function () {
-        if (window.isCaoResgatado || !gaiolaObj || !window.playerControle) {
-            return; // Gaiola não existe ou cão já resgatado
-        }
+        if (!window.playerControle || gaiolasAtivas.length === 0) return;
 
         const playerHitbox = {
             x: window.playerControle.x + (window.playerControle.offsetX || 0),
@@ -76,9 +90,16 @@
             altura: window.playerControle.altura
         };
 
-        // Detecta colisão com a hitbox específica da gaiola
-        if (typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(playerHitbox, gaiolaObj.hitbox, 0, 0, 0)) {
-            window.libertarCao(gaiolaObj);
+        for (let i = gaiolasAtivas.length - 1; i >= 0; i--) {
+            const g = gaiolasAtivas[i];
+            const resgatado = g.tipo === 'cao' ? window.isCaoResgatado : window.isGatoResgatado;
+            
+            if (!resgatado && typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(playerHitbox, g.hitbox, 0, 0, 0)) {
+                if (typeof window.libertarPet === 'function') {
+                    window.libertarPet(g.tipo, g);
+                    gaiolasAtivas.splice(i, 1);
+                }
+            }
         }
     };
 })();

@@ -71,6 +71,8 @@
     function montarContextoCraft(craft) {
         return {
             craftId: String(craft?.id || ''),
+            x: craft?.x,
+            y: craft?.y,
             nivel: String(craft?.nivel || 1),
             modoRenascimento: String(craft?.modoRenascimento || ''),
             sprite: craft?.elementos?.[Math.max(0, Number(craft?.nivel || 1) - 1)]?.src
@@ -279,28 +281,53 @@
     /**
      * Injeta o ícone do cão resgatado na linha superior (header) do menu da base.
      */
-    function injetarIconeCaoNoMenu(container) {
-        if (!window.isCaoResgatado) return;
-
+    function injetarIconeCaoNoMenu(container, contexto = {}) {
         const header = container.querySelector('.interaction-header');
         const closeBtn = header?.querySelector('.interaction-close');
         if (!header || !closeBtn) return;
 
-        const dogBadge = document.createElement('div');
-        dogBadge.title = "Cão Aliado Resgatado";
-        dogBadge.style.cssText = `
-            width: 40px; height: 40px; background: rgba(0, 255, 0, 0.1); overflow: hidden;
-            border: 1px solid rgba(0, 255, 0, 0.2); border-radius: 6px;
-            display: flex; align-items: center; justify-content: center;
-            margin-left: auto; margin-right: 12px;
-        `;
+        const petsDisponiveis = [
+            { id: 'cao', resgatado: window.isCaoResgatado, naBase: 'caoNaBase', key: 'plataformaCaoNaBase', sprite: 'cao_coletavel.png', spawn: window.iniciarCao, entidade: 'caoEntidade' },
+            { id: 'gato', resgatado: window.isGatoResgatado, naBase: 'gatoNaBase', key: 'plataformaGatoNaBase', sprite: 'gato_coletavel.png', spawn: window.iniciarGato, entidade: 'gatoEntidade' }
+        ];
 
-        const dogImg = document.createElement('img');
-        dogImg.src = '../../assets/personagem/cao_coletavel.png';
-        dogImg.style.cssText = 'width: 64px; height: 64px; image-rendering: pixelated; object-fit: contain; flex-shrink: 0;';
-        
-        dogBadge.appendChild(dogImg);
-        header.insertBefore(dogBadge, closeBtn);
+        petsDisponiveis.forEach(pet => {
+            if (!pet.resgatado) return;
+
+            const badge = document.createElement('div');
+            badge.style.cssText = `
+                width: 40px; height: 40px; background: rgba(0, 255, 0, 0.1); overflow: hidden;
+                border: 1px solid rgba(0, 255, 0, 0.2); border-radius: 6px;
+                display: flex; align-items: center; justify-content: center;
+                margin-left: 8px; cursor: pointer;
+            `;
+            if (pet.id === 'cao') badge.style.marginLeft = 'auto'; // O primeiro pet empurra
+
+            const img = document.createElement('img');
+            img.src = `../../assets/personagem/${pet.sprite}`;
+            img.style.cssText = 'width: 64px; height: 64px; image-rendering: pixelated; object-fit: contain; flex-shrink: 0; transition: filter 0.3s;';
+            
+            const atualizarFiltro = () => {
+                img.style.filter = window[pet.naBase] ? 'brightness(0.15) grayscale(1)' : 'none';
+                badge.title = window[pet.naBase] ? `${pet.id.toUpperCase()} na Base` : `${pet.id.toUpperCase()} Ativo`;
+            };
+            atualizarFiltro();
+
+            badge.onclick = () => {
+                window[pet.naBase] = !window[pet.naBase];
+                localStorage.setItem(pet.key, window[pet.naBase]);
+                atualizarFiltro();
+
+                if (window[pet.naBase]) {
+                    if (window[pet.entidade] && window[pet.entidade].elemento) window[pet.entidade].elemento.remove();
+                } else if (typeof pet.spawn === 'function' && contexto.x !== undefined) {
+                    pet.spawn({ x: contexto.x, y: contexto.y }, window.config);
+                }
+            };
+
+            badge.appendChild(img);
+            header.insertBefore(badge, closeBtn);
+        });
     }
 
     function fecharTelaInteracao() {
@@ -384,7 +411,7 @@
         atualizarResumoEquipamentoSalvo(overlay);
 
         // Adiciona o indicador visual do aliado se disponível
-        injetarIconeCaoNoMenu(overlay);
+        injetarIconeCaoNoMenu(overlay, contexto);
 
         if (id === 'menu_crafting') {
             const inventarioContainer = overlay.querySelector('.player-inventory-for-crafting');
