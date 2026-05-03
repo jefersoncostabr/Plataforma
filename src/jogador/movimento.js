@@ -775,7 +775,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         // Verifica se o jogador quer assumir o controle do cachorro (Abaixar + Colisão + 'Q')
         const apertouQ = (controle.teclas['q'] || controle.teclas['Q']);
         
-        if (!window.controlandoCao && apertouQ) {
+        if (!window.controlandoCao && !window.controlandoGato && apertouQ) {
             if (!window.temSkill?.((window.SKILLS || {}).ADESTRAMENTO)) {
                 // Trava de Habilidade: Se não tiver a skill, apenas sinaliza o erro e continua o loop
                 if (typeof flashElement === 'function') {
@@ -785,45 +785,39 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 controle.teclas['q'] = false;
                 controle.teclas['Q'] = false;
             } else {
-                // TENTATIVA DE AUTO-RECUPERAÇÃO: Se o objeto sumiu mas o cachorro está na tela
-                if (!window.caoEntidade) {
-                    const elementoCaoNaTela = document.getElementById('cao-aliado') || 
-                                             document.getElementById('cao') || 
-                                             document.querySelector('.npc-cao');
-                    if (elementoCaoNaTela) {
-                        window.caoEntidade = {
-                            elemento: elementoCaoNaTela,
-                            x: parseInt(elementoCaoNaTela.style.left) || 0,
-                            y: parseInt(elementoCaoNaTela.style.bottom) || 0,
-                            largura: 20, altura: 20, offsetX: 5,
-                            velocidadeY: 0, noChao: false, movendoHorizontal: false,
-                            direcao: 'd', contadorAnimacao: 0, frameAtual: 0
-                        };
-                    }
-                }
+                // Tenta a troca se houver pet e o jogador estiver agachado
+                if (controle.estaAgachado) {
+                    const hitboxPlayer = { 
+                        x: controle.x + (controle.offsetX || 0), 
+                        y: controle.y, 
+                        largura: controle.largura, 
+                        altura: controle.altura 
+                    };
 
-                // Só tenta a troca se houver cão e o jogador estiver agachado
-                if (window.caoEntidade && controle.estaAgachado) {
-                    const hitboxPlayer = { x: controle.x + (controle.offsetX || 0), y: controle.y, largura: controle.largura, altura: controle.altura };
-                    const hitboxCao = { x: window.caoEntidade.x, y: window.caoEntidade.y, largura: window.caoEntidade.largura, altura: window.caoEntidade.altura };
-                    const colidindo = typeof window.detectarColisaoHitbox === 'function' && 
-                                     window.detectarColisaoHitbox(hitboxPlayer, hitboxCao, -15, -15, -15);
-                    
-                    if (colidindo) {
-                        window.controlandoCao = true;
-                        controle.teclas['q'] = false;
-                        controle.teclas['Q'] = false;
-                        window.AudioManager?.playSFX('engrenagem', 0.5);
+                    // Função para verificar troca por pet
+                    const tentarTroca = (pet, flag) => {
+                        if (!pet) return false;
+                        const hitboxPet = { x: pet.x, y: pet.y, largura: pet.largura, altura: pet.altura };
+                        if (window.detectarColisaoHitbox(hitboxPlayer, hitboxPet, -15, -15, -15)) {
+                            window[flag] = true;
+                            controle.teclas['q'] = false;
+                            controle.teclas['Q'] = false;
+                            window.AudioManager?.playSFX('engrenagem', 0.5);
+                            return true;
+                        }
+                        return false;
+                    };
+
+                    if (tentarTroca(window.caoEntidade, 'controlandoCao') || 
+                        tentarTroca(window.gatoEntidade, 'controlandoGato')) {
                         requestAnimationFrame(atualizar);
-                        return; // Aqui o return é seguro pois já agendamos o próximo frame no modo cão
+                        return;
                     }
-                } else if (!window.caoEntidade && apertouQ) {
-                    console.warn("[SISTEMA] Cão não encontrado para troca.");
                 }
             }
         }
 
-        if (window.controlandoCao) {
+        if (window.controlandoCao || window.controlandoGato) {
             processarEsperaJogador();
             requestAnimationFrame(atualizar);
             return;
@@ -898,8 +892,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 atualizarAnimacao(controle, elemento, config.spriteParadoPlayer || spriteParado, config.spriteAndandoPlayer || spriteAndando, config.spriteNoArPlayer || spriteNoAr, config.spriteAgachadoPlayer || spriteAgachado, config.spriteAgachadoAndandoPlayer || spriteAgachado2);
             }
             sincronizarVisuaisEquipamentos();
-            if (typeof window.atualizarCamera === 'function' && window.caoEntidade) {
-                window.atualizarCamera(window.caoEntidade.x + 16, window.caoEntidade.y + 16, window.mundoLargura, window.mundoAltura);
+            const petFoco = window.controlandoCao ? window.caoEntidade : window.gatoEntidade;
+            if (typeof window.atualizarCamera === 'function' && petFoco) {
+                window.atualizarCamera(petFoco.x + 16, petFoco.y + 16, window.mundoLargura, window.mundoAltura);
             }
         }
 

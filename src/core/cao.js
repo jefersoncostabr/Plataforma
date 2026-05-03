@@ -109,7 +109,10 @@
                 pet.cooldownPulo--;
             }
 
-            if (window.controlandoCao && pet.tipo === 'cao') {
+            const sendoControlado = (pet.tipo === 'cao' && window.controlandoCao) || 
+                                   (pet.tipo === 'gato' && window.controlandoGato);
+
+            if (sendoControlado) {
                 const teclas = window.playerControle?.teclas || {};
 
                 pet.movendoHorizontal = false;
@@ -185,7 +188,8 @@
                 if (apertouQ && !pet.qPressionadoAnterior) {
                     const agora = Date.now();
                     if (agora - (pet.ultimoToqueQ || 0) < 300) {
-                        window.controlandoCao = false;
+                        if (pet.tipo === 'cao') window.controlandoCao = false;
+                        else window.controlandoGato = false;
                         pet.estaSeguindo = false; // Fica parado ao voltar pro player até que o player o toque
                         
                         // CONSUMIR ENTRADA: Limpa o estado do Q para evitar que o movimento.js

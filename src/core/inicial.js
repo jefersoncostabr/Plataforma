@@ -8,6 +8,7 @@ window.niveis = []; // Será preenchido dinamicamente pelo index.json
 window.nivelAtual = 0;
 window.isTraining = false; // Flag para identificar se o jogador está no modo treino
 window.controlandoCao = false; // Flag para identificar se o jogador está controlando o cachorro
+window.controlandoGato = false; // Flag para identificar se o jogador está controlando o gato
 window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para inimigo aleatório
 window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro inimigo
 
