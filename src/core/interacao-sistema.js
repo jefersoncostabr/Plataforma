@@ -296,10 +296,10 @@
 
             const badge = document.createElement('div');
             badge.style.cssText = `
-                width: 40px; height: 40px; background: rgba(0, 255, 0, 0.1); overflow: hidden;
-                border: 1px solid rgba(0, 255, 0, 0.2); border-radius: 6px;
+                width: 40px; height: 40px; overflow: hidden;
+                border-radius: 6px;
                 display: flex; align-items: center; justify-content: center;
-                margin-left: 8px; cursor: pointer;
+                margin-left: 8px; cursor: pointer; transition: all 0.3s ease;
             `;
             if (pet.id === 'cao') badge.style.marginLeft = 'auto'; // O primeiro pet empurra
 
@@ -307,9 +307,12 @@
             img.src = `../../assets/personagem/${pet.sprite}`;
             img.style.cssText = 'width: 64px; height: 64px; image-rendering: pixelated; object-fit: contain; flex-shrink: 0; transition: filter 0.3s;';
             
+            // Aplica filtro e fundo inicial baseado no estado salvo
             const atualizarFiltro = () => {
                 img.style.filter = window[pet.naBase] ? 'brightness(0.15) grayscale(1)' : 'none';
                 badge.title = window[pet.naBase] ? `${pet.id.toUpperCase()} na Base` : `${pet.id.toUpperCase()} Ativo`;
+                badge.style.background = window[pet.naBase] ? 'rgba(0, 255, 0, 0.1)' : 'linear-gradient(45deg, #FFD700, #FFA500)'; // Fundo dourado para ativo
+                badge.style.borderColor = window[pet.naBase] ? 'rgba(0, 255, 0, 0.2)' : '#FFD700'; // Borda dourada para ativo
             };
             atualizarFiltro();
 

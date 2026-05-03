@@ -1643,8 +1643,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             }
         }
 
-        // Atualiza a lógica da gaiola, se existir e o cão não tiver sido resgatado
-        if (typeof window.atualizarGaiola === 'function' && !window.isCaoResgatado) {
+        // Atualiza a lógica de todas as gaiolas ativas (Cão ou Gato)
+        if (typeof window.atualizarGaiola === 'function') {
             window.atualizarGaiola();
         }
 

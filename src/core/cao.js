@@ -67,7 +67,7 @@
             spriteParado: spriteBase,
             spriteAndando: tipo === 'cao' 
                 ? (config.spriteCaoAndando || '../../assets/personagem/cao_mov.png')
-                : (config.spriteGatoAndando || '../../assets/personagem/gato_mov.png'),
+                : (config.spriteGatoAndando || '../../assets/personagem/gato_andando.png'),
             estaSeguindo: true,    // Novo: controla se o NPC deve seguir o player
             ultimoToqueQ: 0,       // Restaurado para Double Tap
             qPressionadoAnterior: false, // Restaurado para Double Tap

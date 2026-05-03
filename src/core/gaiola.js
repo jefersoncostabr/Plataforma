@@ -94,11 +94,16 @@
             const g = gaiolasAtivas[i];
             const resgatado = g.tipo === 'cao' ? window.isCaoResgatado : window.isGatoResgatado;
             
-            if (!resgatado && typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(playerHitbox, g.hitbox, 0, 0, 0)) {
+            if (!resgatado && typeof detectarColisaoHitbox === 'function') {
+                const colidiu = detectarColisaoHitbox(playerHitbox, g.hitbox, 0, 0, 0);
+                
+                if (colidiu) {
+                    console.log(`[GAIOLA] Colisão detectada! Libertando: ${g.tipo}`);
                 if (typeof window.libertarPet === 'function') {
                     window.libertarPet(g.tipo, g);
                     gaiolasAtivas.splice(i, 1);
                 }
+            }
             }
         }
     };
