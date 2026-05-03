@@ -289,15 +289,15 @@
         const dogBadge = document.createElement('div');
         dogBadge.title = "Cão Aliado Resgatado";
         dogBadge.style.cssText = `
-            width: 32px; height: 32px; background: rgba(0, 255, 0, 0.1);
+            width: 40px; height: 40px; background: rgba(0, 255, 0, 0.1); overflow: hidden;
             border: 1px solid rgba(0, 255, 0, 0.2); border-radius: 6px;
             display: flex; align-items: center; justify-content: center;
             margin-left: auto; margin-right: 12px;
         `;
 
         const dogImg = document.createElement('img');
-        dogImg.src = window.config?.spriteCao || '../../assets/personagem/cao_parado.png';
-        dogImg.style.cssText = 'width: 24px; height: 24px; image-rendering: pixelated;';
+        dogImg.src = '../../assets/personagem/cao_coletavel.png';
+        dogImg.style.cssText = 'width: 64px; height: 64px; image-rendering: pixelated; object-fit: contain; flex-shrink: 0;';
         
         dogBadge.appendChild(dogImg);
         header.insertBefore(dogBadge, closeBtn);
@@ -446,11 +446,6 @@
                                     rSlot.appendChild(plus);
                                 }
                                 
-                                const badge = document.createElement('span');
-                                badge.textContent = 'CRAFTAR';
-                                badge.style.cssText = 'position: absolute; bottom: -12px; font-size: 8px; color: #0f0; font-weight: bold; text-transform: uppercase; white-space: nowrap;';
-                                rSlot.appendChild(badge);
-
                                 rSlot.style.cursor = 'pointer';
                                 rSlot.dataset.podeCraftar = "true";
                                 rSlot.dataset.tipoResultado = tipoResultado;
@@ -743,7 +738,13 @@
         if (id === 'craft_base' && botaoRecolher && !overlay.querySelector('[data-interaction-action="abrir-crafting"]')) {
             const btnCrafting = document.createElement('button');
             btnCrafting.type = 'button';
-            btnCrafting.textContent = 'Crafting';
+            btnCrafting.title = "Menu de Crafting";
+
+            const scrapImg = document.createElement('img');
+            scrapImg.src = '../../assets/personagem/scrap_coletavel.png';
+            scrapImg.style.cssText = 'width: 24px; height: 24px; image-rendering: pixelated; pointer-events: none; vertical-align: middle;';
+            
+            btnCrafting.appendChild(scrapImg);
             btnCrafting.setAttribute('data-interaction-action', 'abrir-crafting');
             botaoRecolher.before(btnCrafting);
             
