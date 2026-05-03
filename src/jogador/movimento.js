@@ -506,6 +506,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         controle,
         callbacks: {
             onAgachar: () => {
+                if (window.controlandoCao) return; // Bloqueia agachar enquanto controla o cão
                 if (controle.estaAgachado) {
                     tentarLevantarJogador();
                 } else if (podeAgacharSemBloqueio()) {
@@ -515,6 +516,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 }
             },
             onLevantar: () => {
+                if (window.controlandoCao) return; // Bloqueia levantar enquanto controla o cão
                 tentarLevantarJogador();
             },
             onDebugApagarEquipamento: () => {

@@ -44,7 +44,7 @@
             x: x,
             y: y,
             largura: 20,
-            altura: 20,
+            altura: 15,
             offsetX: 5,
             velocidadeY: 0,
             noChao: false,
@@ -128,7 +128,8 @@
                 }
 
                 // Mapeia teclas de pulo para o sistema de física
-                teclasParaFisica[' '] = !!(teclas[' '] || teclas['w'] || teclas['W'] || teclas['ArrowUp']);
+                // Ajuste: Removido o mapeamento de 'w' e 'ArrowUp' para que apenas o Espaço execute o pulo.
+                teclasParaFisica[' '] = !!teclas[' '];
                 
                 // Lógica de mordida: Enquanto 'k', 'v' ou 'x' estiverem pressionados
                 const kPressionado = teclas['k'] || teclas['K'] || teclas['KeyK'];
@@ -294,7 +295,7 @@
                 } else if (cao.velocidadeY > 0) {
                     const hitTeto = window.verificarColisaoComTiles(
                         cao.x + cao.offsetX, 
-                        cao.y + 6, // Começa do meio da hitbox para cima
+                        cao.y + (cao.altura - 6), // Ajustado para detectar o topo real da hitbox
                         cao.largura, 
                         6, // Checa os 6px de cima
                         window.plataformas
