@@ -92,7 +92,8 @@
         if (!window.isPaused && cao && window.config) {
             
             // Refresca os valores baseados no toggle universal a cada frame
-            const forcaPulo = window.config.gravidadeUniversal ? (window.config.forcaGravidade?.forcaPulo ?? 10) : (window.config.forcaPuloCao ?? 10);
+            const forcaPuloBase = window.config.gravidadeUniversal ? (window.config.forcaGravidade?.forcaPulo ?? 10) : (window.config.forcaPuloCao ?? 10);
+            const forcaPulo = forcaPuloBase * (cao.inimigoPreso ? 0.3 : 1);
             const gravidade = window.config.gravidadeUniversal ? (window.config.forcaGravidade?.gravidade ?? 0.5) : (window.config.gravidadeCao ?? 0.5);
             let teclasParaFisica = {}; // Centraliza intenção de pulo
 
@@ -224,7 +225,7 @@
                 const bloqueioFrente = window.verificarColisaoComTiles(cao.x + margemCheck, cao.y + 5, 5, 5, window.plataformas);
                 if (bloqueioFrente && cao.noChao && cao.cooldownPulo === 0) {
                     cao.velocidadeY = forcaPulo;
-                    cao.cooldownPulo = 20; // Pequena pausa antes de poder pular de novo por IA
+                    cao.cooldownPulo = 45; // Aumentado para evitar pulos repetitivos (kikando)
                 }
             }
 
@@ -232,7 +233,7 @@
             const alcancePuloY = config.caoAlcancePuloY || 32;
             if (cao.estaSeguindo && player && cao.noChao && cao.cooldownPulo === 0 && (player.y > cao.y + alcancePuloY) && Math.abs(deltaX) < (config.caoAlcancePuloX || 80)) {
                 cao.velocidadeY = forcaPulo;
-                cao.cooldownPulo = 20;
+                cao.cooldownPulo = 45; // Sincronizado com o cooldown de obstrução
             }
             // Segurança: Teleporte se estiver muito longe ou caiu em buraco
             const distMax = config.distanciaMaxTeleporteCao || 600;
@@ -273,7 +274,7 @@
 
             // Gravidade e Física Vertical (Sempre ativa)
             if (typeof window.aplicarFisica === 'function') { 
-                window.aplicarFisica(cao, teclasParaFisica, forcaPulo, gravidade, 12);
+                window.aplicarFisica(cao, teclasParaFisica, forcaPulo, gravidade, 30);
             }
 
             // 4. Colisão Vertical REFINADA (Melhoria vinda do docs/cao.js)

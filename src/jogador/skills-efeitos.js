@@ -78,6 +78,10 @@ window.aplicarEfeitosSkills = () => {
             case skills.VISAO:
                 // Espaço reservado para efeitos futuros
                 break;
+
+            case skills.ADESTRAMENTO:
+                // Habilita o controle manual do cão aliado (Lógica processada no movimento.js)
+                break;
         }
     });
 };

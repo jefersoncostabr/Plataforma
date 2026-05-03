@@ -776,56 +776,49 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         const apertouQ = (controle.teclas['q'] || controle.teclas['Q']);
         
         if (!window.controlandoCao && apertouQ) {
-            // TENTATIVA DE AUTO-RECUPERAÇÃO: Se o objeto sumiu mas o cachorro está na tela
-            if (!window.caoEntidade) {
-                // Procura por ID novo, ID antigo ou Classe
-                const elementoCaoNaTela = document.getElementById('cao-aliado') || 
-                                         document.getElementById('cao') || 
-                                         document.querySelector('.npc-cao');
-
-                if (elementoCaoNaTela) {
-                    console.log(`[SISTEMA] Cão detectado via DOM (ID: ${elementoCaoNaTela.id || 'sem id'}). Restaurando conexão...`);
-                    // Tenta reconstruir o objeto básico para não quebrar a troca
-                    window.caoEntidade = {
-                        elemento: elementoCaoNaTela,
-                        x: parseInt(elementoCaoNaTela.style.left) || 0,
-                        y: parseInt(elementoCaoNaTela.style.bottom) || 0,
-                        largura: 20, altura: 20, offsetX: 5,
-                        velocidadeY: 0,
-                        noChao: false,
-                        movendoHorizontal: false,
-                        direcao: 'd',
-                        contadorAnimacao: 0,
-                        frameAtual: 0
-                    };
-                    console.log("[SISTEMA] window.caoEntidade reconstruído via DOM.");
+            if (!window.temSkill?.((window.SKILLS || {}).ADESTRAMENTO)) {
+                // Trava de Habilidade: Se não tiver a skill, apenas sinaliza o erro e continua o loop
+                if (typeof flashElement === 'function') {
+                    flashElement(elemento, 120, 4); // Feedback visual de erro
                 }
-            }
+                // Consome a tecla para evitar que o flash se repita sem parar enquanto segura o botão
+                controle.teclas['q'] = false;
+                controle.teclas['Q'] = false;
+            } else {
+                // TENTATIVA DE AUTO-RECUPERAÇÃO: Se o objeto sumiu mas o cachorro está na tela
+                if (!window.caoEntidade) {
+                    const elementoCaoNaTela = document.getElementById('cao-aliado') || 
+                                             document.getElementById('cao') || 
+                                             document.querySelector('.npc-cao');
+                    if (elementoCaoNaTela) {
+                        window.caoEntidade = {
+                            elemento: elementoCaoNaTela,
+                            x: parseInt(elementoCaoNaTela.style.left) || 0,
+                            y: parseInt(elementoCaoNaTela.style.bottom) || 0,
+                            largura: 20, altura: 20, offsetX: 5,
+                            velocidadeY: 0, noChao: false, movendoHorizontal: false,
+                            direcao: 'd', contadorAnimacao: 0, frameAtual: 0
+                        };
+                    }
+                }
 
-            if (!window.caoEntidade) {
-                console.warn("[TROCA NEGADA] O sistema não encontrou o cachorro. Verifique se ele foi resgatado e está visível.");
-                return;
-            }
-
-            const distancia = Math.hypot(controle.x - window.caoEntidade.x, window.caoEntidade.y - controle.y);
-
-            if (!controle.estaAgachado) return;
-
-            if (window.caoEntidade) {
-                const hitboxPlayer = { x: controle.x + (controle.offsetX || 0), y: controle.y, largura: controle.largura, altura: controle.altura };
-                const hitboxCao = { x: window.caoEntidade.x, y: window.caoEntidade.y, largura: window.caoEntidade.largura, altura: window.caoEntidade.altura };
-                
-                // Margem generosa (-15) para facilitar a detecção da troca
-                const colidindo = typeof window.detectarColisaoHitbox === 'function' && 
-                                 window.detectarColisaoHitbox(hitboxPlayer, hitboxCao, -15, -15, -15);
-                
-                if (colidindo) {
-                    window.controlandoCao = true;
-                    controle.teclas['q'] = false; // Consome a tecla para evitar comandos residuais
-                    controle.teclas['Q'] = false;
-                    window.AudioManager?.playSFX('engrenagem', 0.5);
-                    requestAnimationFrame(atualizar);
-                    return;
+                // Só tenta a troca se houver cão e o jogador estiver agachado
+                if (window.caoEntidade && controle.estaAgachado) {
+                    const hitboxPlayer = { x: controle.x + (controle.offsetX || 0), y: controle.y, largura: controle.largura, altura: controle.altura };
+                    const hitboxCao = { x: window.caoEntidade.x, y: window.caoEntidade.y, largura: window.caoEntidade.largura, altura: window.caoEntidade.altura };
+                    const colidindo = typeof window.detectarColisaoHitbox === 'function' && 
+                                     window.detectarColisaoHitbox(hitboxPlayer, hitboxCao, -15, -15, -15);
+                    
+                    if (colidindo) {
+                        window.controlandoCao = true;
+                        controle.teclas['q'] = false;
+                        controle.teclas['Q'] = false;
+                        window.AudioManager?.playSFX('engrenagem', 0.5);
+                        requestAnimationFrame(atualizar);
+                        return; // Aqui o return é seguro pois já agendamos o próximo frame no modo cão
+                    }
+                } else if (!window.caoEntidade && apertouQ) {
+                    console.warn("[SISTEMA] Cão não encontrado para troca.");
                 }
             }
         }
