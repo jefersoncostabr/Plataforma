@@ -100,9 +100,20 @@
         if (!window.isPaused && pet && window.config) {
             
             // Refresca os valores baseados no toggle universal a cada frame
-            const forcaPuloBase = window.config.gravidadeUniversal ? (window.config.forcaGravidade?.forcaPulo ?? 10) : (window.config.forcaPuloCao ?? 10);
-            const forcaPulo = forcaPuloBase * (pet.inimigoPreso ? 0.3 : 1);
-            const gravidade = window.config.gravidadeUniversal ? (window.config.forcaGravidade?.gravidade ?? 0.5) : (window.config.gravidadeCao ?? 0.5);
+            let forcaPuloBase = window.config.gravidadeUniversal ? (window.config.forcaGravidade?.forcaPulo ?? 10) : (window.config.forcaPuloCao ?? 10);
+            let gravidade = window.config.gravidadeUniversal ? (window.config.forcaGravidade?.gravidade ?? 0.5) : (window.config.gravidadeCao ?? 0.5);
+            let velocidadeBase = pet.tipo === 'cao' ? (config.velocidadeCao || 3) : (config.velocidadeGato || 3);
+
+            // Ajustes Hardcoded para o Gato
+            if (pet.tipo === 'gato') {
+                forcaPuloBase += 1;
+                gravidade -= 0.1;
+                velocidadeBase += 1;
+            }
+
+            const multiplicadorCarga = pet.tipo === 'cao' ? (pet.inimigoPreso ? 0.3 : 1) : (pet.itemArrastado ? 0.5 : 1);
+            const forcaPulo = forcaPuloBase * multiplicadorCarga;
+            const velocidadeFinal = velocidadeBase * multiplicadorCarga;
             let teclasParaFisica = {}; // Centraliza intenção de pulo
 
             // Decrementa o tempo de espera do pulo a cada frame
@@ -118,18 +129,12 @@
 
                 pet.movendoHorizontal = false;
                 let deslocX = 0;
-                // Controle manual do cachorro
-                const velocidadeFinal = (config.velocidadeCao || 3) * (pet.inimigoPreso ? 0.3 : 1);
-                const velocidadeFinalGato = (config.velocidadeGato || 3) * (pet.itemArrastado ? 0.5 : 1); // Gato mais lento arrastando
-
-                const velocidadeAtual = pet.tipo === 'cao' ? velocidadeFinal : velocidadeFinalGato;
-
                 if (teclas['a'] || teclas['A'] || teclas['ArrowLeft']) {
-                    deslocX = -velocidadeAtual;
+                    deslocX = -velocidadeFinal;
                     pet.direcao = 'e';
                     pet.movendoHorizontal = true;
                 } else if (teclas['d'] || teclas['D'] || teclas['ArrowRight']) {
-                    deslocX = velocidadeAtual;
+                    deslocX = velocidadeFinal;
                     pet.direcao = 'd';
                     pet.movendoHorizontal = true;
                 }
@@ -248,8 +253,7 @@
             // Inteligência de Seguimento e Movimento Horizontal com Colisão
             if (pet.estaSeguindo && player && !player.estaMorrendo && Math.abs(deltaX) > distSeguir) {
                 const direcaoX = Math.sign(deltaX);
-                const velocidadeSeguir = (config.velocidadeCao || 3) * (pet.inimigoPreso ? 0.3 : 1);
-                const deslocX = direcaoX * velocidadeSeguir;
+                const deslocX = direcaoX * velocidadeFinal;
                 
                 // Usa o sistema global de movimento para evitar atravessar paredes
                 window.aplicarDeslocamentoHorizontalComColisaoPadrao(pet, deslocX, window.plataformas, {
