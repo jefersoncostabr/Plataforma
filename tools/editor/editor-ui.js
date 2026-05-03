@@ -81,12 +81,21 @@
                 
                 // Injeção da Gaiola
                 if (!catSistemas.querySelector('[data-type="gaiola"]')) {
-                    const img = document.createElement('img');
-                    img.src = '../../assets/personagem/gaiola1.png';
-                    img.className = 'palette-item';
-                    img.setAttribute('data-type', 'gaiola');
-                    img.title = 'Gaiola com Cão';
-                    catSistemas.appendChild(img);
+                    const container = document.createElement('div');
+                    container.className = 'palette-item';
+                    container.setAttribute('data-type', 'gaiola');
+                    container.title = 'Gaiola com Cão';
+                    container.style.position = 'relative';
+                    container.style.display = 'inline-block';
+                    container.style.width = '32px';
+                    container.style.height = '32px';
+
+                    container.innerHTML = `
+                        <img src="../../assets/personagem/cao_parado.png" style="position:absolute; left:0; top:0; width:32px; height:32px; image-rendering:pixelated; pointer-events:none;">
+                        <img src="../../assets/personagem/gaiola1.png" style="position:absolute; left:0; top:0; width:32px; height:32px; image-rendering:pixelated; pointer-events:none;">
+                    `;
+                    
+                    catSistemas.appendChild(container);
                     console.log("Item 'gaiola' injetado com sucesso.");
                 }
 
@@ -103,12 +112,21 @@
 
                 // Injeção da Gaiola com Gato
                 if (!catSistemas.querySelector('[data-type="gaiolaGato"]')) {
-                    const img = document.createElement('img');
-                    img.src = '../../assets/personagem/gaiola1.png';
-                    img.className = 'palette-item';
-                    img.setAttribute('data-type', 'gaiolaGato');
-                    img.title = 'Gaiola com Gato';
-                    catSistemas.appendChild(img);
+                    const container = document.createElement('div');
+                    container.className = 'palette-item';
+                    container.setAttribute('data-type', 'gaiolaGato');
+                    container.title = 'Gaiola com Gato';
+                    container.style.position = 'relative';
+                    container.style.display = 'inline-block';
+                    container.style.width = '32px';
+                    container.style.height = '32px';
+
+                    container.innerHTML = `
+                        <img src="../../assets/personagem/gato_parado.png" style="position:absolute; left:0; top:0; width:32px; height:32px; image-rendering:pixelated; pointer-events:none;">
+                        <img src="../../assets/personagem/gaiola1.png" style="position:absolute; left:0; top:0; width:32px; height:32px; image-rendering:pixelated; pointer-events:none;">
+                    `;
+
+                    catSistemas.appendChild(container);
                     console.log("Item 'gaiolaGato' injetado com sucesso.");
                 }
 

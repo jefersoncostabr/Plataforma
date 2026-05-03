@@ -178,7 +178,6 @@
                         if (pet.tipo === 'cao') window.controlandoCao = false;
                         else window.controlandoGato = false;
 
-                        window.PetAbilities?.soltarCarga(pet);
                         console.log(`[cao.js] Controle de ${pet.tipo} liberado por double tap Q.`);
 
                         pet.estaSeguindo = false; // Fica parado ao voltar pro player até que o player o toque

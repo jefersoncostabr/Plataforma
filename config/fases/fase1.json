@@ -2,14 +2,13 @@
     "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
     "objetivo": "e40",
-    "posicaoGaiola": "b9",
+    "posicaoGaiola": "",
     "posicaoCachorro": "",
-    "posicaoGaiolaGato": "b10",
+    "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
         "revolver": "o3",
-        "cinto": "o6",
-        "scrap": "b15"
+        "cinto": "o6"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [

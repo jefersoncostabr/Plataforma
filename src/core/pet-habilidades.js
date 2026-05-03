@@ -120,21 +120,33 @@
             } else if (window.itensColetaveis && typeof window.detectarColisaoHitbox === 'function') {
                 const petHitbox = { x: pet.x + pet.offsetX, y: pet.y, largura: pet.largura, altura: pet.altura };
                 let itemEncontrado = false;
-
+                
                 for (let i = window.itensColetaveis.length - 1; i >= 0; i--) {
                     const item = window.itensColetaveis[i];
                     if (!item) continue;
-
+                    
                     // Fallback para itens que podem não ter X/Y lógicos atualizados
                     const itemX = item.x !== undefined ? item.x : (parseInt(item.elemento?.style.left) || 0);
                     const itemY = item.y !== undefined ? item.y : (parseInt(item.elemento?.style.bottom) || 0);
                     const hitboxItem = { x: itemX, y: itemY, largura: 32, altura: 32 };
-
+                    
                     if (window.detectarColisaoHitbox(petHitbox, hitboxItem, -15, -15, -15)) {
-                        pet.itemArrastado = item; item.grabbedByCat = true;
-                        window.itensColetaveis.splice(i, 1);
-                        console.log(`[PetAbilities] Gato começou a arrastar:`, item.tipo);
-                        window.AudioManager?.playSFX('madeiraQuebrando', 0.6);
+                        let playerColetou = false;
+                        if (window.playerControle && typeof window.tentarColetarItemJogador === 'function') {
+                            playerColetou = window.tentarColetarItemJogador(item);
+                        }
+
+                        if (playerColetou) {
+                            console.log(`[PetAbilities] Gato encontrou item (tipo: ${item.tipo}), jogador coletou.`);
+                            item.elemento.remove(); // Remove visualmente o item
+                            window.itensColetaveis.splice(i, 1); // Remove da lista global
+                            window.AudioManager?.playSFX('coleta', 0.5); // Toca um som de coleta
+                        } else {
+                            pet.itemArrastado = item; item.grabbedByCat = true;
+                            window.itensColetaveis.splice(i, 1);
+                            console.log(`[PetAbilities] Gato começou a arrastar:`, item.tipo);
+                            window.AudioManager?.playSFX('madeiraQuebrando', 0.6);
+                        }
                         itemEncontrado = true;
                         break;
                     }
