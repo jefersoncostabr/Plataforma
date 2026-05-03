@@ -71,6 +71,7 @@
             estaSeguindo: true,    // Novo: controla se o NPC deve seguir o player
             ultimoToqueQ: 0,       // Restaurado para Double Tap
             qPressionadoAnterior: false, // Restaurado para Double Tap
+            itemArrastado: null,   // NOVO: Referência ao item segurado (para gato)
             inimigoPreso: null,    // NOVO: Referência ao inimigo segurado
             latidoPressionadoAnterior: false // NOVO: Controle discreto para detecção de clique do latido
         };
@@ -109,35 +110,35 @@
                 pet.cooldownPulo--;
             }
 
-            const sendoControlado = (pet.tipo === 'cao' && window.controlandoCao) || 
-                                   (pet.tipo === 'gato' && window.controlandoGato);
+            const sendoControlado = (pet.tipo === 'cao' && window.controlandoCao) ||
+                                    (pet.tipo === 'gato' && window.controlandoGato);
 
             if (sendoControlado) {
                 const teclas = window.playerControle?.teclas || {};
 
                 pet.movendoHorizontal = false;
                 let deslocX = 0;
-
                 // Controle manual do cachorro
                 const velocidadeFinal = (config.velocidadeCao || 3) * (pet.inimigoPreso ? 0.3 : 1);
+                const velocidadeFinalGato = (config.velocidadeGato || 3) * (pet.itemArrastado ? 0.5 : 1); // Gato mais lento arrastando
+
+                const velocidadeAtual = pet.tipo === 'cao' ? velocidadeFinal : velocidadeFinalGato;
 
                 if (teclas['a'] || teclas['A'] || teclas['ArrowLeft']) {
-                    deslocX = -velocidadeFinal;
+                    deslocX = -velocidadeAtual;
                     pet.direcao = 'e';
                     pet.movendoHorizontal = true;
                 } else if (teclas['d'] || teclas['D'] || teclas['ArrowRight']) {
-                    deslocX = velocidadeFinal;
+                    deslocX = velocidadeAtual;
                     pet.direcao = 'd';
                     pet.movendoHorizontal = true;
                 }
-
                 if (deslocX !== 0) {
                     window.aplicarDeslocamentoHorizontalComColisaoPadrao(pet, deslocX, window.plataformas, {
                         maxPasso: 1,
                         cancelarKnockbackAoColidir: true
                     });
                 }
-
                 // Mapeia teclas de pulo para o sistema de física
                 // Ajuste: Removido o mapeamento de 'w' e 'ArrowUp' para que apenas o Espaço execute o pulo.
                 teclasParaFisica[' '] = !!teclas[' '];
@@ -146,43 +147,64 @@
                 const kPressionado = teclas['k'] || teclas['K'] || teclas['KeyK'];
                 const vPressionado = teclas['v'] || teclas['V'] || teclas['KeyV'];
                 const xPressionado = teclas['x'] || teclas['X'] || teclas['KeyX'];
-                
                 const latidoAtivo = !!(kPressionado || vPressionado || xPressionado);
-
                 // --- LÓGICA DE AGARRAR/SOLTAR INIMIGO (Bark interaction) ---
                 if (latidoAtivo && !pet.latidoPressionadoAnterior) {
-                    if (pet.inimigoPreso) {
-                        // Solta o inimigo
-                        pet.inimigoPreso.stunTimer = 60; // Mantém stun por 1s ao soltar
-                        pet.inimigoPreso = null;
-                        window.AudioManager?.playSFX('pulo', 0.5);
-                    } else {
-                        // Tenta agarrar um inimigo próximo
-                        if (window.inimigos && typeof window.detectarColisaoHitbox === 'function') {
-                            for (let inimigo of window.inimigos) {
-                                if (inimigo.estaMorto || inimigo.estaMorrendo || inimigo.tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID) continue;
-                                
-                                // Detecção com margem negativa (-10px) para EXPANDIR a área e facilitar a captura
-                                if (window.detectarColisaoHitbox(pet, inimigo, -10, -10, -10)) {
-                                    pet.inimigoPreso = inimigo;
-                                    inimigo.stunned = true;
-                                    inimigo.stunTimer = 100;
-                                    window.AudioManager?.playSFX('madeiraQuebrando', 0.6);
-                                    break;
+                    if (pet.tipo === 'cao') {
+                        if (pet.inimigoPreso) {
+                            // Solta o inimigo
+                            pet.inimigoPreso.stunTimer = 60; // Mantém stun por 1s ao soltar
+                            pet.inimigoPreso = null;
+                            window.AudioManager?.playSFX('pulo', 0.5);
+                        } else {
+                            // Tenta agarrar um inimigo próximo
+                            if (window.inimigos && typeof window.detectarColisaoHitbox === 'function') {
+                                for (let inimigo of window.inimigos) {
+                                    if (inimigo.estaMorto || inimigo.estaMorrendo || inimigo.tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID) continue;
+                                    
+                                    // Detecção com margem negativa (-10px) para EXPANDIR a área e facilitar a captura
+                                    if (window.detectarColisaoHitbox(pet, inimigo, -10, -10, -10)) {
+                                        pet.inimigoPreso = inimigo;
+                                        inimigo.stunned = true;
+                                        inimigo.stunTimer = 100;
+                                        window.AudioManager?.playSFX('madeiraQuebrando', 0.6);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    } else if (pet.tipo === 'gato') {
+                        if (pet.itemArrastado) {
+                            // Solta o item
+                            pet.itemArrastado.grabbedByCat = false;
+                            window.itensColetaveis.push(pet.itemArrastado); // Add back to global list
+                            pet.itemArrastado = null;
+                            window.AudioManager?.playSFX('pulo', 0.5); // Use a different sound if available
+                        } else {
+                            // Tenta agarrar um item próximo
+                            if (window.itensColetaveis && typeof window.detectarColisaoHitbox === 'function') {
+                                for (let i = window.itensColetaveis.length - 1; i >= 0; i--) {
+                                    const item = window.itensColetaveis[i];
+                                    // Assuming items have x, y, largura, altura properties
+                                    const hitboxItem = { x: item.x, y: item.y, largura: 32, altura: 32 }; // Default item size
+                                    if (window.detectarColisaoHitbox(pet, hitboxItem, -10, -10, -10)) {
+                                        pet.itemArrastado = item;
+                                        item.grabbedByCat = true;
+                                        window.itensColetaveis.splice(i, 1); // Remove from global list
+                                        window.AudioManager?.playSFX('madeiraQuebrando', 0.6); // Use a different sound if available
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
                 }
                 pet.latidoPressionadoAnterior = latidoAtivo;
-
                 const apertandoChute = latidoAtivo || !!(
                     (window.teclasPressionadas && (window.teclasPressionadas['k'] || window.teclasPressionadas['K'])) ||
                     (window.playerControle?.acoesDiscretas?.chute)
                 );
-
-                pet.mordendo = apertandoChute || !!pet.inimigoPreso;
-
+                pet.mordendo = apertandoChute || !!pet.inimigoPreso || !!pet.itemArrastado;
                 // --- LÓGICA DE RETORNO (Double Tap Q) ---
                 const apertouQ = !!(teclas['q'] || teclas['Q'] || teclas['KeyQ']);
                 if (apertouQ && !pet.qPressionadoAnterior) {
@@ -190,6 +212,14 @@
                     if (agora - (pet.ultimoToqueQ || 0) < 300) {
                         if (pet.tipo === 'cao') window.controlandoCao = false;
                         else window.controlandoGato = false;
+
+                        if (pet.tipo === 'gato' && pet.itemArrastado) {
+                            // Solta o item ao retornar o controle para o player
+                            pet.itemArrastado.grabbedByCat = false;
+                            window.itensColetaveis.push(pet.itemArrastado);
+                            pet.itemArrastado = null;
+                        }
+
                         pet.estaSeguindo = false; // Fica parado ao voltar pro player até que o player o toque
                         
                         // CONSUMIR ENTRADA: Limpa o estado do Q para evitar que o movimento.js
@@ -203,9 +233,8 @@
                     pet.ultimoToqueQ = agora;
                 }
                 pet.qPressionadoAnterior = apertouQ;
-
             } else {
-            pet.mordendo = !!pet.inimigoPreso; // Mantém o visual de segurando mesmo em modo NPC
+            pet.mordendo = !!pet.inimigoPreso || !!pet.itemArrastado; // Mantém o visual de segurando mesmo em modo NPC
 
             // Re-ativa o seguimento se o player encostar (Melhoria vinda do docs/cao.js)
             const colidindoComPlayer = typeof window.detectarColisaoHitbox === 'function' && 
@@ -213,7 +242,7 @@
             if (colidindoComPlayer) pet.estaSeguindo = true;
 
             const deltaX = player ? (player.x - pet.x) : 0;
-            const distSeguir = config.distanciaMinimaCaoSeguir || 45;
+            const distSeguir = (pet.tipo === 'cao' ? config.distanciaMinimaCaoSeguir : config.distanciaMinimaGatoSeguir) || 45;
             pet.movendoHorizontal = false;
 
             // Inteligência de Seguimento e Movimento Horizontal com Colisão
@@ -319,7 +348,7 @@
             }
 
             // --- LÓGICA DE MANTER INIMIGO PRESO (Executa em ambos os modos) ---
-            if (pet.inimigoPreso) {
+            if (pet.tipo === 'cao' && pet.inimigoPreso) { // Only dog can hold enemies
                 const inimigo = pet.inimigoPreso;
                 // Ajuste: Se o inimigo morrer ou receber knockback (atingido), o cão solta automaticamente
                 if (inimigo.estaMorto || inimigo.estaMorrendo || (inimigo.framesKnockbackRestante > 0)) {
@@ -355,6 +384,22 @@
                         });
                     }
                 }
+            }
+            // --- LÓGICA DE ARRASTAR ITEM (para gato) ---
+            else if (pet.tipo === 'gato' && pet.itemArrastado) {
+                const item = pet.itemArrastado;
+                const DRAG_FACTOR = 0.15; // Adjust this value for slower/faster drag
+
+                // Interpolate item's position towards the cat's position
+                item.x += (pet.x - item.x) * DRAG_FACTOR;
+                item.y += (pet.y - item.y) * DRAG_FACTOR;
+
+                // Ensure item's visual is updated
+                if (item.elemento) {
+                    item.elemento.style.left = item.x + 'px';
+                    item.elemento.style.bottom = item.y + 'px';
+                }
+                item.velocidadeY = 0; // Item should not be affected by gravity while dragged
             }
         }
 

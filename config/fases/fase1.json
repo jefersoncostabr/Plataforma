@@ -8,7 +8,8 @@
     "posicaoGato": "",
     "itens": {
         "revolver": "o3",
-        "cinto": "o6"
+        "cinto": "o6",
+        "scrap": "b15"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
