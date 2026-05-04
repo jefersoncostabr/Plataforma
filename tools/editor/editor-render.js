@@ -58,6 +58,11 @@
             if (classe) img.classList.add(classe);
             img.style = `position:absolute; left:${col * TILE_SIZE}px; bottom:${yPos}px; width:${TILE_SIZE}px; height:${TILE_SIZE}px; image-rendering:pixelated; pointer-events:none;`;
             if (classe === 'player-filter') img.style.filter = 'hue-rotate(90deg)';
+            if (classe.includes('golden-bg')) {
+                img.style.background = 'rgba(255, 215, 0, 0.4)';
+                img.style.borderRadius = '4px';
+                img.style.boxShadow = '0 0 5px gold';
+            }
             stage.appendChild(img);
         }
 

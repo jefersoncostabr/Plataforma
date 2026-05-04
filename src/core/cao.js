@@ -246,7 +246,8 @@
             }
 
             // --- MECÂNICA DE TRAMPOLIM ---
-            if (pet.velocidadeY < 0 && player && !player.estaMorrendo) {
+            // 1. O Pet pula na cabeça do Jogador
+             if (pet.velocidadeY < 0 && player && !player.estaMorrendo) {
                 const hitboxPetBase = {
                     x: pet.x + pet.offsetX,
                     y: pet.y,
@@ -266,6 +267,29 @@
                 if (colidiuTrampolim) {
                     pet.velocidadeY = config.forcaPuloCaoTrampolim || 10; 
                     pet.noChao = false;
+                    window.AudioManager?.playSFX('pulo', 0.6);
+                }
+            }
+
+            // 2. O Jogador pula na cabeça do Pet (Trampolim inverso)
+            if (player && player.velocidadeY < 0 && !player.estaMorrendo) {
+                const hitboxPlayerBase = {
+                    x: player.x + (player.offsetX || 0),
+                    y: player.y,
+                    largura: player.largura || 20,
+                    altura: 6
+                };
+                const hitboxPetTopo = {
+                    x: pet.x + pet.offsetX,
+                    y: pet.y + pet.altura - 4,
+                    largura: pet.largura,
+                    altura: 8
+                };
+
+                if (typeof window.detectarColisaoHitbox === 'function' &&
+                    window.detectarColisaoHitbox(hitboxPlayerBase, hitboxPetTopo, 0, 0, 0)) {
+                    player.velocidadeY = (window.config?.forcaPuloPlayer || 10);
+                    player.noChao = false;
                     window.AudioManager?.playSFX('pulo', 0.6);
                 }
             }

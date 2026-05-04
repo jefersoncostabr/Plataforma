@@ -141,6 +141,30 @@
                     console.log("Item 'gato' injetado com sucesso.");
                 }
 
+                // Ajuste do Inimigo Completo (Fundo Dourado + Sprite Parado)
+                const catInimigos = categorias.find(cat => {
+                    const texto = (cat.querySelector('h4')?.innerText || "").trim().toLowerCase();
+                    return ['inimigos', 'inimigo', 'enemies'].some(termo => texto.includes(termo));
+                });
+
+                if (catInimigos) {
+                    let itemCompleto = catInimigos.querySelector('[data-type="inimigo_completo"]');
+                    const containerInimigo = document.createElement('div');
+                    containerInimigo.className = 'palette-item';
+                    containerInimigo.setAttribute('data-type', 'inimigo_completo');
+                    containerInimigo.title = 'Inimigo Completo';
+                    containerInimigo.style.cssText = `position:relative; display:inline-block; width:32px; height:32px; background:linear-gradient(45deg, #FFD700, #FFA500); border-radius:4px;`;
+
+                    containerInimigo.innerHTML = `<img src="../../assets/personagem/Personagem_parado.png" style="position:absolute; left:0; top:0; width:32px; height:32px; image-rendering:pixelated; pointer-events:none;">`;
+
+                    if (itemCompleto) {
+                        itemCompleto.replaceWith(containerInimigo);
+                    } else {
+                        catInimigos.appendChild(containerInimigo);
+                    }
+                    console.log("Ícone 'inimigo_completo' atualizado para versão dourada.");
+                }
+
                 configurarPaleta(); // Re-vincula os eventos de clique para os novos itens
             } else {
                 console.warn("[EditorUI] Categoria de sistemas não encontrada na paleta. Verifique os títulos H4 no HTML.");

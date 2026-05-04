@@ -131,22 +131,12 @@
                     const hitboxItem = { x: itemX, y: itemY, largura: 32, altura: 32 };
                     
                     if (window.detectarColisaoHitbox(petHitbox, hitboxItem, -15, -15, -15)) {
-                        let playerColetou = false;
-                        if (window.playerControle && typeof window.tentarColetarItemJogador === 'function') {
-                            playerColetou = window.tentarColetarItemJogador(item);
-                        }
+                        pet.itemArrastado = item; 
+                        item.grabbedByCat = true;
+                        window.itensColetaveis.splice(i, 1);
+                        console.log(`[PetAbilities] Gato começou a arrastar:`, item.tipo);
+                        window.AudioManager?.playSFX('madeiraQuebrando', 0.6);
 
-                        if (playerColetou) {
-                            console.log(`[PetAbilities] Gato encontrou item (tipo: ${item.tipo}), jogador coletou.`);
-                            item.elemento.remove(); // Remove visualmente o item
-                            window.itensColetaveis.splice(i, 1); // Remove da lista global
-                            window.AudioManager?.playSFX('coleta', 0.5); // Toca um som de coleta
-                        } else {
-                            pet.itemArrastado = item; item.grabbedByCat = true;
-                            window.itensColetaveis.splice(i, 1);
-                            console.log(`[PetAbilities] Gato começou a arrastar:`, item.tipo);
-                            window.AudioManager?.playSFX('madeiraQuebrando', 0.6);
-                        }
                         itemEncontrado = true;
                         break;
                     }
@@ -158,9 +148,29 @@
         _manterLoot: function (pet, config) {
             if (!pet.itemArrastado) return;
             const item = pet.itemArrastado;
-            item.x += (pet.x - item.x) * 0.15; item.y += (pet.y - item.y) * 0.15;
+            
+            // Segue o gato com suavização
+            item.x += (pet.x - item.x) * 0.15; 
+            item.y += (pet.y - item.y) * 0.15;
+            
             if (item.elemento) { item.elemento.style.left = item.x + 'px'; item.elemento.style.bottom = item.y + 'px'; }
             item.velocidadeY = 0;
+
+            // Verifica se o jogador toca no item sendo arrastado para coletar
+            const player = window.playerControle;
+            if (player && typeof window.detectarColisaoHitbox === 'function' && typeof window.tentarColetarItemJogador === 'function') {
+                const hitboxPlayer = { x: player.x, y: player.y, largura: 32, altura: 32 };
+                const hitboxItem = { x: item.x, y: item.y, largura: 32, altura: 32 };
+
+                if (window.detectarColisaoHitbox(hitboxPlayer, hitboxItem, 0, 0, 0)) {
+                    if (window.tentarColetarItemJogador(item)) {
+                        console.log(`[PetAbilities] Jogador coletou o item arrastado pelo gato: ${item.tipo}`);
+                        item.elemento?.remove();
+                        pet.itemArrastado = null;
+                        window.AudioManager?.playSFX('coleta', 0.5);
+                    }
+                }
+            }
         }
     };
 
