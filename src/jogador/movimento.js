@@ -92,7 +92,10 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
     const spriteAgachado2 = window.obterSpriteItem('agachado2', config, 'equipado');
 
     function atualizarVisualEscudo() {
-        if ((controle.temEscudo || controle.escudoVermelho) && !controle.itensGuardadosNoCinto) {
+        const selecao = controle.selecaoCinto || 'todos';
+        const participandoDaSelecao = (selecao === 'todos' || selecao === 'escudo');
+
+        if ((controle.temEscudo || controle.escudoVermelho) && !controle.itensGuardadosNoCinto && participandoDaSelecao) {
             escudoElemento.style.display = 'block';
         } else {
             escudoElemento.style.display = 'none';
@@ -225,6 +228,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         velocidadeXAtual: 0,
         velocidadeTotalAtual: 0,
         teclas: {},
+        ePressionado: false, // Trava para toggle de um clique no 'E'
         acoesDiscretas: {}
     };
 
@@ -818,6 +822,17 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             }
         }
 
+        // --- LÓGICA DE TOGGLE ARMA/ESCUDO (TECLA E) ---
+        const apertouE = !!(controle.teclas['e'] || controle.teclas['E']);
+        if (apertouE && !controle.ePressionado) {
+            if (!window.controlandoCao && !window.controlandoGato && !controle.estaAgachado && controle.temCinto) {
+                if (typeof sistemaVisuaisEquipamentos.alternarEquipamentoSelecao === 'function') {
+                    sistemaVisuaisEquipamentos.alternarEquipamentoSelecao();
+                }
+            }
+        }
+        controle.ePressionado = apertouE;
+
         if (window.controlandoCao || window.controlandoGato) {
             processarEsperaJogador();
             requestAnimationFrame(atualizar);
@@ -915,7 +930,11 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         const yAnterior = controle.y;
 
         const velBase = config.velocidadePlayer || 2;
-        let velAtiva = window.temEscudoAtivoPadrao(controle)
+
+        const selecao = controle.selecaoCinto || 'todos';
+        const escudoNoToggle = (selecao === 'todos' || selecao === 'escudo');
+
+        let velAtiva = (window.temEscudoAtivoPadrao(controle) && escudoNoToggle)
             ? Math.max(0, velBase - (config.escudoVelocidadeReduzida ?? 2))
             : velBase;
 

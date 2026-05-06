@@ -366,6 +366,15 @@
         if (controle.inventario.includes('garra')) controle.temGarra = true;
         if (controle.inventario.includes('cinto')) controle.temCinto = true;
         if (controle.inventario.includes('colete')) controle.temColete = true;
+
+        // Define a seleção inicial do cinto com base na prioridade: Escudo > Revólver
+        if (controle.temEscudo) {
+            controle.selecaoCinto = 'escudo';
+        } else if (controle.temArma) {
+            controle.selecaoCinto = 'arma';
+        } else {
+            controle.selecaoCinto = 'todos'; // Padrão se nenhum dos dois estiver equipado
+        }
     }
 
     /**

@@ -69,6 +69,7 @@ function inicializarEstadoCinto(controle) {
     if (typeof controle.itensGuardadosNoCinto !== 'boolean') controle.itensGuardadosNoCinto = false;
     if (typeof controle.cintoAnimando !== 'boolean') controle.cintoAnimando = false;
     if (typeof controle.cintoAnimTimeout === 'undefined') controle.cintoAnimTimeout = null;
+    if (typeof controle.selecaoCinto !== 'string') controle.selecaoCinto = 'todos';
     if (!Array.isArray(controle.cintoAnimClones)) controle.cintoAnimClones = [];
 
     return controle;
@@ -155,17 +156,20 @@ function atualizarVisibilidadeEquipamentosCintoPortador(portador, elementos = {}
     const { atualizarVisualEscudo = null } = opcoes;
     const guardados = !!portador.itensGuardadosNoCinto;
     const permiteRecolherColete = coleteRecolhivelNoCinto();
+    const selecao = portador.selecaoCinto || 'todos';
 
     if (cintoElemento) {
         cintoElemento.style.display = portador.temCinto ? 'block' : 'none';
     }
 
     if (armaElemento) {
-        armaElemento.style.display = (portador.temArma && !guardados) ? 'block' : 'none';
+        const visivel = portador.temArma && !guardados && (selecao === 'todos' || selecao === 'arma');
+        armaElemento.style.display = visivel ? 'block' : 'none';
     }
 
     if (escudoElemento) {
-        escudoElemento.style.display = ((portador.temEscudo || portador.escudoVermelho) && !guardados) ? 'block' : 'none';
+        const visivel = (portador.temEscudo || portador.escudoVermelho) && !guardados && (selecao === 'todos' || selecao === 'escudo');
+        escudoElemento.style.display = visivel ? 'block' : 'none';
     }
 
     if (botaElemento) {
@@ -447,9 +451,16 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
     function atualizarVisibilidadeEquipamentosCinto() {
         const guardados = !!controle.itensGuardadosNoCinto;
         const permiteRecolherColete = coleteRecolhivelNoCinto(config);
+        const selecao = controle.selecaoCinto || 'todos';
 
         if (cintoElemento) cintoElemento.style.display = controle.temCinto ? 'block' : 'none';
-        if (armaElemento) armaElemento.style.display = (controle.temArma && !guardados) ? 'block' : 'none';
+        
+        const armaVisivel = (controle.temArma && !guardados && (selecao === 'todos' || selecao === 'arma'));
+        if (armaElemento) armaElemento.style.display = armaVisivel ? 'block' : 'none';
+        
+        const escudoVisivel = ((controle.temEscudo || controle.escudoVermelho) && !guardados && (selecao === 'todos' || selecao === 'escudo'));
+        if (escudoElemento) escudoElemento.style.display = escudoVisivel ? 'block' : 'none';
+        
         if (botaElemento) botaElemento.style.display = (controle.temBota && !guardados) ? 'block' : 'none';
         if (botaElemento) botaElemento.style.filter = controle.botaVermelha ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
         if (coleteElemento) coleteElemento.style.display = (controle.temColete && (!guardados || !permiteRecolherColete)) ? 'block' : 'none';
@@ -624,6 +635,30 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
         }, 320);
     }
 
+    /**
+     * Alterna a seleção ativa entre Arma e Escudo (Mecânica do Botão E).
+     */
+    function alternarEquipamentoSelecao() {
+        if (!controle.temCinto || controle.estaAgachado) return;
+        
+        const temArma = !!controle.temArma;
+        const temEscudo = !!(controle.temEscudo || controle.escudoVermelho);
+        
+        if (!temArma || !temEscudo) return;
+
+        // Se os itens estavam guardados, retira-os primeiro
+        if (controle.itensGuardadosNoCinto) {
+            controle.itensGuardadosNoCinto = false;
+        }
+
+        // Toggle: Se arma selecionada -> Escudo. Se qualquer outra coisa -> Arma.
+        controle.selecaoCinto = (controle.selecaoCinto === 'arma') ? 'escudo' : 'arma';
+        
+        if (typeof flashElement === 'function' && cintoElemento) {
+            flashElement(cintoElemento, 100, 2);
+        }
+    }
+
     function sincronizarVisuaisEquipamentos() {
         atualizarVisibilidadeEquipamentosCinto();
 
@@ -766,6 +801,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
         atualizarVisibilidadeEquipamentosCinto,
         sincronizarCintoComJogador,
         alternarItensNoCinto,
+        alternarEquipamentoSelecao,
         sincronizarVisuaisEquipamentos
     };
 }

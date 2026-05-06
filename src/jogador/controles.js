@@ -110,9 +110,9 @@
             
             if (window.isPaused && !ehTeclaMenu) return;
 
-            // Se o menu da base (interação) estiver aberto, redirecionamos as teclas WASD/Ação para as setas.
+            // Se algum menu estiver aberto, redirecionamos as teclas WASD/Ação para as setas.
             // Isso permite que o menu navegue mesmo que tenha sido programado apenas para as setas físicas.
-            if (window.isInteractionMenuOpen) {
+            if (window.isInteractionMenuOpen || window.isMochilaMenuOpen || window.isSkillMenuOpen || window.isMenuOpen) {
                 let seta = null;
                 let code = 0;
                 if (teclaEhAcao(e.key, 'cima')) { seta = 'ArrowUp'; code = 38; }
@@ -121,7 +121,7 @@
                 else if (teclaEhAcao(e.key, 'direita')) { seta = 'ArrowRight'; code = 39; }
 
                 if (seta && !e.key.startsWith('Arrow')) {
-                    document.dispatchEvent(new KeyboardEvent('keydown', { 
+                    window.dispatchEvent(new KeyboardEvent('keydown', { 
                         key: seta, 
                         keyCode: code, 
                         which: code, 

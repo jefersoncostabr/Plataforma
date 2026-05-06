@@ -51,7 +51,15 @@ window.inicializarVisualEquipamentoEntidade = function(entidade, parentElement, 
         // Gerencia visibilidade
         if (entidade[key]) {
             const ocultarPeloCinto = !!(entidade.itensGuardadosNoCinto && key !== 'cintoElemento');
-            entidade[key].style.display = (!!entidade[info.flag] && !ocultarPeloCinto) ? 'block' : 'none';
+            let visivel = !!entidade[info.flag] && !ocultarPeloCinto;
+
+            // Mecânica de seleção seletiva do cinto (Item 1.5 - Toggle E)
+            if (visivel && entidade.temCinto && entidade.selecaoCinto && entidade.selecaoCinto !== 'todos') {
+                if (key === 'armaElemento' && entidade.selecaoCinto !== 'arma') visivel = false;
+                if (key === 'escudoElemento' && entidade.selecaoCinto !== 'escudo') visivel = false;
+            }
+
+            entidade[key].style.display = visivel ? 'block' : 'none';
         }
     });
 

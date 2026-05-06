@@ -295,11 +295,14 @@
             if (!pet.resgatado) return;
 
             const badge = document.createElement('div');
+            badge.className = 'pet-badge';
+            badge.setAttribute('tabindex', '0');
+            badge.setAttribute('role', 'button');
             badge.style.cssText = `
                 width: 40px; height: 40px; overflow: hidden;
                 border-radius: 6px;
                 display: flex; align-items: center; justify-content: center;
-                margin-left: 8px; cursor: pointer; transition: all 0.3s ease;
+                margin-left: 8px; cursor: pointer; transition: all 0.3s ease; outline: none;
             `;
             if (pet.id === 'cao') badge.style.marginLeft = 'auto'; // O primeiro pet empurra
 
@@ -315,6 +318,13 @@
                 badge.style.borderColor = window[pet.naBase] ? 'rgba(0, 255, 0, 0.2)' : '#FFD700'; // Borda dourada para ativo
             };
             atualizarFiltro();
+
+            badge.addEventListener('focus', () => {
+                badge.style.boxShadow = '0 0 0 2px #fff, 0 0 8px rgba(255,255,255,0.5)';
+            });
+            badge.addEventListener('blur', () => {
+                badge.style.boxShadow = 'none';
+            });
 
             badge.onclick = () => {
                 window[pet.naBase] = !window[pet.naBase];
@@ -883,11 +893,9 @@
             if (event.key === 'Enter' || event.key === ' ') { // Usa Enter ou Espaço para ativação geral
                 if (ativo && overlay.contains(ativo) && !ativo.disabled) {
                     event.preventDefault();
-                    // Verifica se é um slot de crafting (div com tabindex) ou um botão
-                    if (ativo.classList.contains('crafting-slot') && ativo.id.startsWith('craft-slot-')) {
-                        ativo.click(); // Dispara o manipulador de clique do slot
-                    } else if (ativo instanceof HTMLButtonElement) {
-                        ativo.click(); // Dispara o manipulador de clique de botões
+                    // Dispara o clique se for um botão, slot de craft ou badge de pet
+                    if (ativo instanceof HTMLButtonElement || ativo.hasAttribute('tabindex')) {
+                        ativo.click();
                     }
                     return;
                 }
