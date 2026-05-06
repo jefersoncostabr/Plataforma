@@ -2,6 +2,10 @@
     "proporcao": "1x1",
     "posicaoInicialJogador": "b2",
     "objetivo": "f19",
+    "posicaoGaiola": "",
+    "posicaoCachorro": "",
+    "posicaoGaiolaGato": "",
+    "posicaoGato": "",
     "itens": {
         "escudo": "l13",
         "revolver": [
@@ -13,13 +17,13 @@
             "h19",
             "l15"
         ],
-        "scrap": "e5"
+        "scrap": "j1"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
         "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20",
         "c10",
-        "d9",
+        "d4", "d9",
         "e8",
         "f7",
         "g6", "g13", "g14", "g19", "g20",

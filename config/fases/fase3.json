@@ -1,12 +1,18 @@
 {
     "proporcao": "2x2",
     "posicaoInicialJogador": "b2",
-    "objetivo": "f40",
+    "objetivo": "e40",
+    "posicaoGaiola": "k10",
+    "posicaoCachorro": "",
+    "posicaoGaiolaGato": "",
+    "posicaoGato": "",
     "itens": {
         "restauracao": [
             "b19",
             "b26",
-            "m30"
+            "m30",
+            "ac1",
+            "ac40"
         ]
     },
     "inimigoAleatorio": [1, 0],
@@ -20,7 +26,7 @@
         "g11", "g31",
         "h12", "h31",
         "i13", "i31",
-        "j13", "j30",
+        "j10", "j13", "j30",
         "k13", "k30",
         "l14", "l30",
         "m15", "m29",

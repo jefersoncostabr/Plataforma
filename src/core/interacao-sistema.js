@@ -865,13 +865,15 @@
                 return;
             }
 
-            if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+            const lowKey = event.key.toLowerCase();
+
+            if (event.key === 'ArrowRight' || event.key === 'ArrowDown' || lowKey === 'd' || lowKey === 's') {
                 event.preventDefault();
                 moverFocoNavegacao(overlay, 1);
                 return;
             }
 
-            if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowUp' || lowKey === 'a' || lowKey === 'w') {
                 event.preventDefault();
                 moverFocoNavegacao(overlay, -1);
                 return;

@@ -37,7 +37,7 @@
         img.id = idElemento;
         img.className = `npc-pet npc-${tipo}`;
         // Z-index 100 para garantir que ele fique sempre visível sobre o cenário
-        img.style.cssText = `position: absolute; width: 32px; height: 32px; image-rendering: pixelated; z-index: 100; pointer-events: none;`;
+        img.style.cssText = `position: absolute; width: 32px; height: 32px; image-rendering: pixelated; z-index: 100; pointer-events: none; transform-origin: center center; transition: transform 0.05s linear;`;
         img.style.left = x + 'px';
         img.style.bottom = y + 'px';
         
@@ -177,8 +177,6 @@
                     if (agora - (pet.ultimoToqueQ || 0) < 300) {
                         if (pet.tipo === 'cao') window.controlandoCao = false;
                         else window.controlandoGato = false;
-
-                        console.log(`[cao.js] Controle de ${pet.tipo} liberado por double tap Q.`);
 
                         pet.estaSeguindo = false; // Fica parado ao voltar pro player até que o player o toque
                         
@@ -345,7 +343,13 @@
 
         pet.elemento.style.left = pet.x + 'px';
         pet.elemento.style.bottom = pet.y + 'px';
-        pet.elemento.style.transform = pet.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+
+        if (typeof window.aplicarRotacaoVerticalPet === 'function') {
+            window.aplicarRotacaoVerticalPet(pet);
+        } else {
+            pet.elemento.style.transform = pet.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+        }
+
         requestAnimationFrame(() => cicloVidaPet(pet, idControle));
     }
 
