@@ -3,9 +3,9 @@
  */
 
 window.isMenuOpen = false;
-let menuSelectedIndex = 0;
+let menuSelectedIndex = -1;
 let menuMode = 'main'; // main | controls
-let controlsSelectedIndex = 0;
+let controlsSelectedIndex = -1;
 let controlsBindingAction = null;
 
 const CONTROLES_STORAGE_KEY = 'plataformaControles';
@@ -316,7 +316,7 @@ const getActiveMenuOptions = () => {
     const controlesOption = {
         label: 'CONTROLES', action: () => {
             menuMode = 'controls';
-            controlsSelectedIndex = 0;
+            controlsSelectedIndex = -1;
             controlsBindingAction = null;
             renderMenuUI();
         }
@@ -391,7 +391,7 @@ window.togglePauseMenu = () => {
 
         window.isMenuOpen = true;
         menuMode = 'main';
-        menuSelectedIndex = 0;
+        menuSelectedIndex = -1;
         renderMenuUI();
         window.addEventListener('keydown', handleMenuInput);
         return;
@@ -403,7 +403,7 @@ window.togglePauseMenu = () => {
 
         window.isMenuOpen = true;
         menuMode = 'main';
-        menuSelectedIndex = 0;
+        menuSelectedIndex = -1;
         renderMenuUI();
         window.addEventListener('keydown', handleMenuInput);
         return;
@@ -417,8 +417,8 @@ window.togglePauseMenu = () => {
 
     if (window.isMenuOpen) {
         menuMode = 'main';
-        menuSelectedIndex = 0;
-        controlsSelectedIndex = 0;
+        menuSelectedIndex = -1;
+        controlsSelectedIndex = -1;
         controlsBindingAction = null;
         renderMenuUI();
         window.addEventListener('keydown', handleMenuInput);
@@ -441,13 +441,15 @@ function handleMenuInput(e) {
     if (!currentOptions || currentOptions.length === 0) return;
 
     if (key === 'arrowup' || key === 'w') {
-        menuSelectedIndex = (menuSelectedIndex - 1 + currentOptions.length) % currentOptions.length;
+        menuSelectedIndex = (menuSelectedIndex <= 0) ? currentOptions.length - 1 : menuSelectedIndex - 1;
         updateMenuVisuals();
     } else if (key === 'arrowdown' || key === 's') {
-        menuSelectedIndex = (menuSelectedIndex + 1) % currentOptions.length;
+        menuSelectedIndex = (menuSelectedIndex === -1 || menuSelectedIndex >= currentOptions.length - 1) ? 0 : menuSelectedIndex + 1;
         updateMenuVisuals();
     } else if (key === 'enter' || key === ' ') {
         e.preventDefault();
+        if (menuSelectedIndex === -1) return;
+        
         try {
             currentOptions[menuSelectedIndex].action();
         } catch (error) {
@@ -476,33 +478,34 @@ function handleControlsInput(e) {
 
     if (key === 'escape') {
         menuMode = 'main';
-        menuSelectedIndex = 0;
+        menuSelectedIndex = -1;
         renderMenuUI();
         return;
     }
 
     if (key === 'arrowup' || key === 'w') {
-        controlsSelectedIndex = (controlsSelectedIndex - 1 + entries.length) % entries.length;
+        controlsSelectedIndex = (controlsSelectedIndex <= 0) ? entries.length - 1 : controlsSelectedIndex - 1;
         updateMenuVisuals();
         return;
     }
 
     if (key === 'arrowdown' || key === 's') {
-        controlsSelectedIndex = (controlsSelectedIndex + 1) % entries.length;
+        controlsSelectedIndex = (controlsSelectedIndex === -1 || controlsSelectedIndex >= entries.length - 1) ? 0 : controlsSelectedIndex + 1;
         updateMenuVisuals();
         return;
     }
 
     if (key !== 'enter' && key !== ' ') return;
     e.preventDefault();
-
+    if (controlsSelectedIndex === -1) return;
+    
     const selected = entries[controlsSelectedIndex];
     if (!selected) return;
 
     if (selected.id === 'save_back') {
         salvarControlesNoStorage();
         menuMode = 'main';
-        menuSelectedIndex = 0;
+        menuSelectedIndex = -1;
         renderMenuUI();
         return;
     }
@@ -665,6 +668,11 @@ function renderMainMenuContent(overlay) {
             updateMenuVisuals();
         };
 
+        btn.onmouseleave = () => {
+            menuSelectedIndex = -1;
+            updateMenuVisuals();
+        };
+
         btn.onclick = (e) => {
             e.stopPropagation();
             opt.action();
@@ -735,6 +743,11 @@ function renderControlsContent(overlay) {
             updateMenuVisuals();
         };
 
+        linha.onmouseleave = () => {
+            controlsSelectedIndex = -1;
+            updateMenuVisuals();
+        };
+
         linha.onclick = () => {
             controlsSelectedIndex = index;
             controlsBindingAction = item.id;
@@ -762,6 +775,10 @@ function renderControlsContent(overlay) {
         controlsSelectedIndex = CONTROLES_MENU_ITEMS.length;
         updateMenuVisuals();
     };
+    salvarBtn.onmouseleave = () => {
+        controlsSelectedIndex = -1;
+        updateMenuVisuals();
+    };
     salvarBtn.onclick = () => {
         salvarControlesNoStorage();
         menuMode = 'main';
@@ -785,6 +802,10 @@ function renderControlsContent(overlay) {
     `;
     resetBtn.onmouseenter = () => {
         controlsSelectedIndex = CONTROLES_MENU_ITEMS.length + 1;
+        updateMenuVisuals();
+    };
+    resetBtn.onmouseleave = () => {
+        controlsSelectedIndex = -1;
         updateMenuVisuals();
     };
     resetBtn.onclick = () => {
