@@ -110,6 +110,10 @@
             
             if (window.isPaused && !ehTeclaMenu) return;
 
+            // Se a tecla for Escape, permite que ela seja processada mais abaixo para fechar menus.
+            // Outras teclas são redirecionadas ou bloqueadas se um menu estiver aberto.
+            const isEscapeKey = (e.key === 'Escape' || e.key === 'Esc');
+
             // Se algum menu estiver aberto, redirecionamos as teclas WASD/Ação para as setas.
             // Isso permite que o menu navegue mesmo que tenha sido programado apenas para as setas físicas.
             if (window.isInteractionMenuOpen || window.isMochilaMenuOpen || window.isSkillMenuOpen || window.isMenuOpen) {
@@ -129,7 +133,9 @@
                     }));
                     return;
                 }
-                return;
+                // Se um menu está aberto e não é uma tecla de navegação redirecionada,
+                // e não é a tecla Escape, então bloqueia o processamento adicional.
+                if (!isEscapeKey) return;
             }
 
                         // Debug: Próxima Fase
@@ -188,6 +194,10 @@
             }
 
             if (e.key === 'Pause' || e.key === 'Break' || e.key === 'Escape' || e.key === 'Esc') {
+                // Prioridade: se menus de interação (base) estiverem abertos, não aciona o toggle do pause aqui.
+                // Isso evita conflitos com os tratadores internos desses menus.
+                if (window.isInteractionMenuOpen) return;
+
                 if (window.isMochilaMenuOpen) {
                     callbacks.onToggleMochila?.();
                 } else {

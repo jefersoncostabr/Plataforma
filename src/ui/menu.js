@@ -518,16 +518,59 @@ function handleControlsInput(e) {
     renderMenuUI();
 }
 
-function renderMenuUI() {
-    removeMenuUI();
+/**
+ * Injeta estilos CSS para animações e customizações do menu.
+ */
+function injetarEstilosMenu() {
+    if (document.getElementById('menu-styles-animation')) return;
+    const style = document.createElement('style');
+    style.id = 'menu-styles-animation';
+    style.innerHTML = `
+        @keyframes menu-shine-slide {
+            0% { left: -110%; }
+            100% { left: 110%; }
+        }
+        .menu-option {
+            position: relative;
+            overflow: hidden;
+        }
+        /* Brilho azul deslizante para itens selecionados */
+        .menu-option.selected::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -110%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.5), transparent);
+            transform: skewX(-45deg);
+            animation: menu-shine-slide 0.8s infinite linear;
+            pointer-events: none;
+        }
+        /* Ajuste do scrollbar no modo controles */
+        #menu-options-container::-webkit-scrollbar { width: 6px; }
+        #menu-options-container::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+        #menu-options-container::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+    `;
+    document.head.appendChild(style);
+}
 
+/**
+ * Obtém o contêiner alvo para renderizar a interface do menu.
+ */
+function obterConteinerDestino() {
     let targetLayer = document.getElementById('layer-ui');
     if (!targetLayer) targetLayer = document.getElementById('jogo-container');
     if (!targetLayer) {
-        console.error('Menu: Nao foi possivel encontrar o container para renderizar a interface.');
-        return;
+        console.error('Menu: Não foi possível encontrar o contêiner para renderizar a interface.');
     }
+    return targetLayer;
+}
 
+/**
+ * Cria e estiliza o elemento de overlay (fundo) do menu.
+ */
+function criarElementoOverlay() {
     const camX = Math.round(window.cameraX || 0);
     const camY = Math.round(window.cameraY || 0);
 
@@ -542,20 +585,45 @@ function renderMenuUI() {
         color: white; font-family: 'Segoe UI', Tahoma, sans-serif;
         border-radius: 4px;
     `;
+    return overlay;
+}
 
+/**
+ * Cria o título do menu baseado no modo atual (Main ou Controles).
+ */
+function criarElementoTitulo() {
     const title = document.createElement('h1');
     title.innerText = menuMode === 'controls'
         ? 'CONTROLES'
         : (window.isFirstStart ? 'MENU PRINCIPAL' : 'PAUSE');
     title.style.marginBottom = menuMode === 'controls' ? '12px' : '30px';
     title.style.letterSpacing = '6px';
-    overlay.appendChild(title);
+    return title;
+}
 
+/**
+ * Decide qual conteúdo renderizar dentro do overlay baseado no modo do menu.
+ */
+function preencherConteudoPorModo(overlay) {
     if (menuMode === 'controls') {
         renderControlsContent(overlay);
     } else {
         renderMainMenuContent(overlay);
     }
+}
+
+function renderMenuUI() {
+    removeMenuUI();
+    injetarEstilosMenu();
+
+    const targetLayer = obterConteinerDestino();
+    if (!targetLayer) return;
+
+    const overlay = criarElementoOverlay();
+    const title = criarElementoTitulo();
+    
+    overlay.appendChild(title);
+    preencherConteudoPorModo(overlay);
 
     targetLayer.appendChild(overlay);
     updateMenuVisuals();
@@ -734,11 +802,14 @@ function updateMenuVisuals() {
     const selected = menuMode === 'controls' ? controlsSelectedIndex : menuSelectedIndex;
 
     elements.forEach((el, index) => {
+        el.classList.remove('selected'); // Remove a classe de seleção de todos
+        
         if (index === selected) {
+            el.classList.add('selected'); // Adiciona a classe de seleção ao elemento atual
             el.style.backgroundColor = 'white';
             el.style.color = 'black';
             el.style.border = '2px solid #fff';
-            el.style.transform = 'scale(1.03)';
+            el.style.transform = 'scale(1.3)';
         } else {
             el.style.backgroundColor = 'rgba(255,255,255,0.1)';
             el.style.color = 'white';
