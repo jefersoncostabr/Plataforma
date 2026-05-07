@@ -8,8 +8,6 @@
          * Verifica se o pet pode ser assumido pelo jogador.
          */
         podeSerControlado: function (pet) {
-            // Log de diagnóstico para saber se o sistema de skills está acessível
-            if (!window.temSkill) console.warn("[PetAbilities] Sistema de skills (window.temSkill) não encontrado.");
             if (!pet) return false;
             // Centraliza a verificação da skill de adestramento
             return !!window.temSkill?.((window.SKILLS || {}).ADESTRAMENTO);
@@ -21,8 +19,6 @@
          * Gato: Lootear (arrastar itens)
          */
         executarHabilidadeAtiva: function (pet, config) {
-            console.log(`[PetAbilities] [AÇÃO] Executando habilidade ativa para: ${pet?.tipo}. Posição: (${pet?.x?.toFixed(0)}, ${pet?.y?.toFixed(0)})`);
-            
             if (pet.tipo === 'cao') {
                 this._morder(pet, config);
             } else if (pet.tipo === 'gato') {
@@ -49,7 +45,6 @@
                 pet.inimigoPreso.stunTimer = 60;
                 pet.inimigoPreso = null;
                 window.AudioManager?.playSFX('pulo', 0.5);
-                console.log(`[PetAbilities] Cão soltou o inimigo.`);
             } else if (pet.tipo === 'gato' && pet.itemArrastado) {
                 pet.itemArrastado.grabbedByCat = false;
                 if (Array.isArray(window.itensColetaveis)) {
@@ -57,14 +52,12 @@
                 }
                 pet.itemArrastado = null;
                 window.AudioManager?.playSFX('pulo', 0.5);
-                console.log(`[PetAbilities] Gato soltou o item.`);
             }
         },
 
         // --- Lógica Interna: Cão (Morder) ---
         _morder: function (pet, config) {
             if (pet.inimigoPreso) {
-                console.log(`[PetAbilities] Cão já estava mordendo, soltando carga.`);
                 this.soltarCarga(pet);
             } else if (window.inimigos && typeof window.detectarColisaoHitbox === 'function') {
                 const petHitbox = { x: pet.x + (pet.offsetX || 0), y: pet.y, largura: pet.largura, altura: pet.altura };
@@ -80,20 +73,17 @@
                         pet.inimigoPreso = inimigo;
                         inimigo.stunned = true;
                         inimigo.stunTimer = 100;
-                        console.log(`[PetAbilities] Cão mordeu inimigo tipo: ${inimigo.tipo}`);
                         window.AudioManager?.playSFX('madeiraQuebrando', 0.6);
                         alvoEncontrado = true;
                         break;
                     }
                 }
-                if (!alvoEncontrado) console.log("[PetAbilities] Cão: Nenhum inimigo no alcance da mordida.");
             }
         },
 
         _manterMordida: function (pet, config) {
             if (!pet.inimigoPreso) return;
             const inimigo = pet.inimigoPreso;
-            console.log(`[PetAbilities][_manterMordida] Cão (x: ${pet.x}, y: ${pet.y}) mantendo mordida em inimigo (tipo: ${inimigo.tipo}, x: ${inimigo.x}, y: ${inimigo.y}).`);
             if (inimigo.estaMorto || inimigo.estaMorrendo || (inimigo.framesKnockbackRestante > 0)) {
                 if (inimigo.framesKnockbackRestante > 0) { inimigo.stunned = false; inimigo.stunTimer = 0; }
                 pet.inimigoPreso = null;
@@ -134,14 +124,12 @@
                         pet.itemArrastado = item; 
                         item.grabbedByCat = true;
                         window.itensColetaveis.splice(i, 1);
-                        console.log(`[PetAbilities] Gato começou a arrastar:`, item.tipo);
                         window.AudioManager?.playSFX('madeiraQuebrando', 0.6);
 
                         itemEncontrado = true;
                         break;
                     }
                 }
-                if (!itemEncontrado) console.log("[PetAbilities] Gato: Nenhum item no alcance para lootear.");
             }
         },
 
@@ -164,7 +152,6 @@
 
                 if (window.detectarColisaoHitbox(hitboxPlayer, hitboxItem, 0, 0, 0)) {
                     if (window.tentarColetarItemJogador(item)) {
-                        console.log(`[PetAbilities] Jogador coletou o item arrastado pelo gato: ${item.tipo}`);
                         item.elemento?.remove();
                         pet.itemArrastado = null;
                         window.AudioManager?.playSFX('coleta', 0.5);
@@ -173,6 +160,4 @@
             }
         }
     };
-
-    console.log("[PetAbilities] Módulo carregado e registrado no window com sucesso.");
 })();

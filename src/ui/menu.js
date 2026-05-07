@@ -761,7 +761,6 @@ function updateMenuVisuals() {
         
         if (index === selected) {
             el.classList.add('selected'); // Adiciona a classe de seleção ao elemento atual
-        } else {
         }
     });
 }
