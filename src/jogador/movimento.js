@@ -815,6 +815,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
                     if (tentarTroca(window.caoEntidade, 'controlandoCao') || 
                         tentarTroca(window.gatoEntidade, 'controlandoGato')) {
+                        // Set camera zoom when taking control of a pet
+                        if (window.cameraZoomFactor) window.cameraZoomFactor = 1.5; // Example zoom level
                         requestAnimationFrame(atualizar);
                         return;
                     }

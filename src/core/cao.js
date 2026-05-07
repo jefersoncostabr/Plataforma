@@ -157,7 +157,6 @@
                 // --- LÓGICA DE HABILIDADE ATIVA (Refatorada para PetAbilities) ---
                 if (latidoAtivo && !pet.latidoPressionadoAnterior) {
                     if (window.PetAbilities) {
-                        console.log(`[cao.js] Habilidade de ${pet.tipo} solicitada via tecla.`);
                         window.PetAbilities.executarHabilidadeAtiva(pet, config);
                     } else {
                         console.error(`[cao.js] ERRO CRÍTICO: window.PetAbilities não encontrado! ` +
@@ -187,6 +186,8 @@
                         if (teclas['KeyQ']) teclas['KeyQ'] = false;
 
                         window.AudioManager?.playSFX('engrenagem', 0.5);
+                        // Reset camera zoom when returning control to player
+                        if (window.cameraZoomFactor) window.cameraZoomFactor = 1;
                     }
                     pet.ultimoToqueQ = agora;
                 }

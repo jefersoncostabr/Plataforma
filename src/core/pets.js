@@ -157,7 +157,6 @@
                 // --- LÓGICA DE HABILIDADE ATIVA (Refatorada para PetAbilities) ---
                 if (latidoAtivo && !pet.latidoPressionadoAnterior) {
                     if (window.PetAbilities) {
-                        console.log(`[cao.js] Habilidade de ${pet.tipo} solicitada via tecla.`);
                         window.PetAbilities.executarHabilidadeAtiva(pet, config);
                     } else {
                         console.error(`[cao.js] ERRO CRÍTICO: window.PetAbilities não encontrado! ` +

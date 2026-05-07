@@ -36,6 +36,7 @@ window.atualizarTremorCamera = function(deltaMs) {
 window.cameraX = 0;
 window.cameraY = 0;
 window.cameraModo = null; // "pequena" ou "grande"
+window.cameraZoomFactor = 1; // Default zoom factor for camera
 window.cameraAtiva = "padrao"; // Qual câmera está ativa
 
 /**
@@ -58,35 +59,33 @@ window.detectarTamanhoCâmera = function() {
 const cameraPequena = function(alvoX, alvoY, mundoW, mundoH) {
     const FASE_BASE_W = 640;
     const FASE_BASE_H = 480;
+    const zoom = window.cameraZoomFactor || 1;
 
-    let targetX = alvoX - (FASE_BASE_W / 2);
-    // O jogo usa bottom-coords: Y=0 é o chão, cresce para cima.
-    // Para apontar a câmera ao jogador precisamos inverter: targetY = mundoH - alvoY - viewportH/2
-    let targetY = mundoH - alvoY - (FASE_BASE_H / 2);
+    // O viewport lógico diminui proporcionalmente ao zoom
+    const viewW = FASE_BASE_W / zoom;
+    const viewH = FASE_BASE_H / zoom;
 
-    // Clamping independente por eixo
-    if (mundoW > FASE_BASE_W) {
-        window.cameraX = Math.max(0, Math.min(targetX, mundoW - FASE_BASE_W));
-    } else {
-        window.cameraX = 0;
-    }
+    // Centraliza o alvo no novo viewport lógico
+    const targetX = alvoX - (viewW / 2);
+    const targetY = mundoH - alvoY - (viewH / 2);
 
-    if (mundoH > FASE_BASE_H) {
-        window.cameraY = Math.max(0, Math.min(targetY, mundoH - FASE_BASE_H));
-    } else {
-        window.cameraY = 0;
-    }
+    // Clamping ajustado para o tamanho lógico visível
+    window.cameraX = clamparCamera(targetX, mundoW, viewW);
+    window.cameraY = clamparCamera(targetY, mundoH, viewH);
 
     // Aplica transform sem escala + tremor
     const stage = document.getElementById('game-stage');
     if (stage) {
+        // Define a origem no canto superior esquerdo para alinhar com a tradução
+        stage.style.transformOrigin = "0 0";
+
         let x = Math.round(window.cameraX);
         let y = Math.round(window.cameraY);
         // Aplica tremor vertical se ativo
         if (window.cameraTremorAtivo) {
             y += (Math.random() * window.cameraTremorIntensidade) - (window.cameraTremorIntensidade / 2);
         }
-        stage.style.transform = `translate(${-x}px, ${-y}px)`;
+        stage.style.transform = `scale(${window.cameraZoomFactor}) translate(${-x}px, ${-y}px)`;
     }
 };
 
@@ -126,24 +125,24 @@ const clamparCamera = function(pos, tamanhoMundo, tamanhoViewport) {
 const cameraGrande = function(alvoX, alvoY, mundoW, mundoH) {
     const BASE_W = 640;
     const BASE_H = 480;
-     const viewportW = BASE_W;
-     const viewportH = BASE_H;
-     const maxCameraX = Math.max(0, mundoW - viewportW);
-     const maxCameraY = Math.max(0, mundoH - viewportH);
+    const zoom = window.cameraZoomFactor || 1;
+
+    // Viewport lógico (o quanto do mundo cabe na tela visual de 640x480)
+    const viewW = BASE_W / zoom;
+    const viewH = BASE_H / zoom;
     
     // Calcula offset de direção (espaço extra à frente)
     const dirX = window.ultimaDirecaoX || 0;
-    const dirY = window.ultimaDirecaoY || 0;
-    const offsetX = dirX > 0 ? 50 : (dirX < 0 ? -50 : 0);
-    // dirY>0 = subindo (bottom cresce); offsetY positivo soma ao alvo invertido → câmera sobe junto
-    const offsetY = dirY > 0 ? 40 : (dirY < 0 ? -40 : 0);
+    // Para centralizar o pet horizontalmente, removemos o "look-ahead"
+    const offsetX = 0; 
+    // Para posicionar o pet um pouco abaixo do centro, usamos um offset vertical constante
+    const offsetY = 20; // Ajuste para que o pet fique um pouco abaixo do centro
     
-    // Posição alvo corrigida para bottom-coords: mundoH - alvoY - viewportH/2
-    // offsetY subtrai porque ao aumentar alvoY (subir) targetY diminui naturalmente
-    const targetX = alvoX - (viewportW / 2) + offsetX;
-    const targetY = mundoH - alvoY - (viewportH / 2) - offsetY;
-    const targetClampedX = mundoW > BASE_W ? clamparCamera(targetX, mundoW, viewportW) : 0;
-    const targetClampedY = mundoH > BASE_H ? clamparCamera(targetY, mundoH, viewportH) : 0;
+    const targetX = alvoX - (viewW / 2) + offsetX;
+    const targetY = mundoH - alvoY - (viewH / 2) - offsetY;
+
+    const targetClampedX = clamparCamera(targetX, mundoW, viewW);
+    const targetClampedY = clamparCamera(targetY, mundoH, viewH);
 
     // Suaviza em todo o percurso e só "cola" na borda quando estiver muito perto.
     // Isso evita a pancada seca nas extremidades.
@@ -161,13 +160,15 @@ const cameraGrande = function(alvoX, alvoY, mundoW, mundoH) {
     // Aplica transform ao stage + tremor
     const stage = document.getElementById('game-stage');
     if (stage) {
+        stage.style.transformOrigin = "0 0";
+
         let x = Math.round(window.cameraX);
         let y = Math.round(window.cameraY);
         // Aplica tremor vertical se ativo
         if (window.cameraTremorAtivo) {
             y += (Math.random() * window.cameraTremorIntensidade) - (window.cameraTremorIntensidade / 2);
         }
-        stage.style.transform = `translate(${-x}px, ${-y}px)`;
+        stage.style.transform = `scale(${window.cameraZoomFactor}) translate(${-x}px, ${-y}px)`;
     }
 };
 
