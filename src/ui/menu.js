@@ -522,43 +522,6 @@ function handleControlsInput(e) {
 }
 
 /**
- * Injeta estilos CSS para animações e customizações do menu.
- */
-function injetarEstilosMenu() {
-    if (document.getElementById('menu-styles-animation')) return;
-    const style = document.createElement('style');
-    style.id = 'menu-styles-animation';
-    style.innerHTML = `
-        @keyframes menu-shine-slide {
-            0% { left: -110%; }
-            100% { left: 110%; }
-        }
-        .menu-option {
-            position: relative;
-            overflow: hidden;
-        }
-        /* Brilho azul deslizante para itens selecionados */
-        .menu-option.selected::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -110%;
-            width: 50%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.5), transparent);
-            transform: skewX(-45deg);
-            animation: menu-shine-slide 0.8s infinite linear;
-            pointer-events: none;
-        }
-        /* Ajuste do scrollbar no modo controles */
-        #menu-options-container::-webkit-scrollbar { width: 6px; }
-        #menu-options-container::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
-        #menu-options-container::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
-    `;
-    document.head.appendChild(style);
-}
-
-/**
  * Obtém o contêiner alvo para renderizar a interface do menu.
  */
 function obterConteinerDestino() {
@@ -598,7 +561,7 @@ function criarElementoTitulo() {
     const title = document.createElement('h1');
     title.innerText = menuMode === 'controls'
         ? 'CONTROLES'
-        : (window.isFirstStart ? 'MENU PRINCIPAL' : 'PAUSE');
+        : (window.isFirstStart ? 'PRINCIPAL' : 'PAUSE');
     title.style.marginBottom = menuMode === 'controls' ? '12px' : '30px';
     title.style.letterSpacing = '6px';
     return title;
@@ -617,7 +580,6 @@ function preencherConteudoPorModo(overlay) {
 
 function renderMenuUI() {
     removeMenuUI();
-    injetarEstilosMenu();
 
     const targetLayer = obterConteinerDestino();
     if (!targetLayer) return;
@@ -648,20 +610,12 @@ function renderMainMenuContent(overlay) {
     optionsContainer.style.width = '220px';
 
     const currentOptions = getActiveMenuOptions();
-    currentOptions.forEach((opt, index) => {
+
+    // Função auxiliar para criar os botões e evitar repetição de código
+    const criarBotaoMenu = (opt, index) => {
         const btn = document.createElement('div');
-        btn.className = 'menu-option';
+        btn.className = 'menu-option menu-option--main';
         btn.innerText = opt.label;
-        btn.style = `
-            padding: 12px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-            transition: transform 0.1s;
-            border: 2px solid transparent;
-            border-radius: 5px;
-        `;
 
         btn.onmouseenter = () => {
             menuSelectedIndex = index;
@@ -677,11 +631,16 @@ function renderMainMenuContent(overlay) {
             e.stopPropagation();
             opt.action();
         };
+        return btn;
+    };
 
-        optionsContainer.appendChild(btn);
+    currentOptions.forEach((opt, index) => {
+        // O botão SAIR será tratado separadamente na coluna da direita
+        if (opt.label === 'SAIR') return;
+        optionsContainer.appendChild(criarBotaoMenu(opt, index));
     });
 
-    // Coluna da direita para agrupar o Painel de Resumo e o Controle de Volume
+    // Coluna da direita para agrupar o Painel de Resumo, o botão Sair e o Controle de Volume
     const rightColumn = document.createElement('div');
     rightColumn.style.display = 'flex';
     rightColumn.style.flexDirection = 'column';
@@ -689,6 +648,12 @@ function renderMainMenuContent(overlay) {
     rightColumn.style.width = '188px'; // Mantém a largura consistente com o painel de resumo
 
     rightColumn.appendChild(criarPainelResumoSalvo());
+
+    // Se houver a opção SAIR, adiciona-a na coluna da direita para ficar com os outros itens
+    const indexSair = currentOptions.findIndex(o => o.label === 'SAIR');
+    if (indexSair !== -1) {
+        rightColumn.appendChild(criarBotaoMenu(currentOptions[indexSair], indexSair));
+    }
 
     layout.appendChild(optionsContainer);
     layout.appendChild(rightColumn);
@@ -723,20 +688,10 @@ function renderControlsContent(overlay) {
 
     CONTROLES_MENU_ITEMS.forEach((item, index) => {
         const linha = document.createElement('div');
-        linha.className = 'menu-option';
+        linha.className = 'menu-option menu-option--control';
         const bind = getTeclaPrincipal(item.id);
         const aguardando = controlsBindingAction === item.id ? '  <AGUARDANDO...>' : '';
         linha.innerText = `${item.label}: ${bind}${aguardando}`;
-        linha.style = `
-            padding: 5px 8px;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: left;
-            transition: transform 0.1s;
-            border: 2px solid transparent;
-            border-radius: 4px;
-        `;
 
         linha.onmouseenter = () => {
             controlsSelectedIndex = index;
@@ -758,19 +713,8 @@ function renderControlsContent(overlay) {
     });
 
     const salvarBtn = document.createElement('div');
-    salvarBtn.className = 'menu-option';
+    salvarBtn.className = 'menu-option menu-option--action menu-option--save';
     salvarBtn.innerText = 'SALVAR E VOLTAR';
-    salvarBtn.style = `
-        margin-top: 8px;
-        padding: 7px 8px;
-        font-size: 13px;
-        font-weight: bold;
-        cursor: pointer;
-        text-align: center;
-        transition: transform 0.1s;
-        border: 2px solid transparent;
-        border-radius: 4px;
-    `;
     salvarBtn.onmouseenter = () => {
         controlsSelectedIndex = CONTROLES_MENU_ITEMS.length;
         updateMenuVisuals();
@@ -788,18 +732,8 @@ function renderControlsContent(overlay) {
     optionsContainer.appendChild(salvarBtn);
 
     const resetBtn = document.createElement('div');
-    resetBtn.className = 'menu-option';
+    resetBtn.className = 'menu-option menu-option--action';
     resetBtn.innerText = 'RESTAURAR PADRAO';
-    resetBtn.style = `
-        padding: 7px 8px;
-        font-size: 13px;
-        font-weight: bold;
-        cursor: pointer;
-        text-align: center;
-        transition: transform 0.1s;
-        border: 2px solid transparent;
-        border-radius: 4px;
-    `;
     resetBtn.onmouseenter = () => {
         controlsSelectedIndex = CONTROLES_MENU_ITEMS.length + 1;
         updateMenuVisuals();
@@ -827,15 +761,7 @@ function updateMenuVisuals() {
         
         if (index === selected) {
             el.classList.add('selected'); // Adiciona a classe de seleção ao elemento atual
-            el.style.backgroundColor = 'white';
-            el.style.color = 'black';
-            el.style.border = '2px solid #fff';
-            el.style.transform = 'scale(1.3)';
         } else {
-            el.style.backgroundColor = 'rgba(255,255,255,0.1)';
-            el.style.color = 'white';
-            el.style.border = '2px solid transparent';
-            el.style.transform = 'scale(1.0)';
         }
     });
 }
