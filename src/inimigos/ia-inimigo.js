@@ -1479,6 +1479,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                             inimigo.elemento, 
                             spriteParadoUsado,
                             spriteAndandoUsado
+                            ,
+                            config.spriteNoArInimigo || spriteNoAr // Passa o sprite de "no ar"
                         );
                         // Salva o estado da animação no objeto do inimigo para o próximo frame
                         inimigo.contadorAnimacao = controleAnimacao.contadorAnimacao;

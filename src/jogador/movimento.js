@@ -510,7 +510,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         controle,
         callbacks: {
             onAgachar: () => {
-                if (window.controlandoCao) return; // Bloqueia agachar enquanto controla o cão
+                if (window.controlandoCao || window.controlandoBB) return; // Bloqueia agachar enquanto controla o cão/bb
                 if (controle.estaAgachado) {
                     tentarLevantarJogador();
                 } else if (podeAgacharSemBloqueio()) {
@@ -520,7 +520,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 }
             },
             onLevantar: () => {
-                if (window.controlandoCao) return; // Bloqueia levantar enquanto controla o cão
+                if (window.controlandoCao || window.controlandoBB) return; // Bloqueia levantar enquanto controla o cão/bb
                 tentarLevantarJogador();
             },
             onDebugApagarEquipamento: () => {
@@ -779,7 +779,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         // Verifica se o jogador quer assumir o controle do cachorro (Abaixar + Colisão + 'Q')
         const apertouQ = (controle.teclas['q'] || controle.teclas['Q']);
         
-        if (!window.controlandoCao && !window.controlandoGato && apertouQ) {
+        if (!window.controlandoCao && !window.controlandoGato && !window.controlandoBB && apertouQ) {
             // Verifica se o jogador possui a habilidade necessária para controlar pets
             if (window.PetAbilities && !window.PetAbilities.podeSerControlado(true)) {
                 // Trava de Habilidade: Se não tiver a skill, apenas sinaliza o erro e continua o loop
@@ -802,6 +802,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                     // Função para verificar troca por pet
                     const tentarTroca = (pet, flag) => {
                         if (!pet) return false;
+                        // Colisão dos pets: usa a hitbox própria de cada pet (largura/altura).
+                        // Ex.: BB já entra aqui com colisão lateral reduzida (largura 10, offsetX 10).
                         const hitboxPet = { x: pet.x, y: pet.y, largura: pet.largura, altura: pet.altura };
                         if (window.detectarColisaoHitbox(hitboxPlayer, hitboxPet, -15, -15, -15)) {
                             window[flag] = true;
@@ -814,9 +816,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                     };
 
                     if (tentarTroca(window.caoEntidade, 'controlandoCao') || 
-                        tentarTroca(window.gatoEntidade, 'controlandoGato')) {
-                        // Set camera zoom when taking control of a pet
-                        if (window.cameraZoomFactor) window.cameraZoomFactor = 1.5; // Example zoom level
+                        tentarTroca(window.gatoEntidade, 'controlandoGato') ||
+                        tentarTroca(window.bbEntidade, 'controlandoBB')) {
+                        window.cameraZoomFactor = 1.5;
                         requestAnimationFrame(atualizar);
                         return;
                     }
@@ -827,7 +829,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         // --- LÓGICA DE TOGGLE ARMA/ESCUDO (TECLA E) ---
         const apertouE = !!(controle.teclas['e'] || controle.teclas['E']);
         if (apertouE && !controle.ePressionado) {
-            if (!window.controlandoCao && !window.controlandoGato && !controle.estaAgachado && controle.temCinto) {
+            if (!window.controlandoCao && !window.controlandoGato && !window.controlandoBB && !controle.estaAgachado && controle.temCinto) {
                 if (typeof sistemaVisuaisEquipamentos.alternarEquipamentoSelecao === 'function') {
                     sistemaVisuaisEquipamentos.alternarEquipamentoSelecao();
                 }
@@ -835,7 +837,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         }
         controle.ePressionado = apertouE;
 
-        if (window.controlandoCao || window.controlandoGato) {
+        if (window.controlandoCao || window.controlandoGato || window.controlandoBB) {
             processarEsperaJogador();
             requestAnimationFrame(atualizar);
             return;
@@ -910,9 +912,13 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 atualizarAnimacao(controle, elemento, config.spriteParadoPlayer || spriteParado, config.spriteAndandoPlayer || spriteAndando, config.spriteNoArPlayer || spriteNoAr, config.spriteAgachadoPlayer || spriteAgachado, config.spriteAgachadoAndandoPlayer || spriteAgachado2);
             }
             sincronizarVisuaisEquipamentos();
-            const petFoco = window.controlandoCao ? window.caoEntidade : window.gatoEntidade;
+            const petFoco = window.controlandoCao ? window.caoEntidade : (window.controlandoGato ? window.gatoEntidade : window.bbEntidade);
             if (typeof window.atualizarCamera === 'function' && petFoco) {
-                window.atualizarCamera(petFoco.x + 16, petFoco.y + 16, window.mundoLargura, window.mundoAltura);
+                // Correcao horizontal da camera para pets: mantemos um deslocamento lateral dedicado
+                // para enquadrar melhor o pet no palco (BB usa -64px; cao/gato usam +16px).
+                // Ajusta câmera: 64px esquerda para BB, 16px normal para pets
+                const cameraX = window.controlandoBB ? (petFoco.x + 32) : (petFoco.x + 16);
+                window.atualizarCamera(cameraX, petFoco.y + 16, window.mundoLargura, window.mundoAltura);
             }
         }
 
