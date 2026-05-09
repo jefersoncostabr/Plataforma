@@ -95,6 +95,7 @@
         }
 
         const player = window.playerControle;
+        const alvoSeguimento = (window.controlandoBB && window.bbEntidade) ? window.bbEntidade : player;
         
         // 1. Processamento de Lógica e Física (Apenas se o jogo NÃO estiver pausado)
         if (!window.isPaused && pet && window.config) {
@@ -195,17 +196,17 @@
             } else {
             pet.mordendo = !!pet.inimigoPreso || !!pet.itemArrastado; // Mantém o visual de segurando mesmo em modo NPC
 
-            // Re-ativa o seguimento se o player encostar (Melhoria vinda do docs/cao.js)
+            // Re-ativa o seguimento se o alvo atual encostar (player normal ou BB em modo resgate)
             const colidindoComPlayer = typeof window.detectarColisaoHitbox === 'function' && 
-                                      window.detectarColisaoHitbox(pet, player, 0, 0, 0);
+                                      window.detectarColisaoHitbox(pet, alvoSeguimento, 0, 0, 0);
             if (colidindoComPlayer) pet.estaSeguindo = true;
 
-            const deltaX = player ? (player.x - pet.x) : 0;
+            const deltaX = alvoSeguimento ? (alvoSeguimento.x - pet.x) : 0;
             const distSeguir = (pet.tipo === 'cao' ? config.distanciaMinimaCaoSeguir : config.distanciaMinimaGatoSeguir) || 45;
             pet.movendoHorizontal = false;
 
             // Inteligência de Seguimento e Movimento Horizontal com Colisão
-            if (pet.estaSeguindo && player && !player.estaMorrendo && Math.abs(deltaX) > distSeguir) {
+            if (pet.estaSeguindo && alvoSeguimento && !alvoSeguimento.estaMorrendo && Math.abs(deltaX) > distSeguir) {
                 const direcaoX = Math.sign(deltaX);
                 const deslocX = direcaoX * velocidadeFinal;
                 
@@ -229,16 +230,16 @@
 
             // Salta se o jogador estiver acima (em plataformas altas)
             const alcancePuloY = config.caoAlcancePuloY || 32;
-            if (pet.estaSeguindo && player && pet.noChao && pet.cooldownPulo === 0 && (player.y > pet.y + alcancePuloY) && Math.abs(deltaX) < (config.caoAlcancePuloX || 80)) {
+            if (pet.estaSeguindo && alvoSeguimento && pet.noChao && pet.cooldownPulo === 0 && (alvoSeguimento.y > pet.y + alcancePuloY) && Math.abs(deltaX) < (config.caoAlcancePuloX || 80)) {
                 pet.velocidadeY = forcaPulo;
                 pet.cooldownPulo = 45; // Sincronizado com o cooldown de obstrução
             }
             // Segurança: Teleporte se estiver muito longe ou caiu em buraco
             const distMax = config.distanciaMaxTeleporteCao || 600;
-            if (!pet.inimigoPreso && (pet.y < -128 || (player && Math.abs(player.x - pet.x) > distMax))) {
-                if (player && player.noChao) {
-                    pet.x = player.x - (player.direcao === 'd' ? 32 : -32);
-                    pet.y = player.y;
+            if (!pet.inimigoPreso && (pet.y < -128 || (alvoSeguimento && Math.abs(alvoSeguimento.x - pet.x) > distMax))) {
+                if (alvoSeguimento && alvoSeguimento.noChao) {
+                    pet.x = alvoSeguimento.x - (alvoSeguimento.direcao === 'd' ? 32 : -32);
+                    pet.y = alvoSeguimento.y;
                     pet.velocidadeY = 0;
                 }
             }

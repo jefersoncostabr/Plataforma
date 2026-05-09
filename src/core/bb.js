@@ -130,6 +130,12 @@
                 if (apertouQ && !bb.qPressionadoAnterior) {
                     const agora = Date.now();
                     if (agora - (bb.ultimoToqueQ || 0) < 300) {
+                        if (window.playerControle?.bloqueadoPorResgateBB) {
+                            bb.ultimoToqueQ = agora;
+                            bb.qPressionadoAnterior = apertouQ;
+                            return;
+                        }
+
                         window.controlandoBB = false;
                         teclas['q'] = false;
                         teclas['Q'] = false;
@@ -175,6 +181,10 @@
                         bb.velocidadeY = 0;
                     }
                 }
+            }
+
+            if (typeof window.atualizarParaquedasBB === 'function') {
+                window.atualizarParaquedasBB(bb, config);
             }
         }
 
@@ -242,6 +252,11 @@
      * Função para voltar ao controle do player
      */
     window.controlarPlayer = function () {
+        if (window.playerControle?.bloqueadoPorResgateBB) {
+            console.log('Player indisponível após resgate. Continue com o BB.');
+            return;
+        }
+
         window.controlandoBB = false;
         // Reset camera zoom when returning control to player
         window.cameraZoomFactor = 1;

@@ -236,6 +236,21 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
      * Inicia a sequência de morte do jogador (estilo cartoon).
      */
     window.prepararMorteJogador = (direcaoX) => {
+        // Se o fluxo novo de resgate já bloqueou o jogador, não deixa cair na morte antiga.
+        if (controle.bloqueadoPorResgateBB) {
+            return;
+        }
+
+        if (typeof window.iniciarResgateMorteComBB === 'function') {
+            const ativouResgateBB = window.iniciarResgateMorteComBB({
+                controle,
+                elemento,
+                config,
+                direcaoX
+            });
+            if (ativouResgateBB) return;
+        }
+
         if (controle.estaMorrendo) return;
 
         controle.estaMorrendo = true;
@@ -742,7 +757,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         }
 
         // Lógica de Stun do Jogador (quando capturado pela garra inimiga)
-        if (controle.stunned) {
+        // Durante controle do BB (resgate), não interrompe o loop para manter câmera/follow do BB.
+        if (controle.stunned && !window.controlandoBB) {
             if (controle.stunTimer > 0) {
                 controle.stunTimer--;
                 // Visual de atordoamento (olhando para os lados)
@@ -914,10 +930,16 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             sincronizarVisuaisEquipamentos();
             const petFoco = window.controlandoCao ? window.caoEntidade : (window.controlandoGato ? window.gatoEntidade : window.bbEntidade);
             if (typeof window.atualizarCamera === 'function' && petFoco) {
-                // Correcao horizontal da camera para pets: mantemos um deslocamento lateral dedicado
-                // para enquadrar melhor o pet no palco (BB usa -64px; cao/gato usam +16px).
-                // Ajusta câmera: 64px esquerda para BB, 16px normal para pets
-                const cameraX = window.controlandoBB ? (petFoco.x + 32) : (petFoco.x + 16);
+                // Enquanto o BB estiver sob controle, força o mesmo zoom de pet em todo frame.
+                if (window.controlandoBB) {
+                    window.cameraZoomFactor = 1.5;
+                }
+
+                // Usa o mesmo foco base para pets (incluindo BB) para manter seguimento estável.
+                const cameraX = petFoco.x + 16;
+                if (window.controlandoBB) {
+                    console.log(`[CAMERA_BB] focoX=${cameraX.toFixed(1)} focoY=${(petFoco.y + 16).toFixed(1)} zoom=${window.cameraZoomFactor}`);
+                }
                 window.atualizarCamera(cameraX, petFoco.y + 16, window.mundoLargura, window.mundoAltura);
             }
         }
@@ -1634,9 +1656,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
                             const limiteVida = controle.maxVida || 3;
                             if (controle.dano >= limiteVida) {
-                                controle.dano = 0; // Reset imediato para evitar repetição do alert
-                                alert("Game Over! Você foi derrotado pelos projéteis inimigos.");
-                                if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
+                                if (typeof window.prepararMorteJogador === 'function') {
+                                    window.prepararMorteJogador(proj.direcao);
+                                }
                             }
                         }
 

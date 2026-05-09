@@ -86,30 +86,9 @@
                 const posY = yPartida + alturaSubida;
                 sinalizador.remove();
 
-                const explosao = document.createElement('img');
-                explosao.src = '../../assets/personagem/explosao.png';
-                explosao.style.position = 'absolute';
-                explosao.style.width = '32px';
-                explosao.style.height = '32px';
-                explosao.style.left = (posX - 12) + 'px';
-                explosao.style.bottom = (posY - 12) + 'px';
-                explosao.style.imageRendering = 'pixelated';
-                explosao.style.pointerEvents = 'none';
-                explosao.style.transform = 'scale(0.1)';
-                explosao.style.transition = 'transform 0.8s ease-out, opacity 0.8s ease-out';
-
-                adicionarAoLayer(explosao, window.LAYERS.EFEITOS);
-
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        explosao.style.transform = 'scale(4)';
-                        explosao.style.opacity = '0';
-                    });
-                });
-
-                setTimeout(() => {
-                    explosao.remove();
-                }, 800);
+                if (typeof window.criarExplosaoSinalizador === 'function') {
+                    window.criarExplosaoSinalizador(posX, posY, { layer: window.LAYERS?.EFEITOS });
+                }
             }, 1050);
 
             const tempoEspera = (config.airdrop1?.espera || 10) * 1000;
