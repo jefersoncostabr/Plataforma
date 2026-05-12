@@ -1002,6 +1002,14 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     }
                 }
 
+                // RESGATE BB: Se o jogador está em resgate, inimigos devem zerar perseguição
+                const emResgateBB = window.playerControle?.bloqueadoPorResgateBB === true;
+                if (emResgateBB) {
+                    inimigo.perseguindo = false;
+                    inimigo.afastando = false;
+                    inimigo.tempoAfastamento = 0;
+                }
+
                 // Lógica de detecção de proximidade excessiva com o jogador
                 const distanciaX = Math.abs(playerX - inimigo.x);
                 const distanciaY = Math.abs(playerY - inimigo.y);
@@ -1062,7 +1070,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 }
 
                 // Ativa a perseguição se o jogador estiver perto OU se detectar um tiro vindo no radar
-                if (!iaBloqueadaPorStun && !inimigo.perseguindo && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse || (inimigo.temGarra && distanciaAtual <= (config.garraAlcanceInimigo || 160)))) {
+                // Não ativa perseguição se o jogador está em resgate do BB
+                if (!iaBloqueadaPorStun && !inimigo.perseguindo && !emResgateBB && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse || (inimigo.temGarra && distanciaAtual <= (config.garraAlcanceInimigo || 160)))) {
                     inimigo.perseguindo = true;
                     // console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
                 }

@@ -59,8 +59,38 @@
             spriteInteracao: config.spriteBBInteracao || '../../assets/personagem/bb/bb-interacao.png',
             ultimoToqueQ: 0,
             qPressionadoAnterior: false,
-            interagindo: false
+            interagindo: false,
+            // Suporte a Inventário e Controle de Base
+            inventario: [],
+            coleteSlots: Array.from({ length: 6 }, () => null),
+            cintoSlot: null,
+            temColete: true,
+            temCinto: true,
+            estaAgachado: false
         };
+
+        // Inicializa um sistema de crafting dedicado ao BB
+        bb.craftingSystem = window.criarSistemaCraftingJogador({
+            controle: bb,
+            config: config,
+            elemento: img,
+            salvarInventario: () => {}, // O inventário do BB é volátil (não persiste no save global)
+            acaoAtiva: (acao) => {
+                if (!window.controlandoBB) return false;
+                const teclas = window.playerControle?.teclas || {};
+                const binds = window.controlesConfig?.[acao] || [];
+                return binds.some(k => teclas[k] || teclas[k.toLowerCase()] || teclas[k.toUpperCase()]);
+            },
+            consumirAcao: (acao) => {
+                const teclas = window.playerControle?.teclas || {};
+                const binds = window.controlesConfig?.[acao] || [];
+                binds.forEach(k => {
+                    teclas[k] = false;
+                    teclas[k.toLowerCase()] = false;
+                    teclas[k.toUpperCase()] = false;
+                });
+            }
+        });
 
         window.bbEntidade = bb;
         requestAnimationFrame(() => cicloVidaBB(bb, meuId));
@@ -105,6 +135,15 @@
                     deslocX = velocidadeBase;
                     bb.direcao = 'd';
                     bb.movendoHorizontal = true;
+                }
+
+                // Lógica de Agachar (necessária para posicionar ou evoluir a base)
+                const baixoBinds = window.controlesConfig?.['baixo'] || ['s', 'S', 'ArrowDown'];
+                bb.estaAgachado = baixoBinds.some(k => teclas[k]);
+
+                // Processa interações de Crafting/Base (Menu, Evoluir ou Recolher)
+                if (bb.craftingSystem) {
+                    bb.craftingSystem.processarInteracaoCraft();
                 }
 
                 if (deslocX !== 0) {

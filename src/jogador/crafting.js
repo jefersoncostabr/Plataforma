@@ -95,11 +95,7 @@
             throw new Error('Controle e elemento do jogador são obrigatórios para o sistema de crafting.');
         }
 
-        if (typeof window.removerTodosCrafts === 'function') {
-            window.removerTodosCrafts();
-        }
-
-        window.craftsAtivos = [];
+        window.craftsAtivos = window.craftsAtivos || [];
 
         controle.craftPreviewAtivo = false;
         controle.craftPreviewVisual = null;
@@ -158,6 +154,13 @@
 
             try {
                 localStorage.setItem(CRAFT_PERSISTENCE_KEY, JSON.stringify(registro));
+                console.log(
+                    '[DEBUG BASE][salvar] temBase=%s nivelBase=%s fase=%s local=%s',
+                    true,
+                    Number(registro.nivel || 0),
+                    registro.faseOriginal || registro.fase || '(sem fase)',
+                    `x:${Number(registro.x || 0)},y:${Number(registro.y || 0)}`
+                );
                 return true;
             } catch (error) {
                 console.warn('Craft: falha ao salvar base persistida.', error);
@@ -182,6 +185,18 @@
         function restaurarCraftPersistenteDaFaseAtual() {
             const craftPersistido = obterCraftPersistido();
             const faseAtual = obterNomeFaseAtual();
+            const temBasePersistida = !!craftPersistido;
+            const nivelBasePersistida = Number(craftPersistido?.nivel || 0);
+            const localBasePersistida = craftPersistido
+                ? `x:${Number(craftPersistido.x || 0)},y:${Number(craftPersistido.y || 0)}`
+                : '(sem local)';
+            console.log(
+                '[DEBUG BASE][restaurar] temBase=%s nivelBase=%s fase=%s local=%s',
+                temBasePersistida,
+                nivelBasePersistida,
+                faseAtual || '(sem fase)',
+                localBasePersistida
+            );
 
             if (!craftPersistido || !faseAtual || craftPersistido.fase !== faseAtual) {
                 return false;
@@ -441,6 +456,11 @@
 
         function definirModoRenascimentoBasePorId(craftId, modoDesejado) {
             const craft = (window.craftsAtivos || []).find((item) => String(item?.id || '') === String(craftId || '')) || null;
+            const faseAtual = String(window.faseAtualNome || '').trim() || '(sem fase)';
+            const temBase = Array.isArray(window.craftsAtivos) && window.craftsAtivos.length > 0;
+            const nivelBase = Number(craft?.nivel || 0);
+            const localBase = craft ? `x:${Number(craft.x || 0)},y:${Number(craft.y || 0)}` : '(sem local)';
+            console.log('[DEBUG BASE][modo] temBase=%s nivelBase=%s fase=%s local=%s', temBase, nivelBase, faseAtual, localBase);
             if (!craft) {
                 return { ok: false, motivo: 'Base não encontrada.' };
             }
@@ -907,7 +927,8 @@
             processarInteracaoCraft,
             limparPreviewCraft,
             removerTodosCrafts,
-            restaurarCraftPersistenteDaFaseAtual
+            restaurarCraftPersistenteDaFaseAtual,
+            recolherCraftPorId
         };
     }
 

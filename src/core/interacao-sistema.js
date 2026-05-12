@@ -429,8 +429,9 @@
         if (id === 'menu_crafting') {
             const inventarioContainer = overlay.querySelector('.player-inventory-for-crafting');
             if (inventarioContainer) {
-                const controle = window.playerControle;
-                if (controle) {
+                // Identifica quem abriu o menu (Jogador ou BB) para listar o inventário correto
+                const interactor = contexto.interactor || window.playerControle;
+                if (interactor) {
                     const slot1 = overlay.querySelector('#craft-slot-1');
                     const slot2 = overlay.querySelector('#craft-slot-2');
                     
@@ -502,14 +503,14 @@
                             const itensParaMostrar = [];
 
                             // 1. Coleta itens do cinto e colete
-                            const slotCinto = typeof window.obterSlotCinto === 'function' ? window.obterSlotCinto() : controle.cintoSlot;
+                            const slotCinto = interactor.cintoSlot;
                             if (slotCinto) itensParaMostrar.push(slotCinto);
 
-                            const slotsColete = typeof window.obterSlotsColete === 'function' ? window.obterSlotsColete() : (controle.coleteSlots || []);
+                            const slotsColete = interactor.coleteSlots || [];
                             slotsColete.forEach(slot => { if (slot) itensParaMostrar.push(slot); });
 
                             // 2. Garante que o Scrap apareça se estiver no inventário lógico
-                            if (Array.isArray(controle.inventario) && controle.inventario.includes('scrap')) {
+                            if (Array.isArray(interactor.inventario) && interactor.inventario.includes('scrap')) {
                                 if (!itensParaMostrar.some(it => it.tipo === 'scrap')) {
                                     itensParaMostrar.push({
                                         tipo: 'scrap',
@@ -655,7 +656,7 @@
                                     const item = s._itemRef;
                                    if (item && !item.isXP) {
                                         const ehEmpilhavel = ['scrap'].includes(item.tipo) || (item.tipo && item.tipo.endsWith('_plus'));
-                                        const c = window.playerControle;
+                                        const c = interactor;
 
                                         // Se for equipamento (não empilhável) ou se o stack acabou (quantidade 0)
                                         if (!ehEmpilhavel || (ehEmpilhavel && item.quantidade <= 0)) {
@@ -801,20 +802,23 @@
 
         if (botaoRecolher) {
             const atualizarBotao = () => {
-                const podeRecolher = typeof window.podeRecolherBasePorId === 'function'
-                    ? !!window.podeRecolherBasePorId(contexto.craftId)
-                    : true;
+                const interactor = contexto.interactor || window.playerControle;
+                const sistema = interactor?.craftingSystem;
+                // Nunca chamar recolherCraftPorId aqui: isso recolhe a base de verdade.
+                const podeRecolher = !!(sistema || typeof window.recolherCraftPorId === 'function');
                 botaoRecolher.disabled = !podeRecolher;
                 botaoRecolher.textContent = podeRecolher ? 'Recolher' : 'Sem slot livre';
             };
 
             botaoRecolher.addEventListener('click', () => {
-                if (typeof window.recolherCraftPorId !== 'function') {
+                const interactor = contexto.interactor || window.playerControle;
+                const sistema = interactor?.craftingSystem;
+                if (!sistema && typeof window.recolherCraftPorId !== 'function') {
                     definirFeedbackInteracao('A ação de recolher ainda não está disponível.', true);
                     return;
                 }
 
-                const resultado = window.recolherCraftPorId(contexto.craftId);
+                const resultado = sistema ? sistema.recolherCraftPorId(contexto.craftId) : window.recolherCraftPorId(contexto.craftId);
                 if (!resultado?.ok) {
                     definirFeedbackInteracao(resultado?.motivo || 'Não foi possível recolher a base.', true);
                     atualizarBotao();
@@ -946,11 +950,18 @@
         
         if (controle.estaAgachado) return false;
 
+        const faseAtual = String(window.faseAtualNome || '').trim() || '(sem fase)';
+        const temBase = Array.isArray(window.craftsAtivos) && window.craftsAtivos.length > 0;
         const craft = obterCraftSobJogador(controle);
+        const nivelBase = Number(craft?.nivel || 0);
+        const localBase = craft ? `x:${Number(craft.x || 0)},y:${Number(craft.y || 0)}` : '(sem local)';
+        console.log('[DEBUG BASE][interacao] temBase=%s nivelBase=%s fase=%s local=%s', temBase, nivelBase, faseAtual, localBase);
         if (!craft) return false;
 
         consumirAcao('interagir');
-        abrirTelaInteracao('craft_base', montarContextoCraft(craft)).catch((error) => {
+        const ctx = montarContextoCraft(craft);
+        ctx.interactor = controle; // Salva o interator no contexto para uso posterior nos menus
+        abrirTelaInteracao('craft_base', ctx).catch((error) => {
             console.error('Interação: falha ao abrir a tela da base.', error);
         });
         return true;

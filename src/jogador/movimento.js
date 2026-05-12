@@ -662,6 +662,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         consumirAcao,
         flashElement: typeof flashElement === 'function' ? flashElement : undefined
     });
+    controle.craftingSystem = sistemaCrafting; // Registra o sistema no controle para ser acessível pelo interator
 
     const {
         processarInteracaoCraft,
@@ -937,9 +938,6 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
                 // Usa o mesmo foco base para pets (incluindo BB) para manter seguimento estável.
                 const cameraX = petFoco.x + 16;
-                if (window.controlandoBB) {
-                    console.log(`[CAMERA_BB] focoX=${cameraX.toFixed(1)} focoY=${(petFoco.y + 16).toFixed(1)} zoom=${window.cameraZoomFactor}`);
-                }
                 window.atualizarCamera(cameraX, petFoco.y + 16, window.mundoLargura, window.mundoAltura);
             }
         }
