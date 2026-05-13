@@ -526,6 +526,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         callbacks: {
             onAgachar: () => {
                 if (window.controlandoCao || window.controlandoBB) return; // Bloqueia agachar enquanto controla o cão/bb
+                if (controle.estaoAberto || controle.abrindo || controle.fechando) return;
                 if (controle.estaAgachado) {
                     tentarLevantarJogador();
                 } else if (podeAgacharSemBloqueio()) {
@@ -590,6 +591,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 if (typeof window.atualizarHUD === 'function') window.atualizarHUD();
             },
             onAlternarCinto: () => {
+                if (controle.estaoAberto || controle.abrindo || controle.fechando) return;
                 alternarItensNoCinto();
             },
             onToggleMochila: () => {
@@ -724,7 +726,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         const config = window.config || {};
         
         // --- BLOQUEIO QUANDO ABERTO ---
-        if (controle.estaoAberto) {
+        if (controle.estaoAberto && controle.noChao) {
             if (typeof processarEntradaAbertura === 'function') {
                 processarEntradaAbertura();
             }
@@ -735,6 +737,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             controle.movendoHorizontal = false;
             controle.velocidadeX = 0;
             controle.velocidadeHorizontalAtual = 0;
+            controle.estaAgachado = false;
             // Não permite pulo
             controle.cooldownPulo = 1;
 
@@ -772,7 +775,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         }
 
         // --- BLOQUEIO DURANTE ANIMAÇÃO DE ABERTURA ---
-        if (controle.abrindo || (controle.tempoAbertura || 0) > 0) {
+        if (controle.abrindo || controle.fechando || (controle.tempoAbertura || 0) > 0) {
             // Atualiza os temporizadores da animação de abertura PRIMEIRO
             if (typeof atualizarTemporizadoresAbertura === 'function') {
                 atualizarTemporizadoresAbertura();
@@ -782,7 +785,13 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             controle.movendoHorizontal = false;
             controle.velocidadeX = 0;
             controle.velocidadeHorizontalAtual = 0;
+            controle.estaAgachado = false;
             controle.cooldownPulo = 1;
+
+            // Durante a animação, congela a física vertical para manter o personagem parado no ar.
+            if (!controle.noChao) {
+                controle.velocidadeY = 0;
+            }
 
             if (typeof atualizarAnimacao === 'function') {
                 atualizarAnimacao(

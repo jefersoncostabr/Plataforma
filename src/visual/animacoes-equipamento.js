@@ -581,6 +581,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
     }
 
     function alternarItensNoCinto() {
+        if (controle.estaoAberto || controle.abrindo || controle.fechando) return;
         if (!controle.temCinto || controle.cintoAnimando || controle.vendaEmCurso || controle.stunned) return;
         if ((controle.garraAnimEstado && controle.garraAnimEstado !== 'idle') || controle.garraItemCarregado) return;
 
@@ -639,6 +640,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
      * Alterna a seleção ativa entre Arma e Escudo (Mecânica do Botão E).
      */
     function alternarEquipamentoSelecao() {
+        if (controle.estaoAberto || controle.abrindo || controle.fechando) return;
         if (!controle.temCinto || controle.estaAgachado) return;
         
         const temArma = !!controle.temArma;

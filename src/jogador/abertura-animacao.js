@@ -11,20 +11,37 @@
             throw new Error('Controle e config são obrigatórios para o sistema de abertura.');
         }
 
-        function atualizarEstadoAbertura() {
-            controle.abrindo = (controle.tempoAbertura || 0) > 0;
+        const TOTAL_FRAMES_ABERTURA = 4;
+
+        function obterTempoTotalAnimacao() {
+            return Number(config.tempoAberturaFrame ?? 20) * TOTAL_FRAMES_ABERTURA;
         }
 
         function iniciarAbertura() {
-            if (controle.abrindo) return false;
+            if (controle.abrindo || controle.fechando) return false;
             
-            controle.tempoAbertura = Number(config.tempoAberturaFrame ?? 20) * 4; // 4 frames de duração
+            controle.tempoAbertura = obterTempoTotalAnimacao();
             controle.frameAbertura = 0;
             controle.abrindo = true;
+            controle.fechando = false;
             controle.estaoAberto = false;
+            controle.estaAgachado = false;
 
             window.AudioManager?.playSFX('engrenagem', 0.5);
-            atualizarEstadoAbertura();
+            return true;
+        }
+
+        function iniciarFechamento() {
+            if (controle.abrindo || controle.fechando) return false;
+
+            controle.tempoAbertura = obterTempoTotalAnimacao();
+            controle.frameAbertura = 3;
+            controle.abrindo = false;
+            controle.fechando = true;
+            controle.estaoAberto = false;
+            controle.estaAgachado = false;
+
+            window.AudioManager?.playSFX('engrenagem', 0.5);
             return true;
         }
 
@@ -34,12 +51,11 @@
             // Consome imediatamente para garantir acionamento por toque único.
             consumirAcao('abertura');
 
-            if (controle.abrindo) return false;
+            if (controle.abrindo || controle.fechando) return false;
 
             if (controle.estaoAberto) {
                 // Se já está aberto, fecha
-                fecharAbertura();
-                return false;
+                return iniciarFechamento();
             } else if (!controle.abrindo) {
                 // Se não está aberto e não está abrindo, inicia a abertura
                 return iniciarAbertura();
@@ -49,29 +65,49 @@
         }
 
         function atualizarTemporizadores() {
-            if ((controle.tempoAbertura || 0) > 0) {
+            const tempoFrameNormal = Number(config.tempoAberturaFrame ?? 20);
+            const tempoTotal = obterTempoTotalAnimacao();
+
+            if (controle.abrindo && (controle.tempoAbertura || 0) > 0) {
                 controle.tempoAbertura--;
 
                 // A animação é controlada por tempo de frame para garantir a ordem:
                 // per_parado2 -> per_abrindo1 -> per_abrindo2 -> per_aberto.
-                const tempoFrameNormal = Number(config.tempoAberturaFrame ?? 20);
-                const frameAtual = Math.floor((4 * tempoFrameNormal - controle.tempoAbertura) / tempoFrameNormal);
+                const decorrido = tempoTotal - controle.tempoAbertura;
+                const frameAtual = Math.floor(decorrido / tempoFrameNormal);
                 controle.frameAbertura = Math.min(frameAtual, 3);
 
                 // Quando o timer chega a zero, trava imediatamente no último frame.
                 if ((controle.tempoAbertura || 0) <= 0) {
                     controle.tempoAbertura = 0;
                     controle.abrindo = false;
+                    controle.fechando = false;
                     controle.estaoAberto = true;
                     controle.frameAbertura = 3;
-                } else {
-                    atualizarEstadoAbertura();
+                }
+                return;
+            }
+
+            if (controle.fechando && (controle.tempoAbertura || 0) > 0) {
+                controle.tempoAbertura--;
+
+                // Fecha em ordem reversa: per_aberto -> per_abrindo2 -> per_abrindo1 -> per_parado2.
+                const decorrido = tempoTotal - controle.tempoAbertura;
+                const frameAtual = Math.floor(decorrido / tempoFrameNormal);
+                controle.frameAbertura = Math.max(0, 3 - frameAtual);
+
+                if ((controle.tempoAbertura || 0) <= 0) {
+                    controle.tempoAbertura = 0;
+                    controle.abrindo = false;
+                    controle.fechando = false;
+                    controle.estaoAberto = false;
+                    controle.frameAbertura = 0;
                 }
             }
         }
 
         function obterSpriteAbertura() {
-            if (!controle.estaoAberto && !controle.abrindo && (controle.tempoAbertura || 0) <= 0) return null;
+            if (!controle.estaoAberto && !controle.abrindo && !controle.fechando && (controle.tempoAbertura || 0) <= 0) return null;
 
             const sprites = [
                 config.spriteAberturaPlayer1 || 'assets/personagem/personagem_parado2.png',
@@ -83,32 +119,10 @@
             return sprites[controle.frameAbertura || 0] || sprites[3];
         }
 
-        function fecharAbertura() {
-            controle.estaoAberto = false;
-            controle.abrindo = false;
-            controle.tempoAbertura = 0;
-            controle.frameAbertura = 0;
-        }
-
-        window.debugAberturaEstado = function() {
-            const estado = {
-                abrindo: !!controle.abrindo,
-                estaoAberto: !!controle.estaoAberto,
-                tempoAbertura: Number(controle.tempoAbertura || 0),
-                frameAbertura: Number(controle.frameAbertura || 0),
-                teclaY: !!(controle.teclas?.y || controle.teclas?.Y),
-                acaoAberturaAtiva: !!acaoAtiva('abertura'),
-                spriteAtual: controle.elemento?.src || null
-            };
-            console.log('[DEBUG ABERTURA ESTADO]', estado);
-            return estado;
-        };
-
         window.sistemaAbertura = {
             processarEntrada: processarEntradaAbertura,
             atualizarTemporizadores: atualizarTemporizadores,
             obterSprite: obterSpriteAbertura,
-            fechar: fecharAbertura,
             isAberto: () => controle.estaoAberto || false
         };
     }
