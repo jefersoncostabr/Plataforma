@@ -955,7 +955,6 @@
         const craft = obterCraftSobJogador(controle);
         const nivelBase = Number(craft?.nivel || 0);
         const localBase = craft ? `x:${Number(craft.x || 0)},y:${Number(craft.y || 0)}` : '(sem local)';
-        console.log('[DEBUG BASE][interacao] temBase=%s nivelBase=%s fase=%s local=%s', temBase, nivelBase, faseAtual, localBase);
         if (!craft) return false;
 
         consumirAcao('interagir');

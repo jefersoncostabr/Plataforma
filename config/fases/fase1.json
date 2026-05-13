@@ -2,6 +2,7 @@
     "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
     "objetivo": "e40",
+    "posicaoRoboAberto": "i17",
     "posicaoGaiola": "",
     "posicaoCachorro": "",
     "posicaoGaiolaGato": "h39",

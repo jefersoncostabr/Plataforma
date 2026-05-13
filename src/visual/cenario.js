@@ -38,6 +38,7 @@ function limparCenario() {
     window.projeteis = []; 
     window.itensColetaveis = [];
     window.objetivoData = null;
+    window.roboAbertoData = null;
     window.inimigos = []; // CRÍTICO: Limpa inimigos para não deixar "fantasmas" da fase anterior
 
     // 3. Reseta filtros de CSS que podem estar pesando na GPU (como blur ou grayscale)
@@ -190,6 +191,62 @@ function renderizarObjetivo(idPalco, imagemPath, coord) {
         largura: 18, 
         altura: 13 
     };
+}
+
+/**
+ * Renderiza um robô aberto de fase (casco vazio) para o BB assumir o corpo.
+ *
+ * @param {string} idPalco - O ID do container do jogo.
+ * @param {string} imagemPath - Caminho para a imagem do robô aberto.
+ * @param {string} coord - Coordenada (ex: "f19").
+ */
+function renderizarRoboAberto(idPalco, imagemPath, coord) {
+    const layerUI = obterLayer(window.LAYERS.UI);
+    if (!layerUI) return;
+
+    const partes = parseCoordGrid(coord);
+    if (!partes) return;
+
+    const { row, col } = partes;
+    const tamanhoTile = 32;
+    const x = col * tamanhoTile;
+    const y = row * tamanhoTile;
+
+    const roboImg = document.createElement('img');
+    roboImg.id = 'robo-aberto-fase';
+    roboImg.src = imagemPath;
+    roboImg.style.position = 'absolute';
+    roboImg.style.left = x + 'px';
+    roboImg.style.bottom = y + 'px';
+    roboImg.style.width = tamanhoTile + 'px';
+    roboImg.style.height = tamanhoTile + 'px';
+    roboImg.style.imageRendering = 'pixelated';
+    adicionarAoLayer(roboImg, window.LAYERS.UI);
+
+    roboImg.onerror = () => console.error(`Erro: Não foi possível carregar a imagem em: ${imagemPath}`);
+
+    window.roboAbertoData = {
+        x: x + 7,
+        y: y + 8,
+        largura: 18,
+        altura: 16,
+        spawnX: x,
+        spawnY: y,
+        coord,
+        ativo: true,
+        elemento: roboImg
+    };
+}
+
+function consumirRoboAbertoFase() {
+    if (!window.roboAbertoData) return;
+
+    window.roboAbertoData.ativo = false;
+    if (window.roboAbertoData.elemento) {
+        window.roboAbertoData.elemento.remove();
+    }
+
+    window.roboAbertoData = null;
 }
 
 

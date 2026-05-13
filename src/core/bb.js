@@ -57,8 +57,6 @@
             spriteParado: spritePadrao,
             spriteAndando: config.spriteBBAndando || '../../assets/personagem/bb/bb-andando.png',
             spriteInteracao: config.spriteBBInteracao || '../../assets/personagem/bb/bb-interacao.png',
-            ultimoToqueQ: 0,
-            qPressionadoAnterior: false,
             interagindo: false,
             // Suporte a Inventário e Controle de Base
             inventario: [],
@@ -116,6 +114,63 @@
         };
 
         return window.detectarColisaoHitbox(hitboxBB, hitboxPlayer, 0, 0, 0);
+    }
+
+    function bbPodeUsarRoboAberto(bb) {
+        const roboAberto = window.roboAbertoData;
+        if (!bb || !roboAberto || !roboAberto.ativo || typeof window.detectarColisaoHitbox !== 'function') {
+            return false;
+        }
+
+        const hitboxBB = {
+            x: bb.x + (bb.offsetX || 0),
+            y: bb.y,
+            largura: bb.largura,
+            altura: bb.altura
+        };
+
+        return window.detectarColisaoHitbox(hitboxBB, roboAberto, 0, 0, 0);
+    }
+
+    function bbAssumirCorpoDoRobo(player) {
+        const roboAberto = window.roboAbertoData;
+        if (!player || !roboAberto || !roboAberto.ativo) {
+            return false;
+        }
+
+        const novoX = Number(roboAberto.spawnX || 0);
+        const novoY = Number(roboAberto.spawnY || 0);
+
+        player.x = novoX;
+        player.y = novoY;
+        player.velocidadeX = 0;
+        player.velocidadeY = 0;
+        player.abrindo = false;
+        player.fechando = false;
+        player.estaoAberto = false;
+        player.frameAbertura = 0;
+        player.tempoAbertura = 0;
+        player.etapaAbertura = 0;
+        player.estaAgachado = false;
+
+        if (typeof window.consumirRoboAbertoFase === 'function') {
+            window.consumirRoboAbertoFase();
+        }
+
+        if (typeof window.despawnBB === 'function') {
+            window.despawnBB();
+        } else {
+            window.controlandoBB = false;
+        }
+
+        if (typeof window.controlarPlayer === 'function') {
+            window.controlarPlayer();
+        } else {
+            window.controlandoBB = false;
+            window.cameraZoomFactor = 1;
+        }
+
+        return true;
     }
 
     function cicloVidaBB(bb, idControle) {
@@ -184,6 +239,15 @@
                     bb.interagindo = true;
                     setTimeout(() => { bb.interagindo = false; }, 300);
 
+                    if (bbPodeUsarRoboAberto(bb)) {
+                        const assumiuCorpo = bbAssumirCorpoDoRobo(player);
+                        if (assumiuCorpo) {
+                            teclas['k'] = false;
+                            teclas['K'] = false;
+                            teclas['KeyK'] = false;
+                        }
+                    }
+
                     if (window.sistemaAbertura?.isAberto?.() && bbPodeFecharNoPlayer(bb, player)) {
                         const iniciouFechamento = window.sistemaAbertura.iniciarFechamento?.();
                         if (iniciouFechamento) {
@@ -194,27 +258,6 @@
                     }
                 }
                 bb.kPressionadoAnterior = kPressionado;
-
-                // Double Tap Q para voltar
-                const apertouQ = !!(teclas['q'] || teclas['Q']);
-                if (apertouQ && !bb.qPressionadoAnterior) {
-                    const agora = Date.now();
-                    if (agora - (bb.ultimoToqueQ || 0) < 300) {
-                        if (window.playerControle?.bloqueadoPorResgateBB) {
-                            bb.ultimoToqueQ = agora;
-                            bb.qPressionadoAnterior = apertouQ;
-                            return;
-                        }
-
-                        window.controlandoBB = false;
-                        teclas['q'] = false;
-                        teclas['Q'] = false;
-                        window.AudioManager?.playSFX('engrenagem', 0.5);
-                        window.cameraZoomFactor = 1;
-                    }
-                    bb.ultimoToqueQ = agora;
-                }
-                bb.qPressionadoAnterior = apertouQ;
             }
 
             // Gravidade e física vertical
@@ -315,7 +358,6 @@
         window.controlandoBB = true;
         // Mesmo comportamento dos pets: ao assumir controle, aplica ampliacao da camera.
         window.cameraZoomFactor = 1.5;
-        console.log('🎮 Controlando BB. Aperte Q 2x para voltar ao player.');
     };
 
     /**
@@ -330,7 +372,6 @@
         window.controlandoBB = false;
         // Reset camera zoom when returning control to player
         window.cameraZoomFactor = 1;
-        console.log('🎮 Voltou ao controle do player.');
     };
 
     window.despawnBB = function () {

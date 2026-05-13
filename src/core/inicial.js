@@ -393,6 +393,11 @@ async function carregarFase(nomeArquivo) {
         renderizarObjetivo(idPalco, '../../assets/personagem/objetivo.png', fase.objetivo);
     }
 
+    // Renderiza robô aberto da fase (casco para o BB assumir)
+    if (typeof renderizarRoboAberto === 'function' && fase.posicaoRoboAberto) {
+        renderizarRoboAberto(idPalco, '../../assets/personagem/per_aberto.png', fase.posicaoRoboAberto);
+    }
+
     // Reseta câmera para o início
     if (typeof window.resetarCamera === 'function') window.resetarCamera();
 

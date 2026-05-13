@@ -13,6 +13,8 @@ function definirSpriteSeValido(elemento, sprite, fallbackSprite) {
 }
 
 function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spriteNoAr, spriteAgachado, spriteAgachadoAndando) {
+    const desativarRespiracaoOciosaPet = controle?.tipo === 'cao' || controle?.tipo === 'gato';
+
     // 1. Inicialização de contadores e estado de ociosidade
     if (controle._idle2sAtivo == null) {
         controle._idle2sAtivo = false;
@@ -113,6 +115,14 @@ function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spri
         controle.contadorAnimacao = 0;
         controle.frameAtual = 0;
     } else {
+        if (desativarRespiracaoOciosaPet) {
+            resetIdleTimers();
+            definirSpriteSeValido(elemento, spriteParado);
+            controle.contadorAnimacao = 0;
+            controle.frameAtual = 0;
+            return;
+        }
+
         // ESTADO OCIOSO (IDLE) - Lógica de respiração após 2 segundos de inatividade
         const agoraMs = (performance?.now ? performance.now() : Date.now());
         const delta = controle._idle2sUltimoMs ? Math.max(0, agoraMs - controle._idle2sUltimoMs) : 0;

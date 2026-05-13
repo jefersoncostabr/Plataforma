@@ -437,6 +437,11 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         if (player && window.inimigos && window.inimigos.length > 0) {
             const playerX = parseInt(player.style.left) || 0;
             const playerY = parseInt(player.style.bottom) || 0;
+            const playerControle = window.playerControle;
+            const armaduraSemPiloto = !!(playerControle?.estaoAberto || playerControle?.fechando);
+            const alvoPerseguicao = armaduraSemPiloto ? null : playerControle;
+            const alvoPerseguicaoX = Number(alvoPerseguicao?.x ?? playerX);
+            const alvoPerseguicaoY = Number(alvoPerseguicao?.y ?? playerY);
             const alcanceTiro = Number(config.distanciaTiroInimigo ?? 300);
             const distanciaAtivacao = config.inimigoDistanciaAtivacao || 300; // Distância para o inimigo começar a perseguir o jogador
 
@@ -564,8 +569,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 });
                 
                 // Se houver um item de interesse por perto, ele vira o alvo prioritário da IA
-                const xAlvo = itemInteresse ? itemInteresse.x : playerX;
-                const yAlvo = itemInteresse ? itemInteresse.y : playerY;
+                const xAlvo = itemInteresse ? itemInteresse.x : alvoPerseguicaoX;
+                const yAlvo = itemInteresse ? itemInteresse.y : alvoPerseguicaoY;
 
                 if (typeof window.inicializarEstadoCinto === 'function') {
                     window.inicializarEstadoCinto(inimigo);
@@ -693,7 +698,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     velAtiva = Math.max(0.5, velAtiva - penalidade); // Garante no mínimo 0.5 de velocidade
                 }
 
-                const distanciaAtual = Math.abs(playerX - inimigo.x);
+                const distanciaAtual = alvoPerseguicao ? Math.abs(alvoPerseguicaoX - inimigo.x) : Number.POSITIVE_INFINITY;
                 
                 // Inicializa propriedades de combate se não existirem
                 if (inimigo.tempoChute === undefined) { // This block runs only once per enemy creation
@@ -814,14 +819,15 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                             largura: 32,
                             altura: 32
                         };
-                        const hitboxPlayer = {
+                        const playerCapturavel = window.playerControle && !window.playerControle.estaoAberto;
+                        const hitboxPlayer = playerCapturavel ? {
                             x: window.playerControle.x + (window.playerControle.offsetX || 0),
                             y: window.playerControle.y,
                             largura: window.playerControle.largura,
                             altura: window.playerControle.altura
-                        };
+                        } : null;
 
-                        if (detectarColisaoHitbox(hitboxGarra, hitboxPlayer, 0, 0, 0)) {
+                        if (hitboxPlayer && detectarColisaoHitbox(hitboxGarra, hitboxPlayer, 0, 0, 0)) {
                             inimigo.garraItemCarregado = window.playerControle;
                             window.playerControle.stunned = true;
                             window.playerControle.stunTimer = config.garraStunDurationPlayer || 120; // Default 2 seconds
@@ -1010,9 +1016,16 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     inimigo.tempoAfastamento = 0;
                 }
 
+                // Armadura aberta: não perseguir/travar no player vazio.
+                if (!alvoPerseguicao) {
+                    inimigo.perseguindo = false;
+                    inimigo.afastando = false;
+                    inimigo.tempoAfastamento = 0;
+                }
+
                 // Lógica de detecção de proximidade excessiva com o jogador
-                const distanciaX = Math.abs(playerX - inimigo.x);
-                const distanciaY = Math.abs(playerY - inimigo.y);
+                const distanciaX = Math.abs(alvoPerseguicaoX - inimigo.x);
+                const distanciaY = Math.abs(alvoPerseguicaoY - inimigo.y);
                 const distanciaMinima = config.inimigoDistanciaMinimaAtaque || 20;
 
                 if (!iaBloqueadaPorStun && inimigo.perseguindo && distanciaX <= distanciaMinima && distanciaY <= distanciaMinima && !inimigo.afastando && inimigo.tempoAfastamento === 0 && inimigo.cooldownAfastamento === 0) {
@@ -1026,7 +1039,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 if (!iaBloqueadaPorStun && inimigo.afastando && inimigo.tempoAfastamento > 0) {
                     const velocidadeAfastamento = config.inimigoVelocidadeAfastamento || 3;
                     // Afasta-se na direção oposta ao jogador
-                    if (inimigo.x < playerX) {
+                    if (inimigo.x < alvoPerseguicaoX) {
                         inimigo.x -= velocidadeAfastamento;
                         inimigo.direcao = 'e';
                         inimigo.elemento.style.transform = 'scaleX(-1)';
@@ -1071,7 +1084,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                 // Ativa a perseguição se o jogador estiver perto OU se detectar um tiro vindo no radar
                 // Não ativa perseguição se o jogador está em resgate do BB
-                if (!iaBloqueadaPorStun && !inimigo.perseguindo && !emResgateBB && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse || (inimigo.temGarra && distanciaAtual <= (config.garraAlcanceInimigo || 160)))) {
+                if (!iaBloqueadaPorStun && !inimigo.perseguindo && !emResgateBB && alvoPerseguicao && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse || (inimigo.temGarra && distanciaAtual <= (config.garraAlcanceInimigo || 160)))) {
                     inimigo.perseguindo = true;
                     // console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
                 }
@@ -1382,7 +1395,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         window.AudioManager?.playSFX('engrenagem', 0.3);
                         inimigo.garraAnimEstado = 'prep';
                         inimigo.garraTimer = 18;
-                        inimigo.garraDirecaoAnim = (inimigo.x < playerX) ? 'd' : 'e';
+                        inimigo.garraDirecaoAnim = (inimigo.x < xAlvo) ? 'd' : 'e';
                     }
                 } else if (!iaBloqueadaPorStun && !inimigo.perseguindo && !inimigo.estaColetando) {
                     // Lógica de Patrulha Aleatória: 1s parado, 1s andando devagar
@@ -1508,7 +1521,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 }
 
                 // Lógica da Attackbox do Inimigo (Apenas se estiver perseguindo/atacando)
-                if (!iaBloqueadaPorStun && inimigo.perseguindo && inimigo.tempoChute > 0 && !inimigo.jaAtacouNesteChute && window.playerControle) {
+                if (!iaBloqueadaPorStun && inimigo.perseguindo && inimigo.tempoChute > 0 && !inimigo.jaAtacouNesteChute && window.playerControle && !window.playerControle.estaoAberto) {
                     const ataqueOffsetX = config.INIMIGO_ATAQUE_OFFSET_X ?? config.ATAQUE_OFFSET_X;
                     const ataqueOffsetY = config.INIMIGO_ATAQUE_OFFSET_Y ?? config.ATAQUE_OFFSET_Y;
                     const ataqueLargura = config.INIMIGO_ATAQUE_LARGURA ?? config.ATAQUE_LARGURA;
