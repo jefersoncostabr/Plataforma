@@ -53,6 +53,7 @@
             contadorAnimacao: 0,
             frameAtual: 0,
             cooldownPulo: 0,
+            cooldownTrocaCorpo: 0,
             kPressionadoAnterior: false,
             spriteParado: spritePadrao,
             spriteAndando: config.spriteBBAndando || '../../assets/personagem/bb/bb-andando.png',
@@ -116,10 +117,9 @@
         return window.detectarColisaoHitbox(hitboxBB, hitboxPlayer, 0, 0, 0);
     }
 
-    function bbPodeUsarRoboAberto(bb) {
-        const roboAberto = window.roboAbertoData;
-        if (!bb || !roboAberto || !roboAberto.ativo || typeof window.detectarColisaoHitbox !== 'function') {
-            return false;
+    function obterRoboAbertoColidindo(bb) {
+        if (!bb || typeof window.detectarColisaoHitbox !== 'function') {
+            return null;
         }
 
         const hitboxBB = {
@@ -129,48 +129,84 @@
             altura: bb.altura
         };
 
-        return window.detectarColisaoHitbox(hitboxBB, roboAberto, 0, 0, 0);
+        if (typeof window.buscarRoboAbertoPorColisao === 'function') {
+            return window.buscarRoboAbertoPorColisao(hitboxBB);
+        }
+
+        const roboAberto = window.roboAbertoData;
+        if (!roboAberto || !roboAberto.ativo) return null;
+        return window.detectarColisaoHitbox(hitboxBB, roboAberto, 0, 0, 0) ? roboAberto : null;
     }
 
-    function bbAssumirCorpoDoRobo(player) {
-        const roboAberto = window.roboAbertoData;
+    function manterCascoOriginalNoLocal(x, y) {
+        const posX = Number(x || 0);
+        const posY = Number(y || 0);
+
+        if (typeof window.criarRoboAbertoInterativo === 'function') {
+            window.criarRoboAbertoInterativo(posX, posY, {
+                origem: 'residual'
+            });
+            return;
+        }
+
+        const layerUI = window.LAYERS?.UI;
+        const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
+        if (!palco) return;
+
+        const casco = document.createElement('img');
+        casco.src = '../../assets/personagem/per_aberto.png';
+        casco.className = 'robo-aberto-residual';
+        casco.style.position = 'absolute';
+        casco.style.left = posX + 'px';
+        casco.style.bottom = posY + 'px';
+        casco.style.width = '32px';
+        casco.style.height = '32px';
+        casco.style.imageRendering = 'pixelated';
+        casco.style.pointerEvents = 'none';
+
+        if (layerUI && typeof window.adicionarAoLayer === 'function') {
+            window.adicionarAoLayer(casco, layerUI);
+        } else {
+            palco.appendChild(casco);
+        }
+    }
+
+    function bbAssumirCorpoDoRobo(player, roboAberto) {
         if (!player || !roboAberto || !roboAberto.ativo) {
             return false;
         }
 
+        const xOriginal = Number(player.x || 0);
+        const yOriginal = Number(player.y || 0);
         const novoX = Number(roboAberto.spawnX || 0);
         const novoY = Number(roboAberto.spawnY || 0);
+
+        const mudouDePosicao = xOriginal !== novoX || yOriginal !== novoY;
+        if (mudouDePosicao && window.sistemaAbertura?.isAberto?.()) {
+            manterCascoOriginalNoLocal(xOriginal, yOriginal);
+        }
 
         player.x = novoX;
         player.y = novoY;
         player.velocidadeX = 0;
         player.velocidadeY = 0;
-        player.abrindo = false;
-        player.fechando = false;
-        player.estaoAberto = false;
-        player.frameAbertura = 0;
-        player.tempoAbertura = 0;
-        player.etapaAbertura = 0;
         player.estaAgachado = false;
 
+        if (window.bbEntidade) {
+            window.bbEntidade.cooldownTrocaCorpo = 18;
+        }
+
         if (typeof window.consumirRoboAbertoFase === 'function') {
-            window.consumirRoboAbertoFase();
+            window.consumirRoboAbertoFase(roboAberto);
         }
 
-        if (typeof window.despawnBB === 'function') {
-            window.despawnBB();
-        } else {
-            window.controlandoBB = false;
+        // Fecha usando o fluxo padrão para manter a animação normal.
+        // O corpo usado é consumido; o casco residual fica no local original.
+        if (window.sistemaAbertura?.isAberto?.()) {
+            return !!window.sistemaAbertura.iniciarFechamento?.();
         }
 
-        if (typeof window.controlarPlayer === 'function') {
-            window.controlarPlayer();
-        } else {
-            window.controlandoBB = false;
-            window.cameraZoomFactor = 1;
-        }
-
-        return true;
+        return false;
     }
 
     function cicloVidaBB(bb, idControle) {
@@ -196,6 +232,7 @@
             let teclasParaFisica = {};
 
             if (bb.cooldownPulo > 0) bb.cooldownPulo--;
+            if (bb.cooldownTrocaCorpo > 0) bb.cooldownTrocaCorpo--;
 
             if (window.controlandoBB) {
                 const teclas = window.playerControle?.teclas || {};
@@ -238,17 +275,20 @@
                 if (kPressionado && !bb.kPressionadoAnterior) {
                     bb.interagindo = true;
                     setTimeout(() => { bb.interagindo = false; }, 300);
+                    let interagiuComRoboAberto = false;
+                    const roboColidindo = bb.cooldownTrocaCorpo > 0 ? null : obterRoboAbertoColidindo(bb);
 
-                    if (bbPodeUsarRoboAberto(bb)) {
-                        const assumiuCorpo = bbAssumirCorpoDoRobo(player);
+                    if (roboColidindo) {
+                        const assumiuCorpo = bbAssumirCorpoDoRobo(player, roboColidindo);
                         if (assumiuCorpo) {
+                            interagiuComRoboAberto = true;
                             teclas['k'] = false;
                             teclas['K'] = false;
                             teclas['KeyK'] = false;
                         }
                     }
 
-                    if (window.sistemaAbertura?.isAberto?.() && bbPodeFecharNoPlayer(bb, player)) {
+                    if (!interagiuComRoboAberto && window.sistemaAbertura?.isAberto?.() && bbPodeFecharNoPlayer(bb, player)) {
                         const iniciouFechamento = window.sistemaAbertura.iniciarFechamento?.();
                         if (iniciouFechamento) {
                             teclas['k'] = false;

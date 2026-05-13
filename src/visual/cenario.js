@@ -39,6 +39,7 @@ function limparCenario() {
     window.itensColetaveis = [];
     window.objetivoData = null;
     window.roboAbertoData = null;
+    window.robosAbertosData = [];
     window.inimigos = []; // CRÍTICO: Limpa inimigos para não deixar "fantasmas" da fase anterior
 
     // 3. Reseta filtros de CSS que podem estar pesando na GPU (como blur ou grayscale)
@@ -201,9 +202,6 @@ function renderizarObjetivo(idPalco, imagemPath, coord) {
  * @param {string} coord - Coordenada (ex: "f19").
  */
 function renderizarRoboAberto(idPalco, imagemPath, coord) {
-    const layerUI = obterLayer(window.LAYERS.UI);
-    if (!layerUI) return;
-
     const partes = parseCoordGrid(coord);
     if (!partes) return;
 
@@ -212,12 +210,43 @@ function renderizarRoboAberto(idPalco, imagemPath, coord) {
     const x = col * tamanhoTile;
     const y = row * tamanhoTile;
 
+    criarRoboAbertoInterativo(x, y, {
+        coord,
+        imagemPath,
+        origem: 'fase'
+    });
+}
+
+function criarRoboAbertoInterativo(x, y, opcoes = {}) {
+    const layerUI = obterLayer(window.LAYERS.UI);
+    if (!layerUI) return null;
+    const tamanhoTile = 32;
+
+    const spawnX = Number(x || 0);
+    const spawnY = Number(y || 0);
+    const imagemPath = opcoes.imagemPath || '../../assets/personagem/per_aberto.png';
+
+    if (!Array.isArray(window.robosAbertosData)) {
+        window.robosAbertosData = [];
+    }
+
+    const jaExisteNoLocal = window.robosAbertosData.some((robo) => {
+        if (!robo || !robo.ativo) return false;
+        return Number(robo.spawnX || 0) === spawnX && Number(robo.spawnY || 0) === spawnY;
+    });
+
+    if (jaExisteNoLocal) {
+        return window.robosAbertosData.find((robo) => robo && robo.ativo && Number(robo.spawnX || 0) === spawnX && Number(robo.spawnY || 0) === spawnY) || null;
+    }
+
+    const roboId = `robo-aberto-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
     const roboImg = document.createElement('img');
-    roboImg.id = 'robo-aberto-fase';
+    roboImg.id = roboId;
     roboImg.src = imagemPath;
     roboImg.style.position = 'absolute';
-    roboImg.style.left = x + 'px';
-    roboImg.style.bottom = y + 'px';
+    roboImg.style.left = spawnX + 'px';
+    roboImg.style.bottom = spawnY + 'px';
     roboImg.style.width = tamanhoTile + 'px';
     roboImg.style.height = tamanhoTile + 'px';
     roboImg.style.imageRendering = 'pixelated';
@@ -225,28 +254,74 @@ function renderizarRoboAberto(idPalco, imagemPath, coord) {
 
     roboImg.onerror = () => console.error(`Erro: Não foi possível carregar a imagem em: ${imagemPath}`);
 
-    window.roboAbertoData = {
-        x: x + 7,
-        y: y + 8,
+    const roboData = {
+        id: roboId,
+        x: spawnX + 7,
+        y: spawnY + 8,
         largura: 18,
         altura: 16,
-        spawnX: x,
-        spawnY: y,
-        coord,
+        spawnX,
+        spawnY,
+        coord: opcoes.coord || '',
+        origem: opcoes.origem || 'fase',
         ativo: true,
         elemento: roboImg
     };
+
+    window.robosAbertosData.push(roboData);
+    window.roboAbertoData = roboData;
+
+    return roboData;
 }
 
-function consumirRoboAbertoFase() {
-    if (!window.roboAbertoData) return;
+function buscarRoboAbertoPorColisao(hitbox) {
+    if (!hitbox || typeof window.detectarColisaoHitbox !== 'function') return null;
+    if (!Array.isArray(window.robosAbertosData)) return null;
 
-    window.roboAbertoData.ativo = false;
-    if (window.roboAbertoData.elemento) {
-        window.roboAbertoData.elemento.remove();
+    for (const robo of window.robosAbertosData) {
+        if (!robo || !robo.ativo) continue;
+        if (window.detectarColisaoHitbox(hitbox, robo, 0, 0, 0)) {
+            return robo;
+        }
     }
 
-    window.roboAbertoData = null;
+    return null;
 }
+
+function consumirRoboAbertoFase(alvoRobo) {
+    if (!Array.isArray(window.robosAbertosData) || window.robosAbertosData.length === 0) return;
+
+    const idAlvo = typeof alvoRobo === 'string'
+        ? alvoRobo
+        : (alvoRobo && typeof alvoRobo === 'object' ? alvoRobo.id : null);
+
+    let alvo = null;
+    if (idAlvo) {
+        alvo = window.robosAbertosData.find((robo) => robo && robo.id === idAlvo) || null;
+    }
+
+    if (!alvo) {
+        alvo = window.roboAbertoData || null;
+    }
+
+    if (!alvo) return;
+
+    alvo.ativo = false;
+    if (alvo.elemento) {
+        alvo.elemento.remove();
+    }
+
+    window.robosAbertosData = window.robosAbertosData.filter((robo) => robo && robo.ativo);
+
+    if (window.roboAbertoData && window.roboAbertoData.id === alvo.id) {
+        window.roboAbertoData = window.robosAbertosData.length > 0
+            ? window.robosAbertosData[window.robosAbertosData.length - 1]
+            : null;
+    }
+}
+
+window.criarRoboAbertoInterativo = criarRoboAbertoInterativo;
+window.buscarRoboAbertoPorColisao = buscarRoboAbertoPorColisao;
+window.consumirRoboAbertoFase = consumirRoboAbertoFase;
 
 
