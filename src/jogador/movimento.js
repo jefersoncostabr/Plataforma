@@ -945,6 +945,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                         const hitboxPet = { x: pet.x, y: pet.y, largura: pet.largura, altura: pet.altura };
                         if (window.detectarColisaoHitbox(hitboxPlayer, hitboxPet, -15, -15, -15)) {
                             window[flag] = true;
+                            window.retornoControlePetParaBB = false;
                             controle.teclas['q'] = false;
                             controle.teclas['Q'] = false;
                             window.AudioManager?.playSFX('engrenagem', 0.5);
@@ -1057,9 +1058,11 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                     window.cameraZoomFactor = 1.5;
                 }
 
-                // Usa o mesmo foco base para pets (incluindo BB) para manter seguimento estável.
-                const cameraX = petFoco.x + 16;
-                window.atualizarCamera(cameraX, petFoco.y + 16, window.mundoLargura, window.mundoAltura);
+                // Usa centro da hitbox com pequeno ajuste à esquerda para enquadramento melhor (configurável).
+                const ajusteEsquerdaPet = Number(config.cameraAjusteEsquerdaPetBB ?? 32);
+                const centroFocoX = Number(petFoco.x || 0) + Number(petFoco.offsetX || 0) + (Number(petFoco.largura || 20) / 2) + ajusteEsquerdaPet;
+                const centroFocoY = Number(petFoco.y || 0) + (Number(petFoco.altura || 20) / 2);
+                window.atualizarCamera(centroFocoX, centroFocoY, window.mundoLargura, window.mundoAltura);
             }
         }
 

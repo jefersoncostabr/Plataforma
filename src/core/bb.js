@@ -117,6 +117,62 @@
         return window.detectarColisaoHitbox(hitboxBB, hitboxPlayer, 0, 0, 0);
     }
 
+    function obterPetControlavelColidindo(bb) {
+        if (!bb || typeof window.detectarColisaoHitbox !== 'function') {
+            return null;
+        }
+
+        const hitboxBB = {
+            x: bb.x + (bb.offsetX || 0),
+            y: bb.y,
+            largura: bb.largura,
+            altura: bb.altura
+        };
+
+        const pets = [
+            { entidade: window.caoEntidade, flag: 'controlandoCao' },
+            { entidade: window.gatoEntidade, flag: 'controlandoGato' }
+        ];
+
+        for (const petInfo of pets) {
+            const pet = petInfo.entidade;
+            if (!pet) continue;
+
+            const hitboxPet = {
+                x: pet.x,
+                y: pet.y,
+                largura: pet.largura,
+                altura: pet.altura
+            };
+
+            if (window.detectarColisaoHitbox(hitboxBB, hitboxPet, -15, -15, -15)) {
+                return petInfo;
+            }
+        }
+
+        return null;
+    }
+
+    function bbAssumirControleDoPet(petInfo, teclas) {
+        if (!petInfo || !petInfo.flag) return false;
+
+        window.controlandoBB = false;
+        window.controlandoCao = false;
+        window.controlandoGato = false;
+        window[petInfo.flag] = true;
+        window.retornoControlePetParaBB = true;
+        window.cameraZoomFactor = 1.5;
+
+        if (teclas) {
+            teclas['k'] = false;
+            teclas['K'] = false;
+            teclas['KeyK'] = false;
+        }
+
+        window.AudioManager?.playSFX('engrenagem', 0.5);
+        return true;
+    }
+
     function obterRoboAbertoColidindo(bb) {
         if (!bb || typeof window.detectarColisaoHitbox !== 'function') {
             return null;
@@ -275,7 +331,18 @@
                 if (kPressionado && !bb.kPressionadoAnterior) {
                     bb.interagindo = true;
                     setTimeout(() => { bb.interagindo = false; }, 300);
+                    let interagiuComPet = false;
                     let interagiuComRoboAberto = false;
+
+                    const petControlavel = obterPetControlavelColidindo(bb);
+                    if (petControlavel) {
+                        const assumiuPet = bbAssumirControleDoPet(petControlavel, teclas);
+                        if (assumiuPet) {
+                            interagiuComPet = true;
+                        }
+                    }
+
+                    if (!interagiuComPet) {
                     const roboColidindo = bb.cooldownTrocaCorpo > 0 ? null : obterRoboAbertoColidindo(bb);
 
                     if (roboColidindo) {
@@ -287,8 +354,9 @@
                             teclas['KeyK'] = false;
                         }
                     }
+                    }
 
-                    if (!interagiuComRoboAberto && window.sistemaAbertura?.isAberto?.() && bbPodeFecharNoPlayer(bb, player)) {
+                    if (!interagiuComPet && !interagiuComRoboAberto && window.sistemaAbertura?.isAberto?.() && bbPodeFecharNoPlayer(bb, player)) {
                         const iniciouFechamento = window.sistemaAbertura.iniciarFechamento?.();
                         if (iniciouFechamento) {
                             teclas['k'] = false;

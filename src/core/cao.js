@@ -128,6 +128,15 @@
             if (sendoControlado) {
                 const teclas = window.playerControle?.teclas || {};
 
+                if (typeof window.atualizarCamera === 'function') {
+                    window.cameraZoomFactor = 1.5;
+                    // Ajusta a câmera para centralizar o pet com um leve deslocamento à esquerda (configurável).
+                    const ajusteEsquerdaPet = Number(config.cameraAjusteEsquerdaPetBB ?? 32);
+                    const centroPetX = Number(pet.x || 0) + Number(pet.offsetX || 0) + (Number(pet.largura || 20) / 2) + ajusteEsquerdaPet;
+                    const centroPetY = Number(pet.y || 0) + (Number(pet.altura || 20) / 2);
+                    window.atualizarCamera(centroPetX, centroPetY, window.mundoLargura, window.mundoAltura);
+                }
+
                 pet.movendoHorizontal = false;
                 let deslocX = 0;
                 if (teclas['a'] || teclas['A'] || teclas['ArrowLeft']) {
@@ -178,6 +187,15 @@
                         if (pet.tipo === 'cao') window.controlandoCao = false;
                         else window.controlandoGato = false;
 
+                        if (window.retornoControlePetParaBB && window.bbEntidade) {
+                            window.controlandoBB = true;
+                            window.retornoControlePetParaBB = false;
+                            window.cameraZoomFactor = 1.5;
+                        } else {
+                            window.controlandoBB = false;
+                            if (window.cameraZoomFactor) window.cameraZoomFactor = 1;
+                        }
+
                         pet.estaSeguindo = false; // Fica parado ao voltar pro player até que o player o toque
                         
                         // CONSUMIR ENTRADA: Limpa o estado do Q para evitar que o movimento.js
@@ -187,8 +205,6 @@
                         if (teclas['KeyQ']) teclas['KeyQ'] = false;
 
                         window.AudioManager?.playSFX('engrenagem', 0.5);
-                        // Reset camera zoom when returning control to player
-                        if (window.cameraZoomFactor) window.cameraZoomFactor = 1;
                     }
                     pet.ultimoToqueQ = agora;
                 }
