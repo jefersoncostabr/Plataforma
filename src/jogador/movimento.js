@@ -965,6 +965,10 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             }
         }
 
+        if (Number(controle.cooldownInteracaoRoboAposMusgo || 0) > 0) {
+            controle.cooldownInteracaoRoboAposMusgo--;
+        }
+
         // --- LÓGICA DE TOGGLE ARMA/ESCUDO (TECLA E) ---
         const apertouE = !!(controle.teclas['e'] || controle.teclas['E']);
         if (apertouE && !controle.ePressionado) {
@@ -972,7 +976,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 ? !!window.interagirComMusgoAlvo?.(controle, controle.teclas)
                 : false;
 
-            const interagiuComRoboDesativado = (!interagiuComMusgo && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB)
+            const interagiuComRoboDesativado = (!interagiuComMusgo
+                && Number(controle.cooldownInteracaoRoboAposMusgo || 0) <= 0
+                && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB)
                 ? !!window.interagirComRoboDesativado?.(controle, controle.teclas)
                 : false;
 

@@ -404,11 +404,11 @@ async function carregarFase(nomeArquivo) {
     }
 
     if (typeof renderizarMusgoSobreRoboAberto === 'function' && fase.posicaoMusgoRoboAberto) {
-        renderizarMusgoSobreRoboAberto(idPalco, '../../assets/personagem/musgo1.png', fase.posicaoMusgoRoboAberto);
+        renderizarMusgoSobreRoboAberto(idPalco, '../../assets/personagem/musgo2.png', fase.posicaoMusgoRoboAberto);
     }
 
     if (typeof renderizarMusgoSobreRoboDesativado === 'function' && fase.posicaoMusgoRoboDesativado) {
-        renderizarMusgoSobreRoboDesativado(idPalco, '../../assets/personagem/musgo2.png', fase.posicaoMusgoRoboDesativado);
+        renderizarMusgoSobreRoboDesativado(idPalco, '../../assets/personagem/musgo1.png', fase.posicaoMusgoRoboDesativado);
     }
 
     // Reseta câmera para o início

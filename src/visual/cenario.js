@@ -394,8 +394,8 @@ function criarMusgoInterativo(x, y, opcoes = {}) {
     const spawnY = Number(y || 0);
     const alvoTipo = opcoes.alvoTipo === 'roboDesativado' ? 'roboDesativado' : 'roboAberto';
     const imagemPadrao = alvoTipo === 'roboDesativado'
-        ? '../../assets/personagem/musgo2.png'
-        : '../../assets/personagem/musgo1.png';
+        ? '../../assets/personagem/musgo1.png'
+        : '../../assets/personagem/musgo2.png';
     const imagemPath = opcoes.imagemPath || imagemPadrao;
 
     if (!Array.isArray(window.musgosData)) {
@@ -515,6 +515,8 @@ function interagirComMusgoAlvo(controle, teclas = null) {
     if (!alvoMusgo) return false;
 
     consumirMusgo(alvoMusgo);
+    const framesCooldown = Math.max(1, Number(window.config?.cooldownInteracaoRoboAposMusgo ?? 18));
+    controle.cooldownInteracaoRoboAposMusgo = framesCooldown;
     window.AudioManager?.playSFX('engrenagem', 0.35);
 
     if (teclas && typeof teclas === 'object') {

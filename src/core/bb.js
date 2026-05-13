@@ -470,6 +470,7 @@
 
             if (bb.cooldownPulo > 0) bb.cooldownPulo--;
             if (bb.cooldownTrocaCorpo > 0) bb.cooldownTrocaCorpo--;
+            if (Number(bb.cooldownInteracaoRoboAposMusgo || 0) > 0) bb.cooldownInteracaoRoboAposMusgo--;
 
             if (window.controlandoBB) {
                 const teclas = window.playerControle?.teclas || {};
@@ -526,12 +527,17 @@
                     bb.interagindo = true;
                     setTimeout(() => { bb.interagindo = false; }, 300);
                     let interagiuComMusgo = false;
+                    let interagiuComRoboDesativado = false;
                     let interagiuComInimigoPreso = false;
                     let interagiuComRoboAberto = false;
 
                     interagiuComMusgo = !!window.interagirComMusgoAlvo?.(bb, teclas);
 
-                    if (!interagiuComMusgo) {
+                    if (!interagiuComMusgo && Number(bb.cooldownInteracaoRoboAposMusgo || 0) <= 0) {
+                        interagiuComRoboDesativado = !!window.interagirComRoboDesativado?.(bb, teclas);
+                    }
+
+                    if (!interagiuComMusgo && !interagiuComRoboDesativado) {
                         const inimigoPreso = obterInimigoPresoColidindo(bb);
                         if (inimigoPreso) {
                             const abriuInimigo = bbAbrirInimigoPreso(bb, inimigoPreso, config, teclas);
@@ -542,8 +548,10 @@
                         }
                     }
 
-                    if (!interagiuComInimigoPreso) {
-                    const roboColidindo = bb.cooldownTrocaCorpo > 0 ? null : obterRoboAbertoColidindo(bb);
+                    if (!interagiuComRoboDesativado && !interagiuComInimigoPreso) {
+                    const roboColidindo = (bb.cooldownTrocaCorpo > 0 || Number(bb.cooldownInteracaoRoboAposMusgo || 0) > 0)
+                        ? null
+                        : obterRoboAbertoColidindo(bb);
 
                     if (roboColidindo) {
                         const assumiuCorpo = bbAssumirCorpoDoRobo(player, roboColidindo);
@@ -557,7 +565,7 @@
                     }
                     }
 
-                    if (!interagiuComMusgo && !interagiuComInimigoPreso && !interagiuComRoboAberto && window.sistemaAbertura?.isAberto?.() && bbPodeFecharNoPlayer(bb, player)) {
+                    if (!interagiuComMusgo && !interagiuComRoboDesativado && !interagiuComInimigoPreso && !interagiuComRoboAberto && window.sistemaAbertura?.isAberto?.() && bbPodeFecharNoPlayer(bb, player)) {
                         const iniciouFechamento = window.sistemaAbertura.iniciarFechamento?.();
                         if (iniciouFechamento) {
 
@@ -567,7 +575,7 @@
                         }
                     }
 
-                    if (!interagiuComMusgo && !interagiuComInimigoPreso && !interagiuComRoboAberto) {
+                    if (!interagiuComMusgo && !interagiuComRoboDesativado && !interagiuComInimigoPreso && !interagiuComRoboAberto) {
                         // sem alvo válido
                     }
                 }

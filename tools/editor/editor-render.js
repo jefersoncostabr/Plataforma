@@ -116,11 +116,11 @@
             });
 
             if (faseData.posicaoMusgoRoboAberto && faseData.posicaoRoboAberto === faseData.posicaoMusgoRoboAberto) {
-                criarIcone(faseData.posicaoMusgoRoboAberto, '../../assets/personagem/musgo1.png', '');
+                criarIcone(faseData.posicaoMusgoRoboAberto, '../../assets/personagem/musgo2.png', '');
             }
 
             if (faseData.posicaoMusgoRoboDesativado && faseData.posicaoRoboDesativado === faseData.posicaoMusgoRoboDesativado) {
-                criarIcone(faseData.posicaoMusgoRoboDesativado, '../../assets/personagem/musgo2.png', '');
+                criarIcone(faseData.posicaoMusgoRoboDesativado, '../../assets/personagem/musgo1.png', '');
             }
 
             console.debug('[EditorRender] render finalizado', {
