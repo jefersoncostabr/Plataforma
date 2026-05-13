@@ -123,6 +123,27 @@
             }
         }
 
+        function liberarControleDoBBParaFechamento() {
+            if (!window.controlandoBB) return;
+
+            if (typeof window.despawnBB === 'function') {
+                window.despawnBB();
+                return;
+            }
+
+            window.controlandoBB = false;
+        }
+
+        function devolverControleAoPlayerAposFechamento() {
+            if (typeof window.controlarPlayer === 'function') {
+                window.controlarPlayer();
+                return;
+            }
+
+            window.controlandoBB = false;
+            window.cameraZoomFactor = 1;
+        }
+
         function obterTempoTotalAnimacao() {
             return Number(config.tempoAberturaFrame ?? 20) * (ETAPAS_PRE_ABERTURA + TOTAL_FRAMES_ABERTURA);
         }
@@ -150,6 +171,9 @@
         function iniciarFechamento() {
             if (controle.abrindo || controle.fechando) return false;
 
+            const fechamentoIniciadoPeloBB = !!window.controlandoBB;
+            if (fechamentoIniciadoPeloBB && window.playerControle?.bloqueadoPorResgateBB) return false;
+
             controle.tempoAbertura = obterTempoTotalFechamento();
             controle.frameAbertura = 3;
             controle.etapaAbertura = 0;
@@ -157,6 +181,9 @@
             controle.fechando = true;
             controle.estaoAberto = false;
             controle.estaAgachado = false;
+            controle._fechamentoRetornaAoPlayer = fechamentoIniciadoPeloBB;
+
+            liberarControleDoBBParaFechamento();
 
             window.AudioManager?.playSFX('engrenagem', 0.5);
             return true;
@@ -239,6 +266,12 @@
                     controle.estaoAberto = false;
                     controle.frameAbertura = 0;
                     controle.etapaAbertura = 0;
+
+                    if (controle._fechamentoRetornaAoPlayer) {
+                        devolverControleAoPlayerAposFechamento();
+                    }
+
+                    controle._fechamentoRetornaAoPlayer = false;
                 }
             }
         }
@@ -258,6 +291,7 @@
 
         window.sistemaAbertura = {
             processarEntrada: processarEntradaAbertura,
+            iniciarFechamento,
             atualizarTemporizadores: atualizarTemporizadores,
             obterSprite: obterSpriteAbertura,
             isAberto: () => controle.estaoAberto || false

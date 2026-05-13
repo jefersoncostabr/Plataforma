@@ -96,6 +96,28 @@
         requestAnimationFrame(() => cicloVidaBB(bb, meuId));
     };
 
+    function bbPodeFecharNoPlayer(bb, player) {
+        if (!bb || !player || typeof window.detectarColisaoHitbox !== 'function') {
+            return false;
+        }
+
+        const hitboxBB = {
+            x: bb.x + (bb.offsetX || 0),
+            y: bb.y,
+            largura: bb.largura,
+            altura: bb.altura
+        };
+
+        const hitboxPlayer = {
+            x: player.x + (player.offsetX || 0),
+            y: player.y,
+            largura: player.largura,
+            altura: player.altura
+        };
+
+        return window.detectarColisaoHitbox(hitboxBB, hitboxPlayer, 0, 0, 0);
+    }
+
     function cicloVidaBB(bb, idControle) {
         // Verifica se este BB foi substituído
         if (bbIdAtivo !== idControle) return;
@@ -157,10 +179,19 @@
                 teclasParaFisica[' '] = !!teclas[' '];
 
                 // Interação K
-                const kPressionado = teclas['k'] || teclas['K'];
+                const kPressionado = teclas['k'] || teclas['K'] || teclas['KeyK'];
                 if (kPressionado && !bb.kPressionadoAnterior) {
                     bb.interagindo = true;
                     setTimeout(() => { bb.interagindo = false; }, 300);
+
+                    if (window.sistemaAbertura?.isAberto?.() && bbPodeFecharNoPlayer(bb, player)) {
+                        const iniciouFechamento = window.sistemaAbertura.iniciarFechamento?.();
+                        if (iniciouFechamento) {
+                            teclas['k'] = false;
+                            teclas['K'] = false;
+                            teclas['KeyK'] = false;
+                        }
+                    }
                 }
                 bb.kPressionadoAnterior = kPressionado;
 
@@ -300,6 +331,18 @@
         // Reset camera zoom when returning control to player
         window.cameraZoomFactor = 1;
         console.log('🎮 Voltou ao controle do player.');
+    };
+
+    window.despawnBB = function () {
+        window.controlandoBB = false;
+
+        bbIdAtivo++;
+
+        if (window.bbEntidade?.elemento) {
+            window.bbEntidade.elemento.remove();
+        }
+
+        window.bbEntidade = null;
     };
 
     /**
