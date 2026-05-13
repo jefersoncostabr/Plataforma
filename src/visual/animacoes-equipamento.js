@@ -664,6 +664,8 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
     function sincronizarVisuaisEquipamentos() {
         atualizarVisibilidadeEquipamentosCinto();
 
+        const ocultarCintoColete = !!(controle.abrindo || controle.estaoAberto);
+
         // Utiliza o novo helper de sincronização centralizado para garantir posições e offsets corretos
         window.sincronizarAcessoriosEntidade(controle, {
             armaElemento,
@@ -684,13 +686,17 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
             armaElemento.style.filter = (controle.municao <= 0) ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
         }
 
-        if (controle.temCinto && cintoElemento) {
+        if (cintoElemento && ocultarCintoColete) {
+            cintoElemento.style.display = 'none';
+        } else if (controle.temCinto && cintoElemento) {
             sincronizarCintoComJogador();
         }
 
         if (coleteElemento) {
             const permiteRecolherColete = coleteRecolhivelNoCinto(config);
-            if (controle.temColete && (!controle.itensGuardadosNoCinto || !permiteRecolherColete)) {
+            if (ocultarCintoColete) {
+                coleteElemento.style.display = 'none';
+            } else if (controle.temColete && (!controle.itensGuardadosNoCinto || !permiteRecolherColete)) {
                 const offsetColeteY = (controle.estaAgachado && controle.noChao) ? -6 : 0;
                 coleteElemento.style.display = 'block';
                 coleteElemento.style.left = controle.x + 'px';

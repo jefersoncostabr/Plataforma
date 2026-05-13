@@ -726,7 +726,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         const config = window.config || {};
         
         // --- BLOQUEIO QUANDO ABERTO ---
-        if (controle.estaoAberto && controle.noChao) {
+        if (controle.estaoAberto && controle.noChao && !window.controlandoBB) {
             if (typeof processarEntradaAbertura === 'function') {
                 processarEntradaAbertura();
             }
@@ -775,7 +775,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         }
 
         // --- BLOQUEIO DURANTE ANIMAÇÃO DE ABERTURA ---
-        if (controle.abrindo || controle.fechando || (controle.tempoAbertura || 0) > 0) {
+        if ((controle.abrindo || controle.fechando || (controle.tempoAbertura || 0) > 0) && !window.controlandoBB) {
             // Atualiza os temporizadores da animação de abertura PRIMEIRO
             if (typeof atualizarTemporizadoresAbertura === 'function') {
                 atualizarTemporizadoresAbertura();
