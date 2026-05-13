@@ -135,9 +135,4 @@
         console.log('   window.reinicializarBB() - Reiniciar tudo');
     };
 
-    console.log('✅ BB-Fix carregado:');
-    console.log('   window.verificarTudoBB() - Verifica tudo');
-    console.log('   window.repararColisaoBB() - Fix colisão');
-    console.log('   window.testarZoomBBAgora() - Test zoom');
-    console.log('   window.reinicializarBB() - Reiniciar');
 })();

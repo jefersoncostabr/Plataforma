@@ -138,9 +138,4 @@
         window.debugBBColisao();
     };
 
-    console.log('✅ Debug BB carregado. Use:');
-    console.log('   window.debugBBZoom() - Debug zoom/rotação');
-    console.log('   window.debugBBColisao() - Debug colisão');
-    console.log('   window.verificarBB() - Verificação completa');
-    console.log('   window.debugBBFrame() - Info do frame atual');
 })();

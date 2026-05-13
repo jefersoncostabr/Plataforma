@@ -185,18 +185,6 @@
         function restaurarCraftPersistenteDaFaseAtual() {
             const craftPersistido = obterCraftPersistido();
             const faseAtual = obterNomeFaseAtual();
-            const temBasePersistida = !!craftPersistido;
-            const nivelBasePersistida = Number(craftPersistido?.nivel || 0);
-            const localBasePersistida = craftPersistido
-                ? `x:${Number(craftPersistido.x || 0)},y:${Number(craftPersistido.y || 0)}`
-                : '(sem local)';
-            console.log(
-                '[DEBUG BASE][restaurar] temBase=%s nivelBase=%s fase=%s local=%s',
-                temBasePersistida,
-                nivelBasePersistida,
-                faseAtual || '(sem fase)',
-                localBasePersistida
-            );
 
             if (!craftPersistido || !faseAtual || craftPersistido.fase !== faseAtual) {
                 return false;

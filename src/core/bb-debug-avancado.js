@@ -136,9 +136,4 @@
         console.log('   e pule (ESPAÇO) para ver mudanças\n');
     };
 
-    console.log('✅ BB-Debug-Avançado carregado. Use:');
-    console.log('   window.testarZoomBB() - Teste completo');
-    console.log('   window.forcarRotacaoBB() - Força rotação');
-    console.log('   window.monitorarBBZoom() - Monitora em tempo real');
-    console.log('   window.verificarAnimacoesPets() - Verifica deps');
 })();

@@ -12,7 +12,8 @@
         cinto: ['l', 'L'],
         airdrop: ['u', 'U'],
         mochila: ['Enter'],
-        interagir: ['e', 'E']
+        interagir: ['e', 'E'],
+        abertura: ['y', 'Y']
     };
 
     function normalizarControles(raw) {
@@ -143,8 +144,17 @@
                             window.proximoNivel();
                             return;
                         }
-            controle.teclas[e.key] = true;
+            const teclaAbertura = teclaEhAcao(e.key, 'abertura');
+            if (teclaAbertura && e.repeat) {
+                return;
+            }
+
+            controle.teclas[e.key] = !teclaAbertura;
             controle.acoesDiscretas = controle.acoesDiscretas || {};
+
+            if (teclaAbertura) {
+                controle.acoesDiscretas.abertura = true;
+            }
 
             if (!e.repeat && teclaEhAcao(e.key, 'interagir')) {
                 controle.acoesDiscretas.interagir = true;

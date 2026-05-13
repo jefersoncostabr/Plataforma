@@ -702,9 +702,121 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         atualizarTemporizadores: atualizarTemporizadoresCorpoACorpo
     } = sistemaCombateCorpoACorpo;
 
+    // Inicializa o sistema de abertura
+    if (typeof window.criarSistemaAberturaJogador !== 'function') {
+        console.error('[ERRO] Sistema de abertura não foi carregado! Verifique se abertura-animacao.js está no HTML.');
+    } else {
+        window.criarSistemaAberturaJogador({
+            controle,
+            config,
+            acaoAtiva,
+            consumirAcao
+        });
+    }
+
+    const {
+        processarEntrada: processarEntradaAbertura,
+        atualizarTemporizadores: atualizarTemporizadoresAbertura
+    } = window.sistemaAbertura || {};
+
     function atualizar() {
         // Garante que o Player use a configuração global atualizada a cada frame
         const config = window.config || {};
+        
+        // --- BLOQUEIO QUANDO ABERTO ---
+        if (controle.estaoAberto) {
+            if (typeof processarEntradaAbertura === 'function') {
+                processarEntradaAbertura();
+            }
+
+            // BLOQUEIO INTENCIONAL: este trecho mantém o personagem parado (sem andar e sem pular)
+            // enquanto estiver no estado "aberto".
+            // Bloqueia movimento e pulo
+            controle.movendoHorizontal = false;
+            controle.velocidadeX = 0;
+            controle.velocidadeHorizontalAtual = 0;
+            // Não permite pulo
+            controle.cooldownPulo = 1;
+
+            if (typeof atualizarAnimacao === 'function') {
+                atualizarAnimacao(
+                    controle,
+                    elemento,
+                    config.spriteParadoPlayer || spriteParado,
+                    config.spriteAndandoPlayer || spriteAndando,
+                    config.spriteNoArPlayer || spriteNoAr,
+                    config.spriteAgachadoPlayer || spriteAgachado,
+                    config.spriteAgachadoAndandoPlayer || spriteAgachado2
+                );
+            }
+            
+            // Apenas atualiza HUD e sincroniza visual
+            atualizarHUD();
+            elemento.style.left = controle.x + 'px';
+            elemento.style.bottom = controle.y + 'px';
+            elemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+            
+            // Sincroniza acessórios
+            window.sincronizarAcessoriosEntidade(controle, {
+                armaElemento,
+                escudoElemento,
+                botaElemento,
+                jetpackElemento,
+                garraElemento,
+                cintoElemento,
+                coleteElemento
+            });
+            
+            requestAnimationFrame(atualizar);
+            return;
+        }
+
+        // --- BLOQUEIO DURANTE ANIMAÇÃO DE ABERTURA ---
+        if (controle.abrindo || (controle.tempoAbertura || 0) > 0) {
+            // Atualiza os temporizadores da animação de abertura PRIMEIRO
+            if (typeof atualizarTemporizadoresAbertura === 'function') {
+                atualizarTemporizadoresAbertura();
+            }
+            
+            // Bloqueia movimento e pulo
+            controle.movendoHorizontal = false;
+            controle.velocidadeX = 0;
+            controle.velocidadeHorizontalAtual = 0;
+            controle.cooldownPulo = 1;
+
+            if (typeof atualizarAnimacao === 'function') {
+                atualizarAnimacao(
+                    controle,
+                    elemento,
+                    config.spriteParadoPlayer || spriteParado,
+                    config.spriteAndandoPlayer || spriteAndando,
+                    config.spriteNoArPlayer || spriteNoAr,
+                    config.spriteAgachadoPlayer || spriteAgachado,
+                    config.spriteAgachadoAndandoPlayer || spriteAgachado2
+                );
+            }
+            
+            // Apenas atualiza HUD e sincroniza visual
+            atualizarHUD();
+            elemento.style.left = controle.x + 'px';
+            elemento.style.bottom = controle.y + 'px';
+            elemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+            
+            // Sincroniza acessórios
+            window.sincronizarAcessoriosEntidade(controle, {
+                armaElemento,
+                escudoElemento,
+                botaElemento,
+                jetpackElemento,
+                garraElemento,
+                cintoElemento,
+                coleteElemento
+            });
+            
+            requestAnimationFrame(atualizar);
+            return;
+        }
+        
         // DEBUG: Logar estado das ações de movimento e teclas virtuais
         if (window.DEBUG_CONTROLE_MOVIMENTO) {
             const acoes = ['esquerda', 'direita', 'cima', 'baixo'];
@@ -1088,6 +1200,11 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         processarEntradaChute(window.inimigos);
         aplicarImpulsoChute();
 
+        // Sistema de abertura
+        if (typeof processarEntradaAbertura === 'function') {
+            processarEntradaAbertura();
+        }
+
         // Aplica knockback se o jogador foi atingido (executa o movimento calculado)
         if (controle.framesKnockbackRestante > 0) {
             window.aplicarDeslocamentoHorizontalComColisaoPadrao(controle, controle.velocidadeKnockback, window.plataformas, {
@@ -1148,6 +1265,11 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         }
 
         atualizarTemporizadoresCorpoACorpo();
+
+        // Atualiza temporizadores de abertura
+        if (typeof atualizarTemporizadoresAbertura === 'function') {
+            atualizarTemporizadoresAbertura();
+        }
 
         // Diminui o cooldown do tiro
         if (controle.cooldownTiro > 0) {

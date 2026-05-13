@@ -63,6 +63,27 @@ function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spri
         return;
     }
 
+    // Estado final da abertura: trava o sprite em "aberto" sem voltar para animações normais.
+    if (controle.estaoAberto) {
+        resetIdleTimers();
+        definirSpriteSeValido(
+            elemento,
+            window.config?.spriteAberturaPlayerFinal || 'assets/personagem/per_aberto.png',
+            spriteParado
+        );
+        return;
+    }
+
+    // Enquanto abre, o sprite é controlado exclusivamente pela timeline da abertura.
+    if (controle.abrindo || (controle.tempoAbertura > 0)) {
+        resetIdleTimers();
+        const spriteAbertura = window.sistemaAbertura?.obterSprite?.();
+        if (spriteAbertura) {
+            definirSpriteSeValido(elemento, spriteAbertura, spriteParado);
+        }
+        return;
+    }
+
     // Se o personagem estiver chutando, não altera o sprite aqui para evitar conflitos
     if (controle.chutando || (controle.tempoChute > 0)) {
         resetIdleTimers();
