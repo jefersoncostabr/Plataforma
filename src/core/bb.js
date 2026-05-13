@@ -153,8 +153,17 @@
         return null;
     }
 
-    function bbAssumirControleDoPet(petInfo, teclas) {
-        if (!petInfo || !petInfo.flag) return false;
+    function bbAssumirControleDoPet(bb, petInfo, teclas) {
+        if (!bb || !petInfo || !petInfo.flag) return false;
+
+        // Interrompe qualquer animação residual do BB antes de passar controle ao pet.
+        bb.movendoHorizontal = false;
+        bb.interagindo = false;
+        bb.contadorAnimacao = 0;
+        bb.frameAtual = 0;
+        if (bb.elemento) {
+            bb.elemento.src = bb.spriteParado;
+        }
 
         window.controlandoBB = false;
         window.controlandoCao = false;
@@ -336,7 +345,7 @@
 
                     const petControlavel = obterPetControlavelColidindo(bb);
                     if (petControlavel) {
-                        const assumiuPet = bbAssumirControleDoPet(petControlavel, teclas);
+                        const assumiuPet = bbAssumirControleDoPet(bb, petControlavel, teclas);
                         if (assumiuPet) {
                             interagiuComPet = true;
                         }
