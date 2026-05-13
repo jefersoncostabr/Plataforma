@@ -172,6 +172,138 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         }
     }
 
+    function obterRoboAbertoMaisProximo(inimigo) {
+        if (!inimigo || !Array.isArray(window.robosAbertosData)) return null;
+
+        let melhor = null;
+        let melhorDist = Number.POSITIVE_INFINITY;
+        for (const robo of window.robosAbertosData) {
+            if (!robo || !robo.ativo) continue;
+            const alvoX = Number(robo.spawnX ?? robo.x ?? 0);
+            const alvoY = Number(robo.spawnY ?? robo.y ?? 0);
+            const dx = alvoX - Number(inimigo.x || 0);
+            const dy = alvoY - Number(inimigo.y || 0);
+            const dist = (dx * dx) + (dy * dy);
+            if (dist < melhorDist) {
+                melhorDist = dist;
+                melhor = robo;
+            }
+        }
+
+        return melhor;
+    }
+
+    function iniciarFechamentoBBInimigo(inimigo, roboAlvo) {
+        if (!inimigo || !roboAlvo || !roboAlvo.ativo || inimigo.emFechamentoPorBB) return false;
+
+        inimigo.emFechamentoPorBB = true;
+        inimigo.faseFechamentoBB = 'interacao';
+        inimigo.timerFechamentoBB = Math.max(6, Math.floor((Number(config.tempoAberturaFrame ?? 20) * 0.5)));
+        inimigo.roboFechamentoBB = roboAlvo;
+        inimigo.stunned = true;
+        inimigo.stunTimer = 9999;
+        inimigo.perseguindo = false;
+        inimigo.afastando = false;
+        inimigo.tempoAfastamento = 0;
+        inimigo.tempoChute = 0;
+        inimigo.cooldownChute = 0;
+        inimigo.framesImpulsoRestante = 0;
+        inimigo.velocidadeDash = 0;
+
+        inimigo.x = Number(roboAlvo.spawnX ?? roboAlvo.x ?? inimigo.x);
+        inimigo.y = Number(roboAlvo.spawnY ?? roboAlvo.y ?? inimigo.y);
+
+        if (inimigo.elemento) {
+            inimigo.elemento.style.left = inimigo.x + 'px';
+            inimigo.elemento.style.bottom = inimigo.y + 'px';
+            inimigo.elemento.style.opacity = '1';
+            inimigo.elemento.src = config.spriteBBInteracao || config.spriteBB || '../../assets/personagem/bb/bb-interacao.png';
+        }
+
+        window.AudioManager?.playSFX('engrenagem', 0.45);
+        return true;
+    }
+
+    function atualizarFechamentoBBInimigo(inimigo) {
+        if (!inimigo || !inimigo.emFechamentoPorBB) return false;
+
+        if (inimigo.faseFechamentoBB === 'interacao') {
+            inimigo.timerFechamentoBB--;
+            if (inimigo.elemento) {
+                inimigo.elemento.src = config.spriteBBInteracao || config.spriteBB || '../../assets/personagem/bb/bb-interacao.png';
+            }
+            if (inimigo.timerFechamentoBB <= 0) {
+                inimigo.faseFechamentoBB = 'sumir';
+                inimigo.timerFechamentoBB = Math.max(3, Math.floor((Number(config.tempoAberturaFrame ?? 20) * 0.25)));
+                if (inimigo.elemento) inimigo.elemento.style.opacity = '0';
+            }
+            return true;
+        }
+
+        if (inimigo.faseFechamentoBB === 'sumir') {
+            inimigo.timerFechamentoBB--;
+            if (inimigo.timerFechamentoBB <= 0) {
+                inimigo.faseFechamentoBB = 'fechando';
+                inimigo.indiceFechamentoBB = 0;
+                inimigo.timerFechamentoBB = Math.max(4, Number(config.tempoAberturaFrame ?? 20));
+                inimigo.spritesFechamentoBB = [
+                    config.spriteAberturaPlayer3,
+                    config.spriteAberturaPlayer2,
+                    config.spriteAberturaPlayer1,
+                    config.spriteParadoInimigo
+                ].filter((s) => typeof s === 'string' && s.trim() !== '');
+                if (inimigo.elemento) inimigo.elemento.style.opacity = '1';
+            }
+            return true;
+        }
+
+        if (inimigo.faseFechamentoBB === 'fechando') {
+            const lista = Array.isArray(inimigo.spritesFechamentoBB) && inimigo.spritesFechamentoBB.length > 0
+                ? inimigo.spritesFechamentoBB
+                : [config.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png'];
+
+            const idx = Math.min(inimigo.indiceFechamentoBB || 0, lista.length - 1);
+            if (inimigo.elemento) {
+                inimigo.elemento.src = lista[idx];
+                inimigo.elemento.style.left = inimigo.x + 'px';
+                inimigo.elemento.style.bottom = inimigo.y + 'px';
+            }
+
+            inimigo.timerFechamentoBB--;
+            if (inimigo.timerFechamentoBB <= 0) {
+                inimigo.indiceFechamentoBB = (inimigo.indiceFechamentoBB || 0) + 1;
+                if (inimigo.indiceFechamentoBB >= lista.length) {
+                    if (typeof window.consumirRoboAbertoFase === 'function' && inimigo.roboFechamentoBB) {
+                        window.consumirRoboAbertoFase(inimigo.roboFechamentoBB);
+                    }
+
+                    inimigo.emFechamentoPorBB = false;
+                    inimigo.faseFechamentoBB = null;
+                    inimigo.roboFechamentoBB = null;
+                    inimigo.spritesFechamentoBB = null;
+                    inimigo.stunned = false;
+                    inimigo.stunTimer = 0;
+                    inimigo.ehBBInimigo = false;
+                    inimigo.perseguindo = true;
+                    inimigo.contadorAnimacao = 0;
+                    inimigo.frameAtual = 0;
+                    inimigo.tempoChute = 0;
+                    inimigo.cooldownChute = 0;
+                    if (inimigo.elemento) {
+                        inimigo.elemento.style.opacity = '1';
+                        inimigo.elemento.src = config.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png';
+                    }
+                    window.AudioManager?.playSFX('engrenagem', 0.5);
+                } else {
+                    inimigo.timerFechamentoBB = Math.max(4, Number(config.tempoAberturaFrame ?? 20));
+                }
+            }
+            return true;
+        }
+
+        return true;
+    }
+
     function inimigoColetarItemGarra(inimigo, item) {
         if (!item || !item.tipo) return;
 
@@ -491,6 +623,11 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     continue; // Pula o processamento da IA normal
                 }
 
+                if (inimigo.emFechamentoPorBB) {
+                    atualizarFechamentoBBInimigo(inimigo);
+                    continue;
+                }
+
                 // Lógica especial para o Alvo de Feno (Tipo 5)
                 if (inimigo.tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID) {
                     // Durante destruição/respawn, o alvo fica fora da física.
@@ -552,8 +689,23 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                 let xAnterior = inimigo.x;
 
+                if (inimigo.emAberturaPorBB) {
+                    inimigo.perseguindo = false;
+                    inimigo.afastando = false;
+                    inimigo.tempoAfastamento = 0;
+                    if (inimigo.elemento) {
+                        inimigo.elemento.style.left = inimigo.x + 'px';
+                        inimigo.elemento.style.bottom = inimigo.y + 'px';
+                    }
+                    continue;
+                }
+
                 // Refinamento IA: Detecta itens de interesse (AirDrop ou equipamentos que ainda não possui)
-                const itemInteresse = window.itensColetaveis?.find(it => {
+                const bbPodeBuscarRobo = !!(inimigo.ehBBInimigo && !inimigo.stunned && Number(inimigo.stunTimer || 0) <= 0);
+                const roboAlvoBB = bbPodeBuscarRobo ? obterRoboAbertoMaisProximo(inimigo) : null;
+                const bbTemRoboAlvo = !!(bbPodeBuscarRobo && roboAlvoBB && roboAlvoBB.ativo);
+
+                const itemInteresse = (inimigo.ehBBInimigo ? null : window.itensColetaveis?.find(it => {
                     // Se já possui o item e não é consumível, ignora
                     const jaTem = it.tipo !== 'airdrop' && it.tipo !== 'restauracao' && inimigo.inventario.includes(it.tipo);
                     if (jaTem) return false;
@@ -566,11 +718,15 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     }
 
                     return Math.abs(it.x - inimigo.x) <= 220 && Math.abs(it.y - inimigo.y) <= 160;
-                });
+                }));
                 
                 // Se houver um item de interesse por perto, ele vira o alvo prioritário da IA
-                const xAlvo = itemInteresse ? itemInteresse.x : alvoPerseguicaoX;
-                const yAlvo = itemInteresse ? itemInteresse.y : alvoPerseguicaoY;
+                const xAlvo = bbTemRoboAlvo
+                    ? Number(roboAlvoBB.spawnX ?? roboAlvoBB.x ?? alvoPerseguicaoX)
+                    : (itemInteresse ? itemInteresse.x : alvoPerseguicaoX);
+                const yAlvo = bbTemRoboAlvo
+                    ? Number(roboAlvoBB.spawnY ?? roboAlvoBB.y ?? alvoPerseguicaoY)
+                    : (itemInteresse ? itemInteresse.y : alvoPerseguicaoY);
 
                 if (typeof window.inicializarEstadoCinto === 'function') {
                     window.inicializarEstadoCinto(inimigo);
@@ -684,7 +840,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     ? (config.agachadoHitboxAltura ?? 16)
                     : (inimigo.alturaEmPe || config.HITBOX_ALTURA);
 
-                const estaChutando = inimigo.tempoChute > 0;
+                const estaChutando = !inimigo.ehBBInimigo && inimigo.tempoChute > 0;
 
                 // Unificação da velocidade: tratamos como número e aplicamos bônus se for tipo 3
                 let velAtiva = velAtivaBase;
@@ -698,7 +854,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     velAtiva = Math.max(0.5, velAtiva - penalidade); // Garante no mínimo 0.5 de velocidade
                 }
 
-                const distanciaAtual = alvoPerseguicao ? Math.abs(alvoPerseguicaoX - inimigo.x) : Number.POSITIVE_INFINITY;
+                const distanciaAtual = Math.abs(xAlvo - inimigo.x);
                 
                 // Inicializa propriedades de combate se não existirem
                 if (inimigo.tempoChute === undefined) { // This block runs only once per enemy creation
@@ -755,8 +911,14 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 // End of one-time initialization block
 
                 // Atualiza timers de chute
-                if (inimigo.tempoChute > 0) inimigo.tempoChute--;
-                if (inimigo.cooldownChute > 0) inimigo.cooldownChute--;
+                if (!inimigo.ehBBInimigo && inimigo.tempoChute > 0) inimigo.tempoChute--;
+                if (!inimigo.ehBBInimigo && inimigo.cooldownChute > 0) inimigo.cooldownChute--;
+                if (inimigo.ehBBInimigo) {
+                    inimigo.tempoChute = 0;
+                    inimigo.cooldownChute = 0;
+                    inimigo.framesImpulsoRestante = 0;
+                    inimigo.velocidadeDash = 0;
+                }
                 if (inimigo.cooldownTiro > 0) inimigo.cooldownTiro--;
                 if (inimigo.puloTimer > 0) inimigo.puloTimer--; // Decrementa o timer de pulo
                 if (inimigo.tempoAfastamento > 0) inimigo.tempoAfastamento--;
@@ -1000,6 +1162,9 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         inimigo.stunned = false; // Fim do stun
                     } else {
                         iaBloqueadaPorStun = true;
+                        if (inimigo.ehBBInimigo && inimigo.elemento) {
+                            inimigo.elemento.src = config.spriteBBInteracao || config.spriteBB || '../../assets/personagem/bb/bb-interacao.png';
+                        }
                         // Faz o inimigo olhar de um lado para o outro
                         if (inimigo.stunTimer % 15 === 0) { // Troca de direção a cada 15 frames (aprox. 0.25s)
                             inimigo.direcao = (inimigo.direcao === 'd' ? 'e' : 'd');
@@ -1021,6 +1186,26 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     inimigo.perseguindo = false;
                     inimigo.afastando = false;
                     inimigo.tempoAfastamento = 0;
+                }
+
+                if (!iaBloqueadaPorStun && bbTemRoboAlvo && typeof window.detectarColisaoHitbox === 'function') {
+                    const hitboxInimigoBB = {
+                        x: inimigo.x + (inimigo.offsetX || 0),
+                        y: inimigo.y,
+                        largura: inimigo.largura,
+                        altura: inimigo.altura
+                    };
+                    const hitboxRoboAlvo = {
+                        x: Number(roboAlvoBB.x ?? roboAlvoBB.spawnX ?? 0),
+                        y: Number(roboAlvoBB.y ?? roboAlvoBB.spawnY ?? 0),
+                        largura: Number(roboAlvoBB.largura ?? 18),
+                        altura: Number(roboAlvoBB.altura ?? 16)
+                    };
+
+                    if (window.detectarColisaoHitbox(hitboxInimigoBB, hitboxRoboAlvo, 0, 0, 0)) {
+                        iniciarFechamentoBBInimigo(inimigo, roboAlvoBB);
+                        continue;
+                    }
                 }
 
                 // Lógica de detecção de proximidade excessiva com o jogador
@@ -1084,7 +1269,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                 // Ativa a perseguição se o jogador estiver perto OU se detectar um tiro vindo no radar
                 // Não ativa perseguição se o jogador está em resgate do BB
-                if (!iaBloqueadaPorStun && !inimigo.perseguindo && !emResgateBB && alvoPerseguicao && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse || (inimigo.temGarra && distanciaAtual <= (config.garraAlcanceInimigo || 160)))) {
+                if (!iaBloqueadaPorStun && !inimigo.perseguindo && !emResgateBB && (alvoPerseguicao || bbTemRoboAlvo) && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse || bbTemRoboAlvo || (inimigo.temGarra && distanciaAtual <= (config.garraAlcanceInimigo || 160)))) {
                     inimigo.perseguindo = true;
                     // console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
                 }
@@ -1288,7 +1473,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 // Ações que dependem da ativação (movimento e ataque) - só se não estiver afastando, coletando ou usando a garra
                 if (!iaBloqueadaPorStun && inimigo.perseguindo && !inimigo.afastando && !inimigo.estaColetando) {
                     // Lógica para INICIAR o chute
-                    if (!inimigo.estaAgachado && distanciaAtual <= config.distanciaAtaqueInimigo && inimigo.cooldownChute === 0) {
+                    if (!inimigo.ehBBInimigo && !inimigo.estaAgachado && distanciaAtual <= config.distanciaAtaqueInimigo && inimigo.cooldownChute === 0) {
                         inimigo.tempoChute = config.tempoChute;
                         inimigo.cooldownChute = config.cooldownChute;
                         window.AudioManager?.playSFX('chute', 0.3);
@@ -1303,7 +1488,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     }
 
                     // Lógica para INICIAR o disparo
-                    if (inimigo.temArma && !inimigo.itensGuardadosNoCinto && distanciaAtual <= alcanceTiro && distanciaAtual > config.distanciaAtaqueInimigo && inimigo.cooldownTiro === 0 && inimigo.municao > 0) {
+                    if (!inimigo.ehBBInimigo && inimigo.temArma && !inimigo.itensGuardadosNoCinto && distanciaAtual <= alcanceTiro && distanciaAtual > config.distanciaAtaqueInimigo && inimigo.cooldownTiro === 0 && inimigo.municao > 0) {
                         inimigo.cooldownTiro = config.cooldownTiro;
                         inimigo.municao--;
                         window.AudioManager?.playSFX('disparo', 0.4);
@@ -1391,7 +1576,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     }
 
                     // Lógica para INICIAR a Garra (se tiver e estiver no alcance)
-                    if (inimigo.temGarra && !inimigo.itensGuardadosNoCinto && inimigo.garraAnimEstado === 'idle' && inimigo.cooldownGarra === 0 && distanciaAtual <= (config.garraAlcanceInimigo || 160)) {
+                    if (!inimigo.ehBBInimigo && inimigo.temGarra && !inimigo.itensGuardadosNoCinto && inimigo.garraAnimEstado === 'idle' && inimigo.cooldownGarra === 0 && distanciaAtual <= (config.garraAlcanceInimigo || 160)) {
                         window.AudioManager?.playSFX('engrenagem', 0.3);
                         inimigo.garraAnimEstado = 'prep';
                         inimigo.garraTimer = 18;
@@ -1488,12 +1673,23 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     };
 
                     // Seleciona sprites baseado em agachamento
-                    const spriteParadoUsado = inimigo.estaAgachado 
-                        ? inimigo.spriteParadoAgachado 
+                    const spriteParadoBase = inimigo.ehBBInimigo
+                        ? (config.spriteBB || spriteParado)
                         : (config.spriteParadoInimigo || spriteParado);
-                    const spriteAndandoUsado = inimigo.estaAgachado
-                        ? inimigo.spriteAndandoAgachado
+                    const spriteAndandoBase = inimigo.ehBBInimigo
+                        ? (config.spriteBBAndando || spriteAndando)
                         : (config.spriteAndandoInimigo || spriteAndando);
+                    const usarSpriteAgachado = inimigo.estaAgachado && !inimigo.ehBBInimigo;
+
+                    const spriteParadoUsado = usarSpriteAgachado
+                        ? inimigo.spriteParadoAgachado 
+                        : spriteParadoBase;
+                    const spriteAndandoUsado = usarSpriteAgachado
+                        ? inimigo.spriteAndandoAgachado
+                        : spriteAndandoBase;
+                    const spriteNoArUsado = inimigo.ehBBInimigo
+                        ? (config.spriteBBAndando || config.spriteNoArInimigo || spriteNoAr)
+                        : (config.spriteNoArInimigo || spriteNoAr);
 
                     if (typeof atualizarAnimacao === 'function') {
                         atualizarAnimacao(
@@ -1502,7 +1698,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                             spriteParadoUsado,
                             spriteAndandoUsado
                             ,
-                            config.spriteNoArInimigo || spriteNoAr // Passa o sprite de "no ar"
+                            spriteNoArUsado // Passa o sprite de "no ar"
                         );
                         // Salva o estado da animação no objeto do inimigo para o próximo frame
                         inimigo.contadorAnimacao = controleAnimacao.contadorAnimacao;

@@ -115,6 +115,14 @@
                 }
             });
 
+            if (faseData.posicaoMusgoRoboAberto && faseData.posicaoRoboAberto === faseData.posicaoMusgoRoboAberto) {
+                criarIcone(faseData.posicaoMusgoRoboAberto, '../../assets/personagem/musgo1.png', '');
+            }
+
+            if (faseData.posicaoMusgoRoboDesativado && faseData.posicaoRoboDesativado === faseData.posicaoMusgoRoboDesativado) {
+                criarIcone(faseData.posicaoMusgoRoboDesativado, '../../assets/personagem/musgo2.png', '');
+            }
+
             console.debug('[EditorRender] render finalizado', {
                 imagensNoPalco: stage.querySelectorAll('img').length
             });

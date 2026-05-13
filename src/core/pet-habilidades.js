@@ -42,6 +42,8 @@
          */
         soltarCarga: function (pet) {
             if (pet.tipo === 'cao' && pet.inimigoPreso) {
+                pet.inimigoPreso.presoPorPet = false;
+                pet.inimigoPreso.presoPorPetTipo = null;
                 pet.inimigoPreso.stunTimer = 60;
                 pet.inimigoPreso = null;
                 window.AudioManager?.playSFX('pulo', 0.5);
@@ -71,6 +73,8 @@
 
                     if (window.detectarColisaoHitbox(petHitbox, targetHitbox, -15, -15, -15)) {
                         pet.inimigoPreso = inimigo;
+                        inimigo.presoPorPet = true;
+                        inimigo.presoPorPetTipo = pet.tipo;
                         inimigo.stunned = true;
                         inimigo.stunTimer = 100;
                         window.AudioManager?.playSFX('madeiraQuebrando', 0.6);
@@ -84,8 +88,10 @@
         _manterMordida: function (pet, config) {
             if (!pet.inimigoPreso) return;
             const inimigo = pet.inimigoPreso;
-            if (inimigo.estaMorto || inimigo.estaMorrendo || (inimigo.framesKnockbackRestante > 0)) {
+            if (inimigo.estaMorto || inimigo.estaMorrendo || inimigo.emAberturaPorBB || (inimigo.framesKnockbackRestante > 0)) {
                 if (inimigo.framesKnockbackRestante > 0) { inimigo.stunned = false; inimigo.stunTimer = 0; }
+                inimigo.presoPorPet = false;
+                inimigo.presoPorPetTipo = null;
                 pet.inimigoPreso = null;
             } else {
                 inimigo.x = pet.x; inimigo.y = pet.y; inimigo.stunned = true;

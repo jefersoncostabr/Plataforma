@@ -40,6 +40,10 @@ function limparCenario() {
     window.objetivoData = null;
     window.roboAbertoData = null;
     window.robosAbertosData = [];
+    window.roboDesativadoData = null;
+    window.robosDesativadosData = [];
+    window.musgoData = null;
+    window.musgosData = [];
     window.inimigos = []; // CRÍTICO: Limpa inimigos para não deixar "fantasmas" da fase anterior
 
     // 3. Reseta filtros de CSS que podem estar pesando na GPU (como blur ou grayscale)
@@ -217,6 +221,54 @@ function renderizarRoboAberto(idPalco, imagemPath, coord) {
     });
 }
 
+function renderizarRoboDesativado(idPalco, imagemPath, coord) {
+    const partes = parseCoordGrid(coord);
+    if (!partes) return;
+
+    const { row, col } = partes;
+    const tamanhoTile = 32;
+    const x = col * tamanhoTile;
+    const y = row * tamanhoTile;
+
+    criarRoboDesativadoInterativo(x, y, {
+        coord,
+        imagemPath,
+        origem: 'fase'
+    });
+}
+
+function renderizarMusgoSobreRoboAberto(idPalco, imagemPath, coord) {
+    const partes = parseCoordGrid(coord);
+    if (!partes) return;
+
+    const tamanhoTile = 32;
+    const x = partes.col * tamanhoTile;
+    const y = partes.row * tamanhoTile;
+
+    criarMusgoInterativo(x, y, {
+        coord,
+        imagemPath,
+        alvoTipo: 'roboAberto',
+        origem: 'fase'
+    });
+}
+
+function renderizarMusgoSobreRoboDesativado(idPalco, imagemPath, coord) {
+    const partes = parseCoordGrid(coord);
+    if (!partes) return;
+
+    const tamanhoTile = 32;
+    const x = partes.col * tamanhoTile;
+    const y = partes.row * tamanhoTile;
+
+    criarMusgoInterativo(x, y, {
+        coord,
+        imagemPath,
+        alvoTipo: 'roboDesativado',
+        origem: 'fase'
+    });
+}
+
 function criarRoboAbertoInterativo(x, y, opcoes = {}) {
     const layerUI = obterLayer(window.LAYERS.UI);
     if (!layerUI) return null;
@@ -274,12 +326,318 @@ function criarRoboAbertoInterativo(x, y, opcoes = {}) {
     return roboData;
 }
 
+function criarRoboDesativadoInterativo(x, y, opcoes = {}) {
+    const layerUI = obterLayer(window.LAYERS.UI);
+    if (!layerUI) return null;
+    const tamanhoTile = 32;
+
+    const spawnX = Number(x || 0);
+    const spawnY = Number(y || 0);
+    const imagemPath = opcoes.imagemPath || '../../assets/personagem/robo_desativado.png';
+
+    if (!Array.isArray(window.robosDesativadosData)) {
+        window.robosDesativadosData = [];
+    }
+
+    const jaExisteNoLocal = window.robosDesativadosData.some((robo) => {
+        if (!robo || !robo.ativo) return false;
+        return Number(robo.spawnX || 0) === spawnX && Number(robo.spawnY || 0) === spawnY;
+    });
+
+    if (jaExisteNoLocal) {
+        return window.robosDesativadosData.find((robo) => robo && robo.ativo && Number(robo.spawnX || 0) === spawnX && Number(robo.spawnY || 0) === spawnY) || null;
+    }
+
+    const roboId = `robo-desativado-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const roboImg = document.createElement('img');
+    roboImg.id = roboId;
+    roboImg.src = imagemPath;
+    roboImg.style.position = 'absolute';
+    roboImg.style.left = spawnX + 'px';
+    roboImg.style.bottom = spawnY + 'px';
+    roboImg.style.width = tamanhoTile + 'px';
+    roboImg.style.height = tamanhoTile + 'px';
+    roboImg.style.imageRendering = 'pixelated';
+    roboImg.style.pointerEvents = 'none';
+    adicionarAoLayer(roboImg, window.LAYERS.UI);
+
+    roboImg.onerror = () => console.error(`Erro: Não foi possível carregar a imagem em: ${imagemPath}`);
+
+    const roboData = {
+        id: roboId,
+        x: spawnX + 7,
+        y: spawnY + 8,
+        largura: 18,
+        altura: 16,
+        spawnX,
+        spawnY,
+        coord: opcoes.coord || '',
+        origem: opcoes.origem || 'fase',
+        ativo: true,
+        emAbertura: false,
+        elemento: roboImg
+    };
+
+    window.robosDesativadosData.push(roboData);
+    window.roboDesativadoData = roboData;
+
+    return roboData;
+}
+
+function criarMusgoInterativo(x, y, opcoes = {}) {
+    const layerUI = obterLayer(window.LAYERS.UI);
+    if (!layerUI) return null;
+    const tamanhoTile = 32;
+
+    const spawnX = Number(x || 0);
+    const spawnY = Number(y || 0);
+    const alvoTipo = opcoes.alvoTipo === 'roboDesativado' ? 'roboDesativado' : 'roboAberto';
+    const imagemPadrao = alvoTipo === 'roboDesativado'
+        ? '../../assets/personagem/musgo2.png'
+        : '../../assets/personagem/musgo1.png';
+    const imagemPath = opcoes.imagemPath || imagemPadrao;
+
+    if (!Array.isArray(window.musgosData)) {
+        window.musgosData = [];
+    }
+
+    const existente = window.musgosData.find((musgo) => {
+        if (!musgo || !musgo.ativo) return false;
+        const mesmoLocal = Number(musgo.spawnX || 0) === spawnX && Number(musgo.spawnY || 0) === spawnY;
+        return mesmoLocal && musgo.alvoTipo === alvoTipo;
+    });
+
+    if (existente) return existente;
+
+    const musgoId = `musgo-${alvoTipo}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const musgoImg = document.createElement('img');
+    musgoImg.id = musgoId;
+    musgoImg.src = imagemPath;
+    musgoImg.style.position = 'absolute';
+    musgoImg.style.left = spawnX + 'px';
+    musgoImg.style.bottom = spawnY + 'px';
+    musgoImg.style.width = tamanhoTile + 'px';
+    musgoImg.style.height = tamanhoTile + 'px';
+    musgoImg.style.imageRendering = 'pixelated';
+    musgoImg.style.pointerEvents = 'none';
+    musgoImg.style.zIndex = '12';
+    adicionarAoLayer(musgoImg, window.LAYERS.UI);
+
+    const musgoData = {
+        id: musgoId,
+        x: spawnX + 7,
+        y: spawnY + 8,
+        largura: 18,
+        altura: 16,
+        spawnX,
+        spawnY,
+        coord: opcoes.coord || '',
+        origem: opcoes.origem || 'fase',
+        alvoTipo,
+        ativo: true,
+        elemento: musgoImg
+    };
+
+    window.musgosData.push(musgoData);
+    window.musgoData = musgoData;
+
+    return musgoData;
+}
+
+function buscarMusgoPorColisao(hitbox) {
+    if (!hitbox || typeof window.detectarColisaoHitbox !== 'function') return null;
+    if (!Array.isArray(window.musgosData)) return null;
+
+    for (const musgo of window.musgosData) {
+        if (!musgo || !musgo.ativo) continue;
+        if (window.detectarColisaoHitbox(hitbox, musgo, 0, 0, 0)) {
+            return musgo;
+        }
+    }
+
+    return null;
+}
+
+function buscarMusgoSobreAlvo(alvo, alvoTipo) {
+    if (!alvo || !Array.isArray(window.musgosData)) return null;
+    const spawnX = Number(alvo.spawnX || 0);
+    const spawnY = Number(alvo.spawnY || 0);
+
+    return window.musgosData.find((musgo) => {
+        if (!musgo || !musgo.ativo) return false;
+        if (alvoTipo && musgo.alvoTipo !== alvoTipo) return false;
+        return Number(musgo.spawnX || 0) === spawnX && Number(musgo.spawnY || 0) === spawnY;
+    }) || null;
+}
+
+function consumirMusgo(alvoMusgo) {
+    if (!Array.isArray(window.musgosData) || window.musgosData.length === 0) return;
+
+    const idAlvo = typeof alvoMusgo === 'string'
+        ? alvoMusgo
+        : (alvoMusgo && typeof alvoMusgo === 'object' ? alvoMusgo.id : null);
+
+    let alvo = null;
+    if (idAlvo) {
+        alvo = window.musgosData.find((musgo) => musgo && musgo.id === idAlvo) || null;
+    }
+
+    if (!alvo) {
+        alvo = window.musgoData || null;
+    }
+
+    if (!alvo) return;
+
+    alvo.ativo = false;
+    if (alvo.elemento) {
+        alvo.elemento.remove();
+    }
+
+    window.musgosData = window.musgosData.filter((musgo) => musgo && musgo.ativo);
+    window.musgoData = window.musgosData.length > 0
+        ? window.musgosData[window.musgosData.length - 1]
+        : null;
+}
+
+function interagirComMusgoAlvo(controle, teclas = null) {
+    if (!controle || typeof window.detectarColisaoHitbox !== 'function') return false;
+
+    const hitboxControle = {
+        x: Number(controle.x || 0) + Number(controle.offsetX || 0),
+        y: Number(controle.y || 0),
+        largura: Number(controle.largura || 20),
+        altura: Number(controle.altura || 32)
+    };
+
+    const alvoMusgo = buscarMusgoPorColisao(hitboxControle);
+    if (!alvoMusgo) return false;
+
+    consumirMusgo(alvoMusgo);
+    window.AudioManager?.playSFX('engrenagem', 0.35);
+
+    if (teclas && typeof teclas === 'object') {
+        teclas['e'] = false;
+        teclas['E'] = false;
+        teclas['KeyE'] = false;
+    }
+
+    return true;
+}
+
+function buscarRoboDesativadoPorColisao(hitbox) {
+    if (!hitbox || typeof window.detectarColisaoHitbox !== 'function') return null;
+    if (!Array.isArray(window.robosDesativadosData)) return null;
+
+    for (const robo of window.robosDesativadosData) {
+        if (!robo || !robo.ativo || robo.emAbertura) continue;
+        if (buscarMusgoSobreAlvo(robo, 'roboDesativado')) continue;
+        if (window.detectarColisaoHitbox(hitbox, robo, 0, 0, 0)) {
+            return robo;
+        }
+    }
+
+    return null;
+}
+
+function consumirRoboDesativado(alvoRobo) {
+    if (!Array.isArray(window.robosDesativadosData) || window.robosDesativadosData.length === 0) return;
+
+    const idAlvo = typeof alvoRobo === 'string'
+        ? alvoRobo
+        : (alvoRobo && typeof alvoRobo === 'object' ? alvoRobo.id : null);
+
+    let alvo = null;
+    if (idAlvo) {
+        alvo = window.robosDesativadosData.find((robo) => robo && robo.id === idAlvo) || null;
+    }
+
+    if (!alvo) {
+        alvo = window.roboDesativadoData || null;
+    }
+
+    if (!alvo) return;
+
+    alvo.ativo = false;
+    const musgoSobreAlvo = buscarMusgoSobreAlvo(alvo, 'roboDesativado');
+    if (musgoSobreAlvo) consumirMusgo(musgoSobreAlvo);
+    if (alvo.elemento) {
+        alvo.elemento.remove();
+    }
+
+    window.robosDesativadosData = window.robosDesativadosData.filter((robo) => robo && robo.ativo);
+
+    if (window.roboDesativadoData && window.roboDesativadoData.id === alvo.id) {
+        window.roboDesativadoData = window.robosDesativadosData.length > 0
+            ? window.robosDesativadosData[window.robosDesativadosData.length - 1]
+            : null;
+    }
+}
+
+function interagirComRoboDesativado(controle, teclas = null) {
+    if (!controle || typeof window.detectarColisaoHitbox !== 'function') return false;
+
+    const hitboxControle = {
+        x: Number(controle.x || 0) + Number(controle.offsetX || 0),
+        y: Number(controle.y || 0),
+        largura: Number(controle.largura || 20),
+        altura: Number(controle.altura || 32)
+    };
+
+    const robo = buscarRoboDesativadoPorColisao(hitboxControle);
+    if (!robo || robo.emAbertura) return false;
+
+    robo.emAbertura = true;
+
+    const config = window.config || {};
+    const spriteAbrindo1 = config.spriteAberturaPlayer2 || '../../assets/personagem/per_abrindo1.png';
+    const spriteAbrindo2 = config.spriteAberturaPlayer3 || '../../assets/personagem/per_abrindo2.png';
+    const spriteFinal = config.spriteAberturaPlayerFinal || '../../assets/personagem/per_aberto.png';
+    const sequencia = [spriteAbrindo1, spriteAbrindo2, spriteFinal];
+    const frameAnimacao = Math.max(1, Number(config.tempoAberturaFrame ?? 20));
+    const tempoEtapaMs = Math.max(40, Math.round((1000 / 60) * frameAnimacao));
+
+    let indice = 0;
+    const rodarAbertura = () => {
+        if (!robo || !robo.ativo || !robo.elemento) return;
+
+        robo.elemento.src = sequencia[Math.min(indice, sequencia.length - 1)] || spriteFinal;
+
+        if (indice < sequencia.length - 1) {
+            indice++;
+            setTimeout(rodarAbertura, tempoEtapaMs);
+            return;
+        }
+
+        criarRoboAbertoInterativo(robo.spawnX, robo.spawnY, {
+            coord: robo.coord || '',
+            origem: 'robo-desativado',
+            imagemPath: spriteFinal
+        });
+
+        consumirRoboDesativado(robo);
+    };
+
+    window.AudioManager?.playSFX('engrenagem', 0.55);
+    rodarAbertura();
+
+    if (teclas && typeof teclas === 'object') {
+        teclas['e'] = false;
+        teclas['E'] = false;
+        teclas['KeyE'] = false;
+    }
+
+    return true;
+}
+
 function buscarRoboAbertoPorColisao(hitbox) {
     if (!hitbox || typeof window.detectarColisaoHitbox !== 'function') return null;
     if (!Array.isArray(window.robosAbertosData)) return null;
 
     for (const robo of window.robosAbertosData) {
         if (!robo || !robo.ativo) continue;
+        if (buscarMusgoSobreAlvo(robo, 'roboAberto')) continue;
         if (window.detectarColisaoHitbox(hitbox, robo, 0, 0, 0)) {
             return robo;
         }
@@ -307,6 +665,8 @@ function consumirRoboAbertoFase(alvoRobo) {
     if (!alvo) return;
 
     alvo.ativo = false;
+    const musgoSobreAlvo = buscarMusgoSobreAlvo(alvo, 'roboAberto');
+    if (musgoSobreAlvo) consumirMusgo(musgoSobreAlvo);
     if (alvo.elemento) {
         alvo.elemento.remove();
     }
@@ -323,5 +683,12 @@ function consumirRoboAbertoFase(alvoRobo) {
 window.criarRoboAbertoInterativo = criarRoboAbertoInterativo;
 window.buscarRoboAbertoPorColisao = buscarRoboAbertoPorColisao;
 window.consumirRoboAbertoFase = consumirRoboAbertoFase;
+window.renderizarRoboDesativado = renderizarRoboDesativado;
+window.criarRoboDesativadoInterativo = criarRoboDesativadoInterativo;
+window.buscarRoboDesativadoPorColisao = buscarRoboDesativadoPorColisao;
+window.interagirComRoboDesativado = interagirComRoboDesativado;
+window.renderizarMusgoSobreRoboAberto = renderizarMusgoSobreRoboAberto;
+window.renderizarMusgoSobreRoboDesativado = renderizarMusgoSobreRoboDesativado;
+window.interagirComMusgoAlvo = interagirComMusgoAlvo;
 
 

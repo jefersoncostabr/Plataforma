@@ -968,7 +968,15 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         // --- LÓGICA DE TOGGLE ARMA/ESCUDO (TECLA E) ---
         const apertouE = !!(controle.teclas['e'] || controle.teclas['E']);
         if (apertouE && !controle.ePressionado) {
-            if (!window.controlandoCao && !window.controlandoGato && !window.controlandoBB && !controle.estaAgachado && controle.temCinto) {
+            const interagiuComMusgo = (!window.controlandoCao && !window.controlandoGato && !window.controlandoBB)
+                ? !!window.interagirComMusgoAlvo?.(controle, controle.teclas)
+                : false;
+
+            const interagiuComRoboDesativado = (!interagiuComMusgo && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB)
+                ? !!window.interagirComRoboDesativado?.(controle, controle.teclas)
+                : false;
+
+            if (!interagiuComMusgo && !interagiuComRoboDesativado && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB && !controle.estaAgachado && controle.temCinto) {
                 if (typeof sistemaVisuaisEquipamentos.alternarEquipamentoSelecao === 'function') {
                     sistemaVisuaisEquipamentos.alternarEquipamentoSelecao();
                 }

@@ -398,6 +398,19 @@ async function carregarFase(nomeArquivo) {
         renderizarRoboAberto(idPalco, '../../assets/personagem/per_aberto.png', fase.posicaoRoboAberto);
     }
 
+    // Renderiza robô desativado interativo (abre ao interagir)
+    if (typeof renderizarRoboDesativado === 'function' && fase.posicaoRoboDesativado) {
+        renderizarRoboDesativado(idPalco, '../../assets/personagem/robo_desativado.png', fase.posicaoRoboDesativado);
+    }
+
+    if (typeof renderizarMusgoSobreRoboAberto === 'function' && fase.posicaoMusgoRoboAberto) {
+        renderizarMusgoSobreRoboAberto(idPalco, '../../assets/personagem/musgo1.png', fase.posicaoMusgoRoboAberto);
+    }
+
+    if (typeof renderizarMusgoSobreRoboDesativado === 'function' && fase.posicaoMusgoRoboDesativado) {
+        renderizarMusgoSobreRoboDesativado(idPalco, '../../assets/personagem/musgo2.png', fase.posicaoMusgoRoboDesativado);
+    }
+
     // Reseta câmera para o início
     if (typeof window.resetarCamera === 'function') window.resetarCamera();
 

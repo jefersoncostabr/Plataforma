@@ -54,7 +54,8 @@
             frameAtual: 0,
             cooldownPulo: 0,
             cooldownTrocaCorpo: 0,
-            kPressionadoAnterior: false,
+            ePressionadoAnterior: false,
+            qPressionadoAnterior: false,
             spriteParado: spritePadrao,
             spriteAndando: config.spriteBBAndando || '../../assets/personagem/bb/bb-andando.png',
             spriteInteracao: config.spriteBBInteracao || '../../assets/personagem/bb/bb-interacao.png',
@@ -153,6 +154,177 @@
         return null;
     }
 
+    function obterInimigoPresoColidindo(bb) {
+        if (!bb || !Array.isArray(window.inimigos) || typeof window.detectarColisaoHitbox !== 'function') {
+            return null;
+        }
+
+        const hitboxBB = {
+            x: bb.x + (bb.offsetX || 0),
+            y: bb.y,
+            largura: bb.largura,
+            altura: bb.altura
+        };
+
+        const fenoId = window.GAME_CONSTANTS?.INIMIGO_FENO_ID ?? 5;
+        for (const inimigo of window.inimigos) {
+            if (!inimigo || inimigo.estaMorto || inimigo.estaMorrendo || inimigo.emAberturaPorBB) continue;
+            if (inimigo.tipo === fenoId) continue;
+            if (!inimigo.presoPorPet) continue;
+
+            const hitboxInimigo = {
+                x: inimigo.x + (inimigo.offsetX || 0),
+                y: inimigo.y,
+                largura: inimigo.largura,
+                altura: inimigo.altura
+            };
+
+            if (window.detectarColisaoHitbox(hitboxBB, hitboxInimigo, -12, -12, -12)) {
+                return inimigo;
+            }
+        }
+
+        return null;
+    }
+
+    function soltarInimigoDosPets(inimigo) {
+        const petCao = window.caoEntidade;
+        const petGato = window.gatoEntidade;
+
+        if (petCao?.inimigoPreso === inimigo) {
+            petCao.inimigoPreso = null;
+        }
+
+        if (petGato?.inimigoPreso === inimigo) {
+            petGato.inimigoPreso = null;
+        }
+    }
+
+    function converterInimigoEmBBInimigo(inimigo, config) {
+        if (!inimigo) return;
+
+        const stunSaidaFrames = Math.max(12, Number(config.bbInimigoStunSaidaFrames ?? 45));
+        const direcaoKnock = inimigo.direcao === 'e' ? -1 : 1;
+
+        inimigo.emAberturaPorBB = false;
+        inimigo.ehBBInimigo = true;
+        inimigo.presoPorPet = false;
+        inimigo.presoPorPetTipo = null;
+        inimigo.stunned = true;
+        inimigo.stunTimer = stunSaidaFrames;
+        inimigo.perseguindo = true;
+        inimigo.afastando = false;
+        inimigo.tempoAfastamento = 0;
+        inimigo.estaColetando = false;
+        inimigo.estaAgachado = false;
+        inimigo.contadorAnimacao = 0;
+        inimigo.frameAtual = 0;
+        inimigo.altura = inimigo.alturaEmPe || Number(config.HITBOX_ALTURA || inimigo.altura || 30);
+
+        const deslocSaida = inimigo.direcao === 'e' ? -12 : 12;
+        inimigo.x = Number(inimigo.x || 0) + deslocSaida;
+
+        if (typeof window.limitarPosicaoAoPalco === 'function') {
+            const ajustada = window.limitarPosicaoAoPalco(
+                inimigo.x + (inimigo.offsetX || 0),
+                inimigo.y,
+                inimigo.largura,
+                inimigo.altura
+            );
+            inimigo.x = ajustada.x - (inimigo.offsetX || 0);
+            inimigo.y = ajustada.y;
+        }
+
+        if (inimigo.elemento) {
+            inimigo.elemento.src = config.spriteBBInteracao || config.spriteBB || '../../assets/personagem/bb/bb-interacao.png';
+            inimigo.elemento.style.left = inimigo.x + 'px';
+            inimigo.elemento.style.bottom = inimigo.y + 'px';
+
+            // Feedback de "dano": piscada branca ao BB inimigo surgir.
+            if (typeof window.piscaLeve === 'function') {
+                window.piscaLeve(inimigo.elemento);
+            } else if (typeof window.flashElement === 'function') {
+                window.flashElement(inimigo.elemento, 120, 8);
+            }
+        }
+
+        // Aplica knockback padrão no surgimento e em seguida mantém o stun já configurado.
+        if (typeof window.aplicarKnockback === 'function') {
+            const forcaPadrao = typeof window.obterKnockbackPadrao === 'function'
+                ? window.obterKnockbackPadrao(config, 'playerProjetil')
+                : (typeof window.obterForcaKnockback === 'function' ? window.obterForcaKnockback(config, 'playerProjetil') : 0);
+            window.aplicarKnockback(inimigo, forcaPadrao, direcaoKnock, 15);
+        }
+    }
+
+    function bbAbrirInimigoPreso(bb, inimigo, config, teclas) {
+        if (!bb || !inimigo || inimigo.emAberturaPorBB || inimigo.estaMorto || inimigo.estaMorrendo) {
+            return false;
+        }
+
+        inimigo.emAberturaPorBB = true;
+        inimigo.stunned = true;
+        inimigo.stunTimer = 9999;
+        inimigo.presoPorPet = false;
+        inimigo.presoPorPetTipo = null;
+        soltarInimigoDosPets(inimigo);
+
+        bb.movendoHorizontal = false;
+        bb.contadorAnimacao = 0;
+        bb.frameAtual = 0;
+
+        const spriteFinalAbertura = config.spriteAberturaPlayerFinal || '../../assets/personagem/per_aberto.png';
+        const sequenciaAbertura = [
+            config.spriteAberturaPlayer1,
+            config.spriteAberturaPlayer2,
+            config.spriteAberturaPlayer3,
+            spriteFinalAbertura
+        ].filter((sprite) => typeof sprite === 'string' && sprite.trim() !== '');
+
+        const frameAnimacao = Math.max(1, Number(config.tempoAberturaFrame ?? 20));
+        const tempoEtapaMs = Math.max(40, Math.round((1000 / 60) * frameAnimacao));
+
+        const xCorpoAberto = Number(inimigo.x || 0);
+        const yCorpoAberto = Number(inimigo.y || 0);
+
+        let indiceSprite = 0;
+        const rodarAbertura = () => {
+            if (!inimigo || inimigo.estaMorto || inimigo.estaMorrendo || !inimigo.elemento) {
+                return;
+            }
+
+            const spriteAtual = sequenciaAbertura[Math.min(indiceSprite, sequenciaAbertura.length - 1)] || spriteFinalAbertura;
+            inimigo.elemento.src = spriteAtual;
+
+            if (indiceSprite < sequenciaAbertura.length - 1) {
+                indiceSprite++;
+                setTimeout(rodarAbertura, tempoEtapaMs);
+                return;
+            }
+
+            if (typeof window.criarRoboAbertoInterativo === 'function') {
+                window.criarRoboAbertoInterativo(xCorpoAberto, yCorpoAberto, {
+                    origem: 'inimigo-aberto-bb',
+                    imagemPath: spriteFinalAbertura
+                });
+            }
+
+            converterInimigoEmBBInimigo(inimigo, config);
+            window.AudioManager?.playSFX('engrenagem', 0.45);
+        };
+
+        rodarAbertura();
+        window.AudioManager?.playSFX('engrenagem', 0.6);
+
+        if (teclas) {
+            teclas['e'] = false;
+            teclas['E'] = false;
+            teclas['KeyE'] = false;
+        }
+
+        return true;
+    }
+
     function bbAssumirControleDoPet(bb, petInfo, teclas) {
         if (!bb || !petInfo || !petInfo.flag) return false;
 
@@ -173,9 +345,9 @@
         window.cameraZoomFactor = 1.5;
 
         if (teclas) {
-            teclas['k'] = false;
-            teclas['K'] = false;
-            teclas['KeyK'] = false;
+            teclas['q'] = false;
+            teclas['Q'] = false;
+            teclas['KeyQ'] = false;
         }
 
         window.AudioManager?.playSFX('engrenagem', 0.5);
@@ -301,6 +473,8 @@
 
             if (window.controlandoBB) {
                 const teclas = window.playerControle?.teclas || {};
+                const ePressionadoFrame = !!(teclas['e'] || teclas['E'] || teclas['KeyE']);
+                const qPressionadoFrame = !!(teclas['q'] || teclas['Q'] || teclas['KeyQ']);
 
                 bb.movendoHorizontal = false;
                 let deslocX = 0;
@@ -335,46 +509,70 @@
                 // Pulo
                 teclasParaFisica[' '] = !!teclas[' '];
 
-                // Interação K
-                const kPressionado = teclas['k'] || teclas['K'] || teclas['KeyK'];
-                if (kPressionado && !bb.kPressionadoAnterior) {
-                    bb.interagindo = true;
-                    setTimeout(() => { bb.interagindo = false; }, 300);
-                    let interagiuComPet = false;
-                    let interagiuComRoboAberto = false;
-
+                // Controle de pet (Q)
+                const qPressionado = qPressionadoFrame;
+                if (qPressionado && !bb.qPressionadoAnterior) {
                     const petControlavel = obterPetControlavelColidindo(bb);
                     if (petControlavel) {
-                        const assumiuPet = bbAssumirControleDoPet(bb, petControlavel, teclas);
-                        if (assumiuPet) {
-                            interagiuComPet = true;
+                        bbAssumirControleDoPet(bb, petControlavel, teclas);
+                    } else {
+                        // sem efeito
+                    }
+                }
+
+                // Interação E
+                const ePressionado = ePressionadoFrame;
+                if (ePressionado && !bb.ePressionadoAnterior) {
+                    bb.interagindo = true;
+                    setTimeout(() => { bb.interagindo = false; }, 300);
+                    let interagiuComMusgo = false;
+                    let interagiuComInimigoPreso = false;
+                    let interagiuComRoboAberto = false;
+
+                    interagiuComMusgo = !!window.interagirComMusgoAlvo?.(bb, teclas);
+
+                    if (!interagiuComMusgo) {
+                        const inimigoPreso = obterInimigoPresoColidindo(bb);
+                        if (inimigoPreso) {
+                            const abriuInimigo = bbAbrirInimigoPreso(bb, inimigoPreso, config, teclas);
+                            if (abriuInimigo) {
+                                interagiuComInimigoPreso = true;
+
+                            }
                         }
                     }
 
-                    if (!interagiuComPet) {
+                    if (!interagiuComInimigoPreso) {
                     const roboColidindo = bb.cooldownTrocaCorpo > 0 ? null : obterRoboAbertoColidindo(bb);
 
                     if (roboColidindo) {
                         const assumiuCorpo = bbAssumirCorpoDoRobo(player, roboColidindo);
                         if (assumiuCorpo) {
                             interagiuComRoboAberto = true;
-                            teclas['k'] = false;
-                            teclas['K'] = false;
-                            teclas['KeyK'] = false;
+
+                            teclas['e'] = false;
+                            teclas['E'] = false;
+                            teclas['KeyE'] = false;
                         }
                     }
                     }
 
-                    if (!interagiuComPet && !interagiuComRoboAberto && window.sistemaAbertura?.isAberto?.() && bbPodeFecharNoPlayer(bb, player)) {
+                    if (!interagiuComMusgo && !interagiuComInimigoPreso && !interagiuComRoboAberto && window.sistemaAbertura?.isAberto?.() && bbPodeFecharNoPlayer(bb, player)) {
                         const iniciouFechamento = window.sistemaAbertura.iniciarFechamento?.();
                         if (iniciouFechamento) {
-                            teclas['k'] = false;
-                            teclas['K'] = false;
-                            teclas['KeyK'] = false;
+
+                            teclas['e'] = false;
+                            teclas['E'] = false;
+                            teclas['KeyE'] = false;
                         }
                     }
+
+                    if (!interagiuComMusgo && !interagiuComInimigoPreso && !interagiuComRoboAberto) {
+                        // sem alvo válido
+                    }
                 }
-                bb.kPressionadoAnterior = kPressionado;
+                bb.qPressionadoAnterior = qPressionado;
+                bb.ePressionadoAnterior = ePressionado;
             }
 
             // Gravidade e física vertical
@@ -422,8 +620,15 @@
         if (bb.interagindo) {
             bb.elemento.src = bb.spriteInteracao;
         } else {
-            // Animação: alterna entre parado e andando quando em movimento
-            if (bb.movendoHorizontal && bb.noChao) {
+            // Animação: alterna entre parado e andando quando em movimento.
+            // Ajuste: ao controlar o BB, ele não deve “voltar” para sprite parado
+            // enquanto há input horizontal ativo, mesmo que bb.noChao oscile.
+            const teclas = window.playerControle?.teclas || {};
+            const inputHorizontalAtivo =
+                teclas['a'] || teclas['A'] || teclas['ArrowLeft'] ||
+                teclas['d'] || teclas['D'] || teclas['ArrowRight'];
+
+            if (bb.movendoHorizontal && (bb.noChao || inputHorizontalAtivo)) {
                 bb.contadorAnimacao++;
                 if (bb.contadorAnimacao >= 10) {
                     bb.frameAtual = bb.frameAtual === 0 ? 1 : 0;
@@ -431,7 +636,7 @@
                     bb.contadorAnimacao = 0;
                 }
             } else {
-                // Parado no chão
+                // Parado no chão (ou sem input horizontal)
                 bb.elemento.src = bb.spriteParado;
                 bb.contadorAnimacao = 0;
                 bb.frameAtual = 0;

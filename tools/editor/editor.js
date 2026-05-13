@@ -129,6 +129,9 @@ function obterLegendaCoord(coord) {
 
     if (faseData.posicaoGaiola === coord) return 'Gaiola com Cão';
 
+    if (faseData.posicaoMusgoRoboAberto === coord) return 'Musgo (Robô Aberto)';
+    if (faseData.posicaoMusgoRoboDesativado === coord) return 'Musgo (Robô Desativado)';
+
     for (const def of SYSTEM_DEFS) {
         if (faseData[def.stateKey] === coord) return def.label;
     }
@@ -389,12 +392,39 @@ function configurarGrade() {
 
 function adicionarElemento(coord) {
     console.log(`[Editor] adicionarElemento: tipo=${itemSelecionado}, coord=${coord}`);
+    if (itemSelecionado === 'musgo') {
+        const alvoRoboAberto = faseData.posicaoRoboAberto === coord;
+        const alvoRoboDesativado = faseData.posicaoRoboDesativado === coord;
+
+        if (alvoRoboAberto) {
+            faseData.posicaoMusgoRoboAberto = coord;
+            aplicarFaseDataEditor(faseData);
+            return;
+        }
+
+        if (alvoRoboDesativado) {
+            faseData.posicaoMusgoRoboDesativado = coord;
+            aplicarFaseDataEditor(faseData);
+            return;
+        }
+
+        return;
+    }
+
     removerElemento(coord);
 
     const definition = window.EditorConfig?.getDefinitionByType(itemSelecionado);
     if (definition) {
         if (definition.kind === 'single') {
             faseData[definition.stateKey] = coord;
+
+            if (definition.type === 'roboAberto' && faseData.posicaoMusgoRoboAberto && faseData.posicaoMusgoRoboAberto !== coord) {
+                faseData.posicaoMusgoRoboAberto = '';
+            }
+
+            if (definition.type === 'roboDesativado' && faseData.posicaoMusgoRoboDesativado && faseData.posicaoMusgoRoboDesativado !== coord) {
+                faseData.posicaoMusgoRoboDesativado = '';
+            }
         } else {
             if (!Array.isArray(faseData[definition.stateKey])) faseData[definition.stateKey] = [];
             faseData[definition.stateKey].push(coord);
@@ -441,6 +471,9 @@ function removerElemento(coord) {
     SYSTEM_DEFS.forEach(def => {
         if (faseData[def.stateKey] === coord) faseData[def.stateKey] = '';
     });
+
+    if (faseData.posicaoMusgoRoboAberto === coord) faseData.posicaoMusgoRoboAberto = '';
+    if (faseData.posicaoMusgoRoboDesativado === coord) faseData.posicaoMusgoRoboDesativado = '';
 
     aplicarFaseDataEditor(faseData);
 }
