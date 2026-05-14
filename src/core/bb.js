@@ -471,6 +471,7 @@
             if (bb.cooldownPulo > 0) bb.cooldownPulo--;
             if (bb.cooldownTrocaCorpo > 0) bb.cooldownTrocaCorpo--;
             if (Number(bb.cooldownInteracaoRoboAposMusgo || 0) > 0) bb.cooldownInteracaoRoboAposMusgo--;
+            if (Number(bb.cooldownInteracaoAlavanca || 0) > 0) bb.cooldownInteracaoAlavanca--;
 
             if (window.controlandoBB) {
                 const teclas = window.playerControle?.teclas || {};
@@ -527,17 +528,22 @@
                     bb.interagindo = true;
                     setTimeout(() => { bb.interagindo = false; }, 300);
                     let interagiuComMusgo = false;
+                    let interagiuComAlavanca = false;
                     let interagiuComRoboDesativado = false;
                     let interagiuComInimigoPreso = false;
                     let interagiuComRoboAberto = false;
 
                     interagiuComMusgo = !!window.interagirComMusgoAlvo?.(bb, teclas);
 
-                    if (!interagiuComMusgo && Number(bb.cooldownInteracaoRoboAposMusgo || 0) <= 0) {
+                    if (!interagiuComMusgo && Number(bb.cooldownInteracaoAlavanca || 0) <= 0) {
+                        interagiuComAlavanca = !!window.interagirComAlavanca?.(bb, teclas, { exigeAgachado: false });
+                    }
+
+                    if (!interagiuComMusgo && !interagiuComAlavanca && Number(bb.cooldownInteracaoRoboAposMusgo || 0) <= 0) {
                         interagiuComRoboDesativado = !!window.interagirComRoboDesativado?.(bb, teclas);
                     }
 
-                    if (!interagiuComMusgo && !interagiuComRoboDesativado) {
+                    if (!interagiuComMusgo && !interagiuComAlavanca && !interagiuComRoboDesativado) {
                         const inimigoPreso = obterInimigoPresoColidindo(bb);
                         if (inimigoPreso) {
                             const abriuInimigo = bbAbrirInimigoPreso(bb, inimigoPreso, config, teclas);
@@ -548,7 +554,7 @@
                         }
                     }
 
-                    if (!interagiuComRoboDesativado && !interagiuComInimigoPreso) {
+                    if (!interagiuComAlavanca && !interagiuComRoboDesativado && !interagiuComInimigoPreso) {
                     const roboColidindo = (bb.cooldownTrocaCorpo > 0 || Number(bb.cooldownInteracaoRoboAposMusgo || 0) > 0)
                         ? null
                         : obterRoboAbertoColidindo(bb);
@@ -565,7 +571,7 @@
                     }
                     }
 
-                    if (!interagiuComMusgo && !interagiuComRoboDesativado && !interagiuComInimigoPreso && !interagiuComRoboAberto && window.sistemaAbertura?.isAberto?.() && bbPodeFecharNoPlayer(bb, player)) {
+                    if (!interagiuComMusgo && !interagiuComAlavanca && !interagiuComRoboDesativado && !interagiuComInimigoPreso && !interagiuComRoboAberto && window.sistemaAbertura?.isAberto?.() && bbPodeFecharNoPlayer(bb, player)) {
                         const iniciouFechamento = window.sistemaAbertura.iniciarFechamento?.();
                         if (iniciouFechamento) {
 
@@ -575,7 +581,7 @@
                         }
                     }
 
-                    if (!interagiuComMusgo && !interagiuComRoboDesativado && !interagiuComInimigoPreso && !interagiuComRoboAberto) {
+                    if (!interagiuComMusgo && !interagiuComAlavanca && !interagiuComRoboDesativado && !interagiuComInimigoPreso && !interagiuComRoboAberto) {
                         // sem alvo válido
                     }
                 }

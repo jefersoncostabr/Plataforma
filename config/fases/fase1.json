@@ -2,6 +2,7 @@
     "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
     "objetivo": "e40",
+    "posicaoAlavanca": "b11",
     "posicaoRoboDesativado": "c17",
     "posicaoRoboAberto": "i17",
     "posicaoMusgoRoboAberto": "i17",

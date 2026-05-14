@@ -149,13 +149,15 @@ function obterLegendaCoord(coord) {
 
 window.onload = async () => {
     console.group("🚀 [Editor] Inicialização");
-    console.log("Configurações detectadas:", { 
-        TileSize: TILE_SIZE,
-        HasConfig: !!window.EditorConfig,
-        SystemCount: window.EditorConfig?.SYSTEM_DEFS?.length,
-        PaletaID: !!document.getElementById('palette'),
-        StageID: !!document.getElementById('game-stage')
-    });
+    if (window.__EDITOR_DEBUG_LEVEL__ === 'full') {
+        console.log("Configurações detectadas:", { 
+            TileSize: TILE_SIZE,
+            HasConfig: !!window.EditorConfig,
+            SystemCount: window.EditorConfig?.SYSTEM_DEFS?.length,
+            PaletaID: !!document.getElementById('palette'),
+            StageID: !!document.getElementById('game-stage')
+        });
+    }
 
     const createEmptyFaseData = window.EditorConfig?.createEmptyFaseData || (() => ({}));
 
@@ -391,7 +393,10 @@ function configurarGrade() {
 
 
 function adicionarElemento(coord) {
-    console.log(`[Editor] adicionarElemento: tipo=${itemSelecionado}, coord=${coord}`);
+    if (window.__EDITOR_DEBUG_LEVEL__ === 'full') {
+        console.log(`[Editor] adicionarElemento: tipo=${itemSelecionado}, coord=${coord}`);
+    }
+
     if (itemSelecionado === 'musgo') {
         const alvoRoboAberto = faseData.posicaoRoboAberto === coord;
         const alvoRoboDesativado = faseData.posicaoRoboDesativado === coord;
@@ -408,6 +413,13 @@ function adicionarElemento(coord) {
             return;
         }
 
+        return;
+    }
+
+    if (itemSelecionado === 'alavanca') {
+        removerElemento(coord);
+        faseData.posicaoAlavanca = coord;
+        aplicarFaseDataEditor(faseData);
         return;
     }
 
@@ -448,7 +460,10 @@ function adicionarElemento(coord) {
 }
 
 function removerElemento(coord) {
-    console.log(`[Editor] removerElemento na coord=${coord}`);
+    if (window.__EDITOR_DEBUG_LEVEL__ === 'full') {
+        console.log(`[Editor] removerElemento na coord=${coord}`);
+    }
+
     const COORD_ARRAY_KEYS = window.EditorConfig?.COORD_ARRAY_KEYS || [];
     const SYSTEM_DEFS = window.EditorConfig?.SYSTEM_DEFS || [];
 

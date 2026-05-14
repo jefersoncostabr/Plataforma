@@ -969,6 +969,10 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             controle.cooldownInteracaoRoboAposMusgo--;
         }
 
+        if (Number(controle.cooldownInteracaoAlavanca || 0) > 0) {
+            controle.cooldownInteracaoAlavanca--;
+        }
+
         // --- LÓGICA DE TOGGLE ARMA/ESCUDO (TECLA E) ---
         const apertouE = !!(controle.teclas['e'] || controle.teclas['E']);
         if (apertouE && !controle.ePressionado) {
@@ -976,13 +980,17 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 ? !!window.interagirComMusgoAlvo?.(controle, controle.teclas)
                 : false;
 
-            const interagiuComRoboDesativado = (!interagiuComMusgo
+            const interagiuComAlavanca = (!interagiuComMusgo && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB)
+                ? !!window.interagirComAlavanca?.(controle, controle.teclas, { exigeAgachado: true })
+                : false;
+
+            const interagiuComRoboDesativado = (!interagiuComMusgo && !interagiuComAlavanca
                 && Number(controle.cooldownInteracaoRoboAposMusgo || 0) <= 0
                 && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB)
                 ? !!window.interagirComRoboDesativado?.(controle, controle.teclas)
                 : false;
 
-            if (!interagiuComMusgo && !interagiuComRoboDesativado && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB && !controle.estaAgachado && controle.temCinto) {
+            if (!interagiuComMusgo && !interagiuComAlavanca && !interagiuComRoboDesativado && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB && !controle.estaAgachado && controle.temCinto) {
                 if (typeof sistemaVisuaisEquipamentos.alternarEquipamentoSelecao === 'function') {
                     sistemaVisuaisEquipamentos.alternarEquipamentoSelecao();
                 }

@@ -720,7 +720,16 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
             botaElemento.style.bottom = controle.y + 'px';
             botaElemento.style.transform = elemento.style.transform;
 
-            if (controle.chutando) {
+            const idleAtivoComBota = !!controle._idle2sAtivo
+                && !!controle.noChao
+                && !controle.movendoHorizontal
+                && !controle.estaAgachado
+                && !controle.chutando
+                && Number(controle.tempoChute || 0) <= 0;
+
+            if (idleAtivoComBota) {
+                botaElemento.src = config.spriteBotaOciosa || '../../assets/personagem/bota_ociosa.png';
+            } else if (controle.chutando) {
                 botaElemento.src = config.spriteBotaChutando || '../../assets/personagem/bota_chutando.png';
             } else if (!controle.noChao) {
                 botaElemento.src = config.spriteBotaNoAr || '../../assets/personagem/bota_no_ar.png';

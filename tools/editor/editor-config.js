@@ -31,6 +31,7 @@
     const SYSTEM_DEFS = [
         { type: 'player', stateKey: 'posicaoInicialJogador', sprite: '../../assets/personagem/Personagem_parado.png', label: 'Ponto Inicial do Jogador', className: 'player-filter', kind: 'single' },
         { type: 'objetivo', stateKey: 'objetivo', sprite: '../../assets/personagem/objetivo.png', label: 'Objetivo da Fase', kind: 'single' },
+        { type: 'alavanca', stateKey: 'posicaoAlavanca', sprite: '../../assets/personagem/alavanca.png', label: 'Alavanca', kind: 'single' },
         { type: 'roboDesativado', stateKey: 'posicaoRoboDesativado', sprite: '../../assets/personagem/robo_desativado.png', label: 'Robô Desativado (Interativo)', kind: 'single' },
         { type: 'roboAberto', stateKey: 'posicaoRoboAberto', sprite: '../../assets/personagem/per_aberto.png', label: 'Robô Aberto (Casco)', kind: 'single' },
         { type: 'gaiola', stateKey: 'posicaoGaiola', sprite: '../../assets/personagem/gaiola1.png', label: 'Gaiola com Cão', kind: 'single' },
@@ -47,6 +48,7 @@
             proporcao: DEFAULT_PROPORTION,
             posicaoInicialJogador: 'b2',
             objetivo: 'f19',
+            posicaoAlavanca: '',
             posicaoRoboDesativado: '',
             posicaoRoboAberto: '',
             posicaoMusgoRoboAberto: '',

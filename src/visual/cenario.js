@@ -44,6 +44,8 @@ function limparCenario() {
     window.robosDesativadosData = [];
     window.musgoData = null;
     window.musgosData = [];
+    window.alavancaData = null;
+    window.alavancasData = [];
     window.inimigos = []; // CRÍTICO: Limpa inimigos para não deixar "fantasmas" da fase anterior
 
     // 3. Reseta filtros de CSS que podem estar pesando na GPU (como blur ou grayscale)
@@ -198,6 +200,22 @@ function renderizarObjetivo(idPalco, imagemPath, coord) {
     };
 }
 
+function renderizarAlavanca(idPalco, imagemPath, coord) {
+    const partes = parseCoordGrid(coord);
+    if (!partes) return;
+
+    const { row, col } = partes;
+    const tamanhoTile = 32;
+    const x = col * tamanhoTile;
+    const y = row * tamanhoTile;
+
+    criarAlavancaInterativa(x, y, {
+        coord,
+        imagemPath,
+        origem: 'fase'
+    });
+}
+
 /**
  * Renderiza um robô aberto de fase (casco vazio) para o BB assumir o corpo.
  *
@@ -267,6 +285,130 @@ function renderizarMusgoSobreRoboDesativado(idPalco, imagemPath, coord) {
         alvoTipo: 'roboDesativado',
         origem: 'fase'
     });
+}
+
+function criarAlavancaInterativa(x, y, opcoes = {}) {
+    const layerUI = obterLayer(window.LAYERS.UI);
+    if (!layerUI) return null;
+    const tamanhoTile = 32;
+
+    const spawnX = Number(x || 0);
+    const spawnY = Number(y || 0);
+    const imagemPath = opcoes.imagemPath || '../../assets/personagem/alavanca.png';
+
+    if (!Array.isArray(window.alavancasData)) {
+        window.alavancasData = [];
+    }
+
+    const jaExisteNoLocal = window.alavancasData.some((alavanca) => {
+        if (!alavanca || !alavanca.ativo) return false;
+        return Number(alavanca.spawnX || 0) === spawnX && Number(alavanca.spawnY || 0) === spawnY;
+    });
+
+    if (jaExisteNoLocal) {
+        return window.alavancasData.find((alavanca) => alavanca && alavanca.ativo && Number(alavanca.spawnX || 0) === spawnX && Number(alavanca.spawnY || 0) === spawnY) || null;
+    }
+
+    const alavancaId = `alavanca-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const alavancaImg = document.createElement('img');
+    alavancaImg.id = alavancaId;
+    alavancaImg.src = imagemPath;
+    alavancaImg.style.position = 'absolute';
+    alavancaImg.style.left = spawnX + 'px';
+    alavancaImg.style.bottom = spawnY + 'px';
+    alavancaImg.style.width = tamanhoTile + 'px';
+    alavancaImg.style.height = tamanhoTile + 'px';
+    alavancaImg.style.imageRendering = 'pixelated';
+    alavancaImg.style.pointerEvents = 'none';
+    alavancaImg.style.transition = 'none';
+    adicionarAoLayer(alavancaImg, window.LAYERS.UI);
+
+    const alavancaData = {
+        id: alavancaId,
+        x: spawnX + 7,
+        y: spawnY + 8,
+        largura: 18,
+        altura: 16,
+        spawnX,
+        spawnY,
+        coord: opcoes.coord || '',
+        origem: opcoes.origem || 'fase',
+        ativo: true,
+        estadoInvertido: false,
+        emAnimacao: false,
+        emCooldown: false,
+        elemento: alavancaImg
+    };
+
+    alavancaImg.style.transform = 'scaleX(1)';
+    window.alavancasData.push(alavancaData);
+    window.alavancaData = alavancaData;
+
+    return alavancaData;
+}
+
+function buscarAlavancaPorColisao(hitbox) {
+    if (!hitbox || typeof window.detectarColisaoHitbox !== 'function') return null;
+    if (!Array.isArray(window.alavancasData)) return null;
+
+    for (const alavanca of window.alavancasData) {
+        if (!alavanca || !alavanca.ativo || alavanca.emAnimacao || alavanca.emCooldown) continue;
+        if (window.detectarColisaoHitbox(hitbox, alavanca, 0, 0, 0)) {
+            return alavanca;
+        }
+    }
+
+    return null;
+}
+
+function interagirComAlavanca(controle, teclas = null, opcoes = {}) {
+    if (!controle || typeof window.detectarColisaoHitbox !== 'function') return false;
+
+    const hitboxControle = {
+        x: Number(controle.x || 0) + Number(controle.offsetX || 0),
+        y: Number(controle.y || 0),
+        largura: Number(controle.largura || 20),
+        altura: Number(controle.altura || 32)
+    };
+
+    const exigeAgachado = opcoes.exigeAgachado !== false;
+    if (exigeAgachado && !controle.estaAgachado) return false;
+
+    const alavanca = buscarAlavancaPorColisao(hitboxControle);
+    if (!alavanca) return false;
+
+    const config = window.config || {};
+    const tempoAnimacaoMs = Math.max(16, Number(config.tempoAnimacaoAlavancaMs ?? 40));
+    const cooldownMs = Math.max(150, Number(config.cooldownAlavancaMs ?? 450));
+
+    alavanca.emAnimacao = true;
+    alavanca.emCooldown = true;
+    alavanca.estadoInvertido = !alavanca.estadoInvertido;
+
+    if (alavanca.elemento) {
+        alavanca.elemento.style.transform = alavanca.estadoInvertido ? 'scaleX(-1)' : 'scaleX(1)';
+    }
+
+    window.AudioManager?.playSFX('engrenagem', 0.4);
+
+    window.setTimeout(() => {
+        if (!alavanca || !alavanca.ativo) return;
+        alavanca.emAnimacao = false;
+    }, tempoAnimacaoMs);
+
+    window.setTimeout(() => {
+        if (!alavanca || !alavanca.ativo) return;
+        alavanca.emCooldown = false;
+    }, tempoAnimacaoMs + cooldownMs);
+
+    if (teclas && typeof teclas === 'object') {
+        teclas['e'] = false;
+        teclas['E'] = false;
+        teclas['KeyE'] = false;
+    }
+
+    return true;
 }
 
 function criarRoboAbertoInterativo(x, y, opcoes = {}) {
@@ -691,6 +833,10 @@ window.buscarRoboDesativadoPorColisao = buscarRoboDesativadoPorColisao;
 window.interagirComRoboDesativado = interagirComRoboDesativado;
 window.renderizarMusgoSobreRoboAberto = renderizarMusgoSobreRoboAberto;
 window.renderizarMusgoSobreRoboDesativado = renderizarMusgoSobreRoboDesativado;
+window.renderizarAlavanca = renderizarAlavanca;
+window.criarAlavancaInterativa = criarAlavancaInterativa;
+window.buscarAlavancaPorColisao = buscarAlavancaPorColisao;
+window.interagirComAlavanca = interagirComAlavanca;
 window.interagirComMusgoAlvo = interagirComMusgoAlvo;
 
 
