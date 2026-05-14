@@ -1877,6 +1877,34 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             }
         }
 
+        // Verificação de colisão com vidro da cápsula para todos os inimigos
+        if (typeof window.verificarColisaoComVidroCapsula === 'function') {
+            for (const inimigo of window.inimigos) {
+                if (!inimigo || inimigo.estaMorto) continue;
+
+                const hitboxInimigo = {
+                    x: inimigo.x + (inimigo.offsetX || 0),
+                    y: inimigo.y,
+                    largura: inimigo.largura,
+                    altura: inimigo.altura
+                };
+                const vidroColidido = window.verificarColisaoComVidroCapsula(hitboxInimigo);
+                if (vidroColidido) {
+                    // Faz snap colisão: empurra para fora do vidro
+                    const centroInimigo = inimigo.x + (inimigo.offsetX || 0) + inimigo.largura / 2;
+                    const centroVidro = vidroColidido.x + vidroColidido.largura / 2;
+                    
+                    if (centroInimigo < centroVidro) {
+                        // Inimigo à esquerda do vidro
+                        inimigo.x = vidroColidido.x - (inimigo.largura + inimigo.offsetX);
+                    } else {
+                        // Inimigo à direita do vidro
+                        inimigo.x = (vidroColidido.x + vidroColidido.largura) - inimigo.offsetX;
+                    }
+                }
+            }
+        }
+
         // Mantém o loop de movimentação da IA
         requestAnimationFrame(atualizarIA);
     }

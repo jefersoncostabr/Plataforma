@@ -320,6 +320,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
     // Expõe para que outros sistemas (IA, Combate) usem a mesma lógica de limpeza
     window.removerInimigoDerrotado = removerInimigoDerrotado;
     window.processarMorteFeno = processarMorteFeno;
+    window.verificarColisaoComVidroCapsula = verificarColisaoComVidroCapsula;
+    window.obterHitboxCapsula = obterHitboxCapsula;
 
     aplicarInventarioSalvo();
 
@@ -717,6 +719,23 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             largura: 32,
             altura: vidroAltura
         };
+    }
+
+    function verificarColisaoComVidroCapsula(hitboxPlayer) {
+        if (!window.itensColetaveis || typeof window.detectarColisaoHitbox !== 'function') return null;
+        
+        for (const item of Object.values(window.itensColetaveis)) {
+            if (!item || item.tipo !== 'capsula' || item.vidroQuebrado) continue;
+            
+            const hitboxVidro = obterHitboxCapsula(item);
+            if (!hitboxVidro) continue;
+            
+            if (window.detectarColisaoHitbox(hitboxPlayer, hitboxVidro, 0, 0, 0)) {
+                return hitboxVidro;
+            }
+        }
+        
+        return null;
     }
 
     function aplicarDanoEmCapsula(item, origem = 'ataque') {
@@ -1378,6 +1397,32 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         // ITEM 6: Limites do Palco (Horizontal) - Aplicar antes da colisão com tiles
         const limitePalcoX = limitarPosicaoAoPalco(controle.x + controle.offsetX, controle.y, controle.largura, controle.altura);
         controle.x = limitePalcoX.x - controle.offsetX;
+
+        // Verifica colisão com vidro da cápsula (movimento horizontal e vertical)
+        const hitboxPlayerFinal = {
+            x: controle.x + (controle.offsetX || 0),
+            y: controle.y,
+            largura: controle.largura,
+            altura: controle.altura
+        };
+        const vidroColidido = verificarColisaoComVidroCapsula(hitboxPlayerFinal);
+        if (vidroColidido) {
+            // Se colidiu com vidro, tenta fazer snap a partir da direção anterior
+            if (controle.x > xAnterior) {
+                // Estava se movendo para direita, recua
+                controle.x = vidroColidido.x - (controle.largura + controle.offsetX);
+            } else if (controle.x < xAnterior) {
+                // Estava se movendo para esquerda, avança
+                controle.x = (vidroColidido.x + vidroColidido.largura) - controle.offsetX;
+            }
+            if (controle.y > yAnterior) {
+                // Estava se movendo para cima, recua
+                controle.y = vidroColidido.y - controle.altura;
+            } else if (controle.y < yAnterior) {
+                // Estava se movendo para baixo, avança
+                controle.y = vidroColidido.y + vidroColidido.altura;
+            }
+        }
 
         // ⚠️ ITEM 4: Sub-stepping Horizontal (Linha 1390) - DETECTA COLISÕES ESTACAS
         // Quebra movimento em passos de 16px para detectar colisões com estacas

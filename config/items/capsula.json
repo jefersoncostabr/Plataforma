@@ -7,7 +7,8 @@
         "vidro": "../../assets/personagem/capsula/capsula_vidro.png",
         "superiorOffsetY": 32,
         "vidroAltura": 31,
-        "vidroOffsetY": 14
+        "vidroOffsetY": 14,
+        "robotOffsetY": 16
     },
     "coletavel": false,
     "consumivel": false,

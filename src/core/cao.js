@@ -153,6 +153,24 @@
                         maxPasso: 1,
                         cancelarKnockbackAoColidir: true
                     });
+                    
+                    // Colisão com vidro da cápsula
+                    if (typeof window.verificarColisaoComVidroCapsula === 'function') {
+                        const hitboxPet = {
+                            x: pet.x + (pet.offsetX || 0),
+                            y: pet.y,
+                            largura: pet.largura,
+                            altura: pet.altura
+                        };
+                        const vidroColidido = window.verificarColisaoComVidroCapsula(hitboxPet);
+                        if (vidroColidido) {
+                            if (deslocX > 0) {
+                                pet.x = vidroColidido.x - (pet.largura + pet.offsetX);
+                            } else {
+                                pet.x = (vidroColidido.x + vidroColidido.largura) - pet.offsetX;
+                            }
+                        }
+                    }
                 }
                 // Mapeia teclas de pulo para o sistema de física
                 // Ajuste: Removido o mapeamento de 'w' e 'ArrowUp' para que apenas o Espaço execute o pulo.

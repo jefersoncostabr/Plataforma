@@ -36,6 +36,16 @@ window.atualizarVisualItemColetavel = function(item, opcoes = {}) {
             : '../../assets/personagem/per_aberto.png';
     }
 
+    if (item.roboInterno && item.elementoRobot) {
+        const robotOffsetY = Number(item.robotOffsetY ?? 16);
+        item.roboInterno.robotEstado = item.robotEstado;
+        item.roboInterno.estado = item.robotEstado;
+        item.roboInterno.elemento = item.elementoRobot;
+        item.roboInterno.capsulaPai = item;
+        item.elementoRobot.style.left = (x + 3) + 'px';
+        item.elementoRobot.style.bottom = (y + robotOffsetY) + 'px';
+    }
+
     if (item.vidroQuebrado && item.vidroElemento) {
         item.vidroElemento.style.display = 'none';
     }
@@ -76,6 +86,10 @@ window.removerVisualItemColetavel = function(item) {
             extra.elemento.parentNode.removeChild(extra.elemento);
         }
     });
+
+    if (item.roboInterno?.elemento?.parentNode) {
+        item.roboInterno.elemento.parentNode.removeChild(item.roboInterno.elemento);
+    }
 
     if (item.elemento?.parentNode) {
         item.elemento.parentNode.removeChild(item.elemento);
@@ -154,7 +168,7 @@ window.criarItemColetavel = function(itemData, x, y, extras = {}) {
         const superiorOffsetY = Number(spriteComposto.superiorOffsetY ?? 32);
         const vidroAltura = Number(spriteComposto.vidroAltura ?? 10);
         const vidroOffsetY = Number(spriteComposto.vidroOffsetY ?? 27);
-        const robotOffsetY = Number(spriteComposto.robotOffsetY ?? 14);
+        const robotOffsetY = Number(spriteComposto.robotOffsetY ?? 16);
 
         const parteInferior = criarSprite({
             src: srcInferior,
@@ -174,7 +188,19 @@ window.criarItemColetavel = function(itemData, x, y, extras = {}) {
             layer: window.LAYERS?.ITENS,
             zIndex: 24
         });
-        const parteRobot = criarSprite({
+        const criarRoboCapsula = robotEstado === 'desativado'
+            ? window.criarRoboDesativadoInterativo
+            : window.criarRoboAbertoInterativo;
+        const roboInterno = typeof criarRoboCapsula === 'function'
+            ? criarRoboCapsula(x + 3, y + robotOffsetY, {
+                coord: itemData.coord || '',
+                origem: 'capsula',
+                imagemPath: srcRobot,
+                layerOverride: window.LAYERS?.ITENS,
+                zIndex: 20
+            })
+            : null;
+        const parteRobot = roboInterno?.elemento || criarSprite({
             src: srcRobot,
             bottom: y + robotOffsetY,
             layer: window.LAYERS?.ITENS,
@@ -194,12 +220,13 @@ window.criarItemColetavel = function(itemData, x, y, extras = {}) {
             vidroAltura,
             vidroOffsetY,
             elementoRobot: parteRobot,
+            roboInterno,
+            robotOffsetY,
             robotEstado,
             coletavel: itemData.coletavel !== false,
             elementosExtras: [
                 { elemento: parteInferior, offsetX: 0, offsetY: 0 },
-                { elemento: parteSuperior, offsetX: 0, offsetY: superiorOffsetY },
-                { elemento: parteRobot, offsetX: 0, offsetY: robotOffsetY }
+                { elemento: parteSuperior, offsetX: 0, offsetY: superiorOffsetY }
             ],
             velocidadeY: 0,
         };

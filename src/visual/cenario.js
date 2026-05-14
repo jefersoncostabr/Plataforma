@@ -412,13 +412,14 @@ function interagirComAlavanca(controle, teclas = null, opcoes = {}) {
 }
 
 function criarRoboAbertoInterativo(x, y, opcoes = {}) {
-    const layerUI = obterLayer(window.LAYERS.UI);
-    if (!layerUI) return null;
+    const layerDestino = opcoes.layerOverride || window.LAYERS.UI;
+    if (!layerDestino) return null;
     const tamanhoTile = 32;
 
     const spawnX = Number(x || 0);
     const spawnY = Number(y || 0);
     const imagemPath = opcoes.imagemPath || '../../assets/personagem/per_aberto.png';
+    const zIndex = opcoes.zIndex ?? 0;
 
     if (!Array.isArray(window.robosAbertosData)) {
         window.robosAbertosData = [];
@@ -444,7 +445,9 @@ function criarRoboAbertoInterativo(x, y, opcoes = {}) {
     roboImg.style.width = tamanhoTile + 'px';
     roboImg.style.height = tamanhoTile + 'px';
     roboImg.style.imageRendering = 'pixelated';
-    adicionarAoLayer(roboImg, window.LAYERS.UI);
+    roboImg.style.pointerEvents = 'none';
+    if (zIndex) roboImg.style.zIndex = String(zIndex);
+    adicionarAoLayer(roboImg, layerDestino);
 
     roboImg.onerror = () => console.error(`Erro: Não foi possível carregar a imagem em: ${imagemPath}`);
 
@@ -469,13 +472,14 @@ function criarRoboAbertoInterativo(x, y, opcoes = {}) {
 }
 
 function criarRoboDesativadoInterativo(x, y, opcoes = {}) {
-    const layerUI = obterLayer(window.LAYERS.UI);
-    if (!layerUI) return null;
+    const layerDestino = opcoes.layerOverride || window.LAYERS.UI;
+    if (!layerDestino) return null;
     const tamanhoTile = 32;
 
     const spawnX = Number(x || 0);
     const spawnY = Number(y || 0);
     const imagemPath = opcoes.imagemPath || '../../assets/personagem/robo_desativado.png';
+    const zIndex = opcoes.zIndex ?? 0;
 
     if (!Array.isArray(window.robosDesativadosData)) {
         window.robosDesativadosData = [];
@@ -502,7 +506,8 @@ function criarRoboDesativadoInterativo(x, y, opcoes = {}) {
     roboImg.style.height = tamanhoTile + 'px';
     roboImg.style.imageRendering = 'pixelated';
     roboImg.style.pointerEvents = 'none';
-    adicionarAoLayer(roboImg, window.LAYERS.UI);
+    if (zIndex) roboImg.style.zIndex = String(zIndex);
+    adicionarAoLayer(roboImg, layerDestino);
 
     roboImg.onerror = () => console.error(`Erro: Não foi possível carregar a imagem em: ${imagemPath}`);
 
@@ -732,6 +737,13 @@ function interagirComRoboDesativado(controle, teclas = null) {
     const robo = buscarRoboDesativadoPorColisao(hitboxControle);
     if (!robo || robo.emAbertura) return false;
 
+    if (robo.origem === 'capsula') {
+        const capsulaPai = Object.values(window.itensColetaveis || {}).find(item =>
+            item && item.roboInterno && item.roboInterno.id === robo.id
+        );
+        if (capsulaPai && capsulaPai.vidroQuebrado === false) return false;
+    }
+
     robo.emAbertura = true;
 
     const config = window.config || {};
@@ -751,6 +763,25 @@ function interagirComRoboDesativado(controle, teclas = null) {
         if (indice < sequencia.length - 1) {
             indice++;
             setTimeout(rodarAbertura, tempoEtapaMs);
+            return;
+        }
+
+        if (robo.origem === 'capsula') {
+            robo.emAbertura = false;
+            robo.tipo = 'roboAberto';
+            robo.estado = 'aberto';
+            if (Array.isArray(window.robosDesativadosData)) {
+                window.robosDesativadosData = window.robosDesativadosData.filter((item) => item && item.id !== robo.id && item.ativo);
+            }
+            if (!Array.isArray(window.robosAbertosData)) {
+                window.robosAbertosData = [];
+            }
+            if (!window.robosAbertosData.includes(robo)) {
+                window.robosAbertosData.push(robo);
+            }
+            window.roboAbertoData = robo;
+            robo.elemento.src = spriteFinal;
+            robo.elemento.style.pointerEvents = 'none';
             return;
         }
 

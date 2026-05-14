@@ -84,13 +84,16 @@
             const superiorOffsetY = Number(spriteComposto.superiorOffsetY ?? 32);
             const vidroAltura = Number(spriteComposto.vidroAltura ?? 10);
             const vidroOffsetY = Number(spriteComposto.vidroOffsetY ?? 27);
-            const robotOffsetY = Number(spriteComposto.robotOffsetY ?? 14);
+            const vidroLargura = Number(spriteComposto.vidroLargura ?? 32);
+            const vidroOffsetX = Number(spriteComposto.vidroOffsetX ?? 0);
+            const robotOffsetY = Number(spriteComposto.robotOffsetY ?? 16);
 
             criarIcone(coord, srcInferior, '', { zIndex: 10 });
             criarIcone(coord, srcSuperior, '', { zIndex: 11, offsetY: superiorOffsetY });
             criarIcone(coord, srcRobot, '', {
                 altura: 32,
                 largura: 32,
+                offsetX: -4,
                 offsetY: robotOffsetY,
                 zIndex: 20
             });

@@ -506,6 +506,24 @@
                         maxPasso: 1,
                         cancelarKnockbackAoColidir: true
                     });
+                    
+                    // Colisão com vidro da cápsula
+                    if (typeof window.verificarColisaoComVidroCapsula === 'function') {
+                        const hitboxBB = {
+                            x: bb.x + (bb.offsetX || 0),
+                            y: bb.y,
+                            largura: bb.largura,
+                            altura: bb.altura
+                        };
+                        const vidroColidido = window.verificarColisaoComVidroCapsula(hitboxBB);
+                        if (vidroColidido) {
+                            if (deslocX > 0) {
+                                bb.x = vidroColidido.x - (bb.largura + bb.offsetX);
+                            } else {
+                                bb.x = (vidroColidido.x + vidroColidido.largura) - bb.offsetX;
+                            }
+                        }
+                    }
                 }
 
                 // Pulo
