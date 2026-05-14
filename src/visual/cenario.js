@@ -465,6 +465,14 @@ function criarRoboAbertoInterativo(x, y, opcoes = {}) {
         elemento: roboImg
     };
 
+    // Adiciona lógica de colisão no teto
+    roboData.colisaoTeto = {
+        x: roboData.x,
+        y: roboData.y + roboData.altura, // Posição do teto
+        largura: roboData.largura,
+        altura: 5 // Altura da colisão do teto
+    };
+
     window.robosAbertosData.push(roboData);
     window.roboAbertoData = roboData;
 

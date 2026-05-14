@@ -357,7 +357,12 @@
                         6, // Checa os 6px de cima
                         window.plataformas
                     );
-                    if (hitTeto) {
+                    // Se for colisão com o teto de um robô aberto e o pet estiver subindo, ignora.
+                    if (hitTeto && hitTeto.tipo === 'meio' && hitTeto.direcao === 'superior') {
+                        // Ignora esta colisão, não aplica snap nem zera velocidade
+                    }
+                    // Se houver colisão com o teto (e não for o robô aberto subindo)
+                    else if (hitTeto) {
                         pet.y = window.aplicarSnapColisaoPadrao(pet.y, 0, pet.altura, hitTeto, 'baixo');
                         pet.velocidadeY = 0;
                     }

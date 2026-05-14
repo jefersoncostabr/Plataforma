@@ -707,6 +707,18 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         atualizarTemporizadores: atualizarTemporizadoresCorpoACorpo
     } = sistemaCombateCorpoACorpo;
 
+    function obterHitboxRoboAberto(robo) {
+        if (!robo || !robo.ativo || typeof robo.x !== 'number' || typeof robo.y !== 'number') return null;
+        // Ajuste: hitbox do "teto" do robô aberto
+        return {
+            x: robo.x,
+            y: robo.y + robo.altura - 4, // só a parte superior fina
+            largura: robo.largura,
+            altura: 4
+        };
+    }
+    window.obterHitboxRoboAberto = obterHitboxRoboAberto;
+
     function obterHitboxCapsula(item) {
         if (!item || item.tipo !== 'capsula') return null;
 
@@ -1598,6 +1610,12 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             if (hit && hit.tipo !== 'solido' && hit.temColisaoVertical === false) {
                 return false;
             }
+
+            // Se for colisão com o teto de um robô aberto e o jogador estiver subindo, ignora.
+            if (hit && hit.tipo === 'meio' && hit.direcao === 'superior' && incY > 0) {
+                return false;
+            }
+
             if (hit) {
                 if (incY < 0) { // Caindo
                     ctrl.noChao = true;

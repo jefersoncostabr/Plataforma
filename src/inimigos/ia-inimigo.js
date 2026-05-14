@@ -1396,9 +1396,14 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         inimigo.y = window.aplicarSnapColisaoPadrao(inimigo.y, 0, inimigo.altura, hitV, 'cima');
                         inimigo.puloTimer = 0;
                         inimigo.jumpQueued = false;
-                    } else if (inimigo.velocidadeY > 0) {
-                        inimigo.velocidadeY = 0;
-                        inimigo.y = window.aplicarSnapColisaoPadrao(inimigo.y, 0, inimigo.altura, hitV, 'baixo');
+                    } else if (inimigo.velocidadeY > 0) { // Subindo
+                        // Se for colisão com o teto de um robô aberto e o inimigo estiver subindo, ignora.
+                        if (hitV.tipo === 'meio' && hitV.direcao === 'superior') {
+                            // Não faz nada, efetivamente ignorando a colisão
+                        } else {
+                            inimigo.velocidadeY = 0;
+                            inimigo.y = window.aplicarSnapColisaoPadrao(inimigo.y, 0, inimigo.altura, hitV, 'baixo');
+                        }
                     }
                 }
 

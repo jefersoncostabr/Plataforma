@@ -86,6 +86,40 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
         return null;
     };
 
+    /**
+     * Verifica colisão com o teto de robôs abertos (entidades interativas).
+     */
+    const verificarColisaoRobosAbertos = () => {
+        if (!Array.isArray(window.robosAbertosData)) return null;
+
+        for (const robo of window.robosAbertosData) {
+            if (!robo || !robo.ativo || !robo.colisaoTeto) continue;
+
+            const c = robo.colisaoTeto;
+            const esquerdaReal = c.x;
+            const direitaReal = c.x + c.largura;
+            const baseReal = c.y - 3; // Onde o teto começa (ajustado em -2px)
+            const topoReal = (c.y + c.altura) - 3; // Mantém a espessura da área de colisão deslocada
+
+            const colisaoX = (x + largura > esquerdaReal && x < direitaReal);
+            const colisaoY = (y + altura > baseReal && y < topoReal);
+
+            if (colisaoX && colisaoY) {
+                return {
+                    tipo: 'meio', // Comportamento de plataforma (meio-bloco)
+                    direcao: 'superior',
+                    topoReal: baseReal, // Snap para a superfície do teto
+                    baseReal: baseReal - 4,
+                    esquerdaReal,
+                    direitaReal,
+                    temColisaoVertical: true,
+                    temColisaoLateral: false
+                };
+            }
+        }
+        return null;
+    };
+
     // Calcula quais colunas e linhas do grid o personagem está ocupando
     const colInicio = Math.floor(x / 32);
     const colFim = Math.floor((x + largura - EPSILON) / 32);
@@ -256,6 +290,9 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
     }
     const colisaoCapsula = verificarColisaoCapsulaMeios();
     if (colisaoCapsula) return colisaoCapsula;
+
+    const colisaoRobo = verificarColisaoRobosAbertos();
+    if (colisaoRobo) return colisaoRobo;
 
     return false;
 }
