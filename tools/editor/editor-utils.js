@@ -58,6 +58,27 @@
         return [...new Set((coords || []).filter(Boolean))];
     }
 
+    function normalizarEntradaItem(tipo, entrada) {
+        if (typeof entrada === 'string') {
+            const pos = entrada.trim();
+            return pos ? pos : null;
+        }
+
+        if (!entrada || typeof entrada !== 'object') return null;
+
+        const pos = String(entrada.pos || entrada.coord || entrada.position || '').trim();
+        if (!pos) return null;
+
+        const itemTipo = String(entrada.tipo || tipo || '').trim() || tipo;
+        const normalizado = { ...entrada, tipo: itemTipo, pos };
+        delete normalizado.coord;
+        delete normalizado.position;
+
+        const chavesExtras = Object.keys(normalizado).filter((key) => !['tipo', 'pos'].includes(key));
+        if (chavesExtras.length === 0) return pos;
+        return normalizado;
+    }
+
     function normalizeCoordList(coords = []) {
         return uniqueCoords(coords).sort(sortCoords);
     }
@@ -70,18 +91,34 @@
                 .filter(item => item && item.tipo && item.pos)
                 .forEach((item) => {
                     if (!Array.isArray(normalized[item.tipo])) normalized[item.tipo] = [];
-                    normalized[item.tipo].push(item.pos);
+                    normalized[item.tipo].push(normalizarEntradaItem(item.tipo, item));
                 });
         } else if (itens && typeof itens === 'object') {
             Object.entries(itens).forEach(([tipo, posicoes]) => {
                 const lista = Array.isArray(posicoes) ? posicoes : [posicoes];
-                const coords = normalizeCoordList(lista.filter(Boolean));
-                if (coords.length > 0) normalized[tipo] = coords;
+                const entradas = lista
+                    .map((entrada) => normalizarEntradaItem(tipo, entrada))
+                    .filter(Boolean);
+                if (entradas.length > 0) normalized[tipo] = entradas;
             });
         }
 
         Object.keys(normalized).forEach((tipo) => {
-            normalized[tipo] = normalizeCoordList(normalized[tipo]);
+            const entradas = normalized[tipo].filter(Boolean);
+            const simples = entradas.every((entrada) => typeof entrada === 'string');
+            if (simples) {
+                normalized[tipo] = normalizeCoordList(entradas);
+            } else {
+                const entradasNormalizadas = entradas
+                    .map((entrada) => (typeof entrada === 'string' ? { tipo, pos: entrada } : entrada))
+                    .filter((entrada) => entrada && entrada.pos);
+                const porPosicao = new Map();
+                entradasNormalizadas.forEach((entrada) => {
+                    porPosicao.set(entrada.pos, entrada);
+                });
+                normalized[tipo] = [...porPosicao.values()].sort((a, b) => sortCoords(a.pos, b.pos));
+            }
+
             if (normalized[tipo].length === 0) delete normalized[tipo];
         });
 
@@ -90,7 +127,10 @@
 
     function iterarItensData(itens = {}) {
         return Object.entries(normalizeItensData(itens)).flatMap(([tipo, coords]) => {
-            return coords.map((pos) => ({ tipo, pos }));
+            return coords.map((entrada) => {
+                if (typeof entrada === 'string') return { tipo, pos: entrada };
+                return { tipo: entrada.tipo || tipo, ...entrada, pos: entrada.pos };
+            });
         });
     }
 
@@ -98,8 +138,15 @@
         const exported = {};
 
         Object.entries(normalizeItensData(itens)).forEach(([tipo, coords]) => {
-            if (coords.length === 1) exported[tipo] = coords[0];
-            else if (coords.length > 1) exported[tipo] = coords;
+            const serializados = coords.map((entrada) => {
+                if (typeof entrada === 'string') return entrada;
+                const { tipo: tipoItem, pos, coord, position, ...extras } = entrada;
+                if (Object.keys(extras).length === 0) return pos;
+                return { pos, ...extras };
+            });
+
+            if (serializados.length === 1) exported[tipo] = serializados[0];
+            else if (serializados.length > 1) exported[tipo] = serializados;
         });
 
         return exported;

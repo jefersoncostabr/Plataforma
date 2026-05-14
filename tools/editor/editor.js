@@ -139,6 +139,10 @@ function obterLegendaCoord(coord) {
     const item = iterarItensData(faseData.itens).find(i => i.pos === coord);
     if (item) {
         const nome = itemDefinitions[item.tipo]?.nome || item.tipo;
+        if (item.tipo === 'capsula') {
+            const estado = item.robotEstado === 'desativado' ? 'robô desativado' : 'robô aberto';
+            return `Item: ${nome} (${estado})`;
+        }
         return 'Item: ' + nome;
     }
 
@@ -397,6 +401,28 @@ function adicionarElemento(coord) {
         console.log(`[Editor] adicionarElemento: tipo=${itemSelecionado}, coord=${coord}`);
     }
 
+    if (itemSelecionado === 'item_capsula') {
+        const itensCapsula = Array.isArray(faseData.itens?.capsula) ? faseData.itens.capsula : [];
+        const indiceCapsula = itensCapsula.findIndex((item) => {
+            if (typeof item === 'string') return item === coord;
+            return item && item.pos === coord;
+        });
+
+        if (indiceCapsula >= 0) {
+            const entradaAtual = itensCapsula[indiceCapsula];
+            const robotEstadoAtual = typeof entradaAtual === 'string' ? 'aberto' : (entradaAtual.robotEstado || 'aberto');
+            const robotEstadoNovo = robotEstadoAtual === 'aberto' ? 'desativado' : 'aberto';
+
+            itensCapsula[indiceCapsula] = typeof entradaAtual === 'string'
+                ? { pos: coord, robotEstado: robotEstadoNovo }
+                : { ...entradaAtual, robotEstado: robotEstadoNovo, pos: coord };
+
+            faseData.itens.capsula = itensCapsula;
+            aplicarFaseDataEditor(faseData);
+            return;
+        }
+    }
+
     if (itemSelecionado === 'musgo') {
         const alvoRoboAberto = faseData.posicaoRoboAberto === coord;
         const alvoRoboDesativado = faseData.posicaoRoboDesativado === coord;
@@ -452,8 +478,19 @@ function adicionarElemento(coord) {
             faseData.itens = {};
         }
         if (!Array.isArray(faseData.itens[tipoReal])) faseData.itens[tipoReal] = [];
-        faseData.itens[tipoReal].push(coord);
-        faseData.itens[tipoReal] = [...new Set(faseData.itens[tipoReal])].sort(sortCoords);
+        if (tipoReal === 'capsula') {
+            const entradaAtual = faseData.itens[tipoReal].find((item) => {
+                const posItem = typeof item === 'string' ? item : item?.pos;
+                return posItem === coord;
+            });
+
+            if (!entradaAtual) {
+                faseData.itens[tipoReal].push({ pos: coord, robotEstado: 'aberto' });
+            }
+        } else {
+            faseData.itens[tipoReal].push(coord);
+            faseData.itens[tipoReal] = [...new Set(faseData.itens[tipoReal])].sort(sortCoords);
+        }
     }
 
     aplicarFaseDataEditor(faseData);
@@ -477,7 +514,10 @@ function removerElemento(coord) {
 
     Object.keys(faseData.itens).forEach((tipo) => {
         const posicoes = Array.isArray(faseData.itens[tipo]) ? faseData.itens[tipo] : [faseData.itens[tipo]];
-        const filtradas = posicoes.filter((pos) => pos !== coord);
+        const filtradas = posicoes.filter((pos) => {
+            const posCoord = typeof pos === 'string' ? pos : pos?.pos;
+            return posCoord !== coord;
+        });
         if (filtradas.length === 0) delete faseData.itens[tipo];
         else faseData.itens[tipo] = filtradas;
     });

@@ -700,9 +700,37 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         atualizarEstadoChute: atualizarEstadoChuteCorpoACorpo,
         processarEntradaChute,
         aplicarImpulsoChute,
+        obterHitboxAtaque,
         processarAcertoChuteEmInimigo,
         atualizarTemporizadores: atualizarTemporizadoresCorpoACorpo
     } = sistemaCombateCorpoACorpo;
+
+    function obterHitboxCapsula(item) {
+        if (!item || item.tipo !== 'capsula') return null;
+
+        const vidroOffsetY = Number(item.vidroOffsetY ?? item.elementoOffsetY ?? 0);
+        const vidroAltura = Number(item.vidroAltura ?? 31);
+
+        return {
+            x: Number(item.x || 0),
+            y: Number(item.y || 0) + vidroOffsetY,
+            largura: 32,
+            altura: vidroAltura
+        };
+    }
+
+    function aplicarDanoEmCapsula(item, origem = 'ataque') {
+        if (!item || item.tipo !== 'capsula' || item.vidroQuebrado) return false;
+
+        const sucesso = typeof window.danificarVidroCapsula === 'function'
+            ? window.danificarVidroCapsula(item, 1, {
+                duracao: origem === 'projetil' ? 500 : 420,
+                velocidade: origem === 'projetil' ? 12 : 10
+            })
+            : false;
+
+        return sucesso;
+    }
 
     // Inicializa o sistema de abertura
     if (typeof window.criarSistemaAberturaJogador !== 'function') {
@@ -1672,6 +1700,20 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             }
         }
 
+        if (controle.chutando && typeof obterHitboxAtaque === 'function' && typeof detectarColisaoHitbox === 'function' && Array.isArray(window.itensColetaveis)) {
+            const hitboxAtaque = obterHitboxAtaque();
+            for (let i = window.itensColetaveis.length - 1; i >= 0; i--) {
+                const item = window.itensColetaveis[i];
+                if (!item || item.tipo !== 'capsula' || item.vidroQuebrado) continue;
+
+                const hitboxCapsula = obterHitboxCapsula(item);
+                if (hitboxCapsula && detectarColisaoHitbox(hitboxAtaque, hitboxCapsula, 0, 0, 0)) {
+                    aplicarDanoEmCapsula(item, 'ataque');
+                    break;
+                }
+            }
+        }
+
 
         // 4. Atualização de Projéteis
         if (window.projeteis) {
@@ -1762,6 +1804,27 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                             }
                             hitAlvo = true;
                             break;
+                        }
+                    }
+
+                    if (!hitAlvo && Array.isArray(window.itensColetaveis)) {
+                        for (let j = window.itensColetaveis.length - 1; j >= 0; j--) {
+                            const item = window.itensColetaveis[j];
+                            if (!item || item.tipo !== 'capsula' || item.vidroQuebrado) continue;
+
+                            const hitboxCapsula = obterHitboxCapsula(item);
+                            const hitboxProjetil = {
+                                x: proj.x,
+                                y: proj.y,
+                                largura: config.PROJETIL_LARGURA,
+                                altura: config.PROJETIL_ALTURA
+                            };
+
+                            if (hitboxCapsula && detectarColisaoHitbox(hitboxProjetil, hitboxCapsula, 0, 0, 0)) {
+                                aplicarDanoEmCapsula(item, 'projetil');
+                                hitAlvo = true;
+                                break;
+                            }
                         }
                     }
                 } else if (proj.origem === 'inimigo' && window.playerControle) {

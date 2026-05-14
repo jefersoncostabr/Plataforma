@@ -163,6 +163,7 @@
             iniciarChute,
             processarEntradaChute,
             aplicarImpulsoChute,
+            obterHitboxAtaque: criarHitboxAtaque,
             processarAcertoChuteEmInimigo,
             atualizarTemporizadores
         };

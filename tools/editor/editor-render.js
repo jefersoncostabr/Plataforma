@@ -73,17 +73,27 @@
             stage.appendChild(img);
         }
 
-        function criarIconeCapsulaComposto(coord, defCapsula = {}) {
+        function criarIconeCapsulaComposto(coord, defCapsula = {}, item = {}) {
             const spriteComposto = defCapsula.spriteComposto || {};
             const srcInferior = spriteComposto.inferior || '../../assets/personagem/capsula/capsula_inferior.png';
             const srcSuperior = spriteComposto.superior || '../../assets/personagem/capsula/capsula_superior.png';
             const srcVidro = spriteComposto.vidro || '../../assets/personagem/capsula/capsula_vidro.png';
+            const srcRobot = (item.robotEstado || item.estadoRobo || 'aberto') === 'desativado'
+                ? '../../assets/personagem/robo_desativado.png'
+                : '../../assets/personagem/per_aberto.png';
             const superiorOffsetY = Number(spriteComposto.superiorOffsetY ?? 32);
             const vidroAltura = Number(spriteComposto.vidroAltura ?? 10);
             const vidroOffsetY = Number(spriteComposto.vidroOffsetY ?? 27);
+            const robotOffsetY = Number(spriteComposto.robotOffsetY ?? 14);
 
             criarIcone(coord, srcInferior, '', { zIndex: 10 });
             criarIcone(coord, srcSuperior, '', { zIndex: 11, offsetY: superiorOffsetY });
+            criarIcone(coord, srcRobot, '', {
+                altura: 32,
+                largura: 32,
+                offsetY: robotOffsetY,
+                zIndex: 20
+            });
             criarIcone(coord, srcVidro, '', {
                 altura: vidroAltura,
                 offsetY: vidroOffsetY,
@@ -118,7 +128,7 @@
 
             iterarItensData(faseData.itens).forEach((item) => {
                 if (item.tipo === 'capsula') {
-                    criarIconeCapsulaComposto(item.pos, itemDefinitions[item.tipo]);
+                    criarIconeCapsulaComposto(item.pos, itemDefinitions[item.tipo], item);
                     return;
                 }
 

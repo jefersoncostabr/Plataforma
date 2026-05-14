@@ -29,6 +29,42 @@ window.atualizarVisualItemColetavel = function(item, opcoes = {}) {
         extra.elemento.style.bottom = (y + offsetY) + 'px';
         if (transform !== null) extra.elemento.style.transform = transform;
     });
+
+    if (item.elementoRobot) {
+        item.elementoRobot.src = item.robotEstado === 'desativado'
+            ? '../../assets/personagem/robo_desativado.png'
+            : '../../assets/personagem/per_aberto.png';
+    }
+
+    if (item.vidroQuebrado && item.vidroElemento) {
+        item.vidroElemento.style.display = 'none';
+    }
+};
+
+window.danificarVidroCapsula = function(item, dano = 1, opcoes = {}) {
+    if (!item || item.tipo !== 'capsula') return false;
+    if (item.vidroQuebrado || item.vidroEmDano) return false;
+
+    item.vidroEmDano = true;
+
+    const elementoVidro = item.vidroElemento || item.elemento;
+    const duracao = Number(opcoes.duracao ?? 420);
+    const velocidade = Number(opcoes.velocidade ?? 10);
+
+    if (typeof flashElement === 'function' && elementoVidro) {
+        flashElement(elementoVidro, duracao, velocidade);
+    }
+
+    const finalizar = () => {
+        item.vidroQuebrado = true;
+        item.vidroEmDano = false;
+        if (elementoVidro) {
+            elementoVidro.style.display = 'none';
+        }
+    };
+
+    setTimeout(finalizar, duracao);
+    return true;
 };
 
 window.removerVisualItemColetavel = function(item) {
@@ -71,7 +107,7 @@ window.carregarItemDefinitions = async function() {
  * @param {number} y - Posição Y (em pixels) onde o item será criado.
  * @returns {object} O objeto do item criado, incluindo seu elemento HTML.
  */
-window.criarItemColetavel = function(itemData, x, y) {
+window.criarItemColetavel = function(itemData, x, y, extras = {}) {
     const anexarAoPalco = (elemento, layerPreferido = null) => {
         if (layerPreferido && window.LAYERS && typeof adicionarAoLayer === 'function') {
             adicionarAoLayer(elemento, layerPreferido);
@@ -111,9 +147,14 @@ window.criarItemColetavel = function(itemData, x, y) {
         const srcInferior = spriteComposto.inferior || '../../assets/personagem/capsula/capsula_inferior.png';
         const srcSuperior = spriteComposto.superior || '../../assets/personagem/capsula/capsula_superior.png';
         const srcVidro = spriteComposto.vidro || '../../assets/personagem/capsula/capsula_vidro.png';
+        const robotEstado = extras.robotEstado || itemData.robotEstado || itemData.estadoRobo || 'aberto';
+        const srcRobot = robotEstado === 'desativado'
+            ? '../../assets/personagem/robo_desativado.png'
+            : '../../assets/personagem/per_aberto.png';
         const superiorOffsetY = Number(spriteComposto.superiorOffsetY ?? 32);
         const vidroAltura = Number(spriteComposto.vidroAltura ?? 10);
         const vidroOffsetY = Number(spriteComposto.vidroOffsetY ?? 27);
+        const robotOffsetY = Number(spriteComposto.robotOffsetY ?? 14);
 
         const parteInferior = criarSprite({
             src: srcInferior,
@@ -133,6 +174,12 @@ window.criarItemColetavel = function(itemData, x, y) {
             layer: window.LAYERS?.ITENS,
             zIndex: 24
         });
+        const parteRobot = criarSprite({
+            src: srcRobot,
+            bottom: y + robotOffsetY,
+            layer: window.LAYERS?.ITENS,
+            zIndex: 20
+        });
 
         const itemCapsula = {
             id: itemData.id,
@@ -141,12 +188,18 @@ window.criarItemColetavel = function(itemData, x, y) {
             x: x,
             y: y,
             elemento: parteVidro,
+            vidroElemento: parteVidro,
             elementoOffsetX: 0,
             elementoOffsetY: vidroOffsetY,
+            vidroAltura,
+            vidroOffsetY,
+            elementoRobot: parteRobot,
+            robotEstado,
             coletavel: itemData.coletavel !== false,
             elementosExtras: [
                 { elemento: parteInferior, offsetX: 0, offsetY: 0 },
-                { elemento: parteSuperior, offsetX: 0, offsetY: superiorOffsetY }
+                { elemento: parteSuperior, offsetX: 0, offsetY: superiorOffsetY },
+                { elemento: parteRobot, offsetX: 0, offsetY: robotOffsetY }
             ],
             velocidadeY: 0,
         };
@@ -205,10 +258,16 @@ window.resetarItens = function(itensFase) {
     const itensNormalizados = Array.isArray(itensFase)
         ? itensFase
             .filter(item => item && item.tipo && item.pos)
-            .map(item => ({ tipo: item.tipo, pos: item.pos }))
+            .map(item => ({ ...item, tipo: item.tipo, pos: item.pos }))
         : Object.entries(itensFase || {}).flatMap(([tipo, posicoes]) => {
             const lista = Array.isArray(posicoes) ? posicoes : [posicoes];
-            return lista.filter(Boolean).map((pos) => ({ tipo, pos }));
+            return lista
+                .filter(Boolean)
+                .map((entrada) => {
+                    if (typeof entrada === 'string') return { tipo, pos: entrada };
+                    return { ...entrada, tipo: entrada.tipo || tipo, pos: entrada.pos || entrada.coord || entrada.position };
+                })
+                .filter((item) => item.pos);
         });
 
     // Remove todos os elementos visuais dos itens antigos
@@ -226,7 +285,9 @@ window.resetarItens = function(itensFase) {
         const itemDef = window.itemDefinitions[itemDataFase.tipo];
         if (itemDef) {
             const posPixels = window.gridParaPixels(itemDataFase.pos);
-            const novoItem = window.criarItemColetavel(itemDef, posPixels.x, posPixels.y);
+            const novoItem = window.criarItemColetavel(itemDef, posPixels.x, posPixels.y, {
+                robotEstado: itemDataFase.robotEstado || itemDataFase.estadoRobo || 'aberto'
+            });
             window.itensColetaveis.push(novoItem);
         } else {
             console.warn(`Definição de item não encontrada para o tipo: ${itemDataFase.tipo}. Item não será criado.`);
