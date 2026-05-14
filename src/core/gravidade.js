@@ -126,15 +126,21 @@ function aplicarDeslocamentoHorizontalComColisaoPadrao(ent, deslocX, plataformas
         const xAnterior = ent.x;
         ent.x += passoX;
 
-        if (typeof verificarColisaoComTiles === 'function' &&
-            verificarColisaoComTiles(ent.x + offsetX, ent.y, largura, altura, plataformas)) {
-            ent.x = xAnterior;
+        const hit = typeof verificarColisaoComTiles === 'function' ?
+            verificarColisaoComTiles(ent.x + offsetX, ent.y, largura, altura, plataformas) : null;
 
-            if (opcoes.cancelarKnockbackAoColidir) {
-                ent.framesKnockbackRestante = 0;
-                ent.velocidadeKnockback = 0;
+        if (hit) {
+            // Ignora colisões que não têm efeito horizontal (ex: teto de robôs abertos)
+            if (hit.tipo !== 'solido' && hit.temColisaoLateral === false) {
+                // Continua o movimento horizontal normalmente
+            } else {
+                ent.x = xAnterior;
+                if (opcoes.cancelarKnockbackAoColidir) {
+                    ent.framesKnockbackRestante = 0;
+                    ent.velocidadeKnockback = 0;
+                }
+                break;
             }
-            break;
         }
 
         if (typeof limitarPosicaoAoPalco === 'function') {

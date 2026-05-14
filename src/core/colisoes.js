@@ -98,7 +98,7 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
             const c = robo.colisaoTeto;
             const esquerdaReal = c.x;
             const direitaReal = c.x + c.largura;
-            const baseReal = c.y - 3; // Onde o teto começa (ajustado em -2px)
+            const baseReal = c.y - 3; // Onde o teto começa (ajustado em -3px)
             const topoReal = (c.y + c.altura) - 3; // Mantém a espessura da área de colisão deslocada
 
             const colisaoX = (x + largura > esquerdaReal && x < direitaReal);
