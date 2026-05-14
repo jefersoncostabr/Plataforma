@@ -37,6 +37,55 @@ function limitarPosicaoAoPalco(x, y, largura, altura, palcoLargura, palcoAltura,
 function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
     if (!plataformaObj) return false;
 
+    const verificarColisaoCapsulaMeios = () => {
+        if (!Array.isArray(window.itensColetaveis)) return null;
+
+        for (const item of window.itensColetaveis) {
+            if (!item || item.tipo !== 'capsula') continue;
+
+            const offsetSuperior = Number(
+                item.elementosExtras?.find((extra) => Number(extra?.offsetY ?? 0) > 0)?.offsetY ?? 32
+            );
+
+            const zonas = [
+                // Cápsula inferior = Terra Inferior (meio bloco de baixo)
+                { direcao: 'inferior', tileBaixo: Number(item.y || 0), yOffset: 16 },
+                // Cápsula superior = Terra Superior (meio bloco de cima) no tile superior
+                { direcao: 'superior', tileBaixo: Number(item.y || 0) + offsetSuperior, yOffset: 0 }
+            ];
+
+            for (const zona of zonas) {
+                const tileEsquerda = Number(item.x || 0);
+                const tileDireita = tileEsquerda + 32;
+                const tileTopo = zona.tileBaixo + 32;
+                const topoReal = tileTopo - zona.yOffset;
+                const baseReal = topoReal - 16;
+                const esquerdaReal = tileEsquerda;
+                const direitaReal = tileDireita;
+
+                const colisaoX = (x + largura > esquerdaReal && x < direitaReal);
+                const colisaoY = (y + altura > baseReal && y < topoReal);
+                const colisaoVertical = colisaoX && colisaoY;
+                const colisaoLateral = colisaoX && colisaoY;
+
+                if (colisaoVertical || colisaoLateral) {
+                    return {
+                        tipo: 'meio',
+                        direcao: zona.direcao,
+                        topoReal,
+                        baseReal,
+                        esquerdaReal,
+                        direitaReal,
+                        temColisaoVertical: true,
+                        temColisaoLateral: colisaoLateral
+                    };
+                }
+            }
+        }
+
+        return null;
+    };
+
     // Calcula quais colunas e linhas do grid o personagem está ocupando
     const colInicio = Math.floor(x / 32);
     const colFim = Math.floor((x + largura - EPSILON) / 32);
@@ -205,6 +254,9 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
             }
         }
     }
+    const colisaoCapsula = verificarColisaoCapsulaMeios();
+    if (colisaoCapsula) return colisaoCapsula;
+
     return false;
 }
 

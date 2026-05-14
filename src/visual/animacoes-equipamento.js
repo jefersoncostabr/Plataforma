@@ -300,9 +300,14 @@ function alternarItensNoCintoPortador(opcoes = {}) {
 
     const sincronizarEquipamento = (item) => {
         if (!item?.elemento) return;
-        item.elemento.style.left = portador.x + 'px';
-        item.elemento.style.bottom = portador.y + 'px';
-        item.elemento.style.transform = obterTransformAtualEquipamento(item);
+        const transform = obterTransformAtualEquipamento(item);
+        if (typeof window.atualizarVisualItemColetavel === 'function') {
+            window.atualizarVisualItemColetavel(item, { x: portador.x, y: portador.y, transform });
+        } else {
+            item.elemento.style.left = portador.x + 'px';
+            item.elemento.style.bottom = portador.y + 'px';
+            item.elemento.style.transform = transform;
+        }
     };
 
     const criarCloneAnimacao = (item, indice = 0) => {
@@ -543,9 +548,13 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
     function sincronizarEquipamentoComJogador(item) {
         if (!item?.elemento) return;
         const pos = obterPosicaoAtualEquipamento(item);
-        item.elemento.style.left = pos.x + 'px';
-        item.elemento.style.bottom = pos.y + 'px';
-        item.elemento.style.transform = pos.transform;
+        if (typeof window.atualizarVisualItemColetavel === 'function') {
+            window.atualizarVisualItemColetavel(item, { x: pos.x, y: pos.y, transform: pos.transform });
+        } else {
+            item.elemento.style.left = pos.x + 'px';
+            item.elemento.style.bottom = pos.y + 'px';
+            item.elemento.style.transform = pos.transform;
+        }
     }
 
     function criarCloneAnimacaoCinto(item, guardando, indice = 0) {

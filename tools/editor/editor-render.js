@@ -44,19 +44,26 @@
             stage.appendChild(grade);
         }
 
-        function criarIcone(coord, src, classe = '') {
+        function criarIcone(coord, src, classe = '', opcoes = {}) {
             const partes = typeof coordToParts === 'function' ? coordToParts(coord) : null;
             if (!partes) return;
 
             const col = partes.col;
             const row = partes.row;
-            let yPos = row * TILE_SIZE;
+            const offsetY = Number(opcoes.offsetY ?? 0);
+            const offsetX = Number(opcoes.offsetX ?? 0);
+            let yPos = (row * TILE_SIZE) + offsetY;
             if (src.includes('estacasup.png')) yPos += 2;
 
             const img = document.createElement('img');
             img.src = src;
             if (classe) img.classList.add(classe);
-            img.style = `position:absolute; left:${col * TILE_SIZE}px; bottom:${yPos}px; width:${TILE_SIZE}px; height:${TILE_SIZE}px; image-rendering:pixelated; pointer-events:none;`;
+            const largura = Number(opcoes.largura ?? TILE_SIZE);
+            const altura = Number(opcoes.altura ?? TILE_SIZE);
+            img.style = `position:absolute; left:${(col * TILE_SIZE) + offsetX}px; bottom:${yPos}px; width:${largura}px; height:${altura}px; image-rendering:pixelated; pointer-events:none;`;
+            if (opcoes.zIndex !== undefined) {
+                img.style.zIndex = String(opcoes.zIndex);
+            }
             if (classe === 'player-filter') img.style.filter = 'hue-rotate(90deg)';
             if (classe.includes('golden-bg')) {
                 img.style.background = 'rgba(255, 215, 0, 0.4)';
@@ -64,6 +71,24 @@
                 img.style.boxShadow = '0 0 5px gold';
             }
             stage.appendChild(img);
+        }
+
+        function criarIconeCapsulaComposto(coord, defCapsula = {}) {
+            const spriteComposto = defCapsula.spriteComposto || {};
+            const srcInferior = spriteComposto.inferior || '../../assets/personagem/capsula/capsula_inferior.png';
+            const srcSuperior = spriteComposto.superior || '../../assets/personagem/capsula/capsula_superior.png';
+            const srcVidro = spriteComposto.vidro || '../../assets/personagem/capsula/capsula_vidro.png';
+            const superiorOffsetY = Number(spriteComposto.superiorOffsetY ?? 32);
+            const vidroAltura = Number(spriteComposto.vidroAltura ?? 10);
+            const vidroOffsetY = Number(spriteComposto.vidroOffsetY ?? 27);
+
+            criarIcone(coord, srcInferior, '', { zIndex: 10 });
+            criarIcone(coord, srcSuperior, '', { zIndex: 11, offsetY: superiorOffsetY });
+            criarIcone(coord, srcVidro, '', {
+                altura: vidroAltura,
+                offsetY: vidroOffsetY,
+                zIndex: 21
+            });
         }
 
         function atualizarVisual() {
@@ -92,6 +117,11 @@
             });
 
             iterarItensData(faseData.itens).forEach((item) => {
+                if (item.tipo === 'capsula') {
+                    criarIconeCapsulaComposto(item.pos, itemDefinitions[item.tipo]);
+                    return;
+                }
+
                 let src = '../../assets/personagem/revolver_pegavel.png';
                 if (itemDefinitions[item.tipo]?.spriteColetavel) {
                     src = itemDefinitions[item.tipo].spriteColetavel;

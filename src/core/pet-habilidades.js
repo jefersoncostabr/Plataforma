@@ -120,6 +120,7 @@
                 for (let i = window.itensColetaveis.length - 1; i >= 0; i--) {
                     const item = window.itensColetaveis[i];
                     if (!item) continue;
+                    if (item.coletavel === false || window.itemDefinitions?.[item.tipo]?.coletavel === false) continue;
                     
                     // Fallback para itens que podem não ter X/Y lógicos atualizados
                     const itemX = item.x !== undefined ? item.x : (parseInt(item.elemento?.style.left) || 0);
@@ -147,7 +148,12 @@
             item.x += (pet.x - item.x) * 0.15; 
             item.y += (pet.y - item.y) * 0.15;
             
-            if (item.elemento) { item.elemento.style.left = item.x + 'px'; item.elemento.style.bottom = item.y + 'px'; }
+            if (typeof window.atualizarVisualItemColetavel === 'function') {
+                window.atualizarVisualItemColetavel(item, { x: item.x, y: item.y });
+            } else if (item.elemento) {
+                item.elemento.style.left = item.x + 'px';
+                item.elemento.style.bottom = item.y + 'px';
+            }
             item.velocidadeY = 0;
 
             // Verifica se o jogador toca no item sendo arrastado para coletar
@@ -158,7 +164,11 @@
 
                 if (window.detectarColisaoHitbox(hitboxPlayer, hitboxItem, 0, 0, 0)) {
                     if (window.tentarColetarItemJogador(item)) {
-                        item.elemento?.remove();
+                        if (typeof window.removerVisualItemColetavel === 'function') {
+                            window.removerVisualItemColetavel(item);
+                        } else {
+                            item.elemento?.remove();
+                        }
                         pet.itemArrastado = null;
                         window.AudioManager?.playSFX('coleta', 0.5);
                     }

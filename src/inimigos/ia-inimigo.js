@@ -306,6 +306,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
     function inimigoColetarItemGarra(inimigo, item) {
         if (!item || !item.tipo) return;
+        if (item.coletavel === false || window.itemDefinitions?.[item.tipo]?.coletavel === false) return;
 
         const tipo = item.tipo;
 
@@ -356,7 +357,11 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         if (tipo !== 'airdrop' && tipo !== 'restauracao' && !inimigo.inventario.includes(tipo)) {
             inimigo.inventario.push(tipo);
         }
-        if (item.elemento && typeof item.elemento.remove === 'function') item.elemento.remove();
+        if (typeof window.removerVisualItemColetavel === 'function') {
+            window.removerVisualItemColetavel(item);
+        } else if (item.elemento && typeof item.elemento.remove === 'function') {
+            item.elemento.remove();
+        }
     }
 
     function limparVisuaisInimigo(inimigo) {
@@ -706,6 +711,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 const bbTemRoboAlvo = !!(bbPodeBuscarRobo && roboAlvoBB && roboAlvoBB.ativo);
 
                 const itemInteresse = (inimigo.ehBBInimigo ? null : window.itensColetaveis?.find(it => {
+                    if (it.coletavel === false || window.itemDefinitions?.[it.tipo]?.coletavel === false) return false;
                     // Se já possui o item e não é consumível, ignora
                     const jaTem = it.tipo !== 'airdrop' && it.tipo !== 'restauracao' && inimigo.inventario.includes(it.tipo);
                     if (jaTem) return false;
@@ -1408,6 +1414,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 if (!inimigo.estaColetando && !inimigo.afastando && !estaChutando && window.itensColetaveis) {
                     for (let j = window.itensColetaveis.length - 1; j >= 0; j--) {
                         const item = window.itensColetaveis[j];
+                        if (item.coletavel === false || window.itemDefinitions?.[item.tipo]?.coletavel === false) continue;
                         
                         // Usa a função de hitbox global com margem extra para facilitar a coleta
                         const hitboxInimigoBody = { x: inimigo.x + (inimigo.offsetX || 0), y: inimigo.y, largura: inimigo.largura, altura: inimigo.altura };
@@ -1463,8 +1470,10 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                     if (inimigo.timerColeta <= 0) {
                         inimigoColetarItemGarra(inimigo, inimigo.itemSendoColetado);
-                        const itemIndex = window.itensColetaveis.indexOf(inimigo.itemSendoColetado);
-                        if (itemIndex !== -1) window.itensColetaveis.splice(itemIndex, 1);
+                        if (inimigo.itemSendoColetado?.coletavel !== false && window.itemDefinitions?.[inimigo.itemSendoColetado?.tipo]?.coletavel !== false) {
+                            const itemIndex = window.itensColetaveis.indexOf(inimigo.itemSendoColetado);
+                            if (itemIndex !== -1) window.itensColetaveis.splice(itemIndex, 1);
+                        }
                         inimigo.estaColetando = false;
                     }
                 }

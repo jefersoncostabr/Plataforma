@@ -338,6 +338,7 @@
                 if (!grabbedSomething) {
                     for (let i = window.itensColetaveis.length - 1; i >= 0; i--) {
                         const item = window.itensColetaveis[i];
+                        if (item?.coletavel === false) continue;
                         const hitboxGarra = {
                             x: parseInt(garraElemento.style.left),
                             y: parseInt(garraElemento.style.bottom),

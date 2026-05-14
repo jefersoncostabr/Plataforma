@@ -13,7 +13,9 @@ export async function loadAllItems() {
     'jetpack',
     'garra',
     'colete',
-    'restauracao'
+    'restauracao',
+    'scrap',
+    'capsula'
     // Adicione novos ids aqui conforme criar novos arquivos JSON
   ];
   for (const id of itemIds) {

@@ -1851,6 +1851,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         if (window.itensColetaveis && Array.isArray(window.itensColetaveis)) {
             for (let i = window.itensColetaveis.length - 1; i >= 0; i--) {
                 const item = window.itensColetaveis[i];
+                const itemNaoColetavel = item?.coletavel === false || window.itemDefinitions?.[item?.tipo]?.coletavel === false;
                 
                 // Para coleta de itens, usamos uma hitbox do jogador que abrange todo o sprite visual (32x32)
                 const hitboxPlayerParaItem = {
@@ -1863,10 +1864,14 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 const hitboxItem = { x: item.x, y: item.y, largura: 32, altura: 32 };
                 // console.log(`[DEBUG ITEM] Player (x:${hitboxPlayerParaItem.x}, y:${hitboxPlayerParaItem.y}, w:${hitboxPlayerParaItem.largura}, h:${hitboxPlayerParaItem.altura})`);
                 // console.log(`[DEBUG ITEM] Item ${item.tipo} (x:${hitboxItem.x}, y:${hitboxItem.y}, w:${hitboxItem.largura}, h:${hitboxItem.altura})`);
-                if (typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(hitboxPlayerParaItem, hitboxItem, 0, 0, 0)) {
+                if (!itemNaoColetavel && typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(hitboxPlayerParaItem, hitboxItem, 0, 0, 0)) {
                     const foiColetado = coletarItemGarra(item);
                     if (foiColetado) {
-                        item.elemento.remove();
+                        if (typeof window.removerVisualItemColetavel === 'function') {
+                            window.removerVisualItemColetavel(item);
+                        } else {
+                            item.elemento.remove();
+                        }
                         window.itensColetaveis.splice(i, 1);
                     }
                     continue; // Pula para o próximo item após processar a tentativa de coleta
@@ -1895,15 +1900,23 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
                     // Se o item cair em um buraco (abaixo de -64px), removemos o elemento para otimização
                     if (item.y < -64) {
-                        item.elemento.remove();
+                        if (typeof window.removerVisualItemColetavel === 'function') {
+                            window.removerVisualItemColetavel(item);
+                        } else {
+                            item.elemento.remove();
+                        }
                         window.itensColetaveis.splice(i, 1);
                         continue;
                     }
                 }
 
                 // Atualiza visual do item
-                item.elemento.style.left = item.x + 'px';
-                item.elemento.style.bottom = item.y + 'px';
+                if (typeof window.atualizarVisualItemColetavel === 'function') {
+                    window.atualizarVisualItemColetavel(item, { x: item.x, y: item.y });
+                } else {
+                    item.elemento.style.left = item.x + 'px';
+                    item.elemento.style.bottom = item.y + 'px';
+                }
             }
         }
 

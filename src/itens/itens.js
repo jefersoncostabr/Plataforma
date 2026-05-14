@@ -7,11 +7,50 @@
 window.itensColetaveis = [];
 window.itemDefinitions = {};
 
+window.atualizarVisualItemColetavel = function(item, opcoes = {}) {
+    if (!item || !item.elemento) return;
+
+    const x = Number(opcoes.x ?? item.x ?? 0);
+    const y = Number(opcoes.y ?? item.y ?? 0);
+    const elementoOffsetX = Number(item.elementoOffsetX ?? 0);
+    const elementoOffsetY = Number(item.elementoOffsetY ?? 0);
+    const transform = opcoes.transform ?? null;
+
+    item.elemento.style.left = (x + elementoOffsetX) + 'px';
+    item.elemento.style.bottom = (y + elementoOffsetY) + 'px';
+    if (transform !== null) item.elemento.style.transform = transform;
+
+    const extras = Array.isArray(item.elementosExtras) ? item.elementosExtras : [];
+    extras.forEach((extra) => {
+        if (!extra?.elemento) return;
+        const offsetX = Number(extra.offsetX ?? 0);
+        const offsetY = Number(extra.offsetY ?? 0);
+        extra.elemento.style.left = (x + offsetX) + 'px';
+        extra.elemento.style.bottom = (y + offsetY) + 'px';
+        if (transform !== null) extra.elemento.style.transform = transform;
+    });
+};
+
+window.removerVisualItemColetavel = function(item) {
+    if (!item) return;
+
+    const extras = Array.isArray(item.elementosExtras) ? item.elementosExtras : [];
+    extras.forEach((extra) => {
+        if (extra?.elemento?.parentNode) {
+            extra.elemento.parentNode.removeChild(extra.elemento);
+        }
+    });
+
+    if (item.elemento?.parentNode) {
+        item.elemento.parentNode.removeChild(item.elemento);
+    }
+};
+
 /**
  * Carrega as definições de todos os itens a partir dos arquivos JSON.
  */
 window.carregarItemDefinitions = async function() {
-    const tipos = ["revolver", "escudo", "bota", "jetpack", "garra", "cinto", "colete", "restauracao", "scrap"];
+    const tipos = ["revolver", "escudo", "bota", "jetpack", "garra", "cinto", "colete", "restauracao", "scrap", "capsula"];
     for (const tipo of tipos) {
         try {
             // Tenta carregar o JSON. O caminho assume que o jogo roda da raiz.
@@ -33,6 +72,89 @@ window.carregarItemDefinitions = async function() {
  * @returns {object} O objeto do item criado, incluindo seu elemento HTML.
  */
 window.criarItemColetavel = function(itemData, x, y) {
+    const anexarAoPalco = (elemento, layerPreferido = null) => {
+        if (layerPreferido && window.LAYERS && typeof adicionarAoLayer === 'function') {
+            adicionarAoLayer(elemento, layerPreferido);
+            return;
+        }
+
+        if (window.LAYERS && window.LAYERS.ITENS && typeof adicionarAoLayer === 'function') {
+            adicionarAoLayer(elemento, window.LAYERS.ITENS);
+            return;
+        }
+
+        const gameStage = document.getElementById('game-stage');
+        if (gameStage) {
+            gameStage.appendChild(elemento);
+        } else {
+            document.body.appendChild(elemento);
+        }
+    };
+
+    const criarSprite = ({ src, largura = 32, altura = 32, left = x, bottom = y, zIndex = 5, layer = null }) => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.style.position = 'absolute';
+        img.style.width = largura + 'px';
+        img.style.height = altura + 'px';
+        img.style.left = left + 'px';
+        img.style.bottom = bottom + 'px';
+        img.style.zIndex = String(zIndex);
+        img.style.imageRendering = 'pixelated';
+        img.style.pointerEvents = 'none';
+        anexarAoPalco(img, layer);
+        return img;
+    };
+
+    if (itemData.id === 'capsula') {
+        const spriteComposto = itemData.spriteComposto || {};
+        const srcInferior = spriteComposto.inferior || '../../assets/personagem/capsula/capsula_inferior.png';
+        const srcSuperior = spriteComposto.superior || '../../assets/personagem/capsula/capsula_superior.png';
+        const srcVidro = spriteComposto.vidro || '../../assets/personagem/capsula/capsula_vidro.png';
+        const superiorOffsetY = Number(spriteComposto.superiorOffsetY ?? 32);
+        const vidroAltura = Number(spriteComposto.vidroAltura ?? 10);
+        const vidroOffsetY = Number(spriteComposto.vidroOffsetY ?? 27);
+
+        const parteInferior = criarSprite({
+            src: srcInferior,
+            layer: window.LAYERS?.DECORACOES,
+            zIndex: 12
+        });
+        const parteSuperior = criarSprite({
+            src: srcSuperior,
+            bottom: y + superiorOffsetY,
+            layer: window.LAYERS?.DECORACOES,
+            zIndex: 13
+        });
+        const parteVidro = criarSprite({
+            src: srcVidro,
+            altura: vidroAltura,
+            bottom: y + vidroOffsetY,
+            layer: window.LAYERS?.ITENS,
+            zIndex: 24
+        });
+
+        const itemCapsula = {
+            id: itemData.id,
+            tipo: itemData.id,
+            nome: itemData.nome,
+            x: x,
+            y: y,
+            elemento: parteVidro,
+            elementoOffsetX: 0,
+            elementoOffsetY: vidroOffsetY,
+            coletavel: itemData.coletavel !== false,
+            elementosExtras: [
+                { elemento: parteInferior, offsetX: 0, offsetY: 0 },
+                { elemento: parteSuperior, offsetX: 0, offsetY: superiorOffsetY }
+            ],
+            velocidadeY: 0,
+        };
+
+        window.atualizarVisualItemColetavel(itemCapsula, { x, y });
+        return itemCapsula;
+    }
+
     const itemImg = document.createElement('img');
     itemImg.src = itemData.spriteColetavel;
     itemImg.style.position = 'absolute';
@@ -58,16 +180,20 @@ window.criarItemColetavel = function(itemData, x, y) {
     }
 
     // Retorna o objeto do item para ser adicionado a window.itensColetaveis
-    return {
+    const itemPadrao = {
         id: itemData.id,
         tipo: itemData.id,
         nome: itemData.nome,
         x: x,
         y: y,
         elemento: itemImg,
+        coletavel: itemData.coletavel !== false,
         velocidadeY: 0, // Inicia sem velocidade vertical, gravidade será aplicada
         // Outras propriedades do item podem ser adicionadas aqui, se necessário
     };
+
+    window.atualizarVisualItemColetavel(itemPadrao, { x, y });
+    return itemPadrao;
 };
 
 /**
@@ -87,7 +213,9 @@ window.resetarItens = function(itensFase) {
 
     // Remove todos os elementos visuais dos itens antigos
     window.itensColetaveis.forEach(item => {
-        if (item.elemento && item.elemento.parentNode) {
+        if (typeof window.removerVisualItemColetavel === 'function') {
+            window.removerVisualItemColetavel(item);
+        } else if (item.elemento && item.elemento.parentNode) {
             item.elemento.parentNode.removeChild(item.elemento);
         }
     });

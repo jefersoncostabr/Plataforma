@@ -1,0 +1,18 @@
+{
+    "id": "capsula",
+    "nome": "Capsula",
+    "spriteComposto": {
+        "inferior": "../../assets/personagem/capsula/capsula_inferior.png",
+        "superior": "../../assets/personagem/capsula/capsula_superior.png",
+        "vidro": "../../assets/personagem/capsula/capsula_vidro.png",
+        "superiorOffsetY": 32,
+        "vidroAltura": 31,
+        "vidroOffsetY": 14
+    },
+    "coletavel": false,
+    "consumivel": false,
+    "efeitos": {
+        "jogador": {},
+        "inimigo": {}
+    }
+}

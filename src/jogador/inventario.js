@@ -1255,6 +1255,7 @@
             if (item.tipo === 'airdrop') return null;
 
             const itemData = window.itemDefinitions?.[item.tipo] || null;
+            if (item.coletavel === false || itemData?.coletavel === false) return false;
 
             if (item.tipo === 'restauracao') {
                 if (precisaRestauracaoAgora()) {
