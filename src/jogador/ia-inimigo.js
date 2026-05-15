@@ -1269,6 +1269,9 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         window.AudioManager?.playSFX('chute', 0.3);
                         inimigo.jaAtacouNesteChute = false;
 
+                        // 1 em 4 tentativas (25%) ele anda para frente enquanto chuta
+                        inimigo.andarAoChutar = Math.random() < 0.25;
+
                         // Dash do inimigo (Suave e com bônus de bota)
                         const duracaoDash = 10;
                         const multiplicadorChute = (inimigo.temBota && !inimigo.itensGuardadosNoCinto) ? 2 : 1;
@@ -1332,7 +1335,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     const perigoEsquerda = analisarPerigoEstacaFrente(inimigo, -1, distanciaPerigo);
 
                     if (inimigo.x < xAlvo - velEfetivaMovimento) {
-                        if (inimigo.tempoChute === 0 && inimigo.garraAnimEstado === 'idle') {
+                        if ((inimigo.tempoChute === 0 || inimigo.andarAoChutar) && inimigo.garraAnimEstado === 'idle') {
                             // Estaca da direita/esquerda à frente: não avança nessa direção.
                             if (!perigoDireita.lateral) {
                                 // Estaca up à frente: prioriza salto por cima (se não houver estaca down no arco).
@@ -1349,7 +1352,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                             }
                         }
                     } else if (inimigo.x > xAlvo + velEfetivaMovimento) {
-                        if (inimigo.tempoChute === 0 && inimigo.garraAnimEstado === 'idle') {
+                        if ((inimigo.tempoChute === 0 || inimigo.andarAoChutar) && inimigo.garraAnimEstado === 'idle') {
                             if (!perigoEsquerda.lateral) {
                                 if (perigoEsquerda.up) {
                                     if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && inimigo.puloTimer === 0 && !inimigo.jumpQueued && !inimigo.estaAgachado && !temEstacaBaixoNoArcoDoPulo(inimigo, -1)) {

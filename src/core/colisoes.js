@@ -90,16 +90,34 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
      * Verifica colisão com o teto de robôs abertos (entidades interativas).
      */
     const verificarColisaoRobosAbertos = () => {
-        if (!Array.isArray(window.robosAbertosData)) return null;
+        const robosParaVerificar = Array.isArray(window.robosAbertosData) ? [...window.robosAbertosData] : [];
 
-        for (const robo of window.robosAbertosData) {
+        // Adiciona a armadura do jogador à lista de verificação se ela estiver aberta.
+        // Isso permite que o BB ou NPCs pulem no topo da armadura vazia, tratando-a como plataforma.
+        const p = window.playerControle;
+        if (p && p.estaoAberto) {
+            // Simula uma estrutura compatível com a de robosAbertosData para reaproveitar a lógica abaixo
+            robosParaVerificar.push({
+                ativo: true,
+                colisaoTeto: {
+                    x: p.x + (p.offsetX || 0),
+                    y: p.y + (p.alturaEmPe || p.altura || 25), // Topo da armadura
+                    largura: p.largura || 20,
+                    altura: 5 // Espessura da colisão do teto
+                }
+            });
+        }
+
+        if (robosParaVerificar.length === 0) return null;
+
+        for (const robo of robosParaVerificar) {
             if (!robo || !robo.ativo || !robo.colisaoTeto) continue;
 
             const c = robo.colisaoTeto;
             const esquerdaReal = c.x;
             const direitaReal = c.x + c.largura;
-            const baseReal = c.y - 3; // Onde o teto começa (ajustado em -3px)
-            const topoReal = (c.y + c.altura) - 3; // Mantém a espessura da área de colisão deslocada
+            const baseReal = c.y - 4; // Onde o teto começa (ajustado em -4px para baixar 1px)
+            const topoReal = (c.y + c.altura) - 4; // Mantém a espessura da área de colisão deslocada
 
             const colisaoX = (x + largura > esquerdaReal && x < direitaReal);
             const colisaoY = (y + altura > baseReal && y < topoReal);
