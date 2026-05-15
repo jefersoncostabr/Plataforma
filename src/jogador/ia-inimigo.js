@@ -180,7 +180,12 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         // 1. Atualiza o estado lógico (Fundamental para a IA decidir atacar/defender)
         if (tipo === 'revolver') {
             inimigo.temArma = true;
+            inimigo.heldWeaponType = 'revolver';
             inimigo.municao = config.maxMunicao || 5;
+        } else if (tipo === 'doze') {
+            inimigo.temArma = true;
+            inimigo.heldWeaponType = 'doze';
+            inimigo.municao = 2;
         } else if (tipo === 'escudo') {
             inimigo.temEscudo = true;
             inimigo.escudoVermelho = false;
@@ -397,7 +402,12 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
             const inimigoObj = window.inimigos[window.inimigos.length - 1];
             inimigoObj.inventario = [];
-            if (inimigoObj.temArma) inimigoObj.inventario.push('revolver');
+            if (inimigoObj.temArma) {
+                inimigoObj.heldWeaponType = inimigoObj.heldWeaponType || 'revolver';
+                if (!inimigoObj.inventario.includes(inimigoObj.heldWeaponType)) {
+                    inimigoObj.inventario.push(inimigoObj.heldWeaponType);
+                }
+            }
             if (inimigoObj.temEscudo) inimigoObj.inventario.push('escudo');
             if (inimigoObj.temBota) inimigoObj.inventario.push('bota');
             if (inimigoObj.temJetpack) inimigoObj.inventario.push('jetpack');
@@ -407,7 +417,9 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
             // Inicialização visual centralizada
             window.inicializarVisualEquipamentoEntidade(inimigoObj, inimigoImg.parentElement, config);
-            if (inimigoObj.temArma) inimigoObj.municao = config.maxMunicao || 5;
+            if (inimigoObj.temArma) {
+                inimigoObj.municao = inimigoObj.heldWeaponType === 'doze' ? 2 : (config.maxMunicao || 5);
+            }
 
             // Sincroniza posições iniciais
             [inimigoObj.armaElemento, inimigoObj.escudoElemento, inimigoObj.botaElemento, inimigoObj.jetpackElemento, inimigoObj.garraElemento, inimigoObj.cintoElemento, inimigoObj.coleteElemento].forEach(el => {
@@ -1206,6 +1218,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                             // O inimigo só tenta pegar o que ele ainda não tem
                             if (item.tipo !== 'airdrop' && 
                                 ((item.tipo === 'revolver' && inimigo.temArma && inimigo.municao > 0) ||
+                                 (item.tipo === 'doze' && inimigo.temArma && inimigo.municao > 0) ||
                                  (item.tipo === 'escudo' && inimigo.temEscudo) ||
                                  (item.tipo === 'bota' && inimigo.temBota) ||
                                  (item.tipo === 'jetpack' && inimigo.temJetpack) ||
@@ -1289,23 +1302,40 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         const dir = inimigo.direcao === 'd' ? 1 : -1;
                         const xPartida = (inimigo.direcao === 'd') ? inimigo.x + 32 : inimigo.x - config.PROJETIL_LARGURA;
                         const yPartida = inimigo.y + 12;
+                        
+                        const isDoze = inimigo.heldWeaponType === 'doze' || (inimigo.armaElemento && inimigo.armaElemento.src.includes('doze'));
 
-                        const projElemento = document.createElement('img');
-                        projElemento.src = config.spriteProjetil;
-                        projElemento.style.position = 'absolute';
-                        projElemento.style.width = config.PROJETIL_LARGURA + 'px';
-                        projElemento.style.height = config.PROJETIL_ALTURA + 'px';
-                        projElemento.style.left = xPartida + 'px';
-                        projElemento.style.bottom = yPartida + 'px';
-                        projElemento.style.imageRendering = 'pixelated';
-                        adicionarAoLayer(projElemento, window.LAYERS.PROJETEIS);
+                        const tiros = isDoze 
+                            ? [
+                                { dx: 0, dy: 0 },      // reto
+                                { dx: 0, dy: 16 },     // cima
+                                { dx: 0, dy: -16 }     // baixo
+                            ]
+                            : [
+                                { dx: 0, dy: 0 }
+                            ];
 
-                        window.projeteis.push({
-                            x: xPartida,
-                            y: yPartida,
-                            direcao: dir,
-                            elemento: projElemento,
-                            origem: 'inimigo'
+                        tiros.forEach((tiro, indice) => {
+                            const delay = isDoze ? indice * 30 : 0;
+                            setTimeout(() => {
+                                const projElemento = document.createElement('img');
+                                projElemento.src = config.spriteProjetil;
+                                projElemento.style.position = 'absolute';
+                                projElemento.style.width = config.PROJETIL_LARGURA + 'px';
+                                projElemento.style.height = config.PROJETIL_ALTURA + 'px';
+                                projElemento.style.left = (xPartida + tiro.dx) + 'px';
+                                projElemento.style.bottom = (yPartida + tiro.dy) + 'px';
+                                projElemento.style.imageRendering = 'pixelated';
+                                adicionarAoLayer(projElemento, window.LAYERS.PROJETEIS);
+
+                                window.projeteis.push({
+                                    x: xPartida + tiro.dx,
+                                    y: yPartida + tiro.dy,
+                                    direcao: dir,
+                                    elemento: projElemento,
+                                    origem: 'inimigo'
+                                });
+                            }, delay);
                         });
                         
                         // Efeito visual de disparo na arma do inimigo

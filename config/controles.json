@@ -15,6 +15,7 @@
     "debugProximoNivel": ["4"],
     "airdrop": ["5"],
     "debugSpawnInimigo": ["6"],
+    "debugImpacto": ["h", "H"],
     "debugResetSkills": ["7"],
     "debugPuloInimigo": ["8"],
     "debugKillInimigos": ["9"],

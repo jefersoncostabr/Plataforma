@@ -1128,6 +1128,23 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                                 if (!escudoBloqueou) {
                                     playerAtingido.dano = (playerAtingido.dano || 0) + (window.playerControle?.danoChute || 1); // Aplica o dano do chute do jogador
+
+                                    if (typeof window.criarAnimacaoImpacto2Frames === 'function') {
+                                        const larguraPlayer = Number(playerAtingido.largura || 20);
+                                        const alturaPlayer = Number(playerAtingido.altura || 25);
+                                        const impactoX = Number(playerAtingido.x || 0) + Number(playerAtingido.offsetX || 0) + (larguraPlayer / 2);
+                                        const impactoY = Number(playerAtingido.y || 0) + (alturaPlayer / 2);
+
+                                        window.criarAnimacaoImpacto2Frames({
+                                            x: impactoX,
+                                            y: impactoY,
+                                            largura: 40,
+                                            altura: 40,
+                                            offsetY: 6,
+                                            opacidade: 1,
+                                            frameDurationMs: 130
+                                        });
+                                    }
                                 }
 
                                 // Knockback player
@@ -1234,7 +1251,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 if (!iaBloqueadaPorStun && inimigo.perseguindo && distanciaX <= distanciaMinima && distanciaY <= distanciaMinima && !inimigo.afastando && inimigo.tempoAfastamento === 0 && inimigo.cooldownAfastamento === 0) {
                     // Inimigo está muito próximo do jogador - inicia afastamento
                     inimigo.afastando = true;
-                    inimigo.tempoAfastamento = config.inimigoTempoAfastamento || 30;
+                    inimigo.tempoAfastamento = config.inimigoTempoAfastamento || 30; // Removido console.log de debug
                     // console.log('Inimigo muito próximo do jogador - iniciando afastamento');
                 }
 
@@ -1260,7 +1277,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 } else if (!iaBloqueadaPorStun && inimigo.afastando && inimigo.tempoAfastamento === 0) {
                     // Terminou o afastamento - volta ao comportamento normal
                     inimigo.afastando = false;
-                    inimigo.cooldownAfastamento = config.inimigoCooldownAfastamento || 60;
+                    inimigo.cooldownAfastamento = config.inimigoCooldownAfastamento || 60; // Removido console.log de debug
                     // console.log('Inimigo terminou afastamento - cooldown iniciado');
                 }
 
@@ -1271,9 +1288,9 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     const dy = Math.abs((proj.y + config.PROJETIL_ALTURA / 2) - (inimigo.y + config.HITBOX_ALTURA / 2));
                     const chegaPerto = dx >= 0 && dx <= config.inimigoPuloDistanciaAlerta;
                     const mesmaAltura = dy <= config.HITBOX_ALTURA;
-                    const vemNaDirecao = (proj.direcao === 1 && proj.x < inimigo.x) || (proj.direcao === -1 && proj.x > inimigo.x);
+                    const vemNaDirecao = (proj.direcao === 1 && proj.x < inimigo.x) || (proj.direcao === -1 && proj.x > inimigo.x); // Removido console.log de debug
                     
-                    if (chegaPerto && mesmaAltura && vemNaDirecao) {
+                    if (chegaPerto && mesmaAltura && vemNaDirecao) { // Removido console.log de debug
                         // console.log('Inimigo detectou projétil vindo em sua direção!');
                     }
                     return chegaPerto && mesmaAltura && vemNaDirecao;
@@ -1288,7 +1305,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 // Ativa a perseguição se o jogador estiver perto OU se detectar um tiro vindo no radar
                 // Não ativa perseguição se o jogador está em resgate do BB
                 if (!iaBloqueadaPorStun && !inimigo.perseguindo && !emResgateBB && (alvoPerseguicao || bbTemRoboAlvo) && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse || bbTemRoboAlvo || (inimigo.temGarra && distanciaAtual <= (config.garraAlcanceInimigo || 160)))) {
-                    inimigo.perseguindo = true;
+                    inimigo.perseguindo = true; // Removido console.log de debug
                     // console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
                 }
 
@@ -1442,6 +1459,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                             // O inimigo só tenta pegar o que ele ainda não tem
                             if (item.tipo !== 'airdrop' && 
                                 ((item.tipo === 'revolver' && inimigo.temArma && inimigo.municao > 0) ||
+                                 (item.tipo === 'doze' && inimigo.temArma && inimigo.municao > 0) ||
                                  (item.tipo === 'escudo' && inimigo.temEscudo) ||
                                  (item.tipo === 'bota' && inimigo.temBota) ||
                                  (item.tipo === 'jetpack' && inimigo.temJetpack) ||
@@ -1451,7 +1469,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                             // Se for um item de restauração, o inimigo só coleta se precisar
                             if (item.tipo === 'restauracao') {
-                                const precisaRestaurarMunicao = inimigo.temArma && inimigo.municao < (config.maxMunicao || 5);
+                                const maxMun = (inimigo.heldWeaponType === 'doze') ? 2 : 5;
+                                const precisaRestaurarMunicao = inimigo.temArma && inimigo.municao < maxMun;
                                 const precisaRestaurarEscudo = inimigo.temEscudo && inimigo.escudoVermelho;
                                 if (!precisaRestaurarMunicao && !precisaRestaurarEscudo) {
                                     continue; // Não precisa do item de restauração
@@ -1553,7 +1572,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                             aplicarRecuoRevolver(inimigo.armaElemento);
                         }
                         
-                        // console.log(`Inimigo disparou! Munição restante: ${inimigo.municao}`);
+                        // console.log(`Inimigo disparou! Munição restante: ${inimigo.municao}`); // Removido console.log de debug
                     }
 
                     // Lógica de perseguição: move-se na direção do Alvo (AirDrop ou Player)
@@ -1778,6 +1797,22 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         
                         if (!window.temEscudoAtivoPadrao(window.playerControle)) {
                             window.playerControle.dano = (window.playerControle.dano || 0) + 1;
+
+                            if (typeof window.criarAnimacaoImpacto2Frames === 'function') {
+                                const pontoImpacto = (typeof window.calcularCentroColisaoHitboxes === 'function')
+                                    ? window.calcularCentroColisaoHitboxes(hitboxAtaqueInimigo, hurtboxPlayer)
+                                    : null;
+
+                                window.criarAnimacaoImpacto2Frames({
+                                    x: pontoImpacto?.x ?? (hurtboxPlayer.x + (hurtboxPlayer.largura / 2)),
+                                    y: pontoImpacto?.y ?? (hurtboxPlayer.y + (hurtboxPlayer.altura / 2)),
+                                    largura: 40,
+                                    altura: 40,
+                                    offsetY: 6,
+                                    opacidade: 1,
+                                    frameDurationMs: 130
+                                });
+                            }
                             
                             if (typeof flashComVibacao === 'function') {
                                 flashComVibacao(document.getElementById('player'));
@@ -1812,7 +1847,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     if (!iaBloqueadaPorStun && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && inimigo.puloTimer === 0 && !inimigo.jumpQueued && !inimigo.estaAgachado && !inimigo.precisaAgacharPassagem && !temEstacaBaixoNoArcoDoPulo(inimigo, inimigo.direcao === 'd' ? 1 : -1)) {
                         // Agenda o pulo com um delay aleatório
                         inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
-                        inimigo.jumpQueued = true;
+                        inimigo.jumpQueued = true; // Removido console.log de debug
                         // console.log('Inimigo iniciou timer de pulo por obstrução:', inimigo.puloTimer, 'frames'); // Comentado conforme solicitado
                     }
                     verificarSnapInimigo(inimigo, xAnterior);

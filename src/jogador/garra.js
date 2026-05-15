@@ -174,40 +174,40 @@
                 if (!validos.includes(sorteio)) sorteio = 'item';
 
                 if (sorteio === 'skillpoint') {
-                    console.log('AirDrop resgatado pela garra! Conteúdo: 1 Ponto de Skill');
+                    // console.log('AirDrop resgatado pela garra! Conteúdo: 1 Ponto de Skill'); // Removido console.log de debug
                     window.skillPoints += 1;
                     if (typeof window.salvarProgressoSkills === 'function') window.salvarProgressoSkills();
                 } else if (sorteio === 'xp') {
-                    console.log('AirDrop resgatado pela garra! Conteúdo: 6 XP');
+                    // console.log('AirDrop resgatado pela garra! Conteúdo: 6 XP'); // Removido console.log de debug
                     if (typeof window.ganharXP === 'function') window.ganharXP(6);
                 } else if (sorteio === 'restauracao') {
-                    console.log('AirDrop resgatado pela garra! Conteúdo: Restauração Completa');
+                    // console.log('AirDrop resgatado pela garra! Conteúdo: Restauração Completa'); // Removido console.log de debug
                     window.aplicarRestauracaoPadrao?.(controle, config, {
                         atualizarVisualEscudo,
                         atualizarVisualBota: window.atualizarVisualBota,
                         atualizarVisualGarra: window.atualizarVisualGarra
                     });
                 } else if (sorteio === 'skill') {
-                    if (window.skillsData && Object.keys(window.skillsData).length > 0) {
+                    if (window.skillsData && Object.keys(window.skillsData).length > 0) { // Removido console.log de debug
                         const disponiveis = Object.keys(window.skillsData).filter(s => !window.playerSkills.includes(s) && window.skillsData[s].parent === null);
                         if (disponiveis.length > 0) {
                             const skillSorteada = disponiveis[Math.floor(Math.random() * disponiveis.length)];
                             window.playerSkills.push(skillSorteada);
                             if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
                             if (typeof window.salvarProgressoSkills === 'function') window.salvarProgressoSkills();
-                            console.log('AirDrop resgatado pela garra! Conteúdo: Skill (' + window.skillsData[skillSorteada].nome + ')');
+                            // console.log('AirDrop resgatado pela garra! Conteúdo: Skill (' + window.skillsData[skillSorteada].nome + ')'); // Removido console.log de debug
                         } else {
-                            console.log('AirDrop resgatado pela garra! Conteúdo: 5 XP (Nenhuma skill disponível)');
+                            // console.log('AirDrop resgatado pela garra! Conteúdo: 5 XP (Nenhuma skill disponível)'); // Removido console.log de debug
                             if (typeof window.ganharXP === 'function') window.ganharXP(5);
                         }
                     }
                 } 
                 // Sempre garante um item se nada acima for sorteado
                 if (sorteio === 'item' || !validos.includes(sorteio)) {
-                    const itensDisponiveis = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete'];
+                    const itensDisponiveis = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete', 'doze'];
                     const itemSorteado = itensDisponiveis[Math.floor(Math.random() * itensDisponiveis.length)];
 
-                    console.log('AirDrop resgatado pela garra! Conteúdo: Item (' + itemSorteado + ')');
+                    // console.log('AirDrop resgatado pela garra! Conteúdo: Item (' + itemSorteado + ')'); // Removido console.log de debug
 
                     if (itemSorteado === 'escudo') {
                         controle.temEscudo = true;
@@ -248,6 +248,13 @@
                 controle.temArma = true;
                 window.AudioManager?.playSFX('recarga', 0.6);
                 if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
+                armaElemento.style.display = 'block';
+            } else if (item.tipo === 'doze') {
+                const novaMunicao = item.municao !== undefined ? item.municao : 2;
+                controle.municao = Math.min((controle.municao || 0) + novaMunicao, 4);
+                controle.temArma = true;
+                window.AudioManager?.playSFX('recarga', 0.6);
+                if (!controle.inventario.includes('doze')) controle.inventario.push('doze');
                 armaElemento.style.display = 'block';
             } else if (item.tipo === 'restauracao') {
                 window.aplicarRestauracaoPadrao?.(controle, config, {
@@ -445,6 +452,18 @@
                         // Adiciona o inimigo de volta à lista global para que a IA e a Morte possam processá-lo
                         if (!window.inimigos.includes(inimigoAtingido)) {
                             window.inimigos.push(inimigoAtingido);
+                        }
+
+                        if (typeof window.criarAnimacaoImpacto2Frames === 'function') {
+                            window.criarAnimacaoImpacto2Frames({
+                                x: inimigoAtingido.x + ((inimigoAtingido.largura || 32) / 2),
+                                y: inimigoAtingido.y + ((inimigoAtingido.altura || 32) / 2),
+                                largura: 40,
+                                altura: 40,
+                                offsetY: 6,
+                                opacidade: 1,
+                                frameDurationMs: 130
+                            });
                         }
 
                         inimigoAtingido.foiAtingidoNesteChute = true;

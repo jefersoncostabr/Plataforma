@@ -74,9 +74,17 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
     }
 
     function virarFenoParaFonteDano(inimigo, fonteX) {
-        if (!inimigo || inimigo.tipo !== window.GAME_CONSTANTS.INIMIGO_FENO_ID || !inimigo.elemento) return;
+        if (!inimigo || !ehInimigoFeno(inimigo) || !inimigo.elemento) return;
         const centroX = inimigo.x + ((inimigo.largura || 32) / 2);
         inimigo.elemento.style.transform = fonteX <= centroX ? 'scaleX(1)' : 'scaleX(-1)';
+    }
+
+    function ehInimigoFeno(inimigo) {
+        if (!inimigo) return false;
+        const idFeno = Number(window.GAME_CONSTANTS?.INIMIGO_FENO_ID ?? 5);
+        const tipoNumero = Number(inimigo.tipo);
+        const nomeTipo = String(inimigo.tipoNome || inimigo.nome || '').toLowerCase();
+        return tipoNumero === idFeno || nomeTipo === 'feno';
     }
 
     function animarDanoAlvo(inimigo) {
@@ -329,16 +337,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
     window.isPaused = false;
     window.togglePause = () => {
         window.isPaused = !window.isPaused;
-        if (window.isPaused) {
-            // console.log("Jogo Pausado");
-            if (elemento.parentElement) {
-                elemento.parentElement.style.filter = 'brightness(0.3) grayscale(0.6)';
-            }
-        } else {
-            // console.log("Jogo Retomado");
-            if (elemento.parentElement) {
-                elemento.parentElement.style.filter = 'none';
-            }
+        if (elemento.parentElement) {
+            elemento.parentElement.style.filter = window.isPaused ? 'brightness(0.3) grayscale(0.6)' : 'none';
         }
     };
 
@@ -347,7 +347,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         const velocidadeX = Number(controle.velocidadeXAtual || 0);
         const velocidadeY = Number(controle.velocidadeY || 0);
         const velocidadeTotal = Math.hypot(velocidadeX, velocidadeY);
-        console.log('[DEBUG PLAYER] Velocidade atual', {
+        // Removido console.log de debug de velocidade
+        /* console.log('[DEBUG PLAYER] Velocidade atual', {
             posicaoX: Number(controle.x.toFixed(2)),
             posicaoY: Number(controle.y.toFixed(2)),
             velocidadeX: Number(velocidadeX.toFixed(2)),
@@ -357,12 +358,11 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             bonusBotaAtivo: !!controle.temBota && !controle.botaVermelha && !controle.itensGuardadosNoCinto,
             dashAtivo: Number(controle.dashFramesRestantes || 0) > 0
         });
+        */
         return velocidadeTotal;
     };
     window.toggleDebugVelocidadePlayer = (ativo = !controle.debugVelocidadeAtivo) => {
         controle.debugVelocidadeAtivo = !!ativo;
-        controle.ultimoLogVelocidadeMs = 0;
-        console.log(`Debug de velocidade do player ${controle.debugVelocidadeAtivo ? 'ativado' : 'desativado'}.`);
         if (controle.debugVelocidadeAtivo) {
             window.logVelocidadePlayer();
         }
@@ -610,7 +610,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 if (typeof window.limparCraftPersistido === 'function') {
                     window.limparCraftPersistido();
                 }
-                
+
                 if (typeof window.resetarJogadorParaZeroMantendoSkills === 'function') {
                     window.resetarJogadorParaZeroMantendoSkills();
                 }
@@ -618,7 +618,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 if (typeof limparPreviewCraft === 'function') limparPreviewCraft();
                 if (typeof removerTodosCrafts === 'function') removerTodosCrafts();
 
-                console.log('[DEBUG] Sistema resetado via botão 0.');
+                // console.log('[DEBUG] Sistema resetado via botão 0.'); // Removido console.log de debug
                 
                 if (typeof atualizarHUD === 'function') {
                     atualizarHUD();
@@ -751,8 +751,10 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         return null;
     }
 
-    function aplicarDanoEmCapsula(item, origem = 'ataque') {
+    function aplicarDanoEmCapsula(item, origem = 'ataque', hitboxImpacto = null) {
         if (!item || item.tipo !== 'capsula' || item.vidroQuebrado) return false;
+
+        const hitboxCapsula = obterHitboxCapsula(item);
 
         const sucesso = typeof window.danificarVidroCapsula === 'function'
             ? window.danificarVidroCapsula(item, 1, {
@@ -760,6 +762,25 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 velocidade: origem === 'projetil' ? 12 : 10
             })
             : false;
+
+        if (sucesso && typeof window.criarAnimacaoImpacto2Frames === 'function') {
+            const pontoImpacto = (hitboxCapsula && hitboxImpacto && typeof window.calcularCentroColisaoHitboxes === 'function')
+                ? window.calcularCentroColisaoHitboxes(hitboxImpacto, hitboxCapsula)
+                : null;
+
+            const impactoX = pontoImpacto?.x ?? (hitboxCapsula ? (hitboxCapsula.x + (hitboxCapsula.largura / 2)) : (Number(item.x || 0) + 16));
+            const impactoY = pontoImpacto?.y ?? (hitboxCapsula ? (hitboxCapsula.y + (hitboxCapsula.altura / 2)) : (Number(item.y || 0) + 16));
+
+            window.criarAnimacaoImpacto2Frames({
+                x: impactoX,
+                y: impactoY,
+                largura: 40,
+                altura: 40,
+                offsetY: 6,
+                opacidade: 1,
+                frameDurationMs: 130
+            });
+        }
 
         return sucesso;
     }
@@ -898,18 +919,18 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         }
         
         // DEBUG: Logar estado das ações de movimento e teclas virtuais
-        if (window.DEBUG_CONTROLE_MOVIMENTO) {
-            const acoes = ['esquerda', 'direita', 'cima', 'baixo'];
-            window.__DEBUG_CONTROLE_LAST = window.__DEBUG_CONTROLE_LAST || {};
-            acoes.forEach(acao => {
-                const ativa = acaoAtiva(acao);
-                if (window.__DEBUG_CONTROLE_LAST[acao] !== ativa) {
-                    window.__DEBUG_CONTROLE_LAST[acao] = ativa;
-                    console.log(`[DEBUG CONTROLE] ${acao}: ${ativa}`);
-                }
-            });
-            // ...
-        }
+        // if (window.DEBUG_CONTROLE_MOVIMENTO) { // Removido bloco de debug de controle
+        //     const acoes = ['esquerda', 'direita', 'cima', 'baixo'];
+        //     window.__DEBUG_CONTROLE_LAST = window.__DEBUG_CONTROLE_LAST || {};
+        //     acoes.forEach(acao => {
+        //         const ativa = acaoAtiva(acao);
+        //         if (window.__DEBUG_CONTROLE_LAST[acao] !== ativa) {
+        //             window.__DEBUG_CONTROLE_LAST[acao] = ativa;
+        //             console.log(`[DEBUG CONTROLE] ${acao}: ${ativa}`);
+        //         }
+        //     });
+        //     // ...
+        // }
 
         // --- LÓGICA DE MORTE (FLYING DEATH) ---
         if (controle.estaMorrendo) {
@@ -1108,6 +1129,28 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         if (segurandoBaixo && acaoAtiva('pulo') && controle.noChao) {
             consumirAcao('pulo'); 
             droparItemJogador();
+        }
+
+        // Debug/Teste: dispara manualmente o VFX de impacto no centro do jogador.
+        if (acaoAtiva('debugImpacto')) {
+            consumirAcao('debugImpacto');
+
+            if (typeof window.criarAnimacaoImpacto2Frames === 'function') {
+                const hitboxX = controle.x + (controle.offsetX || 0);
+                const hitboxY = controle.y;
+                const impactoX = hitboxX + ((controle.largura || 0) / 2);
+                const impactoY = hitboxY + ((controle.altura || 0) / 2);
+
+                window.criarAnimacaoImpacto2Frames({
+                    x: impactoX,
+                    y: impactoY,
+                    largura: 40,
+                    altura: 40,
+                    offsetY: 6,
+                    opacidade: 1,
+                    frameDurationMs: 130
+                });
+            }
         }
 
         // Atualiza a interface de visão
@@ -1334,39 +1377,77 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             const xPartida = (controle.direcao === 'd') ? controle.x + 36 : controle.x - 8;
             const yPartida = controle.y + 16; // Alinhado verticalmente com o centro
 
-            const projElemento = document.createElement('img');
-            projElemento.src = config.spriteProjetil;
-            projElemento.style.position = 'absolute';
-            projElemento.style.width = config.PROJETIL_LARGURA + 'px';
-            projElemento.style.height = config.PROJETIL_ALTURA + 'px';
-            projElemento.style.left = xPartida + 'px';
-            projElemento.style.bottom = yPartida + 'px';
-            projElemento.style.imageRendering = 'pixelated';
-            projElemento.style.pointerEvents = 'none'; // Não interfere com cliques
-            adicionarAoLayer(projElemento, window.LAYERS.PROJETEIS);
+            // Detecta qual arma está equipada (revolver ou doze)
+            const armaEquipada = controle.heldWeaponType || 'revolver';
 
-            window.projeteis.push({
-                x: xPartida,
-                y: yPartida,
-                direcao: dir,
-                elemento: projElemento,
-                origem: 'player'
+            // Padrão de tiro: Revolver = 1 tiro reto | Doze = 3 tiros (1 reto + 2 diagonais)
+            const tiros = armaEquipada === 'doze' 
+                ? [
+                    { dx: 0, dy: 0, dir: dir },      // Tiro reto no meio
+                    { dx: 0, dy: 16, dir: dir },     // Tiro diagonal para cima
+                    { dx: 0, dy: -16, dir: dir }     // Tiro diagonal para baixo
+                ]
+                : [
+                    { dx: 0, dy: 0, dir: dir }       // Tiro reto (revolver)
+                ];
+
+            tiros.forEach((tiro, indice) => {
+                // Para o doze, adiciona pequeno delay para efeito cascata
+                const delay = armaEquipada === 'doze' ? indice * 30 : 0;
+
+                setTimeout(() => {
+                    const projElemento = document.createElement('img');
+                    projElemento.src = config.spriteProjetil;
+                    projElemento.style.position = 'absolute';
+                    projElemento.style.width = config.PROJETIL_LARGURA + 'px';
+                    projElemento.style.height = config.PROJETIL_ALTURA + 'px';
+                    projElemento.style.left = (xPartida + tiro.dx) + 'px';
+                    projElemento.style.bottom = (yPartida + tiro.dy) + 'px';
+                    projElemento.style.imageRendering = 'pixelated';
+                    projElemento.style.pointerEvents = 'none'; // Não interfere com cliques
+                    adicionarAoLayer(projElemento, window.LAYERS.PROJETEIS);
+
+                    window.projeteis.push({
+                        x: xPartida + tiro.dx,
+                        y: yPartida + tiro.dy,
+                        direcao: tiro.dir,
+                        elemento: projElemento,
+                        origem: 'player'
+                    });
+                }, delay);
             });
             
             // Efeito visual de disparo na arma do jogador
-            if (typeof flashRapido === 'function' && armaElemento) {
-                flashRapido(armaElemento);
+            if (typeof window.flashRapido === 'function' && armaElemento) {
+                if (armaEquipada === 'doze') {
+                    // Para doze: efeito mais potente com vibração
+                    if (typeof window.flashComVibacao === 'function') {
+                        window.flashComVibacao(armaElemento);
+                    } else {
+                        window.flashRapido(armaElemento);
+                    }
+                } else {
+                    // Para revolver: flash simples
+                    window.flashRapido(armaElemento);
+                }
             }
+            
             // Aciona a nova animação de inclinação
             if (armaElemento) {
                 if (typeof aplicarRecuoRevolver === 'function') {
-                    aplicarRecuoRevolver(armaElemento);
+                    if (armaEquipada === 'doze') {
+                        // Para doze: recuo mais acentuado
+                        aplicarRecuoRevolver(armaElemento, 150);
+                    } else {
+                        // Para revolver: recuo padrão
+                        aplicarRecuoRevolver(armaElemento, 100);
+                    }
                 } else {
                     console.error("[ERRO] Função aplicarRecuoRevolver não encontrada! Verifique se o script foi carregado no HTML.");
                 }
             }
             
-            // console.log(`Jogador disparou! Munição restante: ${controle.municao}`);
+            // console.log(`Jogador disparou! Munição restante: ${controle.municao}`); // Removido console.log de debug
         }
 
         atualizarTemporizadoresCorpoACorpo();
@@ -1703,7 +1784,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             // Transforma em Skill Passiva: Verifica se o player possui a skill Resgate
             if (window.temSkill?.((window.SKILLS || {}).RESGATE)) {
                 console.log("Habilidade Passiva: Resgate Ativado!");
-                const larguraPalco = window.mundoLargura || 640;
+                const larguraPalco = window.mundoLargura || 640; // Removido console.log de debug
                 const alturaPalco = window.mundoAltura || 480;
                 const larguraPlayer = 32;
 
@@ -1783,7 +1864,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
                 const hitboxCapsula = obterHitboxCapsula(item);
                 if (hitboxCapsula && detectarColisaoHitbox(hitboxAtaque, hitboxCapsula, 0, 0, 0)) {
-                    aplicarDanoEmCapsula(item, 'ataque');
+                    aplicarDanoEmCapsula(item, 'ataque', hitboxAtaque);
                     break;
                 }
             }
@@ -1820,6 +1901,27 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                         };
 
                         if (detectarColisaoHitbox(hitboxProjetil, hitboxInimigo, 0, 0, 0)) {
+                            const pontoImpactoProjetilInimigo = (typeof window.calcularCentroColisaoHitboxes === 'function')
+                                ? window.calcularCentroColisaoHitboxes(hitboxProjetil, hitboxInimigo)
+                                : null;
+
+                            const fx = pontoImpactoProjetilInimigo?.x ?? (hitboxInimigo.x + (hitboxInimigo.largura / 2));
+                            const fy = pontoImpactoProjetilInimigo?.y ?? (hitboxInimigo.y + (hitboxInimigo.altura / 2));
+
+                            if (typeof window.criarAnimacaoImpacto2Frames === 'function') {
+                                window.criarAnimacaoImpacto2Frames({
+                                    x: fx,
+                                    y: fy,
+                                    largura: 40,
+                                    altura: 40,
+                                    offsetY: 6,
+                                    opacidade: 1,
+                                    frameDurationMs: 130
+                                });
+                            } else {
+                                console.warn('[VFX] criarAnimacaoImpacto2Frames indisponivel no hit de projetil.');
+                            }
+
                             // Lógica de escudo para o inimigo (absorção de dano)
                             // Interrompe a coleta mesmo que o escudo bloqueie o dano
                             inimigo.estaColetando = false;
@@ -1863,7 +1965,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                             inimigo.elemento.style.left = inimigo.x + 'px';
 
                             if (inimigo.vida >= 3) {
-                                if (inimigo.tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID) {
+                                if (ehInimigoFeno(inimigo)) {
                                     processarMorteFeno(inimigo);
                                 } else {
                                     if (typeof flashComVibacao === 'function') {
@@ -1896,7 +1998,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                             };
 
                             if (hitboxCapsula && detectarColisaoHitbox(hitboxProjetil, hitboxCapsula, 0, 0, 0)) {
-                                aplicarDanoEmCapsula(item, 'projetil');
+                                aplicarDanoEmCapsula(item, 'projetil', hitboxProjetil);
                                 hitAlvo = true;
                                 break;
                             }
@@ -1912,6 +2014,22 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                     const hitboxProjetil = { x: proj.x, y: proj.y, largura: config.PROJETIL_LARGURA, altura: config.PROJETIL_ALTURA };
 
                     if (detectarColisaoHitbox(hitboxProjetil, hitboxPlayer, 0, 0, 0)) {
+                        if (typeof window.criarAnimacaoImpacto2Frames === 'function') {
+                            const pontoImpactoProjetilPlayer = (typeof window.calcularCentroColisaoHitboxes === 'function')
+                                ? window.calcularCentroColisaoHitboxes(hitboxProjetil, hitboxPlayer)
+                                : null;
+
+                            window.criarAnimacaoImpacto2Frames({
+                                x: pontoImpactoProjetilPlayer?.x ?? (hitboxPlayer.x + (hitboxPlayer.largura / 2)),
+                                y: pontoImpactoProjetilPlayer?.y ?? (hitboxPlayer.y + (hitboxPlayer.altura / 2)),
+                                largura: 40,
+                                altura: 40,
+                                offsetY: 6,
+                                opacidade: 1,
+                                frameDurationMs: 130
+                            });
+                        }
+
                         if (window.temEscudoAtivoPadrao(controle)) {
                             if (typeof window.aplicarImpactoEscudoPadrao === 'function') {
                                 window.aplicarImpactoEscudoPadrao(controle, config, {
@@ -1940,7 +2058,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                         } else {
                             controle.dano = (controle.dano || 0) + 1;
                             // console.log(`Dano: Jogador atingido por projétil! Total: ${controle.dano}/3`);
-                            
+
                             // Efeito visual no jogador ao receber dano
                             if (typeof flashComVibacao === 'function') {
                                 flashComVibacao(elemento);
@@ -1995,8 +2113,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 const hitboxPlayerParaItem = {
                     x: controle.x,
                     y: controle.y,
-                    largura: 32,
-                    altura: 32
+                    largura: 32, // Removido console.log de debug
+                    altura: 32 // Removido console.log de debug
                 };
                 // Lógica de Coleta pelo Jogador
                 const hitboxItem = { x: item.x, y: item.y, largura: 32, altura: 32 };

@@ -1,0 +1,12 @@
+{
+    "id": "doze",
+    "nome": "Doze",
+    "spriteColetavel": "../../assets/personagem/doze_coletavel.png",
+    "spriteEquipado": "../../assets/personagem/doze.png",
+    "efeitos": {
+        "jogador": {
+            "temArma": true,
+            "municao": 2
+        }
+    }
+}

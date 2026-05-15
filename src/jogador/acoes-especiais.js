@@ -129,7 +129,7 @@
             controle.vendaTimer = 0;
             controle.vendaTipo = tipo;
 
-            if (tipo === 'revolver') {
+            if (tipo === 'revolver' || tipo === 'doze') {
                 controle.temArma = false;
                 armaElemento.style.display = 'none';
             } else if (tipo === 'escudo') {
@@ -170,7 +170,7 @@
 
             controle.inventario.push(controle.vendaTipo);
 
-            if (controle.vendaTipo === 'revolver') {
+            if (controle.vendaTipo === 'revolver' || controle.vendaTipo === 'doze') {
                 controle.temArma = true;
                 armaElemento.style.display = 'block';
             } else if (controle.vendaTipo === 'escudo') {

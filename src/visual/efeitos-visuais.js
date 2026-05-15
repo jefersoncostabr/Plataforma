@@ -270,3 +270,112 @@ window.criarSombraDash = function(elementoOriginal) {
         }
     }, 30);
 };
+
+function calcularCentroColisaoHitboxes(hitboxA, hitboxB) {
+    if (!hitboxA || !hitboxB) return null;
+
+    const ax1 = Number(hitboxA.x);
+    const ay1 = Number(hitboxA.y);
+    const ax2 = ax1 + Number(hitboxA.largura || 0);
+    const ay2 = ay1 + Number(hitboxA.altura || 0);
+
+    const bx1 = Number(hitboxB.x);
+    const by1 = Number(hitboxB.y);
+    const bx2 = bx1 + Number(hitboxB.largura || 0);
+    const by2 = by1 + Number(hitboxB.altura || 0);
+
+    if ([ax1, ay1, ax2, ay2, bx1, by1, bx2, by2].some(Number.isNaN)) return null;
+
+    const ix1 = Math.max(ax1, bx1);
+    const iy1 = Math.max(ay1, by1);
+    const ix2 = Math.min(ax2, bx2);
+    const iy2 = Math.min(ay2, by2);
+
+    if (ix2 > ix1 && iy2 > iy1) {
+        return {
+            x: (ix1 + ix2) / 2,
+            y: (iy1 + iy2) / 2
+        };
+    }
+
+    return {
+        x: ((ax1 + ax2) / 2 + (bx1 + bx2) / 2) / 2,
+        y: ((ay1 + ay2) / 2 + (by1 + by2) / 2) / 2
+    };
+}
+
+window.calcularCentroColisaoHitboxes = calcularCentroColisaoHitboxes;
+
+// Exportar funções de efeito visual para a window
+window.flashElement = flashElement;
+window.flashRapido = flashRapido;
+window.piscaLeve = piscaLeve;
+window.flashComVibacao = flashComVibacao;
+
+window.criarAnimacaoImpacto2Frames = function(opcoes = {}) {
+    const config = window.config || {};
+
+    const {
+        x,
+        y,
+        largura = 24,
+        altura = 24,
+        offsetX = 0,
+        offsetY = 0,
+        frameDurationMs = 70,
+        layerId = window.LAYERS?.EFEITOS,
+        opacidade = 1,
+        zIndex,
+        frames = [
+            config.spriteImpacto1 || 'assets/vfx/impacto1.png',
+            config.spriteImpacto2 || 'assets/vfx/impacto2.png'
+        ]
+    } = opcoes;
+
+    if (typeof x !== 'number' || typeof y !== 'number') return null;
+
+    const listaFrames = Array.isArray(frames)
+        ? frames.filter(frame => typeof frame === 'string' && frame.trim() !== '')
+        : [];
+
+    if (listaFrames.length === 0) return null;
+
+    const impacto = document.createElement('img');
+    impacto.src = listaFrames[0];
+    impacto.style.position = 'absolute';
+    impacto.style.width = `${largura}px`;
+    impacto.style.height = `${altura}px`;
+    impacto.style.left = `${Math.round((x - (largura / 2)) + offsetX)}px`;
+    impacto.style.bottom = `${Math.round((y - (altura / 2)) + offsetY)}px`;
+    impacto.style.imageRendering = 'pixelated';
+    impacto.style.pointerEvents = 'none';
+    impacto.style.opacity = `${Math.max(0, Math.min(1, Number(opacidade) || 1))}`;
+
+    if (typeof zIndex === 'number') {
+        impacto.style.zIndex = String(zIndex);
+    }
+
+    if (typeof window.adicionarAoLayer === 'function' && layerId) {
+        window.adicionarAoLayer(impacto, layerId);
+    } else {
+        (document.getElementById('game-stage') || document.getElementById('jogo-container') || document.body)?.appendChild(impacto);
+    }
+
+    if (listaFrames.length === 1) {
+        setTimeout(() => {
+            if (impacto.isConnected) impacto.remove();
+        }, Math.max(16, frameDurationMs));
+        return impacto;
+    }
+
+    setTimeout(() => {
+        if (!impacto.isConnected) return;
+        impacto.src = listaFrames[1];
+
+        setTimeout(() => {
+            if (impacto.isConnected) impacto.remove();
+        }, Math.max(16, frameDurationMs));
+    }, Math.max(16, frameDurationMs));
+
+    return impacto;
+};

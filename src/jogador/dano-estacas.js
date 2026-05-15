@@ -24,6 +24,11 @@
         function aplicarDanoEspinho(colisaoEstaca) {
             if (!colisaoEstaca || colisaoEstaca.tipo !== 'estaca') return;
 
+            const xBase = controle.x + (controle.offsetX || 0);
+            const yBase = controle.y;
+            const largura = controle.largura;
+            const altura = controle.altura;
+
             if (
                 controle.estaAgachado &&
                 colisaoEstaca.direcao === 'baixo' &&
@@ -47,7 +52,7 @@
 
             if (colisaoEstaca.esquerdaReal !== undefined && colisaoEstaca.direitaReal !== undefined) {
                 const centroEstaca = (colisaoEstaca.esquerdaReal + colisaoEstaca.direitaReal) / 2;
-                const centroPlayer = controle.x + (controle.offsetX || 0) + ((controle.largura || 0) / 2);
+                const centroPlayer = xBase + ((largura || 0) / 2);
                 const direcaoKnock = centroPlayer < centroEstaca ? -1 : 1;
                 const valorKnock = Number(config.knockbackEspinho ?? 90);
                 const duracaoKnock = 10;
@@ -84,6 +89,31 @@
 
             const dano = Number(config.danoEspinho ?? 1);
             controle.dano = (controle.dano || 0) + dano;
+
+            if (typeof window.criarAnimacaoImpacto2Frames === 'function') {
+                let impactoX = xBase + (largura / 2);
+                let impactoY = yBase + (altura / 2);
+
+                if (colisaoEstaca.direcao === 'cima') {
+                    impactoY = yBase;
+                } else if (colisaoEstaca.direcao === 'baixo') {
+                    impactoY = yBase + altura;
+                } else if (colisaoEstaca.direcao === 'esquerda') {
+                    impactoX = xBase;
+                } else if (colisaoEstaca.direcao === 'direita') {
+                    impactoX = xBase + largura;
+                }
+
+                window.criarAnimacaoImpacto2Frames({
+                    x: impactoX,
+                    y: impactoY,
+                    largura: 40,
+                    altura: 40,
+                    offsetY: 6,
+                    opacidade: 1,
+                    frameDurationMs: 130
+                });
+            }
 
             if (typeof flashComVibacao === 'function') {
                 flashComVibacao(elemento);

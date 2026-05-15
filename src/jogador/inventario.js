@@ -6,6 +6,7 @@
         capacidade: 6,
         itens: {
             revolver: { permitidoNoColete: true, equipavel: true, usarSoSePrecisar: true },
+            doze: { permitidoNoColete: true, equipavel: true, usarSoSePrecisar: true },
             escudo: { permitidoNoColete: true, equipavel: true, usarSoSePrecisar: true },
             bota: { permitidoNoColete: true, equipavel: true, usarSoSePrecisar: true },
             jetpack: { permitidoNoColete: true, equipavel: true, usarSoSePrecisar: true },
@@ -70,10 +71,10 @@
         if (!itemData && tipo && tipo.endsWith('_plus')) {
             const baseTipo = tipo.replace('_plus', '');
             const baseDef = window.itemDefinitions?.[baseTipo];
-            const isRevolverPlus = tipo === 'revolver_plus';
+            const isAmmo = tipo === 'revolver_plus' || tipo === 'doze_plus';
             return {
                 tipo,
-                nome: isRevolverPlus ? 'Caixa de Munição' : ((baseDef?.nome || baseTipo) + ' +'),
+                nome: isAmmo ? 'Caixa de Munição' : ((baseDef?.nome || baseTipo) + ' +'),
                 spriteColetavel: obterSpriteItem(tipo, window.config || {}) || baseDef?.spriteColetavel || obterSpriteItem(baseTipo, window.config || {}) || '',
                 spriteEquipado: baseDef?.spriteEquipado || '',
                 consumivel: false,
@@ -192,6 +193,7 @@
             escudoProtegido: Number(controle.escudoProtegido || 0),
             temArma: !!controle.temArma,
             municao: Number(controle.municao || 0),
+            heldWeaponType: controle.heldWeaponType || (controle.inventario.includes('doze') ? 'doze' : (controle.inventario.includes('revolver') ? 'revolver' : null)),
             temBota: !!controle.temBota,
             botaVermelha: !!controle.botaVermelha,
             botaUsosDash: Number(controle.botaUsosDash || 0),
@@ -359,7 +361,10 @@
         controle.coleteSlots = normalizarSlotsColete(inventarioSalvo.coleteSlots);
         controle.cintoSlot = normalizarEntradaArmazenada(inventarioSalvo.cintoSlot);
 
-        if (controle.inventario.includes('revolver')) controle.temArma = true;
+        if (controle.inventario.includes('revolver') || controle.inventario.includes('doze')) {
+            controle.temArma = true;
+            controle.heldWeaponType = inventarioSalvo.heldWeaponType || (controle.inventario.includes('doze') ? 'doze' : 'revolver');
+        }
         if (controle.inventario.includes('escudo')) controle.temEscudo = true;
         if (controle.inventario.includes('bota')) controle.temBota = true;
         if (controle.inventario.includes('jetpack')) controle.temJetpack = true;
@@ -388,6 +393,7 @@
         // Se o item estiver equipado, priorizamos as chaves de config do motor de animação
         if (contexto === 'equipado') {
             if (tipo === 'revolver' && config.spriteArmaPlayer) return config.spriteArmaPlayer;
+            if (tipo === 'doze') return config.spriteDozePlayer || '../../assets/personagem/doze.png';
             if (tipo === 'escudo' && config.spriteEscudoPlayer) return config.spriteEscudoPlayer;
             if (tipo === 'bota' && config.spriteBotaParado) return config.spriteBotaParado;
             if (tipo === 'jetpack' && config.spriteJetpackPlayer) return config.spriteJetpackPlayer;
@@ -410,13 +416,14 @@
         // Prioridade 3: Fallbacks conhecidos para itens no chão (coletáveis)
         if (contexto !== 'equipado') {
             if (tipo === 'revolver') return config.spriteItemRevolver || '../../assets/personagem/revolver_pegavel.png';
+            if (tipo === 'doze') return config.spriteItemDoze || '../../assets/personagem/doze_coletavel.png';
             if (tipo === 'escudo') return config.spriteItemEscudo || '../../assets/personagem/escudo_pegavel.png';
             if (tipo === 'bota') return config.spriteItemBota || '../../assets/personagem/bota_pegavel.png';
             if (tipo === 'jetpack') return config.spriteItemJetpack || '../../assets/personagem/jetpack_pegavel.png';
             if (tipo === 'garra') return config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
             if (tipo === 'cinto') return config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
             if (tipo === 'colete') return config.spriteItemColete || '../../assets/personagem/colete_coletavel.png';
-            if (tipo === 'revolver_plus') return '../../assets/personagem/cx_municao.png';
+            if (tipo === 'revolver_plus' || tipo === 'doze_plus') return '../../assets/personagem/cx_municao.png';
         }
 
         // Prioridade 4: Efeitos e Elementos de Jogo (Centralização 5.3)
@@ -446,7 +453,6 @@
     function aplicarRestauracaoPadrao(controle, config = {}, callbacks = {}) {
         if (!controle) return;
 
-        controle.municao = Number(config?.maxMunicao ?? window.config?.maxMunicao ?? 5);
         controle.escudoProtegido = 0;
         controle.escudoVermelho = false;
         controle.botaUsosDash = 0;
@@ -466,9 +472,18 @@
         if (Array.isArray(controle.inventario) && controle.inventario.includes('garra')) {
             controle.temGarra = true;
         }
-        if (Array.isArray(controle.inventario) && controle.inventario.includes('revolver')) {
+        if (Array.isArray(controle.inventario) && (controle.inventario.includes('revolver') || controle.inventario.includes('doze'))) {
             controle.temArma = true;
+            if (!controle.heldWeaponType) {
+                controle.heldWeaponType = controle.inventario.includes('doze') ? 'doze' : 'revolver';
+            }
         }
+
+        // Calcula a munição baseada no heldWeaponType já definido acima
+        const mMax = (controle.heldWeaponType === 'doze') ? 2 : 5;
+        controle.municao = mMax;
+        console.log(`[SISTEMA] Restauração Padrão aplicada. Tipo: ${controle.heldWeaponType}, Mun: ${controle.municao}`);
+
         if (Array.isArray(controle.inventario) && controle.inventario.includes('bota')) {
             controle.temBota = true;
         }
@@ -559,7 +574,7 @@
         }
 
         function precisaRestauracaoAgora() {
-            const maxMunicao = Number(config?.maxMunicao ?? window.config?.maxMunicao ?? 5);
+            const maxMunicao = (controle.heldWeaponType === 'doze') ? 2 : 5;
             return (controle.dano || 0) > 0
                 || !!controle.escudoVermelho
                 || ((controle.temEscudo || controle.escudoVermelho) && (controle.escudoProtegido || 0) > 0)
@@ -571,7 +586,7 @@
         }
 
         function itemJaAtivoNoCorpo(tipo) {
-            if (tipo === 'revolver') return !!controle.temArma;
+            if (tipo === 'revolver' || tipo === 'doze') return !!controle.temArma;
             if (tipo === 'escudo') return !!controle.temEscudo || !!controle.escudoVermelho;
             if (tipo === 'bota') return !!controle.temBota;
             if (tipo === 'jetpack') return !!controle.temJetpack;
@@ -588,8 +603,8 @@
                     ? window.podeInstalarBasePortatil()
                     : true;
             }
-            if (tipo === 'revolver') {
-                const maxMunicao = Number(config?.maxMunicao ?? window.config?.maxMunicao ?? 5);
+            if (tipo === 'revolver' || tipo === 'doze') {
+                const maxMunicao = (tipo === 'doze') ? 2 : 5;
                 return !controle.temArma || Number(controle.municao || 0) < maxMunicao;
             }
             if (tipo === 'escudo') {
@@ -642,10 +657,13 @@
                 return true;
             }
 
-            if (tipo === 'revolver') {
+            if (tipo === 'revolver' || tipo === 'doze') {
                 controle.temArma = true;
-                controle.municao = Number(extras?.municao ?? itemData?.efeitos?.jogador?.municao ?? config?.maxMunicao ?? 5);
+                controle.heldWeaponType = tipo;
+                const munPadrao = (tipo === 'doze') ? 2 : 5;
+                controle.municao = Number(extras?.municao ?? itemData?.efeitos?.jogador?.municao ?? munPadrao);
                 window.AudioManager?.playSFX('recarga', 0.6);
+                console.log(`[INVENTARIO] Item aplicado: ${tipo}. Munição definida para: ${controle.municao}`);
                 if (armaElemento) {
                     if (itemData?.spriteEquipado) armaElemento.src = itemData.spriteEquipado;
                     armaElemento.style.display = 'block';
@@ -771,7 +789,8 @@
                 { tipo: 'escudo', quebrado: !!controle.escudoVermelho },
                 { tipo: 'garra', quebrado: !!controle.garraVermelha },
                 { tipo: 'jetpack', quebrado: !!(controle.temJetpack && (controle.cooldownVooJetpack || 0) > 0) },
-                { tipo: 'revolver', quebrado: !!(controle.temArma && (controle.municao || 0) <= 0) }
+                { tipo: 'revolver', quebrado: !!(controle.temArma && controle.heldWeaponType === 'revolver' && (controle.municao || 0) <= 0) },
+                { tipo: 'doze', quebrado: !!(controle.temArma && controle.heldWeaponType === 'doze' && (controle.municao || 0) <= 0) }
             ];
 
             alvos.forEach(alvo => {
@@ -811,12 +830,12 @@
                         } else if (alvo.tipo === 'jetpack') {
                             controle.cooldownVooJetpack = 0; controle.timerVooRestante = Number(config?.jetpackDuracaoVoo || 400);
                             if (typeof controle.iniciarJetpack === 'function') { controle.iniciarJetpack(); } else { controle.jetpackAtivo = true; }
-                        } else if (alvo.tipo === 'revolver') {
-                            const maxBalas = Number(config?.maxMunicao || window.config?.maxMunicao || 5);
-                            controle.municao = maxBalas;
-                            
-                            // Efeito Visual de Recarga Plus
+                        } else if (alvo.tipo === 'revolver' || alvo.tipo === 'doze') {
                             const armaEl = obterElementos().armaElemento;
+                            const maxBalas = (controle.heldWeaponType === 'doze') ? 2 : 5;
+                            controle.municao = maxBalas;
+                            console.log(`[AUTO-REPARO] Caixa de munição consumida. Tipo: ${controle.heldWeaponType}, Mun: ${controle.municao}`);
+                            // Efeito Visual de Recarga Plus
                             if (armaEl) {
                                 const filtroOriginal = armaEl.style.filter;
                                 armaEl.style.filter = 'hue-rotate(90deg) brightness(2) drop-shadow(0 0 8px #0f0)';
@@ -835,7 +854,7 @@
         }
 
         function obterDadosExtrasDoItemAtivo(tipo) {
-            if (tipo === 'revolver') {
+            if (tipo === 'revolver' || tipo === 'doze') {
                 return { municao: controle.municao };
             }
             if (tipo === 'escudo') {
@@ -871,7 +890,7 @@
                 coleteElemento
             } = obterElementos();
 
-            if (tipo === 'revolver') {
+            if (tipo === 'revolver' || tipo === 'doze') {
                 controle.temArma = false;
                 controle.municao = 0;
                 if (armaElemento) armaElemento.style.display = 'none';
@@ -1030,69 +1049,6 @@
             salvarInventario();
             atualizarMochilaUI();
             return true;
-        }
-
-        /**
-         * Sistema de reparo automático: Consome versões "+" dos itens para restaurar
-         * equipamentos que ficaram vermelhos (quebrados) instantaneamente.
-         */
-        function verificarAutoReparoEquipamentos() {
-            if (!controle) return;
-            const alvos = [
-                { tipo: 'bota', quebrado: !!controle.botaVermelha },
-                { tipo: 'escudo', quebrado: !!controle.escudoVermelho },
-                { tipo: 'garra', quebrado: !!controle.garraVermelha },
-                { tipo: 'jetpack', quebrado: !!(controle.temJetpack && (controle.cooldownVooJetpack || 0) > 0) },
-                { tipo: 'revolver', quebrado: !!(controle.temArma && (controle.municao || 0) <= 0) }
-            ];
-
-            alvos.forEach(alvo => {
-                if (alvo.quebrado) {
-                    const tipoPlus = alvo.tipo + '_plus';
-                    let consumiu = false;
-
-                    // 1. Procura no Cinto primeiro
-                    const slotC = normalizarEntradaArmazenada(controle.cintoSlot);
-                    if (slotC && slotC.tipo === tipoPlus && slotC.quantidade > 0) {
-                        slotC.quantidade--;
-                        controle.cintoSlot = slotC.quantidade > 0 ? slotC : null;
-                        consumiu = true;
-                    }
-
-                    // 2. Procura nos slots do Colete se não achou no cinto
-                    if (!consumiu && Array.isArray(controle.coleteSlots)) {
-                        for (let i = 0; i < (controle.coleteSlots || []).length; i++) {
-                            const slot = normalizarEntradaArmazenada(controle.coleteSlots[i]);
-                            if (slot && slot.tipo === tipoPlus && slot.quantidade > 0) {
-                                slot.quantidade--;
-                                controle.coleteSlots[i] = slot.quantidade > 0 ? slot : null;
-                                consumiu = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (consumiu) {
-                        // Executa a restauração baseada no tipo para limpar o estado "vermelho"
-                        if (alvo.tipo === 'bota') { 
-                            controle.botaUsosDash = 0; controle.botaVermelha = false; if (typeof window.atualizarVisualBota === 'function') window.atualizarVisualBota();
-                        } else if (alvo.tipo === 'escudo') { 
-                            controle.escudoProtegido = 0; controle.escudoVermelho = false; if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
-                        } else if (alvo.tipo === 'garra') { 
-                            controle.garraImpactosSolidos = 0; controle.garraVermelha = false; if (typeof window.atualizarVisualGarra === 'function') window.atualizarVisualGarra();
-                        } else if (alvo.tipo === 'jetpack') {
-                            controle.cooldownVooJetpack = 0; controle.timerVooRestante = Number(config?.jetpackDuracaoVoo || 400);
-                            if (typeof controle.iniciarJetpack === 'function') { controle.iniciarJetpack(); } else { controle.jetpackAtivo = true; }
-                        } else if (alvo.tipo === 'revolver') {
-                            controle.municao = Number(config?.maxMunicao || window.config?.maxMunicao || 5);
-                        }
-
-                        window.AudioManager?.playSFX('recarga', 0.8);
-                        salvarInventario();
-                        if (typeof window.atualizarMochilaUI === 'function') window.atualizarMochilaUI(controle);
-                    }
-                }
-            });
         }
 
         function droparItemDoCinto() {
@@ -1272,7 +1228,7 @@
             }
 
             // Apenas tenta aplicar no corpo se for um equipamento vestível (corpo)
-            const ehEquipamentoCorpo = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete'].includes(item.tipo);
+            const ehEquipamentoCorpo = ['revolver', 'doze', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete'].includes(item.tipo);
             if (ehEquipamentoCorpo && (!itemJaAtivoNoCorpo(item.tipo) || precisaDeItemAgora(item.tipo))) {
                 return aplicarItemNoCorpo(item.tipo, itemData, item);
             }
@@ -1325,7 +1281,7 @@
                 controle.cintoSlot = null;
             }
 
-            if (tipo === 'revolver') {
+            if (tipo === 'revolver' || tipo === 'doze') {
                 extras.municao = controle.municao;
                 controle.temArma = false;
                 controle.municao = 0;
@@ -1403,7 +1359,7 @@
             if (Array.isArray(inimigo.inventario)) {
                 [...inimigo.inventario].reverse().forEach((tipo) => {
                     const extras = {};
-                    if (tipo === 'revolver') {
+                    if (tipo === 'revolver' || tipo === 'doze') {
                         // Se munição estiver vazia (0), dropa com 1 bala para ainda ser utilizável
                         const municaoAtual = Number(inimigo.municao ?? 0);
                         extras.municao = municaoAtual <= 0 ? 1 : municaoAtual;

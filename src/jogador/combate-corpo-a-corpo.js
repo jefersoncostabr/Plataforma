@@ -121,6 +121,26 @@
                 return false;
             }
 
+            const pontoImpacto = (typeof window.calcularCentroColisaoHitboxes === 'function')
+                ? window.calcularCentroColisaoHitboxes(hitboxAtaque, hitboxInimigo)
+                : null;
+            const impactoX = pontoImpacto?.x ?? (hitboxInimigo.x + (hitboxInimigo.largura / 2));
+            const impactoY = pontoImpacto?.y ?? (hitboxInimigo.y + (hitboxInimigo.altura / 2));
+
+            if (typeof window.criarAnimacaoImpacto2Frames === 'function') {
+                window.criarAnimacaoImpacto2Frames({
+                    x: impactoX,
+                    y: impactoY,
+                    largura: 40,
+                    altura: 40,
+                    offsetY: 6,
+                    opacidade: 1,
+                    frameDurationMs: 130
+                });
+            } else {
+                console.warn('[VFX] criarAnimacaoImpacto2Frames indisponivel no chute contra inimigo.');
+            }
+
             inimigo.foiAtingidoNesteChute = true;
             inimigo.estaColetando = false;
             inimigo.timerColeta = 0;

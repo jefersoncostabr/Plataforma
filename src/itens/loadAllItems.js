@@ -15,7 +15,8 @@ export async function loadAllItems() {
     'colete',
     'restauracao',
     'scrap',
-    'capsula'
+    'capsula',
+    'doze'
     // Adicione novos ids aqui conforme criar novos arquivos JSON
   ];
   for (const id of itemIds) {

@@ -36,8 +36,13 @@ window.inicializarVisualEquipamentoEntidade = function(entidade, parentElement, 
             img.style.pointerEvents = 'none';
             
             // Obtém o sprite usando a função centralizada do item 1.4
+            let itemSpriteKey = info.sprite;
+            if (key === 'armaElemento' && entidade.heldWeaponType) {
+                itemSpriteKey = entidade.heldWeaponType;
+            }
+
             img.src = typeof window.obterSpriteItem === 'function' 
-                ? window.obterSpriteItem(info.sprite, config, 'equipado') 
+                ? window.obterSpriteItem(itemSpriteKey, config, 'equipado') 
                 : info.fallback;
 
             if (typeof window.adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS && entidade.isEnemy) {
@@ -116,8 +121,15 @@ window.sincronizarAcessoriosEntidade = function(entidade, elementos, opcoes = {}
             return;
         }
 
+        let posX = x;
         let posY = y;
         let transform = baseTransform;
+
+        // Ajuste horizontal específico para a arma "doze" (shotgun)
+        if (chave === 'armaElemento' && el.src.includes('doze')) {
+            const direcaoFator = entidade.direcao === 'e' ? -1 : 1;
+            posX += (4 * direcaoFator);
+        }
 
         // Aplica ajuste fino de pixel
         const off = offsetsBase[chave];
@@ -132,7 +144,7 @@ window.sincronizarAcessoriosEntidade = function(entidade, elementos, opcoes = {}
             transform = opcoes.transformArma;
         }
 
-        el.style.left = x + 'px';
+        el.style.left = posX + 'px';
         el.style.bottom = posY + 'px';
         el.style.transform = transform;
     });

@@ -129,9 +129,10 @@ function obterEquipamentosCintoPortador(portador, elementos = {}) {
         coleteElemento
     } = elementos;
     const permiteRecolherColete = coleteRecolhivelNoCinto();
+    const armaTipo = (armaElemento && armaElemento.src.includes('doze')) ? 'doze' : 'revolver';
 
     return [
-        { tipo: 'revolver', possui: !!portador.temArma, elemento: armaElemento },
+        { tipo: armaTipo, possui: !!portador.temArma, elemento: armaElemento },
         { tipo: 'escudo', possui: !!portador.temEscudo || !!portador.escudoVermelho, elemento: escudoElemento },
         { tipo: 'bota', possui: !!portador.temBota, elemento: botaElemento },
         { tipo: 'jetpack', possui: !!portador.temJetpack, elemento: jetpackElemento },
@@ -270,6 +271,7 @@ function alternarItensNoCintoPortador(opcoes = {}) {
     const obterOffsetAnimacao = (tipo, indice = 0) => {
         const direcao = portador.direcao === 'e' ? -1 : 1;
         switch (tipo) {
+            case 'doze':
             case 'revolver': return { x: 12 * direcao, y: 10 + (indice * 2) };
             case 'escudo': return { x: -12 * direcao, y: 8 + (indice * 2) };
             case 'bota': return { x: 0, y: -6 };
@@ -291,7 +293,7 @@ function alternarItensNoCintoPortador(opcoes = {}) {
 
     const obterTransformAtualEquipamento = (item) => {
         const baseTransform = elementoBase.style.transform || 'scaleX(1)';
-        if (item?.tipo === 'revolver' && armaElemento?.dataset?.recoil === 'true') {
+        if ((item?.tipo === 'revolver' || item?.tipo === 'doze') && armaElemento?.dataset?.recoil === 'true') {
             const direcaoFator = portador.direcao === 'e' ? 1 : -1;
             return `${baseTransform} rotate(${15 * direcaoFator}deg)`;
         }
@@ -428,8 +430,9 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
 
     function obterEquipamentosDoCinto() {
         const permiteRecolherColete = coleteRecolhivelNoCinto(config);
+        const armaTipo = (armaElemento && armaElemento.src.includes('doze')) ? 'doze' : 'revolver';
         return [
-            { tipo: 'revolver', possui: !!controle.temArma, elemento: armaElemento },
+            { tipo: armaTipo, possui: !!controle.temArma, elemento: armaElemento },
             { tipo: 'escudo', possui: !!controle.temEscudo || !!controle.escudoVermelho, elemento: escudoElemento },
             { tipo: 'bota', possui: !!controle.temBota, elemento: botaElemento },
             { tipo: 'jetpack', possui: !!controle.temJetpack, elemento: jetpackElemento },
@@ -505,6 +508,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
     function obterOffsetAnimacaoCinto(tipo, indice = 0) {
         const direcao = controle.direcao === 'e' ? -1 : 1;
         switch (tipo) {
+            case 'doze':
             case 'revolver': return { x: 12 * direcao, y: 10 + (indice * 2) };
             case 'escudo': return { x: -12 * direcao, y: 8 + (indice * 2) };
             case 'bota': return { x: 0, y: -6 };
@@ -527,7 +531,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
     function obterTransformAtualEquipamento(item) {
         const baseTransform = elemento.style.transform || 'scaleX(1)';
 
-        if (item?.tipo === 'revolver') {
+        if (item?.tipo === 'revolver' || item?.tipo === 'doze') {
             const emRecuo = armaElemento?.dataset?.recoil === 'true';
             const direcaoFator = controle.direcao === 'e' ? 1 : -1;
             const anguloRecuo = emRecuo ? (15 * direcaoFator) : 0;

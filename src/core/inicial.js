@@ -482,7 +482,7 @@ async function carregarFase(nomeArquivo) {
         processarPet('gato', window.isGatoResgatado, window.gatoNaBase, fase.posicaoGaiolaGato, window.iniciarGato);
 
         if (!fase.posicaoGaiola && !fase.posicaoGaiolaGato) {
-            if (fase.posicaoCachorro) {
+            if (fase.posicaoCachorro) { // Removido console.warn de debug
                 console.warn("[DEBUG GAIOLA] Aviso: fase.posicaoCachorro ignorada. Use posicaoGaiola no editor.");
             }
         }
@@ -642,7 +642,7 @@ window.proximoNivel = async function() {
 window.reiniciarJogo = async function(porMorte = true) {
     limparAnimacaoDanoJogador();
 
-    // A limpeza agora é gerenciada seletivamente dentro de carregarFase para suportar checkpoints e bases.
+    // A limpeza agora é gerenciada seletivamente dentro de carregarFase para suportar checkpoints e bases. // Removido console.log de debug
 
     const temCheckpointEquipamento = typeof window.aplicarCheckpointEquipamentoComoInventarioPadrao === 'function'
         ? !!window.aplicarCheckpointEquipamentoComoInventarioPadrao()
@@ -696,7 +696,9 @@ window.reiniciarJogo = async function(porMorte = true) {
             window.playerControle.escudoProtegido = 0;
         }
         if (window.playerControle.temArma) {
-            window.playerControle.municao = window.config.maxMunicao || 5;
+            const munReset = (window.playerControle.heldWeaponType === 'doze') ? 2 : 5;
+            window.playerControle.municao = munReset;
+            console.log(`[REINÍCIO] Jogador armado resetado. Tipo: ${window.playerControle.heldWeaponType}, Mun: ${window.playerControle.municao}`);
         }
 
         if (typeof window.aplicarEfeitosSkills === 'function') {
@@ -750,7 +752,7 @@ async function iniciarJogo() {
     const respostaConfig = await fetch('../../config/configuracoes.json', { cache: 'no-store' });
     const config = await respostaConfig.json();
     window.config = config;
-    // console.log("Configurações carregadas:", config);
+    // console.log("Configurações carregadas:", config); // Removido console.log de debug
 
     // Carrega a lista de fases dinamicamente do manifesto
     try {

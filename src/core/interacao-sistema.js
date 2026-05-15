@@ -173,7 +173,11 @@
             });
         };
 
-        if (checkpoint.temArma) adicionarItem('revolver', 'Revólver');
+        if (checkpoint.temArma) {
+            const tipoArma = checkpoint.heldWeaponType || (checkpoint.inventario.includes('doze') ? 'doze' : 'revolver');
+            const nomeArma = tipoArma === 'doze' ? 'Doze' : 'Revólver';
+            adicionarItem(tipoArma, nomeArma);
+        }
         if (checkpoint.temEscudo) adicionarItem('escudo', 'Escudo');
         if (checkpoint.temBota) adicionarItem('bota', 'Bota');
         if (checkpoint.temJetpack) adicionarItem('jetpack', 'Jetpack');

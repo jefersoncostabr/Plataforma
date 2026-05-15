@@ -6,6 +6,11 @@
       "equipavel": true,
       "usarSoSePrecisar": true
     },
+    "doze": {
+      "permitidoNoColete": true,
+      "equipavel": true,
+      "usarSoSePrecisar": true
+    },
     "escudo": {
       "permitidoNoColete": true,
       "equipavel": true,

@@ -14,7 +14,8 @@
     "itens": {
         "revolver": "o3",
         "cinto": "o6",
-        "capsula": "b12"
+        "capsula": "b12",
+        "doze": "b6"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
