@@ -733,6 +733,18 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 const yAlvo = bbTemRoboAlvo
                     ? Number(roboAlvoBB.spawnY ?? roboAlvoBB.y ?? alvoPerseguicaoY)
                     : (itemInteresse ? itemInteresse.y : alvoPerseguicaoY);
+                
+                // Navegação Inteligente: Desvio de teto (Reactive Pathfinding)
+                let xAlvoNavegacao = xAlvo;
+                const alvoAcimaIA = yAlvo > inimigo.y + 40;
+                if (alvoAcimaIA && inimigo.noChao && typeof window.IAUtils !== 'undefined') {
+                    if (window.IAUtils.estaSobTeto(inimigo)) {
+                        const saidaX = window.IAUtils.encontrarSaidaTeto(inimigo, xAlvo > inimigo.x ? 1 : -1);
+                        if (saidaX !== null) {
+                            xAlvoNavegacao = saidaX;
+                        }
+                    }
+                }
 
                 if (typeof window.inicializarEstadoCinto === 'function') {
                     window.inicializarEstadoCinto(inimigo);
@@ -1558,7 +1570,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     const perigoDireita = analisarPerigoEstacaFrente(inimigo, 1, distanciaPerigo);
                     const perigoEsquerda = analisarPerigoEstacaFrente(inimigo, -1, distanciaPerigo);
 
-                    if (inimigo.x < xAlvo - velEfetivaMovimento) {
+                    if (inimigo.x < xAlvoNavegacao - velEfetivaMovimento) {
                         if ((inimigo.tempoChute === 0 || inimigo.andarAoChutar) && inimigo.garraAnimEstado === 'idle') {
                             // Estaca da direita/esquerda à frente: não avança nessa direção.
                             if (!perigoDireita.lateral) {
@@ -1575,7 +1587,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                                 }
                             }
                         }
-                    } else if (inimigo.x > xAlvo + velEfetivaMovimento) {
+                    } else if (inimigo.x > xAlvoNavegacao + velEfetivaMovimento) {
                         if ((inimigo.tempoChute === 0 || inimigo.andarAoChutar) && inimigo.garraAnimEstado === 'idle') {
                             if (!perigoEsquerda.lateral) {
                                 if (perigoEsquerda.up) {

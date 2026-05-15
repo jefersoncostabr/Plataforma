@@ -235,7 +235,21 @@
                                       window.detectarColisaoHitbox(pet, alvoSeguimento, 0, 0, 0);
             if (colidindoComPlayer) pet.estaSeguindo = true;
 
-            const deltaX = alvoSeguimento ? (alvoSeguimento.x - pet.x) : 0;
+            let xAlvoPet = alvoSeguimento ? alvoSeguimento.x : pet.x;
+            const yAlvoPet = alvoSeguimento ? alvoSeguimento.y : pet.y;
+            const alvoAcimaPet = yAlvoPet > pet.y + 40;
+
+            // Navegação inteligente para Pets: Desvio de obstáculos superiores
+            if (alvoAcimaPet && pet.noChao && typeof window.IAUtils !== 'undefined') {
+                if (window.IAUtils.estaSobTeto(pet)) {
+                    const saidaX = window.IAUtils.encontrarSaidaTeto(pet, xAlvoPet > pet.x ? 1 : -1);
+                    if (saidaX !== null) {
+                        xAlvoPet = saidaX;
+                    }
+                }
+            }
+
+            const deltaX = xAlvoPet - pet.x;
             const distSeguir = (pet.tipo === 'cao' ? config.distanciaMinimaCaoSeguir : config.distanciaMinimaGatoSeguir) || 45;
             pet.movendoHorizontal = false;
 
