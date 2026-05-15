@@ -128,8 +128,33 @@ function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spri
         const delta = controle._idle2sUltimoMs ? Math.max(0, agoraMs - controle._idle2sUltimoMs) : 0;
         controle._idle2sUltimoMs = agoraMs;
 
-        const IMAGEM_PARADO2 = (controle.spriteParado2 || 'assets/personagem/personagem_parado2.png');
-        const IMAGEM_PARADO_RESP = (controle.spriteParadoResp || 'assets/personagem/per_parado_resp.png');
+        // Seleciona os sprites de respiração (idle) armados se o revólver estiver em mãos.
+        // Prioridade: controle -> config -> fallback local.
+        const estaArmadoIdle = controle.temArma && !controle.itensGuardadosNoCinto;
+        const cfg = window.config || {};
+
+        const spriteParado2Desarmado =
+            controle.spriteParado2 ||
+            cfg.spriteParado2Player ||
+            cfg.spriteParadoOciosoPlayer ||
+            'assets/personagem/personagem_parado2.png';
+        const spriteParadoRespDesarmado =
+            controle.spriteParadoResp ||
+            cfg.spriteParadoRespPlayer ||
+            cfg.spriteRespiracaoPlayer ||
+            'assets/personagem/per_parado_resp.png';
+
+        const spriteParado2Armado =
+            controle.spriteParado2Armado ||
+            cfg.spriteParado2ArmadoPlayer ||
+            'assets/personagem/per_armado/per_ocio_armado.png';
+        const spriteParadoRespArmado =
+            controle.spriteParadoRespArmado ||
+            cfg.spriteParadoRespArmadoPlayer ||
+            'assets/personagem/per_armado/per_par_res_armado.png';
+
+        const IMAGEM_PARADO2 = estaArmadoIdle ? spriteParado2Armado : spriteParado2Desarmado;
+        const IMAGEM_PARADO_RESP = estaArmadoIdle ? spriteParadoRespArmado : spriteParadoRespDesarmado;
 
         if (!controle._idle2sAtivo) {
             controle._idle2sTimerMs += delta;

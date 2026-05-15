@@ -268,7 +268,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
         if (elemento) {
             // Força o sprite de "no ar" (pulo) para a animação de voo
-            elemento.src = config.spriteNoArPlayer || spriteNoAr;
+            const estaArmadoMorte = controle.temArma && !controle.itensGuardadosNoCinto;
+            elemento.src = estaArmadoMorte ? 'assets/personagem/per_armado/per_pul_armado.png' : (config.spriteNoArPlayer || spriteNoAr);
             elemento.style.filter = 'brightness(2) grayscale(0.5)';
             elemento.style.pointerEvents = 'none';
         }
@@ -784,6 +785,17 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         // Garante que o Player use a configuração global atualizada a cada frame
         const config = window.config || {};
         
+        // Lógica de Sprites Armados: seleciona o conjunto de sprites baseado no revólver equipado
+        const estaComRevolver = controle.temArma && !controle.itensGuardadosNoCinto;
+        
+        // AJUSTE: O sprite parado quando armado deve ser o de pernas abertas (per_par_armado.png) para manter a pose ociosa correta
+        const sParado = estaComRevolver ? 'assets/personagem/per_armado/per_par_armado.png' : (config.spriteParadoPlayer || spriteParado);
+        const sAndando = estaComRevolver ? 'assets/personagem/per_armado/per_and_armado.png' : (config.spriteAndandoPlayer || spriteAndando);
+        const sNoAr = estaComRevolver ? 'assets/personagem/per_armado/per_pul_armado.png' : (config.spriteNoArPlayer || spriteNoAr);
+        const sAgachado = estaComRevolver ? 'assets/personagem/per_armado/per_agachado_armado.png' : (config.spriteAgachadoPlayer || spriteAgachado);
+        const sAgachadoAndando = estaComRevolver ? 'assets/personagem/per_armado/per_agachado2_armado.png' : (config.spriteAgachadoAndandoPlayer || spriteAgachado2);
+        const sChute = estaComRevolver ? 'assets/personagem/per_armado/per_chu_armado.png' : (config.spriteChutePlayer || spriteChute);
+
         // --- BLOQUEIO QUANDO ABERTO ---
         if (controle.estaoAberto && controle.noChao && !window.controlandoBB) {
             if (typeof processarEntradaAbertura === 'function') {
@@ -804,11 +816,11 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 atualizarAnimacao(
                     controle,
                     elemento,
-                    config.spriteParadoPlayer || spriteParado,
-                    config.spriteAndandoPlayer || spriteAndando,
-                    config.spriteNoArPlayer || spriteNoAr,
-                    config.spriteAgachadoPlayer || spriteAgachado,
-                    config.spriteAgachadoAndandoPlayer || spriteAgachado2
+                    sParado,
+                    sAndando,
+                    sNoAr,
+                    sAgachado,
+                    sAgachadoAndando
                 );
             }
             
@@ -856,11 +868,11 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 atualizarAnimacao(
                     controle,
                     elemento,
-                    config.spriteParadoPlayer || spriteParado,
-                    config.spriteAndandoPlayer || spriteAndando,
-                    config.spriteNoArPlayer || spriteNoAr,
-                    config.spriteAgachadoPlayer || spriteAgachado,
-                    config.spriteAgachadoAndandoPlayer || spriteAgachado2
+                    sParado,
+                    sAndando,
+                    sNoAr,
+                    sAgachado,
+                    sAgachadoAndando
                 );
             }
             
@@ -1129,7 +1141,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             elemento.style.left = controle.x + 'px';
             elemento.style.bottom = controle.y + 'px';
             if (typeof atualizarAnimacao === 'function') {
-                atualizarAnimacao(controle, elemento, config.spriteParadoPlayer || spriteParado, config.spriteAndandoPlayer || spriteAndando, config.spriteNoArPlayer || spriteNoAr, config.spriteAgachadoPlayer || spriteAgachado, config.spriteAgachadoAndandoPlayer || spriteAgachado2);
+                atualizarAnimacao(controle, elemento, sParado, sAndando, sNoAr, sAgachado, sAgachadoAndando);
             }
             sincronizarVisuaisEquipamentos();
             const petFoco = window.controlandoCao ? window.caoEntidade : (window.controlandoGato ? window.gatoEntidade : window.bbEntidade);
@@ -1721,17 +1733,17 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             atualizarAnimacao(
                 controle, 
                 elemento, 
-                config.spriteParadoPlayer || spriteParado, 
-                config.spriteAndandoPlayer || spriteAndando,
-                config.spriteNoArPlayer || spriteNoAr,
-                config.spriteAgachadoPlayer || spriteAgachado,
-                config.spriteAgachadoAndandoPlayer || spriteAgachado2
+                sParado, 
+                sAndando,
+                sNoAr,
+                sAgachado,
+                sAgachadoAndando
             );
         }
 
         // Sobrescreve o sprite se estiver chutando
         if (controle.chutando) {
-            elemento.src = config.spriteChutePlayer || spriteChute;
+            elemento.src = sChute;
         }
 
         // Verifica colisão com o objetivo final
