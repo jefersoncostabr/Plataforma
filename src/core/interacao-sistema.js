@@ -445,10 +445,20 @@
                             id: 'upgrade_plus', 
                             resultado: (tipo) => tipo + '_plus',
                             check: (s1, s2) => {
-                                const restrito = ['cinto', 'colete', 'scrap'];
+                                const restrito = ['cinto', 'colete', 'scrap', 'revolver', 'doze'];
                                 const temScrap = s1.itemTipo === 'scrap' || s2.itemTipo === 'scrap';
                                 const itemBase = s1.itemTipo === 'scrap' ? s2 : s1;
                                 return temScrap && itemBase.ocupado === "true" && s1.isXP !== "true" && s2.isXP !== "true" && !restrito.includes(itemBase.itemTipo);
+                            }
+                        },
+                        { 
+                            id: 'craft_municao_plus', 
+                            resultado: () => 'municao_plus',
+                            check: (s1, s2) => {
+                                const temScrap = s1.itemTipo === 'scrap' || s2.itemTipo === 'scrap';
+                                const itemBase = s1.itemTipo === 'scrap' ? s2 : s1;
+                                const armas = ['revolver', 'doze'];
+                                return temScrap && itemBase.ocupado === "true" && armas.includes(itemBase.itemTipo);
                             }
                         },
                         {

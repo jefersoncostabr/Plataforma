@@ -58,11 +58,39 @@
         return Math.max(1, Number(window.coleteConfig?.capacidade ?? COLETE_CONFIG_PADRAO.capacidade));
     }
 
+    function obterNomeCanonicoItem(tipo, itemData = null, nomeRaw = null) {
+        if (tipo === 'revolver') {
+            return itemData?.nome || window.itemDefinitions?.revolver?.nome || 'Revólver';
+        }
+        if (tipo === 'doze') {
+            return itemData?.nome || window.itemDefinitions?.doze?.nome || 'Doze';
+        }
+        return nomeRaw || itemData?.nome || tipo || 'Item';
+    }
+
+    function normalizarTipoArmaArmazenada(tipoRaw, raw = {}) {
+        const tipoBase = String(tipoRaw || '').trim().toLowerCase();
+        if (tipoBase !== 'revolver' && tipoBase !== 'doze') return tipoRaw;
+
+        const nome = String(raw?.nome || '').toLowerCase();
+        const spriteColetavel = String(raw?.spriteColetavel || '').toLowerCase();
+        const spriteEquipado = String(raw?.spriteEquipado || '').toLowerCase();
+        const dadoTipo = String(raw?.dados?.heldWeaponType || raw?.heldWeaponType || '').toLowerCase();
+
+        const indicaDoze = nome.includes('doze') || spriteColetavel.includes('doze') || spriteEquipado.includes('doze') || dadoTipo === 'doze';
+        const indicaRevolver = nome.includes('rev') || spriteColetavel.includes('revolver') || spriteEquipado.includes('revolver') || dadoTipo === 'revolver';
+
+        if (indicaDoze && !indicaRevolver) return 'doze';
+        if (indicaRevolver && !indicaDoze) return 'revolver';
+        return tipoBase;
+    }
+
     function normalizarEntradaArmazenada(slot = null) {
         if (!slot) return null;
 
         const raw = (typeof slot === 'string') ? { tipo: slot } : slot;
-        const tipo = raw?.tipo || raw?.id || null;
+        const tipoOriginal = raw?.tipo || raw?.id || null;
+        const tipo = normalizarTipoArmaArmazenada(tipoOriginal, raw);
         const regra = obterRegraColete(tipo) || {};
         const itemData = (tipo && window.itemDefinitions && window.itemDefinitions[tipo]) ? window.itemDefinitions[tipo] : null;
         const dadosOriginais = (raw?.dados && typeof raw.dados === 'object') ? raw.dados : {};
@@ -71,7 +99,7 @@
         if (!itemData && tipo && tipo.endsWith('_plus')) {
             const baseTipo = tipo.replace('_plus', '');
             const baseDef = window.itemDefinitions?.[baseTipo];
-            const isAmmo = tipo === 'revolver_plus' || tipo === 'doze_plus';
+            const isAmmo = tipo === 'municao_plus';
             return {
                 tipo,
                 nome: isAmmo ? 'Caixa de Munição' : ((baseDef?.nome || baseTipo) + ' +'),
@@ -86,7 +114,7 @@
 
         return {
             tipo,
-            nome: raw?.nome || itemData?.nome || tipo || 'Item',
+            nome: obterNomeCanonicoItem(tipo, itemData, raw?.nome),
             spriteColetavel: raw?.spriteColetavel || itemData?.spriteColetavel || obterSpriteItem(tipo, window.config || {}) || '',
             spriteEquipado: raw?.spriteEquipado || itemData?.spriteEquipado || '',
             consumivel: raw?.consumivel != null
@@ -123,40 +151,14 @@
         return base.slice(0, capacidade).map((slot) => normalizarEntradaArmazenada(slot));
     }
 
+
+    // Função movida para o topo para garantir visibilidade
     function obterRegraColete(tipo) {
         return window.coleteConfig?.itens?.[tipo] || COLETE_CONFIG_PADRAO.itens?.[tipo] || (tipo?.endsWith('_plus') ? { permitidoNoColete: true } : null);
     }
 
     function itemPodeIrParaColete(tipo) {
         return !!obterRegraColete(tipo)?.permitidoNoColete;
-    }
-
-    function criarEntradaColete(item = {}, itemData = null) {
-        const tipo = item?.tipo || itemData?.id || null;
-        const regra = obterRegraColete(tipo) || {};
-        const dadosOriginais = (item?.dados && typeof item.dados === 'object') ? item.dados : {};
-        return {
-            tipo,
-            nome: itemData?.nome || item?.nome || tipo || 'Item',
-            spriteColetavel: itemData?.spriteColetavel || item?.spriteColetavel || '',
-            spriteEquipado: itemData?.spriteEquipado || item?.spriteEquipado || '',
-            consumivel: !!(itemData?.consumivel || regra.consumivel),
-            usarSoSePrecisar: !!regra.usarSoSePrecisar,
-            quantidade: Number.isFinite(item?.quantidade) ? Math.max(1, item.quantidade) : 1,
-            dados: {
-                ...dadosOriginais,
-                municao: Number.isFinite(Number(item?.municao ?? dadosOriginais?.municao)) ? Number(item?.municao ?? dadosOriginais?.municao) : undefined,
-                escudoProtegido: Number.isFinite(Number(item?.escudoProtegido ?? dadosOriginais?.escudoProtegido)) ? Number(item?.escudoProtegido ?? dadosOriginais?.escudoProtegido) : undefined,
-                escudoVermelho: !!(item?.escudoVermelho ?? dadosOriginais?.escudoVermelho),
-                botaUsosDash: Number.isFinite(Number(item?.botaUsosDash ?? dadosOriginais?.botaUsosDash)) ? Number(item?.botaUsosDash ?? dadosOriginais?.botaUsosDash) : undefined,
-                botaVermelha: !!(item?.botaVermelha ?? dadosOriginais?.botaVermelha),
-                garraImpactosSolidos: Number.isFinite(Number(item?.garraImpactosSolidos ?? dadosOriginais?.garraImpactosSolidos)) ? Number(item?.garraImpactosSolidos ?? dadosOriginais?.garraImpactosSolidos) : undefined,
-                garraVermelha: !!(item?.garraVermelha ?? dadosOriginais?.garraVermelha),
-                craftNivel: Number.isFinite(Number(item?.craftNivel ?? dadosOriginais?.craftNivel)) ? Number(item?.craftNivel ?? dadosOriginais?.craftNivel) : undefined,
-                craftTipoBase: item?.craftTipoBase || dadosOriginais?.craftTipoBase,
-                craftModoRenascimento: item?.craftModoRenascimento || dadosOriginais?.craftModoRenascimento || null
-            }
-        };
     }
 
     function lerEstadoInventarioDoStorage(storageKey = INVENTARIO_STORAGE_KEY) {
@@ -442,7 +444,7 @@
             if (tipo === 'garra') return config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
             if (tipo === 'cinto') return config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
             if (tipo === 'colete') return config.spriteItemColete || '../../assets/personagem/colete_coletavel.png';
-            if (tipo === 'revolver_plus' || tipo === 'doze_plus') return '../../assets/personagem/cx_municao.png';
+            if (tipo === 'municao_plus') return '../../assets/personagem/cx_minicao.png';
         }
 
         // Prioridade 4: Efeitos e Elementos de Jogo (Centralização 5.3)
@@ -497,9 +499,9 @@
             
             if (temDoze || temRevolver) {
                 controle.temArma = true;
-                // Só define heldWeaponType se não houver um ativo para não sobrescrever o revólver pela doze
+                // Só define heldWeaponType se não houver um ativo para não sobrescrever a arma atual.
                 if (!controle.heldWeaponType) {
-                    controle.heldWeaponType = temRevolver ? 'revolver' : 'doze';
+                    controle.heldWeaponType = temDoze ? 'doze' : 'revolver';
                 }
             }
         }
@@ -539,6 +541,34 @@
 
     window.aplicarRestauracaoPadrao = aplicarRestauracaoPadrao;
 
+    function criarEntradaColete(item = {}, itemData = null) {
+        const tipo = item?.tipo || itemData?.id || null;
+        const regra = obterRegraColete(tipo) || {};
+        const dadosOriginais = (item?.dados && typeof item.dados === 'object') ? item.dados : {};
+        return {
+            tipo,
+            nome: obterNomeCanonicoItem(tipo, itemData, item?.nome),
+            spriteColetavel: itemData?.spriteColetavel || item?.spriteColetavel || '',
+            spriteEquipado: itemData?.spriteEquipado || item?.spriteEquipado || '',
+            consumivel: !!(itemData?.consumivel || regra.consumivel),
+            usarSoSePrecisar: !!regra.usarSoSePrecisar,
+            quantidade: Number.isFinite(item?.quantidade) ? Math.max(1, item.quantidade) : 1,
+            dados: {
+                ...dadosOriginais,
+                municao: Number.isFinite(Number(item?.municao ?? dadosOriginais?.municao)) ? Number(item?.municao ?? dadosOriginais?.municao) : undefined,
+                escudoProtegido: Number.isFinite(Number(item?.escudoProtegido ?? dadosOriginais?.escudoProtegido)) ? Number(item?.escudoProtegido ?? dadosOriginais?.escudoProtegido) : undefined,
+                escudoVermelho: !!(item?.escudoVermelho ?? dadosOriginais?.escudoVermelho),
+                botaUsosDash: Number.isFinite(Number(item?.botaUsosDash ?? dadosOriginais?.botaUsosDash)) ? Number(item?.botaUsosDash ?? dadosOriginais?.botaUsosDash) : undefined,
+                botaVermelha: !!(item?.botaVermelha ?? dadosOriginais?.botaVermelha),
+                garraImpactosSolidos: Number.isFinite(Number(item?.garraImpactosSolidos ?? dadosOriginais?.garraImpactosSolidos)) ? Number(item?.garraImpactosSolidos ?? dadosOriginais?.garraImpactosSolidos) : undefined,
+                garraVermelha: !!(item?.garraVermelha ?? dadosOriginais?.garraVermelha),
+                craftNivel: Number.isFinite(Number(item?.craftNivel ?? dadosOriginais?.craftNivel)) ? Number(item?.craftNivel ?? dadosOriginais?.craftNivel) : undefined,
+                craftTipoBase: item?.craftTipoBase || dadosOriginais?.craftTipoBase,
+                craftModoRenascimento: item?.craftModoRenascimento || dadosOriginais?.craftModoRenascimento || null
+            }
+        };
+    }
+
     function criarSistemaInventarioJogador(opcoes = {}) {
         const {
             controle,
@@ -576,6 +606,39 @@
             elemento.style.left = controle.x + 'px';
             elemento.style.bottom = (controle.y + offsetY) + 'px';
             elemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+        }
+
+        function obterTipoArmaAtivaDoControle() {
+            if (controle.heldWeaponType === 'revolver' || controle.heldWeaponType === 'doze') {
+                return controle.heldWeaponType;
+            }
+
+            const armaElemento = document.getElementById('player-weapon');
+            const srcArma = String(armaElemento?.src || '').toLowerCase();
+            if (srcArma.includes('doze')) return 'doze';
+            if (srcArma.includes('revolver')) return 'revolver';
+
+            const inventario = Array.isArray(controle.inventario) ? controle.inventario : [];
+            const temDoze = inventario.includes('doze');
+            const temRevolver = inventario.includes('revolver');
+
+            if (temDoze && !temRevolver) return 'doze';
+            if (temRevolver && !temDoze) return 'revolver';
+            if (temDoze && temRevolver) return 'doze';
+            return 'revolver';
+        }
+
+        function normalizarTipoArmaDoSlot(slot = null) {
+            if (!slot) return null;
+            const tipoAjustado = normalizarTipoArmaArmazenada(slot.tipo, slot);
+            if (tipoAjustado === 'doze' || tipoAjustado === 'revolver') {
+                return tipoAjustado;
+            }
+            return slot.tipo;
+        }
+
+        function ehTipoArma(tipo) {
+            return tipo === 'revolver' || tipo === 'doze';
         }
 
         function registrarItemNoInventario(tipo) {
@@ -817,7 +880,7 @@
 
             alvos.forEach(alvo => {
                 if (alvo.quebrado) {
-                    const tipoPlus = alvo.tipo + '_plus';
+                    const tipoPlus = (alvo.tipo === 'revolver' || alvo.tipo === 'doze') ? 'municao_plus' : (alvo.tipo + '_plus');
                     let consumiu = false;
 
                     // 1. Procura no Cinto primeiro
@@ -864,7 +927,7 @@
                                 if (typeof window.flashElement === 'function') window.flashElement(armaEl, 400, 10);
                                 setTimeout(() => { if (armaEl) armaEl.style.filter = filtroOriginal; }, 500);
                             }
-                            console.log("[AUTO-RECARGA] Caixa de Munição (revolver_plus) consumida!");
+                                console.log("[AUTO-RECARGA] Munição Plus consumida!");
                         }
 
                         window.AudioManager?.playSFX('recarga', 0.8);
@@ -1019,7 +1082,7 @@
                 itens.push(criarEntradaColete({ tipo, ...obterDadosExtrasDoItemAtivo(tipo) }, itemData));
             };
 
-            const tipoArmaAtiva = controle.heldWeaponType === 'doze' ? 'doze' : 'revolver';
+            const tipoArmaAtiva = obterTipoArmaAtivaDoControle();
             adicionar(tipoArmaAtiva, controle.temArma);
             adicionar('escudo', controle.temEscudo || controle.escudoVermelho);
             adicionar('bota', controle.temBota);
@@ -1061,7 +1124,7 @@
         function guardarEquipamentoNoCinto(tipo) {
             if (!controle.temCinto || !tipo) return false;
             if (tipo === 'revolver' || tipo === 'doze') {
-                tipo = controle.heldWeaponType === 'doze' ? 'doze' : 'revolver';
+                tipo = obterTipoArmaAtivaDoControle();
             }
             controle.cintoSlot = normalizarEntradaArmazenada(controle.cintoSlot);
             if (controle.cintoSlot) return false;
@@ -1095,13 +1158,32 @@
             controle.cintoSlot = normalizarEntradaArmazenada(controle.cintoSlot);
             const slot = controle.cintoSlot;
             if (!slot) return false;
-            if (!precisaDeItemAgora(slot.tipo)) return false;
+            const tipoSlot = normalizarTipoArmaDoSlot(slot);
+            if (tipoSlot !== slot.tipo) {
+                slot.tipo = tipoSlot;
+                slot.nome = obterNomeCanonicoItem(tipoSlot, window.itemDefinitions?.[tipoSlot] || null, slot.nome);
+                controle.cintoSlot = slot;
+            }
+            if (!precisaDeItemAgora(tipoSlot)) return false;
 
-            const itemData = window.itemDefinitions?.[slot.tipo] || null;
-            const aplicou = aplicarItemNoCorpo(slot.tipo, itemData, slot.dados || {});
+            const armaAntesTipo = ehTipoArma(tipoSlot) ? obterTipoArmaAtivaDoControle() : null;
+            const armaAntesMunicao = Number(controle.municao || 0);
+            const houveTrocaDeArma = !!(ehTipoArma(tipoSlot) && controle.temArma && ehTipoArma(armaAntesTipo) && armaAntesTipo !== tipoSlot);
+
+            const itemData = window.itemDefinitions?.[tipoSlot] || null;
+            const aplicou = aplicarItemNoCorpo(tipoSlot, itemData, slot.dados || {});
             if (!aplicou) return false;
 
-            controle.cintoSlot = null;
+            if (houveTrocaDeArma) {
+                const itemAnteriorData = window.itemDefinitions?.[armaAntesTipo] || null;
+                controle.cintoSlot = criarEntradaColete({
+                    tipo: armaAntesTipo,
+                    municao: armaAntesMunicao
+                }, itemAnteriorData);
+                console.log(`[SWAP-ARMA][CINTO] Equipou ${tipoSlot}; arma anterior ${armaAntesTipo} retornou ao slot com ${armaAntesMunicao} bala(s).`);
+            } else {
+                controle.cintoSlot = null;
+            }
             salvarInventario();
             atualizarMochilaUI();
             return true;
@@ -1190,13 +1272,32 @@
             controle.coleteSlots = normalizarSlotsColete(controle.coleteSlots);
             const slot = controle.coleteSlots[indice];
             if (!slot) return false;
-            if (!precisaDeItemAgora(slot.tipo)) return false;
+            const tipoSlot = normalizarTipoArmaDoSlot(slot);
+            if (tipoSlot !== slot.tipo) {
+                slot.tipo = tipoSlot;
+                slot.nome = obterNomeCanonicoItem(tipoSlot, window.itemDefinitions?.[tipoSlot] || null, slot.nome);
+                controle.coleteSlots[indice] = slot;
+            }
+            if (!precisaDeItemAgora(tipoSlot)) return false;
 
-            const itemData = window.itemDefinitions?.[slot.tipo] || null;
-            const aplicou = aplicarItemNoCorpo(slot.tipo, itemData, slot.dados || {});
+            const armaAntesTipo = ehTipoArma(tipoSlot) ? obterTipoArmaAtivaDoControle() : null;
+            const armaAntesMunicao = Number(controle.municao || 0);
+            const houveTrocaDeArma = !!(ehTipoArma(tipoSlot) && controle.temArma && ehTipoArma(armaAntesTipo) && armaAntesTipo !== tipoSlot);
+
+            const itemData = window.itemDefinitions?.[tipoSlot] || null;
+            const aplicou = aplicarItemNoCorpo(tipoSlot, itemData, slot.dados || {});
             if (!aplicou) return false;
 
-            controle.coleteSlots[indice] = null;
+            if (houveTrocaDeArma) {
+                const itemAnteriorData = window.itemDefinitions?.[armaAntesTipo] || null;
+                controle.coleteSlots[indice] = criarEntradaColete({
+                    tipo: armaAntesTipo,
+                    municao: armaAntesMunicao
+                }, itemAnteriorData);
+                console.log(`[SWAP-ARMA][COLETE] Equipou ${tipoSlot}; arma anterior ${armaAntesTipo} retornou ao slot ${indice + 1} com ${armaAntesMunicao} bala(s).`);
+            } else {
+                controle.coleteSlots[indice] = null;
+            }
             salvarInventario();
             atualizarMochilaUI();
             return true;
@@ -1254,6 +1355,41 @@
             }
 
             // Apenas tenta aplicar no corpo se for um equipamento vestível (corpo)
+                // Tratamento especial para munição_plus: incrementa munição da arma atual até o máximo
+                if (item.tipo === 'municao_plus') {
+                    if (!controle.temArma) {
+                        // Se não tem arma, guarda a munição no colete ou cinto
+                        const guardouEmSlot = guardarItemNoColete(item, itemData) || guardarItemNoCinto(item, itemData);
+                        if (guardouEmSlot) {
+                            registrarItemNoInventario(item.tipo);
+                            return true;
+                        }
+                        return false;
+                    }
+                
+                    const maxMunicao = (controle.heldWeaponType === 'doze') ? 2 : 5;
+                    const municaoAtual = Number(controle.municao || 0);
+                
+                    if (municaoAtual < maxMunicao) {
+                        // Incrementa munição até o máximo
+                        controle.municao = Math.min(maxMunicao, municaoAtual + 1);
+                        console.log(`[MUNIÇÃO] +1 munição coletada. ${controle.heldWeaponType}: ${controle.municao}/${maxMunicao}`);
+                        window.AudioManager?.playSFX('recarga', 0.6);
+                        salvarInventario();
+                        atualizarMochilaUI();
+                        return true;
+                    } else {
+                        // Se munição está no máximo, tenta guardar a caixa no colete/cinto
+                        const guardouEmSlot = guardarItemNoColete(item, itemData) || guardarItemNoCinto(item, itemData);
+                        if (guardouEmSlot) {
+                            registrarItemNoInventario(item.tipo);
+                            console.log(`[MUNIÇÃO] Caixa guardada (munição já no máximo)`);
+                            return true;
+                        }
+                        return false;
+                    }
+                }
+
             const ehEquipamentoCorpo = ['revolver', 'doze', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete'].includes(item.tipo);
             if (ehEquipamentoCorpo && (!itemJaAtivoNoCorpo(item.tipo) || precisaDeItemAgora(item.tipo))) {
                 return aplicarItemNoCorpo(item.tipo, itemData, item);

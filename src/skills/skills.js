@@ -15,12 +15,12 @@ let baseConfigFunctionAvailable = false;
 const checkBaseConfigInterval = setInterval(() => {
     if (typeof window.obterConfigRenascimentoBase === 'function' && !baseConfigFunctionAvailable) {
         baseConfigFunctionAvailable = true;
-        console.log('[SKILL INIT] ✅ Função obterConfigRenascimentoBase ficou disponível!');
+
         clearInterval(checkBaseConfigInterval);
         
         // Tenta fazer salvamento se houver dados pendentes
         if (window.playerSkills.length > 0 || window.playerXP > 0 || window.skillPoints > 0) {
-            console.log('[SKILL INIT] 🔄 Tentando salvar progresso pendente...');
+
             if (typeof window.salvarProgressoSkills === 'function') {
                 window.salvarProgressoSkills();
             }
@@ -54,21 +54,21 @@ function carregarProgressoSkillsSalvo() {
         const raw = localStorage.getItem(SKILLS_STORAGE_KEY);
         if (raw) {
             const parsed = JSON.parse(raw);
-            console.log('[SKILL LOAD] ✓ Progresso carregado do localStorage:', parsed);
+
             return parsed;
         } else {
-            console.log('[SKILL LOAD] ⚠ Nenhum progresso salvo encontrado');
+
             return null;
         }
     } catch (error) {
-        console.error('[SKILL LOAD] ✗ Falha ao ler progresso salvo:', error);
+
         return null;
     }
 }
 
 function obterEstadoPersistenciaSkills() {
     if (typeof window.obterConfigRenascimentoBase !== 'function') {
-        console.warn('[SKILL CONFIG] ⚠ Função obterConfigRenascimentoBase NÃO disponível ainda');
+
         return { disponivel: false, permite: null, craft: null, modo: null };
     }
 
@@ -77,15 +77,15 @@ function obterEstadoPersistenciaSkills() {
     const permite = !!(craft && (modo === 'memoria' || modo === 'ambos'));
 
     if (!craft) {
-        console.log('[SKILL CONFIG] ❌ Nenhuma base ativa encontrada');
+
         return { disponivel: true, permite: false, craft: null, modo };
     }
 
-    console.log('[SKILL CONFIG] ✅ Base ATIVA encontrada');
-    console.log('  📋 ID Base:', craft.id);
-    console.log('  🎮 Fase:', craft.fase);
-    console.log('  🔄 Modo Renascimento:', modo);
-    console.log('  💾 Permite Persistir?', permite);
+
+
+
+
+
 
     return { disponivel: true, permite, craft, modo };
 }
@@ -98,16 +98,16 @@ function salvarProgressoSkills() {
     try {
         // Verifica se a função está disponível
         const funcaoDisponivel = typeof window.obterConfigRenascimentoBase === 'function';
-        console.log('[SKILL SAVE] Função obterConfigRenascimentoBase disponível?', funcaoDisponivel);
+
 
         const estadoPersistencia = obterEstadoPersistenciaSkills();
         if (!estadoPersistencia.disponivel) {
-            console.log('[SKILL SAVE] ⏳ Persistência ainda não disponível. Mantendo estado sem limpar.');
+
             return false;
         }
 
         if (!estadoPersistencia.permite) {
-            console.log('[SKILL SAVE] ✗ Salvamento bloqueado - Base não permite persistir.');
+
             localStorage.removeItem(SKILLS_STORAGE_KEY);
             return false;
         }
@@ -121,11 +121,11 @@ function salvarProgressoSkills() {
             salvoEm: Date.now()
         };
 
-        console.log('[SKILL SAVE] ✓ Salvando progresso no localStorage:', estado);
+
         localStorage.setItem(SKILLS_STORAGE_KEY, JSON.stringify(estado));
         return true;
     } catch (error) {
-        console.error('[SKILL SAVE] ✗ Falha ao salvar progresso:', error);
+        // console.error('[SKILL SAVE] ✗ Falha ao salvar progresso:', error);
         return false;
     }
 }
@@ -192,10 +192,10 @@ window.ganharXP = (quantidade = 1) => {
     // Calcula se o jogador atingiu um novo patamar de 5 XP
     const novosPontos = Math.floor(window.playerXP / 5) - Math.floor(xpAnterior / 5);
     
-    console.log(`[SKILL XP] Ganho +${quantidade} XP | Total: ${window.playerXP}`);
+
     if (novosPontos > 0) {
         window.skillPoints += novosPontos;
-        console.log(`[SKILL XP] 🎯 +${novosPontos} Ponto(s) de Skill! Total: ${window.skillPoints}`);
+
     }
 
     if (typeof window.salvarProgressoSkills === 'function') {
@@ -209,7 +209,7 @@ window.ganharXP = (quantidade = 1) => {
  */
 window.carregarDadosSkills = async (forçarReset = false) => {
     try {
-        console.log('[SKILL INIT] 🔄 Carregando dados de skills... (forçarReset:', forçarReset, ')');
+
         const resposta = await fetch('../../config/skills-dados.json?v=20260417-dash-skill');
         const dados = await resposta.json();
         const skillsOriginais = dados.skills || {};
@@ -219,7 +219,7 @@ window.carregarDadosSkills = async (forçarReset = false) => {
         window.skillsData = skillsNormalizadas;
 
         if (!forçarReset && progressoSalvo && typeof progressoSalvo === 'object') {
-            console.log('[SKILL INIT] ✓ Usando progresso salvo');
+
             window.playerXP = Number(progressoSalvo.playerXP ?? progressoSalvo.xp ?? 0);
             window.skillPoints = Number(progressoSalvo.skillPoints ?? 0);
             window.playerSkills = normalizarSkillsAdquiridas(
@@ -228,24 +228,24 @@ window.carregarDadosSkills = async (forçarReset = false) => {
                 skillsOriginais
             );
         } else if (forçarReset || window.playerSkills.length === 0) {
-            console.log('[SKILL INIT] ✓ Usando padrão do JSON (forçarReset ou primeira vez)');
+
             window.playerXP = Number(dados.playerStats?.xp || 0);
             window.skillPoints = Number(dados.playerStats?.skillPoints || 0);
             window.playerSkills = normalizarSkillsAdquiridas(dados.playerStats?.acquired || [], skillsNormalizadas, skillsOriginais);
         } else {
-            console.log('[SKILL INIT] ✓ Mantendo progresso em memória atual');
+
             window.playerXP = Number(window.playerXP || 0);
             window.skillPoints = Number(window.skillPoints || 0);
             window.playerSkills = normalizarSkillsAdquiridas(window.playerSkills, skillsNormalizadas, skillsOriginais);
         }
 
-        console.log('[SKILL INIT] Final | XP:', window.playerXP, '| Pontos:', window.skillPoints, '| Skills:', window.playerSkills);
+
         if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
 
         if (estadoPersistencia.disponivel) {
             salvarProgressoSkills();
         } else {
-            console.log('[SKILL INIT] ⏳ Persistência ainda não disponível no init; mantendo estado carregado sem gravar.');
+
         }
     } catch (e) {
         const progressoSalvo = carregarProgressoSkillsSalvo();
@@ -267,8 +267,6 @@ window.carregarDadosSkills = async (forçarReset = false) => {
 
 window.resetarProgressoParaJson = async () => {
     const estadoPersistencia = obterEstadoPersistenciaSkills();
-    console.log('[SKILL RESET] 🔄 Resetando progresso... | Disponivel?', estadoPersistencia.disponivel, '| Permite memória?', estadoPersistencia.permite);
-
     await window.carregarDadosSkills(!estadoPersistencia.permite);
 };
 
@@ -478,10 +476,10 @@ function abrirMenuSkillsUI() {
 
         if (disponivel && !jaPossui) {
             btn.onclick = () => {
-                console.log(`[SKILL ACQUIRE] 🚀 Adquirindo skill: ${skillId} (${skill.nome})`);
+
                 window.skillPoints -= 1;
                 window.playerSkills.push(skillId);
-                console.log(`[SKILL ACQUIRE] ✅ Skill adquirida! | Pontos restantes: ${window.skillPoints} | Skills atuais:`, window.playerSkills);
+
                 
                 // Executa a lógica da skill recém-adquirida
                 if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();

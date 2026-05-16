@@ -540,13 +540,13 @@
                 return false;
             }
 
-            if (tipo === 'colete' && origem === 'inventario' && Array.isArray(controle.coleteSlots) && controle.coleteSlots.some(Boolean)) {
-                return false;
-            }
+        if (tipo === 'colete' && origem === 'inventario' && Array.isArray(controle.coleteSlots) && controle.coleteSlots.some(Boolean)) {
+            return false;
+        }
 
-            if (tipo === 'cinto' && origem === 'inventario') {
-                return false;
-            }
+        if (tipo === 'cinto' && origem === 'inventario') {
+            return false;
+        }
 
             return true;
         }
@@ -582,7 +582,7 @@
             const ultimo = controle.inventario[controle.inventario.length - 1];
             if (ultimo !== tipo) return false;
 
-            const precisaRemocaoVisual = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete'].includes(tipo);
+        const precisaRemocaoVisual = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete'].includes(tipo);
             if (precisaRemocaoVisual && typeof window.removerItemDoCorpoSemDropar === 'function') {
                 const removeu = window.removerItemDoCorpoSemDropar(tipo);
                 if (!removeu) return false;

@@ -1,0 +1,11 @@
+{
+    "id": "municao_plus",
+    "nome": "Munição Plus",
+    "descricao": "Munição especial que serve para todas as armas de fogo (revolver, doze, etc).",
+    "spriteColetavel": "../../assets/personagem/cx_municao.png",
+    "categoria": "municao",
+    "empilhavel": true,
+    "quantidadeMax": 20,
+    "usos": 1,
+    "valor": 10
+}
