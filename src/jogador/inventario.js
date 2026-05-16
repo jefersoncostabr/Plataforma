@@ -1002,7 +1002,8 @@
                 itens.push(criarEntradaColete({ tipo, ...obterDadosExtrasDoItemAtivo(tipo) }, itemData));
             };
 
-            adicionar('revolver', controle.temArma);
+            const tipoArmaAtiva = controle.heldWeaponType === 'doze' ? 'doze' : 'revolver';
+            adicionar(tipoArmaAtiva, controle.temArma);
             adicionar('escudo', controle.temEscudo || controle.escudoVermelho);
             adicionar('bota', controle.temBota);
             adicionar('jetpack', controle.temJetpack);
@@ -1042,6 +1043,9 @@
 
         function guardarEquipamentoNoCinto(tipo) {
             if (!controle.temCinto || !tipo) return false;
+            if (tipo === 'revolver' || tipo === 'doze') {
+                tipo = controle.heldWeaponType === 'doze' ? 'doze' : 'revolver';
+            }
             controle.cintoSlot = normalizarEntradaArmazenada(controle.cintoSlot);
             if (controle.cintoSlot) return false;
             if (!itemJaAtivoNoCorpo(tipo)) return false;
