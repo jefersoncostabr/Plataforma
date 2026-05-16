@@ -545,7 +545,6 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 }
                 // Aplica munição específica
                 inimigoObj.municao = (tipoArma === 'doze') ? 2 : 5;
-                console.log(`[IA] Inimigo criado com ${tipoArma}. Mun: ${inimigoObj.municao}`);
             }
 
             if (inimigoObj.temEscudo) inimigoObj.inventario.push('escudo');

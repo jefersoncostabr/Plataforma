@@ -506,7 +506,6 @@
 
         const mMax = (controle.heldWeaponType === 'doze') ? 2 : 5;
         controle.municao = mMax;
-        console.log(`[SISTEMA] Municao resetada. Ativa: ${controle.heldWeaponType}, Mun: ${controle.municao}`);
 
         if (Array.isArray(controle.inventario) && controle.inventario.includes('bota')) {
             controle.temBota = true;
@@ -687,7 +686,6 @@
                 const munPadrao = (tipo === 'doze') ? 2 : 5;
                 controle.municao = Number(extras?.municao ?? itemData?.efeitos?.jogador?.municao ?? munPadrao);
                 window.AudioManager?.playSFX('recarga', 0.6);
-                console.log(`[INVENTARIO] Item aplicado: ${tipo}. Munição definida para: ${controle.municao}`);
                 if (armaElemento) {
                     if (itemData?.spriteEquipado) armaElemento.src = itemData.spriteEquipado;
                     armaElemento.style.display = 'block';

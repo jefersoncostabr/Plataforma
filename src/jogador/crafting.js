@@ -154,13 +154,6 @@
 
             try {
                 localStorage.setItem(CRAFT_PERSISTENCE_KEY, JSON.stringify(registro));
-                console.log(
-                    '[DEBUG BASE][salvar] temBase=%s nivelBase=%s fase=%s local=%s',
-                    true,
-                    Number(registro.nivel || 0),
-                    registro.faseOriginal || registro.fase || '(sem fase)',
-                    `x:${Number(registro.x || 0)},y:${Number(registro.y || 0)}`
-                );
                 return true;
             } catch (error) {
                 console.warn('Craft: falha ao salvar base persistida.', error);
@@ -448,7 +441,6 @@
             const temBase = Array.isArray(window.craftsAtivos) && window.craftsAtivos.length > 0;
             const nivelBase = Number(craft?.nivel || 0);
             const localBase = craft ? `x:${Number(craft.x || 0)},y:${Number(craft.y || 0)}` : '(sem local)';
-            console.log('[DEBUG BASE][modo] temBase=%s nivelBase=%s fase=%s local=%s', temBase, nivelBase, faseAtual, localBase);
             if (!craft) {
                 return { ok: false, motivo: 'Base não encontrada.' };
             }
@@ -528,17 +520,14 @@
             const origem = typeof fonte === 'string' ? null : fonte?.origem;
 
             if (!tipo) {
-                console.log('Craft: nenhum item disponível para usar no craft.');
                 return false;
             }
 
             if (tipo === 'colete' && origem === 'inventario' && Array.isArray(controle.coleteSlots) && controle.coleteSlots.some(Boolean)) {
-                console.log('Craft: esvazie os Slots do Colete antes de usar o colete equipado no craft.');
                 return false;
             }
 
             if (tipo === 'cinto' && origem === 'inventario') {
-                console.log('Craft: o cinto equipado no corpo não pode ser usado no craft.');
                 return false;
             }
 
@@ -673,7 +662,6 @@
                 if (typeof flashElement === 'function') {
                     flashElement(elemento, 120, 4);
                 }
-                console.log('Craft: a base única desta campanha já está instalada nesta fase.');
                 return false;
             }
 
@@ -681,7 +669,6 @@
                 if (typeof flashElement === 'function') {
                     flashElement(elemento, 120, 4);
                 }
-                console.log(`Craft: a base única já foi instalada em ${craftPersistido?.faseOriginal || craftPersistido?.fase || 'outra fase'}.`);
                 return false;
             }
 

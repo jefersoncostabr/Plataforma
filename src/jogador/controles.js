@@ -14,7 +14,8 @@
         debugImpacto: ['h', 'H'],
         mochila: ['Enter'],
         interagir: ['e', 'E'],
-        abertura: ['y', 'Y']
+        abertura: ['y', 'Y'],
+        troca_pet: ['q', 'Q']
     };
 
     function normalizarControles(raw) {
@@ -224,11 +225,6 @@
             if (e.key === '3') {
                 console.log("[DEBUG] Tecla 3 detectada: Concedendo XP ao jogador.");
                 callbacks.onGanharXP?.(10);
-            }
-
-            // Log de Depuração para tecla 5
-            if (e.key === '5') {
-                console.log("[INPUT] Tecla 5 detectada no motor de controles.");
             }
 
             if (e.key === '6') {

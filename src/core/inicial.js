@@ -81,7 +81,9 @@ function resetarJogadorParaZeroMantendoSkills(opcoes = {}) {
     if (!preservarEstadoSalvo && typeof window.limparInventarioSalvo === 'function') {
         window.limparInventarioSalvo();
     }
-    if (!preservarEstadoSalvo && typeof window.resetarResgateCao === 'function') {
+    if (!preservarEstadoSalvo && typeof window.resetarResgatePets === 'function') {
+        window.resetarResgatePets();
+    } else if (!preservarEstadoSalvo && typeof window.resetarResgateCao === 'function') {
         window.resetarResgateCao();
     }
 }

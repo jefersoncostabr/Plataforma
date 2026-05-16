@@ -20,7 +20,9 @@ const CONTROLES_PADRAO = {
     garra: ['j', 'J'],
     cinto: ['l', 'L'],
     mochila: ['Enter'],
-    interagir: ['e', 'E']
+    interagir: ['e', 'E'],
+    abertura: ['y', 'Y'],
+    troca_pet: ['q', 'Q']
 };
 
 const CONTROLES_MENU_ITEMS = [
@@ -35,6 +37,8 @@ const CONTROLES_MENU_ITEMS = [
     { id: 'cinto', label: 'Cinto' },
     { id: 'mochila', label: 'Slots do Cinto e Colete' },
     { id: 'interagir', label: 'Interagir / Craft' },
+    { id: 'abertura', label: 'Abrir/Fechar Armadura (Y)' },
+    { id: 'troca_pet', label: 'Controlar Pets (Q)' },
     { id: 'debugProximoNivel', label: 'Debug: Próxima Fase (4)' },
     { id: 'debugSpawnInimigo', label: 'Debug: Spawn Inimigo (6)' },
     { id: 'debugReset', label: 'Debug: Reset Total (0)' },
@@ -316,7 +320,7 @@ const getActiveMenuOptions = () => {
     const controlesOption = {
         label: 'CONTROLES', action: () => {
             menuMode = 'controls';
-            controlsSelectedIndex = -1;
+            controlsSelectedIndex = 0;
             controlsBindingAction = null;
             renderMenuUI();
         }
@@ -391,7 +395,7 @@ window.togglePauseMenu = () => {
 
         window.isMenuOpen = true;
         menuMode = 'main';
-        menuSelectedIndex = -1;
+        menuSelectedIndex = 0;
         renderMenuUI();
         window.addEventListener('keydown', handleMenuInput);
         return;
@@ -403,7 +407,7 @@ window.togglePauseMenu = () => {
 
         window.isMenuOpen = true;
         menuMode = 'main';
-        menuSelectedIndex = -1;
+        menuSelectedIndex = 0;
         renderMenuUI();
         window.addEventListener('keydown', handleMenuInput);
         return;
@@ -417,8 +421,8 @@ window.togglePauseMenu = () => {
 
     if (window.isMenuOpen) {
         menuMode = 'main';
-        menuSelectedIndex = -1;
-        controlsSelectedIndex = -1;
+        menuSelectedIndex = 0;
+        controlsSelectedIndex = 0;
         controlsBindingAction = null;
         renderMenuUI();
         window.addEventListener('keydown', handleMenuInput);
@@ -448,7 +452,9 @@ function handleMenuInput(e) {
         updateMenuVisuals();
     } else if (key === 'enter' || key === ' ') {
         e.preventDefault();
-        if (menuSelectedIndex === -1) return;
+        if (menuSelectedIndex === -1) {
+            menuSelectedIndex = 0;
+        }
         
         try {
             currentOptions[menuSelectedIndex].action();
@@ -497,7 +503,9 @@ function handleControlsInput(e) {
 
     if (key !== 'enter' && key !== ' ') return;
     e.preventDefault();
-    if (controlsSelectedIndex === -1) return;
+    if (controlsSelectedIndex === -1) {
+        controlsSelectedIndex = 0;
+    }
     
     const selected = entries[controlsSelectedIndex];
     if (!selected) return;

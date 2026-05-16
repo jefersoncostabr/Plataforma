@@ -1,116 +1,48 @@
-# Controles do Jogo
+# Guia de Controles
 
-Este documento descreve os comandos atuais do jogo, como o remapeamento e salvo e os atalhos de debug.
+## Jogador (Armadura)
+- **Movimento**: `A`, `D` ou `Setas ← →`
+- **Pulo / Super Pulo**: `Espaço` (Toque duplo no ar habilita o Salto)
+- **Agachar**: `S` ou `Seta ↓`
+- **Atacar (Chute)**: `K`
+- **Atirar**: `I` (Requer Arma e Munição)
+- **Lançar Garra**: `J` (Requer item Garra)
+- **Mudar Item Ativo (Cinto)**: `L`
+- **Alternar Arma/Escudo**: `E` (Requer Cinto e ambos equipados)
+- **Abrir Inventário/Mochila**: `Enter`
+- **Interagir / Construir (Crafting)**: `E` (Agachado para construir)
+- **Sinalizador (AirDrop)**: `U` ou `W + I` (Consome habilidade)
+- **Abrir/Fechar Armadura**: `Y` (Ejeta o BB ou entra no casco)
 
-## Onde configurar
+## Aliados (Cão e Gato)
+*Para assumir o controle: Agache-se e encoste no pet, então pressione `Q`.*
 
-- Arquivo base: `config/controles.json`
-- Salvo do jogador: `localStorage` na chave `plataformaControles`
-- Menu no jogo: `Pause -> CONTROLES`
+- **Movimento**: `A`, `D` ou `Setas ← →`
+- **Pulo**: `Espaço`
+- **Habilidade Ativa**: `K`, `V` ou `X`
+  - **Cão**: Morder e prender inimigos.
+  - **Gato**: Arrastar itens coletáveis.
+- **Soltar Carga**: Pressione a Habilidade Ativa novamente.
+- **Retornar ao Player**: `Q` (Pressione duas vezes rápido)
 
-## Acoes do gameplay
+## Controle do Bebê (BB)
+*O BB é controlado após ejetar da armadura com `Y`.*
 
-Estas acoes sao lidas continuamente pelo jogo:
+- **Movimento**: `A`, `D` ou `Setas ← →`
+- **Pulo**: `Espaço`
+- **Interagir**: `E` (Usa alavancas, abre inimigos imobilizados ou fecha a armadura)
+- **Assumir Controle de Pet**: `Q` (ao encostar no pet)
+- **Retornar ao Casco**: `E` (ao encostar na armadura aberta) ou fechar via tecla `Y`.
 
-- `esquerda`
-- `direita`
-- `cima`
-- `baixo`
-- `pulo`
-- `chute`
-- `tiro`
-- `garra`
-- `cinto`
-- `mochila`
-- `interagir`
-- `airdrop`
-- `debugImpacto`
-- `abertura`
+## Atalhos de Debug (Testes)
+*Teclas numéricas e comandos para facilitar a depuração.*
 
-## Remapeamento pelo menu de pause
-
-O menu `CONTROLES` remapeia de forma confiavel as acoes base abaixo:
-
-- `esquerda`
-- `direita`
-- `cima`
-- `baixo`
-- `pulo`
-- `chute`
-- `tiro`
-- `garra`
-- `cinto`
-- `mochila`
-- `interagir`
-
-Passos:
-
-1. Abra o pause (`Esc`).
-2. Entre em `CONTROLES`.
-3. Selecione a acao e pressione `Enter` ou `Espaco`.
-4. Pressione a nova tecla.
-5. Use `SALVAR E VOLTAR`.
-
-Observacoes:
-
-- A tecla escolhida e removida das outras acoes para evitar conflito direto.
-- `RESTAURAR PADRAO` volta para os binds padrao do menu.
-- O novo bind passa a valer sem reiniciar o jogo.
-
-## Controles da mochila (quando aberta)
-
-- `WASD` ou setas: navega pelos slots.
-- `Enter` ou `Espaco`: aciona o slot atual.
-- Tecla de `chute`: dropa item do slot selecionado.
-- `Esc`: fecha a mochila.
-
-Na linha do cinto:
-
-- Em `item-corpo`, `Enter` guarda no slot central do cinto.
-- No `slot-cinto`, `Enter` usa (ou dropa se nao puder usar).
-
-## Atalhos fixos e debug
-
-Algumas teclas continuam hardcoded no motor de entrada:
-
-- `Escape`, `Pause` ou `Break`: abre/fecha pause (ou fecha mochila, se aberta).
-- `2`: apagar base persistida (debug).
-- `3`: ganhar XP (debug).
-- `5`: log de input (debug).
-- `6`: abrir/fechar menu de skills.
-- `7`: reset de skills (debug).
-- `8`: pulo debug do inimigo.
-- `9`: eliminar inimigos.
-- `0`: reset total (inventario/base), mantendo skills.
-
-## Mapeamento padrao (arquivo)
-
-Padrao atual em `config/controles.json`:
-
-```json
-{
-	"esquerda": ["ArrowLeft", "a", "A"],
-	"direita": ["ArrowRight", "d", "D"],
-	"cima": ["ArrowUp", "w", "W"],
-	"baixo": ["ArrowDown", "s", "S"],
-	"pulo": [" "],
-	"chute": ["k", "K"],
-	"tiro": ["i", "I"],
-	"garra": ["j", "J"],
-	"cinto": ["l", "L"],
-	"mochila": ["Enter"],
-	"interagir": ["e", "E"],
-	"debugApagarEquipamento": ["2"],
-	"debugXP": ["3"],
-	"debugProximoNivel": ["4"],
-	"airdrop": ["5"],
-	"debugSpawnInimigo": ["6"],
-	"debugImpacto": ["h", "H"],
-	"debugResetSkills": ["7"],
-	"debugPuloInimigo": ["8"],
-	"debugKillInimigos": ["9"],
-	"debugReset": ["0"],
-	"pause": ["Escape"],
-	"debugGrade": ["g", "G"]
-}
-```
+- **Tecla `0`**: Reset Total (Limpa progresso e inventário).
+- **Tecla `2`**: Limpar Equipamentos e Base (Reseta estado da armadura).
+- **Tecla `3`**: Conceder +10 XP.
+- **Tecla `4`**: Pular para o Próximo Nível.
+- **Tecla `6`**: Abrir/Fechar Menu de Skills.
+- **Tecla `7`**: Resetar Árvore de Skills (Zera pontos e XP).
+- **Tecla `8`**: Forçar Pulo dos Inimigos (Debug de IA).
+- **Tecla `9`**: Eliminar todos os inimigos da tela.
+- **Tecla `G`**: Alternar Grade de Debug.

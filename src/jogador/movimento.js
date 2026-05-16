@@ -249,7 +249,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             return;
         }
 
-        if (typeof window.iniciarResgateMorteComBB === 'function') {
+        // Mecanica temporariamente desabilitada: resgate de morte com BB (paraquedas).
+        const resgateMorteComBBAtivo = false;
+        if (resgateMorteComBBAtivo && typeof window.iniciarResgateMorteComBB === 'function') {
             const ativouResgateBB = window.iniciarResgateMorteComBB({
                 controle,
                 elemento,

@@ -442,9 +442,33 @@
         }
     };
 
-    window.resetarResgateCao = function() {
+    window.resetarResgatePets = function(opcoes = {}) {
+        const removerPetsAtivos = !!opcoes.removerPetsAtivos;
+
         window.isCaoResgatado = false;
+        window.isGatoResgatado = false;
+        window.caoNaBase = false;
+        window.gatoNaBase = false;
+
         localStorage.removeItem(CAO_STORAGE_KEY);
+        localStorage.removeItem(GATO_STORAGE_KEY);
+        localStorage.removeItem('plataformaCaoNaBase');
+        localStorage.removeItem('plataformaGatoNaBase');
+
+        if (removerPetsAtivos) {
+            if (window.caoEntidade?.elemento) window.caoEntidade.elemento.remove();
+            if (window.gatoEntidade?.elemento) window.gatoEntidade.elemento.remove();
+            window.caoEntidade = null;
+            window.gatoEntidade = null;
+        }
+
+        console.info('[PETS] Status de resgate resetado: cao e gato agora estao como nao resgatados.');
+        return true;
+    };
+
+    // Compatibilidade retroativa para chamadas antigas.
+    window.resetarResgateCao = function() {
+        return window.resetarResgatePets();
     };
 
 })();
