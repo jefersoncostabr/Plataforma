@@ -38,8 +38,20 @@ function carregarProgressoSkillsSalvo() {
     }
 }
 
+function basePermitePersistirSkills() {
+    if (typeof window.obterConfigRenascimentoBase !== 'function') return false;
+    const craft = window.obterConfigRenascimentoBase();
+    const modo = String(craft?.modoRenascimento || '').trim().toLowerCase();
+    return !!(craft && (modo === 'memoria' || modo === 'ambos'));
+}
+
 function salvarProgressoSkills() {
     try {
+        if (!basePermitePersistirSkills()) {
+            localStorage.removeItem(SKILLS_STORAGE_KEY);
+            return false;
+        }
+
         const estado = {
             playerXP: Number(window.playerXP || 0),
             skillPoints: Number(window.skillPoints || 0),
@@ -141,7 +153,11 @@ window.carregarDadosSkills = async (forçarReset = false) => {
         const dados = await resposta.json();
         const skillsOriginais = dados.skills || {};
         const skillsNormalizadas = normalizarEstruturaSkills(skillsOriginais);
-        const progressoSalvo = !forçarReset ? carregarProgressoSkillsSalvo() : null;
+        const podeUsarProgressoSalvo = !forçarReset && basePermitePersistirSkills();
+        if (!podeUsarProgressoSalvo) {
+            localStorage.removeItem(SKILLS_STORAGE_KEY);
+        }
+        const progressoSalvo = podeUsarProgressoSalvo ? carregarProgressoSkillsSalvo() : null;
         window.skillsData = skillsNormalizadas;
 
         if (progressoSalvo && typeof progressoSalvo === 'object') {

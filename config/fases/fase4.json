@@ -1,45 +1,59 @@
 {
-    "proporcao": "1x2",
+    "proporcao": "2x2",
     "posicaoInicialJogador": "b2",
     "objetivo": "e40",
-    "posicaoGaiola": "",
+    "posicaoGaiola": "k10",
     "posicaoCachorro": "",
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
-        "revolver": "b21",
-        "restauracao": "b9",
-        "escudo": "c23"
+        "restauracao": [
+            "b19",
+            "b26",
+            "m30",
+            "ac1",
+            "ac40"
+        ]
     },
     "inimigoAleatorio": [1, 0],
-    "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a11", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
-        "b11",
-        "c7", "c8", "c9", "c10", "c24",
-        "d24",
-        "e24",
-        "f11", "f12", "f13", "f14", "f24",
-        "g24",
-        "h24",
-        "i16", "i24",
-        "j24",
-        "l18", "l19", "l20", "l21", "l22", "l23", "l24", "l25", "l26", "l27", "l28", "l29", "l30",
-        "m1", "m3", "m4", "m5", "m6", "m7", "m8", "m9", "m10", "m11", "m12", "m13", "m14"
+    "plataformasNeve": [
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
+        "b17",
+        "c8", "c33",
+        "d9", "d32",
+        "e10", "e32",
+        "f11", "f32",
+        "g11", "g31",
+        "h12", "h31",
+        "i13", "i31",
+        "j10", "j13", "j30",
+        "k13", "k30",
+        "l14", "l30",
+        "m15", "m29",
+        "n16", "n29",
+        "o29",
+        "p18", "p20", "p21", "p22", "p23", "p24", "p25", "p26", "p28",
+        "q18", "q28",
+        "r18", "r28",
+        "s19", "s27",
+        "t19", "t27",
+        "u19", "u20", "u21", "u22", "u23", "u24", "u25", "u26",
+        "aa3", "aa38",
+        "ab1", "ab2", "ab39", "ab40"
     ],
-    "plataformasTerraSuperior": [
-        "b6"
+    "plataformasTerraInferior": [
+        "b14", "b15", "b18"
     ],
     "plataformasTerraSuperior2": [
-        "b23", "b24", "b25",
-        "i40",
-        "j35"
+        "b8", "b33",
+        "o17",
+        "q19", "q27"
     ],
     "plataformasEstacaSup": [
-        "a10", "a12",
-        "j40",
-        "k35"
+        "b16"
     ],
-    "inimigo_comum": ["b26", "b28", "b30", "b32"],
-    "inimigo_escudo": ["b7"],
-    "inimigo_cinto": ["m23"]
+    "inimigo_revolver": ["b21", "b22", "b23", "b24"],
+    "inimigo_escudo": ["b13", "b32", "v25"],
+    "inimigo_feno": ["v19", "v26"],
+    "inimigo_comum": ["q21", "r22", "r24"]
 }

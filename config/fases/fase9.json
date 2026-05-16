@@ -1,59 +1,33 @@
 {
-    "proporcao": "1x2",
+    "proporcao": "2x1",
     "posicaoInicialJogador": "b2",
-    "objetivo": "f40",
+    "objetivo": "ab20",
     "itens": {
-        "restauracao": [
-            "f25",
-            "m16"
+        "revolver": [
+            "t15",
+            "x6"
         ],
-        "bota": [
-            "b17",
-            "b23"
+        "jetpack": [
+            "m10",
+            "ab2"
         ],
-        "colete": "f24",
-        "cinto": "f26"
+        "colete": "f13",
+        "restauracao": "m15"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
-        "e20", "e21", "e22", "e23", "e24", "e25", "e26", "e27", "e28", "e29", "e30", "e31",
-        "f32",
-        "g33", "g34", "g36", "g37", "g39",
-        "h20", "h21", "h22", "h23", "h24", "h25", "h26", "h27", "h28", "h29", "h37",
-        "i30", "i31", "i32", "i33", "i34", "i37", "i38", "i40",
-        "j34", "j37",
-        "k34", "k37", "k39",
-        "l5", "l16", "l34", "l37",
-        "m38", "m40"
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20",
+        "g4", "g5",
+        "l9", "l10", "l15",
+        "s14", "s15",
+        "w5", "w6",
+        "aa1", "aa2",
+        "ab10", "ab11"
     ],
-    "inimigo_jetpack": ["m5"],
-    "inimigo_feno": ["c4"],
-    "inimigo_garra": ["c10", "c16"],
-    "plataformasTerraInferior": [
-        "f21", "f28", "f30"
-    ],
-    "plataformasTerraSuperior2": [
-        "g21"
-    ],
-    "plataformasEstacaSup": [
-        "f22", "f23", "f29",
-        "g35", "g40",
-        "l17"
-    ],
+    "inimigo_comum": ["b9", "b12", "b16", "b18", "b20"],
+    "inimigo_jetpack": ["b14", "v15", "x5"],
     "plataformasEstacaBaixo": [
-        "g22", "g23"
-    ],
-    "plataformasEstacaEsq": [
-        "h36",
-        "i36",
-        "j36",
-        "k36",
-        "l36"
-    ],
-    "plataformasTerraSuperior": [
-        "b4", "b10", "b16", "b20", "b21",
-        "k17"
-    ],
-    "inimigo_comum": ["b22", "b30", "g31", "j31", "l39"]
+        "z1",
+        "aa10"
+    ]
 }

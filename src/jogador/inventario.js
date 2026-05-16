@@ -227,7 +227,18 @@
         );
     }
 
+    function baseComPersistenciaAtiva() {
+        if (typeof window.obterConfigRenascimentoBase !== 'function') return false;
+        const craft = window.obterConfigRenascimentoBase();
+        const modo = String(craft?.modoRenascimento || '').trim().toLowerCase();
+        return !!(craft && (modo === 'spawnpoint' || modo === 'memoria' || modo === 'ambos'));
+    }
+
     function carregarInventarioSalvo() {
+        if (!baseComPersistenciaAtiva()) {
+            return null;
+        }
+
         const runtime = lerEstadoInventarioRuntime();
         const checkpoint = carregarCheckpointEquipamentoSalvo();
 
@@ -304,6 +315,14 @@
     }
 
     function aplicarCheckpointEquipamentoComoInventarioPadrao() {
+        if (!baseComPersistenciaAtiva()) {
+            salvarEstadoInventarioRuntime(null);
+            try {
+                localStorage.removeItem(INVENTARIO_STORAGE_KEY);
+            } catch (_) {}
+            return false;
+        }
+
         const checkpoint = carregarCheckpointEquipamentoSalvo();
         if (!checkpoint) {
             salvarEstadoInventarioRuntime(null);
