@@ -2,26 +2,31 @@
     "proporcao": "1x1",
     "posicaoInicialJogador": "b2",
     "objetivo": "f19",
+    "posicaoAlavanca": "",
+    "posicaoRoboDesativado": "i1",
+    "posicaoRoboAberto": "",
+    "posicaoMusgoRoboAberto": "",
+    "posicaoMusgoRoboDesativado": "i1",
     "posicaoGaiola": "",
     "posicaoCachorro": "",
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
         "escudo": "l13",
-        "revolver": [
-            "g7",
-            "h20"
+        "revolver": "g7",
+        "restauracao": [
+            "b8",
+            "j1"
         ],
-        "restauracao": "b8",
         "bota": [
             "h19",
             "l15"
-        ],
-        "scrap": "j1"
+        ]
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
         "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20",
+        "b14",
         "c10",
         "d4", "d9",
         "e8",
@@ -34,7 +39,7 @@
         "m2"
     ],
     "inimigo_comum": ["b20", "f8", "h6", "l17"],
-    "inimigo_revolver": ["b19", "e9", "i19", "l14"],
+    "inimigo_revolver": ["e9", "i19", "l14"],
     "inimigo_escudo": ["h13"],
     "plataformasTerraSuperior2": [
         "i2"

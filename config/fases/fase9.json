@@ -2,17 +2,24 @@
     "proporcao": "2x1",
     "posicaoInicialJogador": "b2",
     "objetivo": "ab20",
+    "posicaoAlavanca": "",
+    "posicaoRoboDesativado": "",
+    "posicaoRoboAberto": "",
+    "posicaoMusgoRoboAberto": "",
+    "posicaoMusgoRoboDesativado": "",
+    "posicaoGaiola": "",
+    "posicaoCachorro": "",
+    "posicaoGaiolaGato": "",
+    "posicaoGato": "",
     "itens": {
         "revolver": [
             "t15",
             "x6"
         ],
-        "jetpack": [
-            "m10",
-            "ab2"
-        ],
-        "colete": "f13",
-        "restauracao": "m15"
+        "restauracao": "m15",
+        "jetpack": "ab18",
+        "colete": "ab13",
+        "doze": "ab1"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [

@@ -2,6 +2,11 @@
     "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
     "objetivo": "e20",
+    "posicaoAlavanca": "",
+    "posicaoRoboDesativado": "",
+    "posicaoRoboAberto": "",
+    "posicaoMusgoRoboAberto": "",
+    "posicaoMusgoRoboDesativado": "",
     "posicaoGaiola": "",
     "posicaoCachorro": "",
     "posicaoGaiolaGato": "",
@@ -21,9 +26,9 @@
         "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a18", "a19", "a20", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
         "b6", "b10", "b14", "b16", "b22",
         "c5", "c9", "c11", "c14", "c23", "c24", "c25", "c26", "c27", "c28", "c29", "c30", "c34", "c35", "c36", "c37", "c38", "c39",
-        "d1", "d2", "d3", "d24", "d25", "d33",
+        "d1", "d2", "d3", "d24", "d25",
         "e26", "e34",
-        "f26", "f34", "f37",
+        "f26", "f34",
         "g27", "g34", "g37",
         "h27", "h35", "h36",
         "i3", "i4", "i5", "i6", "i7", "i8", "i9", "i10", "i11", "i15", "i28",
@@ -41,11 +46,14 @@
     ],
     "plataformasTerraSuperior": [
         "c2",
+        "d33",
+        "e38",
         "k4", "k10"
     ],
     "plataformasTerraInferior2": [
         "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32",
         "d6", "d13", "d38", "d39",
+        "f37",
         "h6", "h7", "h8",
         "l12", "l13"
     ],

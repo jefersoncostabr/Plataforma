@@ -2,12 +2,20 @@
     "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
     "objetivo": "e40",
+    "posicaoAlavanca": "",
+    "posicaoRoboDesativado": "",
+    "posicaoRoboAberto": "",
+    "posicaoMusgoRoboAberto": "",
+    "posicaoMusgoRoboDesativado": "",
     "posicaoGaiola": "",
     "posicaoCachorro": "",
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
-        "restauracao": "n40"
+        "restauracao": [
+            "g14",
+            "n40"
+        ]
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [

@@ -482,6 +482,23 @@
         }
         salvarCraftPersistido(craft);
 
+        const skillSaverDisponivel = typeof window.salvarProgressoSkills === 'function';
+        console.log('[CRAFT RENASCIMENTO] Base atualizada.', {
+            craftId: craft.id,
+            fase: craft.fase,
+            modoRenascimento: craft.modoRenascimento,
+            nivel: craft.nivel,
+            skillSaverDisponivel
+        });
+
+        if (skillSaverDisponivel) {
+            const salvouSkills = window.salvarProgressoSkills();
+            console.log('[CRAFT RENASCIMENTO] Salvamento de skills disparado após clique.', {
+                salvouSkills,
+                modoRenascimento: craft.modoRenascimento
+            });
+        }
+
         let mensagem;
         if (craft.modoRenascimento === 'ambos') {
             mensagem = 'Base Nível 4: Spawnpoint E Memória ativados! Você nascerá nesta base mantendo as skills.';

@@ -2,6 +2,11 @@
     "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
     "objetivo": "e40",
+    "posicaoAlavanca": "",
+    "posicaoRoboDesativado": "",
+    "posicaoRoboAberto": "",
+    "posicaoMusgoRoboAberto": "",
+    "posicaoMusgoRoboDesativado": "",
     "posicaoGaiola": "",
     "posicaoCachorro": "",
     "posicaoGaiolaGato": "",
@@ -9,7 +14,8 @@
     "itens": {
         "revolver": "b21",
         "restauracao": "b9",
-        "escudo": "c23"
+        "escudo": "c23",
+        "cinto": "m36"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
@@ -23,7 +29,7 @@
         "h24",
         "i16", "i24",
         "j24",
-        "l18", "l19", "l20", "l21", "l22", "l23", "l24", "l25", "l26", "l27", "l28", "l29", "l30",
+        "l18", "l19", "l20", "l21", "l22", "l23", "l24", "l25", "l26", "l27", "l28", "l29", "l30", "l33", "l36",
         "m1", "m3", "m4", "m5", "m6", "m7", "m8", "m9", "m10", "m11", "m12", "m13", "m14"
     ],
     "plataformasTerraSuperior": [
