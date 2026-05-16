@@ -181,7 +181,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         if (tipo === 'revolver') {
             inimigo.temArma = true;
             inimigo.heldWeaponType = 'revolver';
-            inimigo.municao = config.maxMunicao || 5;
+            inimigo.municao = 5;
         } else if (tipo === 'doze') {
             inimigo.temArma = true;
             inimigo.heldWeaponType = 'doze';
@@ -418,7 +418,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             // Inicialização visual centralizada
             window.inicializarVisualEquipamentoEntidade(inimigoObj, inimigoImg.parentElement, config);
             if (inimigoObj.temArma) {
-                inimigoObj.municao = inimigoObj.heldWeaponType === 'doze' ? 2 : (config.maxMunicao || 5);
+                inimigoObj.municao = inimigoObj.heldWeaponType === 'doze' ? 2 : 5;
             }
 
             // Sincroniza posições iniciais
@@ -570,7 +570,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                     // Se for restauração, só se interessa se estiver sem munição ou com escudo danificado
                     if (it.tipo === 'restauracao') {
-                        const precisaMunicao = inimigo.temArma && (inimigo.municao || 0) < (config.maxMunicao || 5);
+                    const maxMun = (inimigo.heldWeaponType === 'doze') ? 2 : 5;
+                    const precisaMunicao = inimigo.temArma && (inimigo.municao || 0) < maxMun;
                         const precisaEscudo = inimigo.temEscudo && (inimigo.escudoVermelho || (inimigo.escudoProtegido || 0) > 0);
                         if (!precisaMunicao && !precisaEscudo) return false;
                     }

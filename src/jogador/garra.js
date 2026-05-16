@@ -232,7 +232,8 @@
                         atualizarVisualEstadoGarra();
                     } else if (itemSorteado === 'revolver') {
                         controle.temArma = true;
-                        controle.municao = config.maxMunicao || 5;
+                        controle.heldWeaponType = 'revolver';
+                        controle.municao = 5;
                         window.AudioManager?.playSFX('recarga', 0.6);
                         if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
                         armaElemento.style.display = 'block';
@@ -243,16 +244,18 @@
                     }
                 }
             } else if (item.tipo === 'revolver') {
-                const novaMunicao = item.municao !== undefined ? item.municao : (config.maxMunicao || 5);
-                controle.municao = Math.min((controle.municao || 0) + novaMunicao, (config.maxMunicao || 5) * 2);
+                controle.municao = 5;
                 controle.temArma = true;
+                controle.heldWeaponType = 'revolver';
+                console.log(`[GARRA] Revolver coletado. Mun: ${controle.municao}`);
                 window.AudioManager?.playSFX('recarga', 0.6);
                 if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
                 armaElemento.style.display = 'block';
             } else if (item.tipo === 'doze') {
-                const novaMunicao = item.municao !== undefined ? item.municao : 2;
-                controle.municao = Math.min((controle.municao || 0) + novaMunicao, 4);
+                controle.municao = 2;
                 controle.temArma = true;
+                controle.heldWeaponType = 'doze';
+                console.log(`[GARRA] Doze coletada. Mun: ${controle.municao}`);
                 window.AudioManager?.playSFX('recarga', 0.6);
                 if (!controle.inventario.includes('doze')) controle.inventario.push('doze');
                 armaElemento.style.display = 'block';

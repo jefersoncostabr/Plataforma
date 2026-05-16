@@ -125,8 +125,9 @@ window.sincronizarAcessoriosEntidade = function(entidade, elementos, opcoes = {}
         let posY = y;
         let transform = baseTransform;
 
-        // Ajuste horizontal específico para a arma "doze" (shotgun)
-        if (chave === 'armaElemento' && el.src.includes('doze')) {
+        // Ajuste horizontal específico para a arma "doze" (shotgun) considerando heldWeaponType
+        const ehDoze = (chave === 'armaElemento') && (entidade.heldWeaponType === 'doze' || el.src.includes('doze'));
+        if (ehDoze) {
             const direcaoFator = entidade.direcao === 'e' ? -1 : 1;
             posX += (4 * direcaoFator);
         }

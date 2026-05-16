@@ -472,17 +472,22 @@
         if (Array.isArray(controle.inventario) && controle.inventario.includes('garra')) {
             controle.temGarra = true;
         }
-        if (Array.isArray(controle.inventario) && (controle.inventario.includes('revolver') || controle.inventario.includes('doze'))) {
-            controle.temArma = true;
-            if (!controle.heldWeaponType) {
-                controle.heldWeaponType = controle.inventario.includes('doze') ? 'doze' : 'revolver';
+        if (Array.isArray(controle.inventario)) {
+            const temDoze = controle.inventario.includes('doze');
+            const temRevolver = controle.inventario.includes('revolver');
+            
+            if (temDoze || temRevolver) {
+                controle.temArma = true;
+                // Só define heldWeaponType se não houver um ativo para não sobrescrever o revólver pela doze
+                if (!controle.heldWeaponType) {
+                    controle.heldWeaponType = temRevolver ? 'revolver' : 'doze';
+                }
             }
         }
 
-        // Calcula a munição baseada no heldWeaponType já definido acima
         const mMax = (controle.heldWeaponType === 'doze') ? 2 : 5;
         controle.municao = mMax;
-        console.log(`[SISTEMA] Restauração Padrão aplicada. Tipo: ${controle.heldWeaponType}, Mun: ${controle.municao}`);
+        console.log(`[SISTEMA] Municao resetada. Ativa: ${controle.heldWeaponType}, Mun: ${controle.municao}`);
 
         if (Array.isArray(controle.inventario) && controle.inventario.includes('bota')) {
             controle.temBota = true;
@@ -1413,10 +1418,12 @@
                 registrarDrop(tipo, extras);
             };
 
-            // Revólver: se munição estiver vazia, dropa com 1 bala
-            const municaoRevolver = Math.max(1, Number(inimigo.municao ?? 0));
-            adicionarEquipamentoAtivo('revolver', !!inimigo.temArma, {
-                municao: municaoRevolver
+            // Identifica qual arma dropar baseada no que está na mão
+            const tipoArmaAtiva = inimigo.heldWeaponType || (inimigo.inventario.includes('doze') ? 'doze' : 'revolver');
+            const municaoArma = Math.max(1, Number(inimigo.municao ?? 0));
+
+            adicionarEquipamentoAtivo(tipoArmaAtiva, !!inimigo.temArma, {
+                municao: municaoArma
             });
             // Escudo: se estiver vermelho, dropa com durabilidade 1
             const escudoProtegido = inimigo.escudoVermelho ? 1 : Number(inimigo.escudoProtegido || 0);

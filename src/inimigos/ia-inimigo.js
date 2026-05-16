@@ -313,7 +313,12 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         // 1. Atualiza estado lógico (Flags fundamentais para comportamento e visual)
         if (tipo === 'revolver') {
             inimigo.temArma = true;
-            inimigo.municao = config.maxMunicao || 5;
+            inimigo.heldWeaponType = 'revolver';
+            inimigo.municao = 5;
+        } else if (tipo === 'doze') {
+            inimigo.temArma = true;
+            inimigo.heldWeaponType = 'doze';
+            inimigo.municao = 2;
         } else if (tipo === 'escudo') {
             inimigo.temEscudo = true;
             inimigo.escudoVermelho = false;
@@ -530,7 +535,19 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
             const inimigoObj = window.inimigos[window.inimigos.length - 1];
             inimigoObj.inventario = [];
-            if (inimigoObj.temArma) inimigoObj.inventario.push('revolver');
+            
+            if (inimigoObj.temArma) {
+                // Define o tipo de arma baseado no spawn. Se não definido, assume revolver.
+                const tipoArma = inimigoObj.heldWeaponType || 'revolver';
+                inimigoObj.heldWeaponType = tipoArma;
+                if (!inimigoObj.inventario.includes(tipoArma)) {
+                    inimigoObj.inventario.push(tipoArma);
+                }
+                // Aplica munição específica
+                inimigoObj.municao = (tipoArma === 'doze') ? 2 : 5;
+                console.log(`[IA] Inimigo criado com ${tipoArma}. Mun: ${inimigoObj.municao}`);
+            }
+
             if (inimigoObj.temEscudo) inimigoObj.inventario.push('escudo');
             if (inimigoObj.temBota) inimigoObj.inventario.push('bota');
             if (inimigoObj.temJetpack) inimigoObj.inventario.push('jetpack');
@@ -540,7 +557,6 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
             // Inicialização visual centralizada
             window.inicializarVisualEquipamentoEntidade(inimigoObj, inimigoImg.parentElement, config);
-            if (inimigoObj.temArma) inimigoObj.municao = config.maxMunicao || 5;
 
             // Sincroniza posições iniciais
             [inimigoObj.armaElemento, inimigoObj.escudoElemento, inimigoObj.botaElemento, inimigoObj.jetpackElemento, inimigoObj.garraElemento, inimigoObj.cintoElemento, inimigoObj.coleteElemento].forEach(el => {

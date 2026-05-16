@@ -15,7 +15,9 @@
         "revolver": "o3",
         "cinto": "o6",
         "capsula": "b12",
-        "doze": "b6"
+        "doze": "b6",
+        "colete": "b8",
+        "escudo": "b9"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
