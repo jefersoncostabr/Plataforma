@@ -1265,8 +1265,16 @@
             return { acao: 'nenhum' };
         }
 
+        function itemVermelhoDeveSerDestruidoNoDrop(tipo, extras = {}) {
+            if (tipo === 'escudo') return !!extras?.escudoVermelho;
+            if (tipo === 'bota') return !!extras?.botaVermelha;
+            if (tipo === 'garra') return !!extras?.garraVermelha;
+            return false;
+        }
+
         function droparTipoNoMundo(tipo, extras = {}) {
             if (!tipo) return false;
+            if (itemVermelhoDeveSerDestruidoNoDrop(tipo, extras)) return true;
 
             const direcaoFace = controle.direcao === 'd' ? 1 : -1;
             let dropX = controle.x + (64 * direcaoFace);
