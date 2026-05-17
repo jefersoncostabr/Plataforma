@@ -650,15 +650,14 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
     }
 
     /**
-     * Alterna a seleção ativa entre Arma e Escudo (Mecânica do Botão E).
+     * Alterna a seleção ativa no cinto de forma cíclica.
      */
     function alternarEquipamentoSelecao() {
         if (controle.estaoAberto || controle.abrindo || controle.fechando) return;
         if (!controle.temCinto || controle.estaAgachado) return;
-        
+
         const temArma = !!controle.temArma;
         const temEscudo = !!(controle.temEscudo || controle.escudoVermelho);
-        
         if (!temArma && !temEscudo) return;
 
         // Se os itens estavam guardados, retira-os primeiro
@@ -666,39 +665,43 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
             controle.itensGuardadosNoCinto = false;
         }
 
-        const armasNoInventario = ['revolver', 'doze'].filter(tipo => Array.isArray(controle.inventario) && controle.inventario.includes(tipo));
-        const armaAtual = controle.heldWeaponType || (armaElemento?.src?.includes('doze') ? 'doze' : 'revolver');
+        const armasNoInventario = ['revolver', 'doze'].filter((tipo) =>
+            Array.isArray(controle.inventario) && controle.inventario.includes(tipo)
+        );
 
-        // Lógica de Ciclo: Escudo -> Arma 1 -> Arma 2 -> Escudo
-        if (controle.selecaoCinto === 'escudo' || !temEscudo) {
-            // Estava no escudo (ou não tem), tenta ir para categoria arma
-            if (temArma && armasNoInventario.length > 0) {
-                controle.selecaoCinto = 'arma';
-                // Garante que heldWeaponType seja algo válido no inventário
-                if (!armasNoInventario.includes(controle.heldWeaponType)) {
-                    controle.heldWeaponType = armasNoInventario[0];
-                }
-            } else if (temEscudo) {
-                controle.selecaoCinto = 'escudo';
-            }
+        const ciclo = [];
+        if (temEscudo) ciclo.push('escudo');
+        ciclo.push(...armasNoInventario);
+        if (ciclo.length === 0) return;
+
+        const armaAtual = armasNoInventario.includes(controle.heldWeaponType)
+            ? controle.heldWeaponType
+            : (armasNoInventario[0] || null);
+
+        let atual = null;
+        if (controle.selecaoCinto === 'escudo' && temEscudo) {
+            atual = 'escudo';
+        } else if (armaAtual) {
+            atual = armaAtual;
         } else {
-            // Estava na categoria arma, tenta ciclar para a próxima arma ou voltar para escudo
-            const idxAtual = armasNoInventario.indexOf(armaAtual);
-            const proximaArma = armasNoInventario[idxAtual + 1];
-
-            if (proximaArma) {
-                controle.heldWeaponType = proximaArma;
-                if (armaElemento) {
-                    const def = window.itemDefinitions?.[proximaArma];
-                    if (def?.spriteEquipado) armaElemento.src = def.spriteEquipado;
-                }
-                window.AudioManager?.playSFX('recarga', 0.4);
-                controle.selecaoCinto = 'arma';
-            } else if (temEscudo) {
-                controle.selecaoCinto = 'escudo';
-            }
+            atual = ciclo[0];
         }
-        
+
+        const indiceAtual = ciclo.indexOf(atual);
+        const proximo = ciclo[(indiceAtual + 1) % ciclo.length];
+
+        if (proximo === 'escudo') {
+            controle.selecaoCinto = 'escudo';
+        } else {
+            controle.selecaoCinto = 'arma';
+            controle.heldWeaponType = proximo;
+            if (armaElemento) {
+                const def = window.itemDefinitions?.[proximo];
+                if (def?.spriteEquipado) armaElemento.src = def.spriteEquipado;
+            }
+            window.AudioManager?.playSFX('recarga', 0.4);
+        }
+
         if (typeof flashElement === 'function' && cintoElemento) {
             flashElement(cintoElemento, 100, 2);
         }
