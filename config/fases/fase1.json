@@ -12,16 +12,14 @@
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
-        "colete": "b3",
         "doze": [
             "b5",
-            "b6"
+            "c10"
         ],
         "revolver": [
-            "b7",
-            "b8"
-        ],
-        "cinto": "b4"
+            "b8",
+            "l1"
+        ]
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [

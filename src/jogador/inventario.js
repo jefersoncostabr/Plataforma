@@ -642,10 +642,55 @@
             return tipo === 'revolver' || tipo === 'doze';
         }
 
+        function obterMaxMunicaoPorArma(tipoArma) {
+            return tipoArma === 'doze' ? 2 : 5;
+        }
+
+        function obterArmaEquipadaParaColeta() {
+            if (controle.heldWeaponType === 'revolver' || controle.heldWeaponType === 'doze') {
+                return controle.heldWeaponType;
+            }
+
+            const inventario = Array.isArray(controle.inventario) ? controle.inventario : [];
+            const temDoze = inventario.includes('doze');
+            const temRevolver = inventario.includes('revolver');
+
+            // Sem estado confiavel de arma ativa, evita inferencia errada por sprite.
+            if (temDoze && !temRevolver) return 'doze';
+            if (temRevolver && !temDoze) return 'revolver';
+            return null;
+        }
+
+        function tentarConverterArmaColetadaEmMunicao(item) {
+            if (!item || !ehTipoArma(item.tipo) || !controle.temArma) return false;
+
+            const armaEquipada = obterArmaEquipadaParaColeta();
+            if (!armaEquipada) return false;
+            if (armaEquipada !== item.tipo) return false;
+
+            const maxMunicao = obterMaxMunicaoPorArma(armaEquipada);
+            const municaoAtual = Number(controle.municao || 0);
+            if (municaoAtual >= maxMunicao) return false;
+
+            const ganhoBruto = Number(item.municao);
+            const ganhoMunicao = Number.isFinite(ganhoBruto) && ganhoBruto > 0 ? ganhoBruto : 1;
+
+            controle.municao = Math.min(maxMunicao, municaoAtual + ganhoMunicao);
+            window.AudioManager?.playSFX('recarga', 0.6);
+            salvarInventario();
+            atualizarMochilaUI();
+            return true;
+        }
+
         function registrarItemNoInventario(tipo) {
             if (!tipo || tipo === 'airdrop' || tipo === 'restauracao') return;
             if (!Array.isArray(controle.inventario)) controle.inventario = [];
             if (!controle.inventario.includes(tipo)) controle.inventario.push(tipo);
+        }
+
+        function removerTipoDoInventario(tipo) {
+            if (!tipo || !Array.isArray(controle.inventario)) return;
+            controle.inventario = controle.inventario.filter((itemTipo) => itemTipo !== tipo);
         }
 
         function coleteTemConteudo() {
@@ -1333,6 +1378,7 @@
         }
 
         function tentarColetarItemJogador(item) {
+
             if (!item || !item.tipo) return false;
             if (item.tipo === 'airdrop') return null;
 
@@ -1351,6 +1397,67 @@
 
             if (item.tipo === 'base_portatil') {
                 return guardarItemNoCinto(item, itemData) || guardarItemNoColete(item, itemData);
+            }
+
+            // --- CORREÇÃO ARMAS ---
+            if (ehTipoArma(item.tipo)) {
+                const armaEquipada = obterArmaEquipadaParaColeta();
+                // Sem arma na mão: comportamento primário é equipar.
+                if (!controle.temArma || !armaEquipada) {
+                    const equipou = aplicarItemNoCorpo(item.tipo, itemData, item);
+                    if (equipou) {
+                        console.log(`[COLETA ARMA] Equipou ${item.tipo} na mão (arma anterior: ${armaEquipada || 'nenhuma'})`);
+                        return true;
+                    }
+                }
+
+                // Com a mesma arma na mão: tenta converter em munição.
+                if (armaEquipada === item.tipo && tentarConverterArmaColetadaEmMunicao(item)) {
+                    console.log(`[COLETA ARMA] Converteu ${item.tipo} em munição (arma equipada: ${armaEquipada})`);
+                    return true;
+                }
+
+                // Arma diferente da mão: não troca automaticamente.
+                // Só coleta se houver espaço no cinto ou na mochila (colete).
+                if (armaEquipada && armaEquipada !== item.tipo) {
+                    // Exceção: se arma atual está "vermelha" (sem munição), faz troca imediata e elimina a arma vermelha.
+                    const armaAtualVermelha = Number(controle.municao || 0) <= 0;
+                    if (armaAtualVermelha) {
+                        removerTipoDoInventario(armaEquipada);
+                        const equipou = aplicarItemNoCorpo(item.tipo, itemData, item);
+                        if (equipou) {
+                            salvarInventario();
+                            atualizarMochilaUI();
+                            console.log(`[COLETA ARMA] Trocou ${armaEquipada} vermelho por ${item.tipo} na mão`);
+                            return true;
+                        }
+                    }
+
+                    const guardouEmSlot = guardarItemNoCinto(item, itemData) || guardarItemNoColete(item, itemData);
+                    if (guardouEmSlot) {
+                        registrarItemNoInventario(item.tipo);
+                        salvarInventario();
+                        atualizarMochilaUI();
+                        console.log(`[COLETA ARMA] Guardou ${item.tipo} no cinto/mochila sem trocar a arma da mão (${armaEquipada})`);
+                        return true;
+                    }
+                    console.log(`[COLETA ARMA] Não coletou ${item.tipo}: arma na mão é ${armaEquipada} e não há espaço no cinto/mochila`);
+                    return false;
+                }
+
+                // Fallback: tenta converter em munição quando aplicável.
+                if (tentarConverterArmaColetadaEmMunicao(item)) {
+                    console.log(`[COLETA ARMA] Converteu ${item.tipo} em munição (arma equipada: ${armaEquipada})`);
+                    return true;
+                }
+
+                // Se não conseguiu equipar nem converter em munição (ex.: munição cheia), não consome o item.
+                console.log(`[COLETA ARMA] Não coletou ${item.tipo} (munição cheia, arma equipada: ${armaEquipada})`);
+                return false;
+            }
+
+            if (tentarConverterArmaColetadaEmMunicao(item)) {
+                return true;
             }
 
             // Apenas tenta aplicar no corpo se for um equipamento vestível (corpo)
