@@ -103,8 +103,9 @@
             return {
                 tipo,
                 nome: isAmmo ? 'Caixa de Munição' : ((baseDef?.nome || baseTipo) + ' +'),
-                spriteColetavel: obterSpriteItem(tipo, window.config || {}) || baseDef?.spriteColetavel || obterSpriteItem(baseTipo, window.config || {}) || '',
-                spriteEquipado: baseDef?.spriteEquipado || '',
+                // Força o sprite correto para cx_municao.png
+                spriteColetavel: isAmmo ? '../../assets/personagem/cx_municao.png' : (obterSpriteItem(tipo, window.config || {}) || baseDef?.spriteColetavel || obterSpriteItem(baseTipo, window.config || {}) || ''),
+                spriteEquipado: isAmmo ? '../../assets/personagem/cx_municao.png' : (baseDef?.spriteEquipado || ''),
                 consumivel: false,
                 usarSoSePrecisar: false,
                 quantidade: Number.isFinite(raw?.quantidade) ? Math.max(1, raw.quantidade) : 1,
@@ -1180,7 +1181,6 @@
                     tipo: armaAntesTipo,
                     municao: armaAntesMunicao
                 }, itemAnteriorData);
-                console.log(`[SWAP-ARMA][CINTO] Equipou ${tipoSlot}; arma anterior ${armaAntesTipo} retornou ao slot com ${armaAntesMunicao} bala(s).`);
             } else {
                 controle.cintoSlot = null;
             }
@@ -1294,7 +1294,6 @@
                     tipo: armaAntesTipo,
                     municao: armaAntesMunicao
                 }, itemAnteriorData);
-                console.log(`[SWAP-ARMA][COLETE] Equipou ${tipoSlot}; arma anterior ${armaAntesTipo} retornou ao slot ${indice + 1} com ${armaAntesMunicao} bala(s).`);
             } else {
                 controle.coleteSlots[indice] = null;
             }
