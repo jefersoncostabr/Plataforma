@@ -659,18 +659,52 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
         const temArma = !!controle.temArma;
         const temEscudo = !!(controle.temEscudo || controle.escudoVermelho);
         
-        if (!temArma || !temEscudo) return;
+        if (!temArma && !temEscudo) return;
 
         // Se os itens estavam guardados, retira-os primeiro
         if (controle.itensGuardadosNoCinto) {
             controle.itensGuardadosNoCinto = false;
         }
 
-        // Toggle: Se arma selecionada -> Escudo. Se qualquer outra coisa -> Arma.
-        controle.selecaoCinto = (controle.selecaoCinto === 'arma') ? 'escudo' : 'arma';
+        const armasNoInventario = ['revolver', 'doze'].filter(tipo => Array.isArray(controle.inventario) && controle.inventario.includes(tipo));
+        const armaAtual = controle.heldWeaponType || (armaElemento?.src?.includes('doze') ? 'doze' : 'revolver');
+
+        // Lógica de Ciclo: Escudo -> Arma 1 -> Arma 2 -> Escudo
+        if (controle.selecaoCinto === 'escudo' || !temEscudo) {
+            // Estava no escudo (ou não tem), tenta ir para categoria arma
+            if (temArma && armasNoInventario.length > 0) {
+                controle.selecaoCinto = 'arma';
+                // Garante que heldWeaponType seja algo válido no inventário
+                if (!armasNoInventario.includes(controle.heldWeaponType)) {
+                    controle.heldWeaponType = armasNoInventario[0];
+                }
+            } else if (temEscudo) {
+                controle.selecaoCinto = 'escudo';
+            }
+        } else {
+            // Estava na categoria arma, tenta ciclar para a próxima arma ou voltar para escudo
+            const idxAtual = armasNoInventario.indexOf(armaAtual);
+            const proximaArma = armasNoInventario[idxAtual + 1];
+
+            if (proximaArma) {
+                controle.heldWeaponType = proximaArma;
+                if (armaElemento) {
+                    const def = window.itemDefinitions?.[proximaArma];
+                    if (def?.spriteEquipado) armaElemento.src = def.spriteEquipado;
+                }
+                window.AudioManager?.playSFX('recarga', 0.4);
+                controle.selecaoCinto = 'arma';
+            } else if (temEscudo) {
+                controle.selecaoCinto = 'escudo';
+            }
+        }
         
         if (typeof flashElement === 'function' && cintoElemento) {
             flashElement(cintoElemento, 100, 2);
+        }
+
+        if (typeof window.salvarInventario === 'function') {
+            window.salvarInventario();
         }
     }
 

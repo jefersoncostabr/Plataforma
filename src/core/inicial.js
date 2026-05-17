@@ -700,7 +700,6 @@ window.reiniciarJogo = async function(porMorte = true) {
         if (window.playerControle.temArma) {
             const munReset = (window.playerControle.heldWeaponType === 'doze') ? 2 : 5;
             window.playerControle.municao = munReset;
-            console.log(`[REINÍCIO] Jogador armado resetado. Tipo: ${window.playerControle.heldWeaponType}, Mun: ${window.playerControle.municao}`);
         }
 
         if (typeof window.aplicarEfeitosSkills === 'function') {
