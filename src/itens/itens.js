@@ -100,7 +100,8 @@ window.removerVisualItemColetavel = function(item) {
  * Carrega as definições de todos os itens a partir dos arquivos JSON.
  */
 window.carregarItemDefinitions = async function() {
-    const tipos = ["revolver", "escudo", "bota", "jetpack", "garra", "cinto", "colete", "restauracao", "scrap", "capsula", "doze"];
+    const tipos = ["revolver", "escudo", "bota", "jetpack", "garra", "cinto", "colete", "restauracao", "scrap", "capsula", "doze", "municao_plus"];
+    console.log("[Jogo] Iniciando carregamento de definições de itens...");
     for (const tipo of tipos) {
         try {
             // Tenta carregar o JSON. O caminho assume que o jogo roda da raiz.
@@ -108,6 +109,9 @@ window.carregarItemDefinitions = async function() {
             if (resp.ok) {
                 const data = await resp.json();
                 window.itemDefinitions[data.id] = data;
+                console.log(`[Jogo] Item carregado com sucesso: ${data.id}`);
+            } else {
+                console.warn(`[Jogo] Falha ao carregar definição do item: ${tipo}. Verifique se config/items/${tipo}.json existe.`);
             }
         } catch (e) { console.error(`Erro ao carregar item ${tipo}:`, e); }
     }
@@ -312,6 +316,7 @@ window.resetarItens = function(itensFase) {
         const itemDef = window.itemDefinitions[itemDataFase.tipo];
         if (itemDef) {
             const posPixels = window.gridParaPixels(itemDataFase.pos);
+            console.log(`[Jogo] Criando item coletável no mapa: ${itemDataFase.tipo} em ${itemDataFase.pos}`);
             const novoItem = window.criarItemColetavel(itemDef, posPixels.x, posPixels.y, {
                 robotEstado: itemDataFase.robotEstado || itemDataFase.estadoRobo || 'aberto'
             });

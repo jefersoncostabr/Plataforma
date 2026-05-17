@@ -42,8 +42,7 @@
 
         function configurarPaletaDinamicaItens() {
             const itemDefinitions = typeof getItemDefinitions === 'function' ? getItemDefinitions() : {};
-            const oldItens = palette.querySelectorAll('.palette-item[data-type^="item_"]');
-            oldItens.forEach(el => el.remove());
+            console.log("[EditorUI] Iniciando configuração da paleta dinâmica. Itens disponíveis:", Object.keys(itemDefinitions));
 
             const catItens = Array.from(palette.querySelectorAll('.category')).find(cat => {
                 const texto = cat.querySelector('h4')?.innerText.trim().toLowerCase();
@@ -51,15 +50,24 @@
             });
 
             if (catItens) {
+                // Remove apenas itens que foram gerados dinamicamente antes, para evitar duplicatas
+                const oldItens = catItens.querySelectorAll('.palette-item[data-dynamic="true"]');
+                oldItens.forEach(el => el.remove());
+
                 for (const tipo in itemDefinitions) {
                     const def = itemDefinitions[tipo];
                     const img = document.createElement('img');
-                    img.src = def.spriteColetavel;
+                    // Fallback para o sprite da munição se o JSON não definir
+                    img.src = def.spriteColetavel || (def.id === 'municao_plus' ? '../../assets/personagem/cx_municao.png' : '');
                     img.className = 'palette-item';
                     img.setAttribute('data-type', 'item_' + def.id);
-                    img.title = def.nome || def.id;
+                    img.setAttribute('data-dynamic', 'true');
+                    img.title = (def.id === 'municao_plus') ? 'Caixa de Munição' : (def.nome || def.id);
+                    console.log(`[EditorUI] Injetando item na paleta: ${def.id} (Src: ${img.src})`);
                     catItens.appendChild(img);
                 }
+            } else {
+                console.error("[EditorUI] ERRO: Não foi encontrada uma categoria com título 'Itens' ou 'Items' na paleta HTML.");
             }
 
             configurarPaleta();

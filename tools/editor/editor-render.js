@@ -57,7 +57,10 @@
 
             const img = document.createElement('img');
             img.src = src;
-            if (classe) img.classList.add(classe);
+            if (classe) {
+                const classes = String(classe).trim().split(/\s+/).filter(Boolean);
+                if (classes.length) img.classList.add(...classes);
+            }
             const largura = Number(opcoes.largura ?? TILE_SIZE);
             const altura = Number(opcoes.altura ?? TILE_SIZE);
             img.style = `position:absolute; left:${(col * TILE_SIZE) + offsetX}px; bottom:${yPos}px; width:${largura}px; height:${altura}px; image-rendering:pixelated; pointer-events:none;`;
@@ -140,6 +143,8 @@
                     src = itemDefinitions[item.tipo].spriteColetavel;
                 } else if (item.tipo === 'restauracao') {
                     src = '../../assets/personagem/restauracao.png';
+                } else if (item.tipo === 'municao_plus') {
+                    src = '../../assets/personagem/cx_municao.png';
                 }
                 criarIcone(item.pos, src, '');
             });

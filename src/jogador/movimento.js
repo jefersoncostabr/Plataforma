@@ -1369,7 +1369,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         }
 
         // Lógica de Disparo (tecla I)
-        if (acaoAtiva('tiro') && controle.cooldownTiro === 0 && controle.temArma && !controle.itensGuardadosNoCinto && controle.municao > 0) {
+        const armaNaMao = !controle.temCinto || (controle.selecaoCinto !== 'escudo');
+        if (acaoAtiva('tiro') && controle.cooldownTiro === 0 && controle.temArma && !controle.itensGuardadosNoCinto && controle.municao > 0 && armaNaMao) {
             controle.cooldownTiro = config.cooldownTiro; 
             controle.municao--;
             window.AudioManager?.playSFX('disparo', 0.5);

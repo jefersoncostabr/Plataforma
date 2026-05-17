@@ -138,7 +138,8 @@ function obterLegendaCoord(coord) {
 
     const item = iterarItensData(faseData.itens).find(i => i.pos === coord);
     if (item) {
-        const nome = itemDefinitions[item.tipo]?.nome || item.tipo;
+        let nome = itemDefinitions[item.tipo]?.nome || item.tipo;
+        if (item.tipo === 'municao_plus') nome = 'Caixa de Munição';
         if (item.tipo === 'capsula') {
             const estado = item.robotEstado === 'desativado' ? 'robô desativado' : 'robô aberto';
             return `Item: ${nome} (${estado})`;
@@ -346,14 +347,16 @@ window.onload = async () => {
 async function carregarItemDefinitions() {
     itemDefinitions = {};
     // Lista dos tipos de itens conhecidos (poderia ser dinâmico via API/FS)
-    const tipos = ["revolver", "escudo", "bota", "jetpack", "garra", "cinto", "colete", "restauracao", "scrap", "capsula", "doze"];
+    const tipos = ["revolver", "escudo", "bota", "jetpack", "garra", "cinto", "colete", "restauracao", "scrap", "capsula", "doze", "municao_plus"];
     for (const tipo of tipos) {
         try {
             const resp = await fetch(`../../config/items/${tipo}.json`);
             if (resp.ok) {
                 const data = await resp.json();
                 itemDefinitions[data.id] = data;
+                console.log(`[Editor] Definição carregada com sucesso: ${data.id}`);
             }
+            else { console.warn(`[Editor] Falha ao encontrar arquivo JSON para o item: ${tipo}`); }
         } catch (e) { /* ignora erro */ }
     }
 }

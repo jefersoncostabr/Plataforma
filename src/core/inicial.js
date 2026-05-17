@@ -483,11 +483,7 @@ async function carregarFase(nomeArquivo) {
         processarPet('cao', window.isCaoResgatado, window.caoNaBase, fase.posicaoGaiola, window.iniciarCao);
         processarPet('gato', window.isGatoResgatado, window.gatoNaBase, fase.posicaoGaiolaGato, window.iniciarGato);
 
-        if (!fase.posicaoGaiola && !fase.posicaoGaiolaGato) {
-            if (fase.posicaoCachorro) { // Removido console.warn de debug
-                console.warn("[DEBUG GAIOLA] Aviso: fase.posicaoCachorro ignorada. Use posicaoGaiola no editor.");
-            }
-        }
+        // Verificação de compatibilidade de gaiolas (log removido)
     }
 
     // Carrega inimigos da fase
