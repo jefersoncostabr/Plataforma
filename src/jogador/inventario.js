@@ -445,7 +445,7 @@
             if (tipo === 'garra') return config.spriteItemGarra || '../../assets/personagem/garra_coletavel.png';
             if (tipo === 'cinto') return config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
             if (tipo === 'colete') return config.spriteItemColete || '../../assets/personagem/colete_coletavel.png';
-            if (tipo === 'municao_plus') return '../../assets/personagem/cx_minicao.png';
+            if (tipo === 'municao_plus') return '../../assets/personagem/cx_municao.png';
         }
 
         // Prioridade 4: Efeitos e Elementos de Jogo (Centralização 5.3)
