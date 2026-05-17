@@ -1412,9 +1412,27 @@
                 }
 
                 // Com a mesma arma na mão: tenta converter em munição.
-                if (armaEquipada === item.tipo && tentarConverterArmaColetadaEmMunicao(item)) {
-                    console.log(`[COLETA ARMA] Converteu ${item.tipo} em munição (arma equipada: ${armaEquipada})`);
-                    return true;
+                if (armaEquipada === item.tipo) {
+                    if (tentarConverterArmaColetadaEmMunicao(item)) {
+                        console.log(`[COLETA ARMA] Converteu ${item.tipo} em munição (arma equipada: ${armaEquipada})`);
+                        return true;
+                    }
+
+                                // Caso específico: revólver com munição cheia deve ir para armazenamento, se houver slot livre.
+                    if (item.tipo === 'revolver') {
+                        const maxMunicao = obterMaxMunicaoPorArma('revolver');
+                        const municaoAtual = Number(controle.municao || 0);
+                        if (municaoAtual >= maxMunicao) {
+                            const guardouEmSlot = guardarItemNoCinto(item, itemData) || guardarItemNoColete(item, itemData);
+                            if (guardouEmSlot) {
+                                registrarItemNoInventario(item.tipo);
+                                salvarInventario();
+                                atualizarMochilaUI();
+                                // console.log('[COLETA ARMA] Revólver extra guardado no armazenamento (munição cheia na arma equipada)');
+                                return true;
+                            }
+                        }
+                    }
                 }
 
                 // Arma diferente da mão: não troca automaticamente.
