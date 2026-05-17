@@ -965,7 +965,6 @@
                             const armaEl = obterElementos().armaElemento;
                             const maxBalas = (controle.heldWeaponType === 'doze') ? 2 : 5;
                             controle.municao = maxBalas;
-                            console.log(`[AUTO-REPARO] Caixa de munição consumida. Tipo: ${controle.heldWeaponType}, Mun: ${controle.municao}`);
                             // Efeito Visual de Recarga Plus
                             if (armaEl) {
                                 const filtroOriginal = armaEl.style.filter;
@@ -973,7 +972,6 @@
                                 if (typeof window.flashElement === 'function') window.flashElement(armaEl, 400, 10);
                                 setTimeout(() => { if (armaEl) armaEl.style.filter = filtroOriginal; }, 500);
                             }
-                                console.log("[AUTO-RECARGA] Munição Plus consumida!");
                         }
 
                         window.AudioManager?.playSFX('recarga', 0.8);
@@ -1222,10 +1220,20 @@
 
             if (houveTrocaDeArma) {
                 const itemAnteriorData = window.itemDefinitions?.[armaAntesTipo] || null;
-                controle.cintoSlot = criarEntradaColete({
-                    tipo: armaAntesTipo,
-                    municao: armaAntesMunicao
-                }, itemAnteriorData);
+
+                // Mecânica solicitada:
+                // Se a arma anterior estava vermelha (sem munição) e estamos guardando/selecionando Enter
+                // para usar uma arma diferente a partir do cinto, a arma vermelha deve desaparecer
+                // (não ir para o armazenamento/cinto).
+                const armaAnteriorVermelha = Number(armaAntesMunicao || 0) <= 0;
+                if (armaAnteriorVermelha) {
+                    controle.cintoSlot = null;
+                } else {
+                    controle.cintoSlot = criarEntradaColete({
+                        tipo: armaAntesTipo,
+                        municao: armaAntesMunicao
+                    }, itemAnteriorData);
+                }
             } else {
                 controle.cintoSlot = null;
             }
@@ -1406,7 +1414,6 @@
                 if (!controle.temArma || !armaEquipada) {
                     const equipou = aplicarItemNoCorpo(item.tipo, itemData, item);
                     if (equipou) {
-                        console.log(`[COLETA ARMA] Equipou ${item.tipo} na mão (arma anterior: ${armaEquipada || 'nenhuma'})`);
                         return true;
                     }
                 }
@@ -1414,23 +1421,18 @@
                 // Com a mesma arma na mão: tenta converter em munição.
                 if (armaEquipada === item.tipo) {
                     if (tentarConverterArmaColetadaEmMunicao(item)) {
-                        console.log(`[COLETA ARMA] Converteu ${item.tipo} em munição (arma equipada: ${armaEquipada})`);
                         return true;
                     }
 
-                                // Caso específico: revólver com munição cheia deve ir para armazenamento, se houver slot livre.
-                    if (item.tipo === 'revolver') {
-                        const maxMunicao = obterMaxMunicaoPorArma('revolver');
-                        const municaoAtual = Number(controle.municao || 0);
-                        if (municaoAtual >= maxMunicao) {
-                            const guardouEmSlot = guardarItemNoCinto(item, itemData) || guardarItemNoColete(item, itemData);
-                            if (guardouEmSlot) {
-                                registrarItemNoInventario(item.tipo);
-                                salvarInventario();
-                                atualizarMochilaUI();
-                                // console.log('[COLETA ARMA] Revólver extra guardado no armazenamento (munição cheia na arma equipada)');
-                                return true;
-                            }
+                    const maxMunicao = obterMaxMunicaoPorArma(item.tipo);
+                    const municaoAtual = Number(controle.municao || 0);
+                    if (municaoAtual >= maxMunicao) {
+                        const guardouEmSlot = guardarItemNoCinto(item, itemData) || guardarItemNoColete(item, itemData);
+                        if (guardouEmSlot) {
+                            registrarItemNoInventario(item.tipo);
+                            salvarInventario();
+                            atualizarMochilaUI();
+                            return true;
                         }
                     }
                 }
@@ -1446,7 +1448,6 @@
                         if (equipou) {
                             salvarInventario();
                             atualizarMochilaUI();
-                            console.log(`[COLETA ARMA] Trocou ${armaEquipada} vermelho por ${item.tipo} na mão`);
                             return true;
                         }
                     }
@@ -1456,21 +1457,17 @@
                         registrarItemNoInventario(item.tipo);
                         salvarInventario();
                         atualizarMochilaUI();
-                        console.log(`[COLETA ARMA] Guardou ${item.tipo} no cinto/mochila sem trocar a arma da mão (${armaEquipada})`);
                         return true;
                     }
-                    console.log(`[COLETA ARMA] Não coletou ${item.tipo}: arma na mão é ${armaEquipada} e não há espaço no cinto/mochila`);
                     return false;
                 }
 
                 // Fallback: tenta converter em munição quando aplicável.
                 if (tentarConverterArmaColetadaEmMunicao(item)) {
-                    console.log(`[COLETA ARMA] Converteu ${item.tipo} em munição (arma equipada: ${armaEquipada})`);
                     return true;
                 }
 
                 // Se não conseguiu equipar nem converter em munição (ex.: munição cheia), não consome o item.
-                console.log(`[COLETA ARMA] Não coletou ${item.tipo} (munição cheia, arma equipada: ${armaEquipada})`);
                 return false;
             }
 
