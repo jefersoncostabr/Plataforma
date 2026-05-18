@@ -21,7 +21,9 @@
             'jetpackElemento',
             'jetFogoElemento',
             'garraElemento',
-            'cintoElemento'
+            'cintoElemento',
+            'coleteElemento',
+            'bateriaElemento'
         ];
 
         elementos.forEach((chave) => {
@@ -57,6 +59,8 @@
         inimigo.temJetpack = false;
         inimigo.temGarra = false;
         inimigo.temCinto = false;
+        inimigo.temColete = false;
+        inimigo.temBateria = false;
         inimigo.jetpackAtivo = false;
     }
 

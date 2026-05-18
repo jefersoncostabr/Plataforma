@@ -82,6 +82,26 @@ function atualizarStatusSalvamento(status = {}) {
     saveStatus.style.color = cores[tipo] || cores.info;
 }
 
+function diagnosticarPaletaInimigos() {
+    const defs = window.EditorConfig?.ENEMY_DEFS || [];
+    const categoriaInimigos = Array.from(document.querySelectorAll('#palette .category')).find((cat) => {
+        const titulo = (cat.querySelector('h4')?.innerText || '').trim().toLowerCase();
+        return titulo === 'inimigos' || titulo === 'inimigo' || titulo === 'enemies';
+    });
+
+    if (!categoriaInimigos) {
+        console.error('[Editor][Diagnostico] Categoria de inimigos nao encontrada na paleta.');
+        return;
+    }
+
+    const tiposNoDOM = Array.from(categoriaInimigos.querySelectorAll('.palette-item[data-type]'))
+        .map((el) => el.getAttribute('data-type'))
+        .filter(Boolean);
+    const tiposEsperados = defs.map((def) => def.type);
+    const faltandoNoDOM = tiposEsperados.filter((tipo) => !tiposNoDOM.includes(tipo));
+    const extrasNoDOM = tiposNoDOM.filter((tipo) => !tiposEsperados.includes(tipo));
+}
+
 function definirArquivoFaseAtual(arquivo = '') {
     arquivoFaseAtual = String(arquivo || '').trim();
 
@@ -311,6 +331,7 @@ window.onload = async () => {
     atualizarTamanhoStage();
     uiEditor.configurarPaletaDinamicaItens();
     uiEditor.configurarPaletaGaiola();
+    diagnosticarPaletaInimigos();
     uiEditor.configurarStage();
     uiEditor.configurarFerramentasAutomaticas();
     uiEditor.configurarSpawnAleatorio();

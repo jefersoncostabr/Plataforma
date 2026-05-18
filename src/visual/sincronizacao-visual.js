@@ -19,7 +19,8 @@ window.inicializarVisualEquipamentoEntidade = function(entidade, parentElement, 
         'jetpackElemento':{ flag: 'temJetpack', z: '3', sprite: 'jetpack',  fallback: '../../assets/personagem/jetpack.png', offY: 0 },
         'garraElemento':  { flag: 'temGarra',   z: '9', sprite: 'garra',    fallback: '../../assets/personagem/garra.png', offY: 0 },
         'cintoElemento':  { flag: 'temCinto',   z: '6', sprite: 'cinto',    fallback: '../../assets/personagem/cinto.png', offY: -2 },
-        'coleteElemento': { flag: 'temColete',  z: '6', sprite: 'colete',   fallback: '../../assets/personagem/colete.png', offY: 0 }
+        'coleteElemento': { flag: 'temColete',  z: '6', sprite: 'colete',   fallback: '../../assets/personagem/colete.png', offY: 0 },
+        'bateriaElemento': { flag: 'temBateria', z: '7', sprite: 'bateria', fallback: '../../assets/personagem/objetos/bateria.png', offY: 0 }
     };
 
     Object.entries(mapaEquipamentos).forEach(([key, info]) => {
@@ -108,10 +109,18 @@ window.sincronizarAcessoriosEntidade = function(entidade, elementos, opcoes = {}
         'escudoElemento': { y: 0 },
         'cintoElemento': { y: -2 },
         'jetpackElemento': { y: 0 },
-        'coleteElemento': { y: 0 }
+        'coleteElemento': { y: 0 },
+        'bateriaElemento': { y: 0 }
     };
 
-    Object.entries(elementos).forEach(([chave, el]) => {
+    const elementosVisuais = {
+        ...elementos,
+        ...(entidade.bateriaElemento && !Object.prototype.hasOwnProperty.call(elementos, 'bateriaElemento')
+            ? { bateriaElemento: entidade.bateriaElemento }
+            : {})
+    };
+
+    Object.entries(elementosVisuais).forEach(([chave, el]) => {
         // Proteção extra: garante que o elemento existe e possui a propriedade style
         if (!el || !el.style || el.style.display === 'none') return;
         

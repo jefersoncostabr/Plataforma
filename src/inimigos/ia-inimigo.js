@@ -380,7 +380,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             'jetFogoElemento',
             'garraElemento',
             'cintoElemento',
-            'coleteElemento'
+            'coleteElemento',
+            'bateriaElemento'
         ];
 
         elementos.forEach((chave) => {
@@ -408,6 +409,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         inimigo.temGarra = false;
         inimigo.temCinto = false;
         inimigo.temColete = false;
+        inimigo.temBateria = false;
         inimigo.jetpackAtivo = false;
     }
 
@@ -535,6 +537,17 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
             const inimigoObj = window.inimigos[window.inimigos.length - 1];
             inimigoObj.inventario = [];
+            if (tipo === 10) {
+                inimigoObj.temArma = true;
+                inimigoObj.heldWeaponType = 'doze';
+                inimigoObj.municao = 2;
+                inimigoObj.inventario.push('doze');
+            }
+
+            if (tipo === 11) {
+                inimigoObj.temBateria = true;
+                inimigoObj.inventario.push('bateria');
+            }
             
             if (inimigoObj.temArma) {
                 // Define o tipo de arma baseado no spawn. Se não definido, assume revolver.
@@ -557,8 +570,14 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             // Inicialização visual centralizada
             window.inicializarVisualEquipamentoEntidade(inimigoObj, inimigoImg.parentElement, config);
 
+            if (tipo === 11 && inimigoObj.bateriaElemento) {
+                inimigoObj.bateriaElemento.style.left = pos.x + 'px';
+                inimigoObj.bateriaElemento.style.bottom = pos.y + 'px';
+                inimigoObj.bateriaElemento.style.transform = inimigoImg.style.transform;
+            }
+
             // Sincroniza posições iniciais
-            [inimigoObj.armaElemento, inimigoObj.escudoElemento, inimigoObj.botaElemento, inimigoObj.jetpackElemento, inimigoObj.garraElemento, inimigoObj.cintoElemento, inimigoObj.coleteElemento].forEach(el => {
+            [inimigoObj.armaElemento, inimigoObj.escudoElemento, inimigoObj.botaElemento, inimigoObj.jetpackElemento, inimigoObj.garraElemento, inimigoObj.cintoElemento, inimigoObj.coleteElemento, inimigoObj.bateriaElemento].forEach(el => {
                 if (el) {
                     el.style.left = pos.x + 'px';
                     el.style.bottom = pos.y + 'px';

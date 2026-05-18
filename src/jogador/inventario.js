@@ -449,6 +449,7 @@
             if (tipo === 'colete') return config.spriteItemColete || '../../assets/personagem/colete_coletavel.png';
             if (tipo === 'municao_plus') return '../../assets/personagem/cx_municao.png';
             if (tipo === 'novelo') return '../../assets/personagem/novelo.png';
+            if (tipo === 'bateria') return '../../assets/personagem/objetos/bateria_coletavel.png';
         }
 
         // Prioridade 4: Efeitos e Elementos de Jogo (Centralização 5.3)
@@ -1735,6 +1736,7 @@
             });
             adicionarEquipamentoAtivo('cinto', !!inimigo.temCinto);
             adicionarEquipamentoAtivo('colete', !!inimigo.temColete);
+            adicionarEquipamentoAtivo('bateria', !!inimigo.temBateria);
 
             itensParaDropar.forEach(({ tipo, extras = {} }) => {
                 const itemImg = document.createElement('img');

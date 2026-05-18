@@ -62,7 +62,8 @@
                     else if (tipo === 'novelo') img.src = '../../assets/personagem/objetos/novelo.png';
                     else if (tipo === 'restauracao') img.src = '../../assets/personagem/restauracao.png';
                     else if (tipo === 'capsula') img.src = def.spriteMenu || '';
-                    else img.src = def.spriteColetavel || '';
+                    else if (tipo === 'bateria') img.src = def.spriteMenu || def.spriteColetavel || '';
+                    else img.src = def.spriteColetavel || def.spriteMenu || '';
 
                     img.className = 'palette-item';
                     img.setAttribute('data-type', 'item_' + tipo);
@@ -167,6 +168,31 @@
                     } else {
                         catInimigos.appendChild(containerInimigo);
                     }
+
+                    const enemyDefs = window.EditorConfig?.ENEMY_DEFS || [];
+                    const tiposNoDOM = new Set(
+                        Array.from(catInimigos.querySelectorAll('.palette-item[data-type]'))
+                            .map((el) => el.getAttribute('data-type'))
+                            .filter(Boolean)
+                    );
+
+                    enemyDefs.forEach((def) => {
+                        if (!def?.type || tiposNoDOM.has(def.type)) return;
+
+                        const img = document.createElement('img');
+                        img.src = def.sprite || '../../assets/personagem/Personagem_parado.png';
+                        img.className = 'palette-item';
+                        img.setAttribute('data-type', def.type);
+                        img.title = def.label || def.type;
+                        catInimigos.appendChild(img);
+                    });
+
+                    const totalEsperado = enemyDefs.length;
+                    const totalRenderizado = catInimigos.querySelectorAll('.palette-item[data-type]').length;
+                    console.debug('[EditorUI] Sincronizacao da paleta de inimigos concluida.', {
+                        esperado: totalEsperado,
+                        renderizado: totalRenderizado
+                    });
                 }
 
                 configurarPaleta(); // Re-vincula os eventos de clique para os novos itens
