@@ -42,7 +42,6 @@
 
         function configurarPaletaDinamicaItens() {
             const itemDefinitions = typeof getItemDefinitions === 'function' ? getItemDefinitions() : {};
-            console.log("[EditorUI] Iniciando configuração da paleta dinâmica. Itens disponíveis:", Object.keys(itemDefinitions));
 
             const catItens = Array.from(palette.querySelectorAll('.category')).find(cat => {
                 const texto = cat.querySelector('h4')?.innerText.trim().toLowerCase();
@@ -62,13 +61,13 @@
                     if (tipo === 'municao_plus') img.src = '../../assets/personagem/cx_municao.png';
                     else if (tipo === 'novelo') img.src = '../../assets/personagem/objetos/novelo.png';
                     else if (tipo === 'restauracao') img.src = '../../assets/personagem/restauracao.png';
+                    else if (tipo === 'capsula') img.src = def.spriteMenu || '';
                     else img.src = def.spriteColetavel || '';
 
                     img.className = 'palette-item';
                     img.setAttribute('data-type', 'item_' + tipo);
                     img.setAttribute('data-dynamic', 'true');
                     img.title = (tipo === 'municao_plus') ? 'Caixa de Munição' : (tipo === 'novelo' ? 'Novelo de Lã' : (def.nome || tipo));
-                    console.log(`[EditorUI] Injetando item: ${tipo} (Src: ${img.src})`);
                     catItens.appendChild(img);
                 });
             } else {
@@ -79,9 +78,7 @@
         }
 
         function configurarPaletaGaiola() {
-            console.group("[EditorUI] Injeção de Itens Especiais");
             const categorias = Array.from(palette.querySelectorAll('.category'));
-            console.log("Categorias encontradas na paleta:", categorias.map(c => c.querySelector('h4')?.innerText));
 
             const catSistemas = categorias.find(cat => {
                 const texto = (cat.querySelector('h4')?.innerText || "").trim().toLowerCase();
@@ -90,7 +87,6 @@
             });
 
             if (catSistemas) {
-                console.log("Categoria alvo identificada:", catSistemas.querySelector('h4')?.innerText);
                 
                 // Injeção da Gaiola
                 if (!catSistemas.querySelector('[data-type="gaiola"]')) {
@@ -109,7 +105,6 @@
                     `;
                     
                     catSistemas.appendChild(container);
-                    console.log("Item 'gaiola' injetado com sucesso.");
                 }
 
                 // Injeção do Cão (NPC) livre
@@ -120,7 +115,6 @@
                     imgCao.setAttribute('data-type', 'cachorro');
                     imgCao.title = 'Cachorro (NPC)';
                     catSistemas.appendChild(imgCao);
-                    console.log("Item 'cachorro' injetado com sucesso.");
                 }
 
                 // Injeção da Gaiola com Gato
@@ -140,7 +134,6 @@
                     `;
 
                     catSistemas.appendChild(container);
-                    console.log("Item 'gaiolaGato' injetado com sucesso.");
                 }
 
                 // Injeção do Gato (NPC) livre
@@ -151,7 +144,6 @@
                     imgGato.setAttribute('data-type', 'gato');
                     imgGato.title = 'Gato (NPC)';
                     catSistemas.appendChild(imgGato);
-                    console.log("Item 'gato' injetado com sucesso.");
                 }
 
                 // Ajuste do Inimigo Completo (Fundo Dourado + Sprite Parado)
@@ -175,14 +167,12 @@
                     } else {
                         catInimigos.appendChild(containerInimigo);
                     }
-                    console.log("Ícone 'inimigo_completo' atualizado para versão dourada.");
                 }
 
                 configurarPaleta(); // Re-vincula os eventos de clique para os novos itens
             } else {
                 console.warn("[EditorUI] Categoria de sistemas não encontrada na paleta. Verifique os títulos H4 no HTML.");
             }
-            console.groupEnd();
         }
 
         function addBlocks(coordsArray) {

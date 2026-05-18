@@ -1,0 +1,13 @@
+{
+  "id": "bateria",
+  "nome": "Bateria",
+  "spriteMenu": "../../assets/personagem/objetos/bateria.png",
+  "spriteColetavel": "../../assets/personagem/objetos/bateria_coletavel.png",
+  "coletavel": true,
+  "consumivel": false,
+  "efeitos": {
+    "jogador": {},
+    "inimigo": {}
+  }
+}
+

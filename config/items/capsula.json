@@ -1,6 +1,7 @@
 {
     "id": "capsula",
     "nome": "Capsula",
+    "spriteMenu": "../../assets/personagem/capsula/capsula.png",
     "spriteComposto": {
         "inferior": "../../assets/personagem/capsula/capsula_inferior.png",
         "superior": "../../assets/personagem/capsula/capsula_superior.png",

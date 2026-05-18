@@ -125,20 +125,16 @@
             const elementos = stage.querySelectorAll('img');
             elementos.forEach(el => el.remove());
 
-            console.debug('[EditorRender] iniciar render', {
-                proporcao: faseData.proporcao,
-                plataformas: Array.isArray(faseData.plataformas) ? faseData.plataformas.length : 0,
-                itens: Object.keys(faseData.itens || {}).length,
-                imagensRemovidas: elementos.length
-            });
-
             [...PLATFORM_DEFS, ...ENEMY_DEFS].forEach((def) => {
                 (faseData[def.stateKey] || []).forEach((coord) => {
                     criarIcone(coord, def.sprite, def.className || '');
                 });
             });
 
+            console.debug('[EditorRender] Render itens - itemDefinitions keys:', Object.keys(itemDefinitions || {}), 'itens raw:', faseData.itens);
+
             iterarItensData(faseData.itens).forEach((item) => {
+                console.debug('[EditorRender] Item:', item);
                 if (item.tipo === 'capsula') {
                     criarIconeCapsulaComposto(item.pos, itemDefinitions[item.tipo], item);
                     return;
@@ -151,17 +147,22 @@
                     src = '../../assets/personagem/cx_municao.png';
                 } else if (item.tipo === 'novelo') {
                     src = '../../assets/personagem/objetos/novelo.png';
-                } else if (itemDefinitions[item.tipo] && itemDefinitions[item.tipo].spriteColetavel) {
-                    src = itemDefinitions[item.tipo].spriteColetavel;
+                } else if (itemDefinitions[item.tipo]) {
+                    // editor: usa spriteColetavel como padrão; fallback para spriteMenu
+                    src = itemDefinitions[item.tipo].spriteColetavel || itemDefinitions[item.tipo].spriteMenu || '';
                 }
-                console.log(`[EditorRender] Item ${item.tipo} em ${item.pos} -> src: ${src}`);
+
+                if (!src) {
+                    console.warn(`[EditorRender] Sprite não encontrado para item=${item.tipo} pos=${item.pos}`);
+                    return;
+                }
+
                 criarIcone(item.pos, src, '', { zIndex: 30 });
             });
 
             SYSTEM_DEFS.forEach((def) => {
                 const coord = faseData[def.stateKey];
                 if (coord) {
-                    console.log(`[EditorRender] Renderizando sistema: ${def.type} em ${coord}`);
                     // Para a gaiola, renderizamos o cão atrás para feedback visual fiel ao jogo
                     if (def.type === 'gaiola') {
                         criarIcone(coord, '../../assets/personagem/cao_parado.png', 'editor-npc-fundo');
@@ -179,10 +180,6 @@
             if (faseData.posicaoMusgoRoboDesativado && faseData.posicaoRoboDesativado === faseData.posicaoMusgoRoboDesativado) {
                 criarIcone(faseData.posicaoMusgoRoboDesativado, '../../assets/personagem/musgo1.png', '');
             }
-
-            console.debug('[EditorRender] render finalizado', {
-                imagensNoPalco: stage.querySelectorAll('img').length
-            });
         }
 
         return {

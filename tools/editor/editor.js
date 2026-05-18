@@ -64,7 +64,6 @@ function registrarDebugEditor(evento, dados = {}) {
         window.__EDITOR_DEBUG__.shift();
     }
 
-    console.debug('[Editor]', evento, entrada);
     return entrada;
 }
 
@@ -154,7 +153,6 @@ function obterLegendaCoord(coord) {
 // Inicialização
 
 window.onload = async () => {
-    console.group("🚀 [Editor] Inicialização");
     if (window.__EDITOR_DEBUG_LEVEL__ === 'full') {
         console.log("Configurações detectadas:", { 
             TileSize: TILE_SIZE,
@@ -326,8 +324,6 @@ window.onload = async () => {
         aoCarregarFase: (arquivo) => definirArquivoFaseAtual(arquivo)
     });
 
-    console.groupEnd();
-
     btnExport.onclick = () => persistenciaEditor.exportarJSON();
     btnImport.onclick = () => persistenciaEditor.importarJSON();
     btnClear.onclick = () => {
@@ -348,14 +344,13 @@ window.onload = async () => {
 async function carregarItemDefinitions() {
     itemDefinitions = {};
     // Lista dos tipos de itens conhecidos (poderia ser dinâmico via API/FS)
-    const tipos = ["revolver", "escudo", "bota", "jetpack", "garra", "cinto", "colete", "restauracao", "scrap", "capsula", "doze", "municao_plus", "novelo"];
+    const tipos = ["revolver", "escudo", "bota", "jetpack", "garra", "cinto", "colete", "restauracao", "scrap", "capsula", "doze", "municao_plus", "novelo", "bateria"];
     for (const tipo of tipos) {
         try {
             const resp = await fetch(`../../config/items/${tipo}.json`);
             if (resp.ok) {
                 const data = await resp.json();
                 itemDefinitions[data.id] = data;
-                console.log(`[Editor] Definição carregada com sucesso: ${data.id}`);
             }
             else { console.warn(`[Editor] Falha ao encontrar arquivo JSON para o item: ${tipo}`); }
         } catch (e) { /* ignora erro */ }

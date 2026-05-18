@@ -15,7 +15,9 @@
             colete: { permitidoNoColete: true, equipavel: true, usarSoSePrecisar: true },
             restauracao: { permitidoNoColete: true, consumivel: true, usarSoSePrecisar: true },
             base_portatil: { permitidoNoColete: true, consumivel: true, usarSoSePrecisar: true },
-            scrap: { permitidoNoColete: true, consumivel: false, usarSoSePrecisar: false }
+            scrap: { permitidoNoColete: true, consumivel: false, usarSoSePrecisar: false },
+            novelo: { permitidoNoColete: true, consumivel: false, usarSoSePrecisar: false },
+            bateria: { permitidoNoColete: true, consumivel: false, usarSoSePrecisar: false }
         }
     };
 

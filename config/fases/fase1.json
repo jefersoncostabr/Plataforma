@@ -12,7 +12,10 @@
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
-        "novelo": "b6"
+        "novelo": "b6",
+        "colete": "b3",
+        "bateria": "b7",
+        "cinto": "b4"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [

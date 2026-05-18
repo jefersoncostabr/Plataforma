@@ -46,6 +46,18 @@
       "equipavel": false,
       "consumivel": true,
       "usarSoSePrecisar": true
+    },
+    "novelo": {
+      "permitidoNoColete": true,
+      "equipavel": false,
+      "consumivel": false,
+      "usarSoSePrecisar": false
+    },
+    "bateria": {
+      "permitidoNoColete": true,
+      "equipavel": false,
+      "consumivel": false,
+      "usarSoSePrecisar": false
     }
   }
 }
