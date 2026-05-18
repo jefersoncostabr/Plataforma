@@ -54,18 +54,23 @@
                 const oldItens = catItens.querySelectorAll('.palette-item[data-dynamic="true"]');
                 oldItens.forEach(el => el.remove());
 
-                for (const tipo in itemDefinitions) {
+                Object.keys(itemDefinitions).forEach(tipo => {
                     const def = itemDefinitions[tipo];
                     const img = document.createElement('img');
-                    // Fallback para o sprite da munição se o JSON não definir
-                    img.src = def.spriteColetavel || (def.id === 'municao_plus' ? '../../assets/personagem/cx_municao.png' : '');
+                    
+                    // Força o caminho correto dos sprites para garantir visibilidade na paleta
+                    if (tipo === 'municao_plus') img.src = '../../assets/personagem/cx_municao.png';
+                    else if (tipo === 'novelo') img.src = '../../assets/personagem/objetos/novelo.png';
+                    else if (tipo === 'restauracao') img.src = '../../assets/personagem/restauracao.png';
+                    else img.src = def.spriteColetavel || '';
+
                     img.className = 'palette-item';
-                    img.setAttribute('data-type', 'item_' + def.id);
+                    img.setAttribute('data-type', 'item_' + tipo);
                     img.setAttribute('data-dynamic', 'true');
-                    img.title = (def.id === 'municao_plus') ? 'Caixa de Munição' : (def.nome || def.id);
-                    console.log(`[EditorUI] Injetando item na paleta: ${def.id} (Src: ${img.src})`);
+                    img.title = (tipo === 'municao_plus') ? 'Caixa de Munição' : (tipo === 'novelo' ? 'Novelo de Lã' : (def.nome || tipo));
+                    console.log(`[EditorUI] Injetando item: ${tipo} (Src: ${img.src})`);
                     catItens.appendChild(img);
-                }
+                });
             } else {
                 console.error("[EditorUI] ERRO: Não foi encontrada uma categoria com título 'Itens' ou 'Items' na paleta HTML.");
             }

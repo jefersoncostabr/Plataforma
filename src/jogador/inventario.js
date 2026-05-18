@@ -446,6 +446,7 @@
             if (tipo === 'cinto') return config.spriteItemCinto || '../../assets/personagem/cinto_coletavel.png';
             if (tipo === 'colete') return config.spriteItemColete || '../../assets/personagem/colete_coletavel.png';
             if (tipo === 'municao_plus') return '../../assets/personagem/cx_municao.png';
+            if (tipo === 'novelo') return '../../assets/personagem/novelo.png';
         }
 
         // Prioridade 4: Efeitos e Elementos de Jogo (Centralização 5.3)

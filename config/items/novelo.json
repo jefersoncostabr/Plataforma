@@ -1,0 +1,11 @@
+{
+    "id": "novelo",
+    "nome": "Novelo de Lã",
+    "descricao": "Um novelo de lã macio. Gatos adoram!",
+    "spriteColetavel": "../../assets/personagem/objetos/novelo.png",
+    "categoria": "especial",
+    "empilhavel": true,
+    "quantidadeMax": 99,
+    "usos": 1,
+    "valor": 5
+}

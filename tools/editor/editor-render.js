@@ -57,6 +57,12 @@
 
             const img = document.createElement('img');
             img.src = src;
+            img.onerror = () => {
+                console.error(`[EditorRender] Erro ao carregar imagem: ${src}`);
+            };
+            img.onload = () => {
+                console.debug(`[EditorRender] Imagem carregada: ${src}`);
+            };
             if (classe) {
                 const classes = String(classe).trim().split(/\s+/).filter(Boolean);
                 if (classes.length) img.classList.add(...classes);
@@ -139,14 +145,17 @@
                 }
 
                 let src = '../../assets/personagem/revolver_pegavel.png';
-                if (itemDefinitions[item.tipo]?.spriteColetavel) {
-                    src = itemDefinitions[item.tipo].spriteColetavel;
-                } else if (item.tipo === 'restauracao') {
+                if (item.tipo === 'restauracao') {
                     src = '../../assets/personagem/restauracao.png';
                 } else if (item.tipo === 'municao_plus') {
                     src = '../../assets/personagem/cx_municao.png';
+                } else if (item.tipo === 'novelo') {
+                    src = '../../assets/personagem/objetos/novelo.png';
+                } else if (itemDefinitions[item.tipo] && itemDefinitions[item.tipo].spriteColetavel) {
+                    src = itemDefinitions[item.tipo].spriteColetavel;
                 }
-                criarIcone(item.pos, src, '');
+                console.log(`[EditorRender] Item ${item.tipo} em ${item.pos} -> src: ${src}`);
+                criarIcone(item.pos, src, '', { zIndex: 30 });
             });
 
             SYSTEM_DEFS.forEach((def) => {

@@ -138,7 +138,8 @@ function obterLegendaCoord(coord) {
 
     const item = iterarItensData(faseData.itens).find(i => i.pos === coord);
     if (item) {
-        let nome = itemDefinitions[item.tipo]?.nome || item.tipo;
+        let nome = itemDefinitions[item.tipo]?.nome || (item.tipo === 'novelo' ? 'Novelo de Lã' : item.tipo);
+        if (item.tipo === 'novelo') nome = 'Novelo de Lã';
         if (item.tipo === 'municao_plus') nome = 'Caixa de Munição';
         if (item.tipo === 'capsula') {
             const estado = item.robotEstado === 'desativado' ? 'robô desativado' : 'robô aberto';
@@ -347,7 +348,7 @@ window.onload = async () => {
 async function carregarItemDefinitions() {
     itemDefinitions = {};
     // Lista dos tipos de itens conhecidos (poderia ser dinâmico via API/FS)
-    const tipos = ["revolver", "escudo", "bota", "jetpack", "garra", "cinto", "colete", "restauracao", "scrap", "capsula", "doze", "municao_plus"];
+    const tipos = ["revolver", "escudo", "bota", "jetpack", "garra", "cinto", "colete", "restauracao", "scrap", "capsula", "doze", "municao_plus", "novelo"];
     for (const tipo of tipos) {
         try {
             const resp = await fetch(`../../config/items/${tipo}.json`);
