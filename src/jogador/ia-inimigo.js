@@ -849,14 +849,15 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                             largura: 32,
                             altura: 32
                         };
-                        const hitboxPlayer = {
+                        const playerCapturavel = window.playerControle && !window.playerControle.garraPuxando;
+                        const hitboxPlayer = playerCapturavel ? {
                             x: window.playerControle.x + (window.playerControle.offsetX || 0),
                             y: window.playerControle.y,
                             largura: window.playerControle.largura,
                             altura: window.playerControle.altura
-                        };
+                        } : null;
 
-                        if (detectarColisaoHitbox(hitboxGarra, hitboxPlayer, 0, 0, 0)) {
+                        if (hitboxPlayer && detectarColisaoHitbox(hitboxGarra, hitboxPlayer, 0, 0, 0)) {
                             inimigo.garraItemCarregado = window.playerControle;
                             window.playerControle.stunned = true;
                             window.playerControle.stunTimer = config.garraStunDurationPlayer || 120; // Default 2 seconds
@@ -1563,7 +1564,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 }
 
                 // Lógica da Attackbox do Inimigo (Apenas se estiver perseguindo/atacando)
-                if (!iaBloqueadaPorStun && inimigo.perseguindo && inimigo.tempoChute > 0 && !inimigo.jaAtacouNesteChute && window.playerControle) {
+                if (!iaBloqueadaPorStun && inimigo.perseguindo && inimigo.tempoChute > 0 && !inimigo.jaAtacouNesteChute && window.playerControle && !window.playerControle.garraPuxando) {
                     const ataqueOffsetX = config.INIMIGO_ATAQUE_OFFSET_X ?? config.ATAQUE_OFFSET_X;
                     const ataqueOffsetY = config.INIMIGO_ATAQUE_OFFSET_Y ?? config.ATAQUE_OFFSET_Y;
                     const ataqueLargura = config.INIMIGO_ATAQUE_LARGURA ?? config.ATAQUE_LARGURA;

@@ -1535,6 +1535,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         // Quebra movimento em passos de 16px para detectar colisões com estacas
         // Se colidir com estaca DIREITA/ESQUERDA, usa esquerdaReal/direitaReal para posicionar
         const distTotalX = controle.x - xAnterior;
+        if (!controle.garraPuxando) {
         if (Math.abs(distTotalX) > 16) { // Se mover mais de meio bloco (16px) em um frame
             const passos = Math.ceil(Math.abs(distTotalX) / 16);
             const incrementoX = distTotalX / passos;
@@ -1582,6 +1583,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 }
             }
         }
+        } // fim !garraPuxando
 
         // Calcula a força do pulo final: se tiver a bota, soma o bônus definido nas configurações
         const baseForcaPulo = config.gravidadeUniversal ? (config.forcaGravidade?.forcaPulo ?? 10) : (config.forcaPuloPlayer || 10);
@@ -1776,8 +1778,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             controle.velocidadeY = 0;
         }
 
-        const hitEspinho = detectarContatoEspinho();
-        if (hitEspinho && hitEspinho.tipo === 'estaca') {
+        const hitEspinho = !controle.garraPuxando ? detectarContatoEspinho() : null;
+        if (!controle.garraPuxando && hitEspinho && hitEspinho.tipo === 'estaca') {
             aplicarDanoEspinho(hitEspinho);
         }
 
@@ -2010,7 +2012,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                             }
                         }
                     }
-                } else if (proj.origem === 'inimigo' && window.playerControle) {
+                } else if (proj.origem === 'inimigo' && window.playerControle && !window.playerControle.garraPuxando) {
                     const hitboxPlayer = { 
                         x: window.playerControle.x + (window.playerControle.offsetX || 0), 
                         y: window.playerControle.y, 

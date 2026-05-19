@@ -23,6 +23,7 @@
 
         function aplicarDanoEspinho(colisaoEstaca) {
             if (!colisaoEstaca || colisaoEstaca.tipo !== 'estaca') return;
+            if (controle.garraPuxando) return;
 
             const xBase = controle.x + (controle.offsetX || 0);
             const yBase = controle.y;
@@ -129,6 +130,7 @@
 
         function detectarContatoEspinho() {
             if (typeof verificarColisaoComTiles !== 'function') return null;
+            if (controle.garraPuxando) return null;
 
             const xBase = controle.x + (controle.offsetX || 0);
             const yBase = controle.y;

@@ -466,29 +466,10 @@
                         const passos = Math.max(1, Math.ceil(velPuxo / 2));
                         const moverX = (deltaX / distancia) * (velPuxo / passos);
                         const moverY = (deltaY / distancia) * (velPuxo / passos);
-                        let bloqueado = false;
 
                         for (let i = 0; i < passos; i++) {
-                            const proxX = controle.x + moverX;
-                            const proxY = controle.y + moverY;
-
-                            if (typeof verificarColisaoComTiles === 'function') {
-                                const hit = verificarColisaoComTiles(
-                                    proxX + (controle.offsetX || 0),
-                                    proxY,
-                                    controle.largura || 20,
-                                    controle.altura || 25,
-                                    window.plataformas
-                                );
-
-                                if (hit) {
-                                    bloqueado = true;
-                                    break;
-                                }
-                            }
-
-                            controle.x = proxX;
-                            controle.y = proxY;
+                            controle.x += moverX;
+                            controle.y += moverY;
                         }
 
                         controle.garraDist = Math.max(0, Math.abs(alvoX - controle.x));
@@ -496,12 +477,6 @@
                         if (controle.garraDist % 32 < velGarra && controle.garraBracos.length > 0) {
                             const ultimoBraco = controle.garraBracos.pop();
                             ultimoBraco.remove();
-                        }
-
-                        if (bloqueado) {
-                            limparEstadoPuxoGarra();
-                            controle.garraAnimEstado = 'voltando';
-                            garraElemento.src = window.obterSpriteItem('garra_catching', config);
                         }
                     }
                 }
