@@ -126,7 +126,11 @@
             elementos.forEach(el => el.remove());
 
             [...PLATFORM_DEFS, ...ENEMY_DEFS].forEach((def) => {
-                (faseData[def.stateKey] || []).forEach((coord) => {
+                (faseData[def.stateKey] || []).forEach((entrada) => {
+                    const coord = typeof entrada === 'string'
+                        ? entrada
+                        : String(entrada?.coord || entrada?.pos || '').trim();
+                    if (!coord) return;
                     criarIcone(coord, def.sprite, def.className || '');
                 });
             });

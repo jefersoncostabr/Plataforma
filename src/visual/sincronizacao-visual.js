@@ -20,7 +20,8 @@ window.inicializarVisualEquipamentoEntidade = function(entidade, parentElement, 
         'garraElemento':  { flag: 'temGarra',   z: '9', sprite: 'garra',    fallback: '../../assets/personagem/garra.png', offY: 0 },
         'cintoElemento':  { flag: 'temCinto',   z: '6', sprite: 'cinto',    fallback: '../../assets/personagem/cinto.png', offY: -2 },
         'coleteElemento': { flag: 'temColete',  z: '6', sprite: 'colete',   fallback: '../../assets/personagem/colete.png', offY: 0 },
-        'bateriaElemento': { flag: 'temBateria', z: '7', sprite: 'bateria', fallback: '../../assets/personagem/objetos/bateria.png', offY: 0 }
+        'bateriaElemento': { flag: 'temBateria', z: '7', sprite: 'bateria', fallback: '../../assets/personagem/objetos/bateria.png', offY: 0 },
+        'bbCabecaElemento': { flag: 'temCabecaBB', z: '10', sprite: 'bb_cabeca', fallback: '../../assets/personagem/bb_cabeca.png', offY: 0 }
     };
 
     Object.entries(mapaEquipamentos).forEach(([key, info]) => {
@@ -42,9 +43,10 @@ window.inicializarVisualEquipamentoEntidade = function(entidade, parentElement, 
                 itemSpriteKey = entidade.heldWeaponType;
             }
 
-            img.src = typeof window.obterSpriteItem === 'function' 
-                ? window.obterSpriteItem(itemSpriteKey, config, 'equipado') 
-                : info.fallback;
+            const spriteResolvido = typeof window.obterSpriteItem === 'function'
+                ? window.obterSpriteItem(itemSpriteKey, config, 'equipado')
+                : '';
+            img.src = spriteResolvido || info.fallback;
 
             if (typeof window.adicionarAoLayer === 'function' && window.LAYERS?.INIMIGOS && entidade.isEnemy) {
                 window.adicionarAoLayer(img, window.LAYERS.INIMIGOS);
@@ -110,13 +112,18 @@ window.sincronizarAcessoriosEntidade = function(entidade, elementos, opcoes = {}
         'cintoElemento': { y: -2 },
         'jetpackElemento': { y: 0 },
         'coleteElemento': { y: 0 },
-        'bateriaElemento': { y: 0 }
+        'bateriaElemento': { y: 0 },
+        // Ajuste fino para sobrepor a cabeca do BB um pouco mais baixa sobre o corpo base.
+        'bbCabecaElemento': { x: 0, y: 2 }
     };
 
     const elementosVisuais = {
         ...elementos,
         ...(entidade.bateriaElemento && !Object.prototype.hasOwnProperty.call(elementos, 'bateriaElemento')
             ? { bateriaElemento: entidade.bateriaElemento }
+            : {})
+        ,...(entidade.bbCabecaElemento && !Object.prototype.hasOwnProperty.call(elementos, 'bbCabecaElemento')
+            ? { bbCabecaElemento: entidade.bbCabecaElemento }
             : {})
     };
 
@@ -143,7 +150,10 @@ window.sincronizarAcessoriosEntidade = function(entidade, elementos, opcoes = {}
 
         // Aplica ajuste fino de pixel
         const off = offsetsBase[chave];
-        if (off) posY += off.y;
+        if (off) {
+            posX += off.x || 0;
+            posY += off.y || 0;
+        }
 
         // Aplicação de regras específicas de offset e transform
         if (chave === 'coleteElemento') posY += offsetYAgachado;

@@ -75,6 +75,10 @@
             const condensedPattern = new RegExp(`"(${condensedKeys.join('|')})":\\s*\\[\\s*([\\s\\S]*?)\\s*\\]`, 'g');
 
             jsonStr = jsonStr.replace(condensedPattern, (match, key, content) => {
+                // Preserva arrays de inimigos quando há entradas em objeto (ex: { coord, skills }).
+                if (String(key).startsWith('inimigo_') && String(content).includes('{')) {
+                    return match;
+                }
                 const condensed = content.split('\n')
                     .map(linha => linha.trim().replace(/,$/, ''))
                     .filter(linha => linha !== '')
@@ -83,12 +87,13 @@
             });
 
             const formatarListaCoordenadas = (match, key, content) => {
+                // Para inimigos, mantém o formato original para não perder metadados (skills, direção, etc.).
+                if (key.startsWith('inimigo_')) {
+                    return match;
+                }
+
                 const items = Array.from(content.matchAll(/"[^"]+"/g), (resultado) => resultado[0]);
                 if (items.length === 0) return `"${key}": []`;
-
-                if (key.startsWith('inimigo_')) {
-                    return `"${key}": [${items.join(', ')}]`;
-                }
 
                 const rows = [];
                 let currentLine = [];

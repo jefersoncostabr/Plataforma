@@ -133,6 +133,67 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         return false;
     }
 
+    function coletarSkillsInimigo(inimigo) {
+        const fontes = [
+            inimigo?.skills,
+            inimigo?.enemySkills,
+            inimigo?.habilidades,
+            inimigo?.skillsAtivas
+        ];
+
+        return fontes.flatMap((lista) => Array.isArray(lista) ? lista : [])
+            .map((skill) => String(skill || '').trim().toLowerCase())
+            .filter(Boolean);
+    }
+
+    function inimigoTemSkillDash(inimigo) {
+        const skills = coletarSkillsInimigo(inimigo);
+        return !!(
+            inimigo?.dashHabilitado
+            || inimigo?.temSkillDash
+            || skills.includes('dash')
+            || skills.includes(String(window.SKILLS?.DASH || '').trim().toLowerCase())
+        );
+    }
+
+    function inimigoTemSkillSuperSalto(inimigo) {
+        const skills = coletarSkillsInimigo(inimigo);
+        const skillSalto = String(window.SKILLS?.SALTO || '').trim().toLowerCase();
+        return !!(
+            inimigo?.superSaltoHabilitado
+            || inimigo?.temSkillSuperSalto
+            || skills.includes('supersalto')
+            || skills.includes('super salto')
+            || skills.includes(skillSalto)
+        );
+    }
+
+    function iniciarDashEsquivaInimigo(inimigo, alvoX) {
+        if (!inimigo) return false;
+        if (!inimigoTemSkillDash(inimigo)) return false;
+        if (!inimigo.noChao || inimigo.estaAgachado) return false;
+        if ((inimigo.cooldownDashSkill || 0) > 0 || (inimigo.dashEsquivaFramesRestantes || 0) > 0) return false;
+
+        const duracaoDash = Math.max(1, Number(config.inimigoDashEsquivaDuracao ?? 8));
+        const distanciaDash = Math.max(24, Number(config.inimigoDashEsquivaDistancia ?? 96));
+        const direcaoParaTras = Number(alvoX) >= Number(inimigo.x || 0) ? -1 : 1;
+
+        inimigo.dashEsquivaDirecao = direcaoParaTras;
+        inimigo.dashEsquivaFramesRestantes = duracaoDash;
+        inimigo.velocidadeDashEsquiva = distanciaDash / duracaoDash;
+        inimigo.cooldownDashSkill = Math.max(duracaoDash, Number(config.inimigoDashEsquivaCooldown ?? 50));
+        if (inimigo.tipo === 12) {
+            console.log('[IA][InimigoBB] Dash de esquiva ativado.', {
+                x: inimigo.x,
+                alvoX,
+                direcao: inimigo.dashEsquivaDirecao,
+                cooldown: inimigo.cooldownDashSkill
+            });
+        }
+        window.AudioManager?.playSFX('dash', 0.35);
+        return true;
+    }
+
     function aplicarDeslocamentoHorizontalComColisao(ent, deslocX) {
         if (typeof window.aplicarDeslocamentoHorizontalComColisaoPadrao === 'function') {
             return window.aplicarDeslocamentoHorizontalComColisaoPadrao(ent, deslocX, window.plataformas, {
@@ -381,7 +442,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             'garraElemento',
             'cintoElemento',
             'coleteElemento',
-            'bateriaElemento'
+            'bateriaElemento',
+            'bbCabecaElemento'
         ];
 
         elementos.forEach((chave) => {
@@ -479,6 +541,13 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         dadosInimigos.forEach(dado => {
             const posStr = typeof dado === 'object' ? (dado.pos.coord || dado.pos) : dado;
             const direcao = (typeof dado === 'object' && dado.pos.direcao) ? dado.pos.direcao : 'e';
+            const extrasDado = (dado && typeof dado === 'object') ? { ...dado } : {};
+            delete extrasDado.tipo;
+            delete extrasDado.pos;
+            const extrasPos = (dado && typeof dado === 'object' && dado.pos && typeof dado.pos === 'object') ? { ...dado.pos } : {};
+            delete extrasPos.coord;
+            delete extrasPos.direcao;
+            delete extrasPos.pos;
             // Obtém as coordenadas X e Y usando a função global gridParaPixels
             const pos = typeof window.gridParaPixels === 'function' ? window.gridParaPixels(posStr) : {x: 0, y: 0};
             
@@ -505,6 +574,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             }
 
             window.inimigos.push({
+                ...extrasPos,
+                ...extrasDado,
                 x: pos.x,
                 y: pos.y,
                 startX: pos.x,
@@ -531,10 +602,15 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 garraBracos: [],
                 garraItemCarregado: null,
                 cooldownGarra: 60,
+                cooldownDashSkill: 0,
                 cooldownDanoEspinho: 0,
+                dashEsquivaFramesRestantes: 0,
+                dashEsquivaDirecao: 0,
+                velocidadeDashEsquiva: 0,
                 estaAgachado: false,
                 spriteParadoAgachado: window.obterSpriteItem('agachado', config, 'equipado'),
-                spriteAndandoAgachado: window.obterSpriteItem('agachado2', config, 'equipado')
+                spriteAndandoAgachado: window.obterSpriteItem('agachado2', config, 'equipado'),
+                temCabecaBB: tipo === 12
             });
 
             const inimigoObj = window.inimigos[window.inimigos.length - 1];
@@ -549,6 +625,19 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             if (tipo === 11) {
                 inimigoObj.temBateria = true;
                 inimigoObj.inventario.push('bateria');
+            }
+
+            if (tipo === 12) {
+                if (!Array.isArray(inimigoObj.skills) || inimigoObj.skills.length === 0) {
+                    inimigoObj.skills = ['Dash', 'SuperSalto'];
+                }
+                inimigoObj.temSkillDash = true;
+                inimigoObj.temSkillSuperSalto = true;
+
+                console.log('[IA][InimigoBB] Spawn com skills:', {
+                    pos: posStr,
+                    skills: inimigoObj.skills
+                });
             }
             
             if (inimigoObj.temArma) {
@@ -579,7 +668,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             }
 
             // Sincroniza posições iniciais
-            [inimigoObj.armaElemento, inimigoObj.escudoElemento, inimigoObj.botaElemento, inimigoObj.jetpackElemento, inimigoObj.garraElemento, inimigoObj.cintoElemento, inimigoObj.coleteElemento, inimigoObj.bateriaElemento].forEach(el => {
+            [inimigoObj.armaElemento, inimigoObj.escudoElemento, inimigoObj.botaElemento, inimigoObj.jetpackElemento, inimigoObj.garraElemento, inimigoObj.cintoElemento, inimigoObj.coleteElemento, inimigoObj.bateriaElemento, inimigoObj.bbCabecaElemento].forEach(el => {
                 if (el) {
                     el.style.left = pos.x + 'px';
                     el.style.bottom = pos.y + 'px';
@@ -961,6 +1050,10 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     inimigo.noChao = false;
                     inimigo.framesKnockbackRestante = 0; // Inicializa frames de knockback
                     inimigo.velocidadeKnockback = 0; // Inicializa velocidade de knockback
+                    inimigo.cooldownDashSkill = 0;
+                    inimigo.dashEsquivaFramesRestantes = 0;
+                    inimigo.dashEsquivaDirecao = 0;
+                    inimigo.velocidadeDashEsquiva = 0;
                     inimigo.jumpQueued = false; // Inicializa a flag de pulo agendado
                     inimigo.puloTimer = 0;
                     inimigo.afastando = false;
@@ -985,6 +1078,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 if (inimigo.cooldownPulo > 0) inimigo.cooldownPulo--;
                 if (inimigo.cooldownVooJetpack > 0) inimigo.cooldownVooJetpack--;
                 if (inimigo.cooldownGarra > 0) inimigo.cooldownGarra--; // Decrementa o cooldown da garra
+                if (inimigo.cooldownDashSkill > 0) inimigo.cooldownDashSkill--;
 
                 // Lógica da Animação da Garra (Estilo Cartoon) para o inimigo
                 if (inimigo.temGarra && inimigo.garraAnimEstado !== 'idle' && !inimigo.stunned) {
@@ -1324,6 +1418,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                 // Lógica de detecção de projétil vindo (radar de ameaça)
                 const projVindo = window.projeteis ? window.projeteis.find(proj => {
+                    if (proj?.origem === 'inimigo') return false;
                     // Distância ao inimigo na direção do projétil
                     const dx = proj.direcao === 1 ? inimigo.x - proj.x : proj.x - inimigo.x;
                     const dy = Math.abs((proj.y + config.PROJETIL_ALTURA / 2) - (inimigo.y + config.HITBOX_ALTURA / 2));
@@ -1342,6 +1437,20 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 if (inimigo.tipo === window.GAME_CONSTANTS.TIPOS_INIMIGO[3].id) { // Inimigo com bota
                     forcaPuloInimigo += Number(config.bonusPuloBota ?? 1.5);
                 }
+                const inimigoComSkillDash = inimigoTemSkillDash(inimigo);
+                const inimigoComSkillSuperSalto = inimigoTemSkillSuperSalto(inimigo);
+                const multiplicadorSuperSalto = Math.max(1.15, Number(config.inimigoSuperSaltoMultiplicador ?? 1.6));
+                const alcanceEsquivaChute = Math.max(Number(config.distanciaAtaqueInimigo ?? 32) + 12, Number(config.inimigoDistanciaEsquivaDash ?? 72));
+                const jogadorChutandoPerto = !!(
+                    alvoPerseguicao
+                    && alvoPerseguicao.chutando
+                    && distanciaAtual <= alcanceEsquivaChute
+                    && Math.abs(alvoPerseguicaoY - inimigo.y) <= Math.max(36, Number(inimigo.altura || 30) + 8)
+                );
+                const precisaSuperPuloPorAltura = !!(
+                    inimigoComSkillSuperSalto
+                    && yAlvo > inimigo.y + Math.max(64, Number(config.inimigoAlturaMinSuperSalto ?? 96))
+                );
 
                 // Ativa a perseguição se o jogador estiver perto OU se detectar um tiro vindo no radar
                 // Não ativa perseguição se o jogador está em resgate do BB
@@ -1350,15 +1459,45 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     // console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
                 }
 
+                if (!iaBloqueadaPorStun && jogadorChutandoPerto && inimigoComSkillDash) {
+                    iniciarDashEsquivaInimigo(inimigo, alvoPerseguicaoX);
+                }
+
                 // Lógica de pulo de desvio (usa o projVindo detectado acima)
                 if (!iaBloqueadaPorStun && projVindo && inimigo.noChao && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
                     // Define um delay randômico antes de pular
                     inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
+                    inimigo.usarSuperPuloAgora = !!inimigoComSkillSuperSalto;
+                    if (inimigo.tipo === 12) {
+                        console.log('[IA][InimigoBB] Projétil detectado, preparando salto.', {
+                            superSalto: inimigo.usarSuperPuloAgora,
+                            timer: inimigo.puloTimer
+                        });
+                    }
                     inimigo.jumpQueued = true; // Marca que um pulo foi agendado
+                }
+
+                if (!iaBloqueadaPorStun && precisaSuperPuloPorAltura && inimigo.perseguindo && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && inimigo.puloTimer === 0 && !inimigo.jumpQueued) {
+                    const dirSuperPulo = xAlvo >= inimigo.x ? 1 : -1;
+                    if (!temEstacaBaixoNoArcoDoPulo(inimigo, dirSuperPulo)) {
+                        inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
+                        inimigo.usarSuperPuloAgora = true;
+                        if (inimigo.tipo === 12) {
+                            console.log('[IA][InimigoBB] Altura grande detectada, preparando super pulo.', {
+                                yAlvo,
+                                yInimigo: inimigo.y,
+                                timer: inimigo.puloTimer
+                            });
+                        }
+                        inimigo.jumpQueued = true;
+                    }
                 }
 
                 // Executa o pulo ou VOO se o timer chegou a zero e foi agendado
                 if (!iaBloqueadaPorStun && inimigo.puloTimer === 0 && inimigo.jumpQueued) {
+                    const forcaPuloExecutada = inimigo.usarSuperPuloAgora
+                        ? (forcaPuloInimigo * multiplicadorSuperSalto)
+                        : forcaPuloInimigo;
                     if (inimigo.temJetpack && !inimigo.itensGuardadosNoCinto && !inimigo.jetpackAtivo && inimigo.cooldownVooJetpack === 0) {
                         window.AudioManager?.playSFX('fogueteligando', 0.4);
                         // Inicia o som de propulsão contínua para o inimigo
@@ -1374,11 +1513,16 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         }
                         inimigo.framesVoando = 0;
                         inimigo.jumpQueued = false;
+                        inimigo.usarSuperPuloAgora = false;
                     } else if (inimigo.noChao) {
                         if (inimigo.noChao) { // Só pula se ainda estiver no chão
-                            inimigo.velocidadeY = forcaPuloInimigo;
+                            inimigo.velocidadeY = forcaPuloExecutada;
                             inimigo.noChao = false;
                             inimigo.jumpQueued = false;
+                            inimigo.usarSuperPuloAgora = false;
+                            if (inimigoComSkillSuperSalto && typeof window.criarSombraDash === 'function' && forcaPuloExecutada > forcaPuloInimigo) {
+                                window.criarSombraDash(inimigo.elemento);
+                            }
                         }
                     }
                 }
@@ -1776,6 +1920,15 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                             inimigo.puloTimer = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
                             inimigo.jumpQueued = true;
                         }
+                    }
+                }
+
+                if (!iaBloqueadaPorStun && (inimigo.dashEsquivaFramesRestantes || 0) > 0) {
+                    inimigo.x += (inimigo.velocidadeDashEsquiva || 0) * (inimigo.dashEsquivaDirecao || 0);
+                    inimigo.dashEsquivaFramesRestantes--;
+                    movendoDestaVez = true;
+                    if (typeof window.criarSombraDash === 'function') {
+                        window.criarSombraDash(inimigo.elemento);
                     }
                 }
 

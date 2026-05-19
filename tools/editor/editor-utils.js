@@ -58,6 +58,32 @@
         return [...new Set((coords || []).filter(Boolean))];
     }
 
+    function normalizarEntradaCoord(entrada) {
+        if (typeof entrada === 'string') {
+            const coord = entrada.trim();
+            return coord ? coord : null;
+        }
+
+        if (!entrada || typeof entrada !== 'object') return null;
+
+        const coord = String(entrada.coord || entrada.pos || entrada.position || '').trim();
+        if (!coord) return null;
+
+        const normalizado = { ...entrada, coord };
+        delete normalizado.pos;
+        delete normalizado.position;
+
+        const chavesExtras = Object.keys(normalizado).filter((key) => key !== 'coord');
+        if (chavesExtras.length === 0) return coord;
+        return normalizado;
+    }
+
+    function obterCoordEntrada(entrada) {
+        if (typeof entrada === 'string') return entrada;
+        if (!entrada || typeof entrada !== 'object') return '';
+        return String(entrada.coord || entrada.pos || entrada.position || '').trim();
+    }
+
     function normalizarEntradaItem(tipo, entrada) {
         if (typeof entrada === 'string') {
             const pos = entrada.trim();
@@ -80,7 +106,34 @@
     }
 
     function normalizeCoordList(coords = []) {
-        return uniqueCoords(coords).sort(sortCoords);
+        const entradas = (coords || [])
+            .map((entrada) => normalizarEntradaCoord(entrada))
+            .filter(Boolean);
+
+        const simples = entradas.every((entrada) => typeof entrada === 'string');
+        if (simples) {
+            return uniqueCoords(entradas).sort(sortCoords);
+        }
+
+        const porCoord = new Map();
+        entradas.forEach((entrada) => {
+            const coord = obterCoordEntrada(entrada);
+            if (!coord) return;
+            if (typeof entrada === 'string') {
+                if (!porCoord.has(coord)) porCoord.set(coord, coord);
+            } else {
+                porCoord.set(coord, entrada);
+            }
+        });
+
+        return [...porCoord.values()]
+            .sort((a, b) => sortCoords(obterCoordEntrada(a), obterCoordEntrada(b)))
+            .map((entrada) => {
+                if (typeof entrada === 'string') return entrada;
+                const extras = Object.keys(entrada).filter((key) => key !== 'coord');
+                if (extras.length === 0) return entrada.coord;
+                return entrada;
+            });
     }
 
     function normalizeItensData(itens = {}) {
@@ -210,6 +263,8 @@
         coordToPixels,
         sortCoords,
         uniqueCoords,
+        normalizarEntradaCoord,
+        obterCoordEntrada,
         normalizeCoordList,
         normalizeItensData,
         iterarItensData,

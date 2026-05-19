@@ -9,7 +9,8 @@ const {
     coordToParts = () => null,
     sortCoords = () => 0,
     normalizeFaseData = (data) => data,
-    iterarItensData = () => []
+    iterarItensData = () => [],
+    obterCoordEntrada
 } = window.EditorUtils || {};
 
 let COLS = 20; 
@@ -142,8 +143,21 @@ function obterLegendaCoord(coord) {
     const ENEMY_DEFS = window.EditorConfig?.ENEMY_DEFS || [];
     const SYSTEM_DEFS = window.EditorConfig?.SYSTEM_DEFS || [];
 
+    const extrairCoord = (entrada) => {
+        if (typeof obterCoordEntrada === 'function') return obterCoordEntrada(entrada);
+        if (typeof entrada === 'string') return entrada;
+        return String(entrada?.coord || entrada?.pos || '').trim();
+    };
+
     for (const def of [...PLATFORM_DEFS, ...ENEMY_DEFS]) {
-        if ((faseData[def.stateKey] || []).includes(coord)) return def.label;
+        const entrada = (faseData[def.stateKey] || []).find((item) => extrairCoord(item) === coord);
+        if (!entrada) continue;
+
+        if (typeof entrada === 'object' && Array.isArray(entrada.skills) && entrada.skills.length > 0) {
+            return `${def.label} [${entrada.skills.join(', ')}]`;
+        }
+
+        return def.label;
     }
 
     if (faseData.posicaoGaiola === coord) return 'Gaiola com Cão';
@@ -485,8 +499,26 @@ function adicionarElemento(coord) {
             }
         } else {
             if (!Array.isArray(faseData[definition.stateKey])) faseData[definition.stateKey] = [];
-            faseData[definition.stateKey].push(coord);
-            faseData[definition.stateKey] = [...new Set(faseData[definition.stateKey])].sort(sortCoords);
+
+            // Remove existente na mesma coordenada (string ou objeto)
+            faseData[definition.stateKey] = (faseData[definition.stateKey] || []).filter((entrada) => {
+                const c = typeof entrada === 'string'
+                    ? entrada
+                    : String(entrada?.coord || entrada?.pos || '').trim();
+                return c !== coord;
+            });
+
+            if (definition.type === 'inimigo_bb') {
+                faseData[definition.stateKey].push({ coord, skills: ['Dash', 'SuperSalto'] });
+            } else {
+                faseData[definition.stateKey].push(coord);
+            }
+
+            faseData[definition.stateKey] = (faseData[definition.stateKey] || []).sort((a, b) => {
+                const ca = typeof a === 'string' ? a : String(a?.coord || a?.pos || '').trim();
+                const cb = typeof b === 'string' ? b : String(b?.coord || b?.pos || '').trim();
+                return sortCoords(ca, cb);
+            });
         }
         aplicarFaseDataEditor(faseData);
         return;
@@ -525,7 +557,12 @@ function removerElemento(coord) {
     const SYSTEM_DEFS = window.EditorConfig?.SYSTEM_DEFS || [];
 
     COORD_ARRAY_KEYS.forEach((key) => {
-        faseData[key] = (faseData[key] || []).filter(c => c !== coord);
+        faseData[key] = (faseData[key] || []).filter((entrada) => {
+            const c = typeof entrada === 'string'
+                ? entrada
+                : String(entrada?.coord || entrada?.pos || '').trim();
+            return c !== coord;
+        });
     });
 
     if (!faseData.itens || typeof faseData.itens !== 'object' || Array.isArray(faseData.itens)) {

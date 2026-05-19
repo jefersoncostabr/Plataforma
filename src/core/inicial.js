@@ -495,6 +495,9 @@ async function carregarFase(nomeArquivo) {
             const chaveJSON = tipoConfig.chaveJSON;
             if (fase[chaveJSON]) {
                 fase[chaveJSON].forEach(p => {
+                    if (chaveJSON === 'inimigo_bb') {
+                        console.log('[Fase][InimigoBB] Entrada carregada do JSON:', p);
+                    }
                     inimigosParaReset.push({tipo: parseInt(tipoId), pos: p});
                 });
             }
