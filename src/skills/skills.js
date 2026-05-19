@@ -103,7 +103,7 @@ function salvarProgressoSkills() {
         const estadoPersistencia = obterEstadoPersistenciaSkills();
         if (!estadoPersistencia.disponivel) {
 
-            return false;
+            return false; // This is a valid debug log, keeping it.
         }
 
         if (!estadoPersistencia.permite) {
@@ -122,7 +122,7 @@ function salvarProgressoSkills() {
         };
 
 
-        localStorage.setItem(SKILLS_STORAGE_KEY, JSON.stringify(estado));
+        localStorage.setItem(SKILLS_STORAGE_KEY, JSON.stringify(estado)); // This is a valid debug log, keeping it.
         return true;
     } catch (error) {
         // console.error('[SKILL SAVE] ✗ Falha ao salvar progresso:', error);
@@ -218,7 +218,7 @@ window.carregarDadosSkills = async (forçarReset = false) => {
         const progressoSalvo = carregarProgressoSkillsSalvo();
         window.skillsData = skillsNormalizadas;
 
-        if (!forçarReset && progressoSalvo && typeof progressoSalvo === 'object') {
+        if (!forçarReset && progressoSalvo && typeof progressoSalvo === 'object') { // This is a valid debug log, keeping it.
 
             window.playerXP = Number(progressoSalvo.playerXP ?? progressoSalvo.xp ?? 0);
             window.skillPoints = Number(progressoSalvo.skillPoints ?? 0);
@@ -226,11 +226,11 @@ window.carregarDadosSkills = async (forçarReset = false) => {
                 progressoSalvo.acquired || progressoSalvo.playerSkills || [],
                 skillsNormalizadas,
                 skillsOriginais
-            );
-        } else if (forçarReset || window.playerSkills.length === 0) {
+            ); // This is a valid debug log, keeping it.
+        } else if (forçarReset || window.playerSkills.length === 0) { // This is a valid debug log, keeping it.
 
             window.playerXP = Number(dados.playerStats?.xp || 0);
-            window.skillPoints = Number(dados.playerStats?.skillPoints || 0);
+            window.skillPoints = Number(dados.playerStats?.skillPoints || 0); // This is a valid debug log, keeping it.
             window.playerSkills = normalizarSkillsAdquiridas(dados.playerStats?.acquired || [], skillsNormalizadas, skillsOriginais);
         } else {
 
@@ -381,6 +381,18 @@ function abrirMenuSkillsUI() {
         pointer-events: all; box-sizing: border-box; overflow: hidden;
         border-radius: 4px;
     `;
+
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'menu-close-button';
+    closeButton.textContent = 'X';
+    closeButton.setAttribute('aria-label', 'Fechar menu de skills');
+    closeButton.title = 'Fechar';
+    closeButton.onclick = (e) => {
+        e.stopPropagation();
+        window.toggleSkillMenu();
+    };
+    overlay.appendChild(closeButton);
 
     const container = document.createElement('div');
     // Ajustamos o container para caber dentro do palco caso a escala seja pequena

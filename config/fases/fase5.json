@@ -15,7 +15,8 @@
         "revolver": "b21",
         "restauracao": "b9",
         "escudo": "c23",
-        "cinto": "m36"
+        "cinto": "m36",
+        "municao_plus": "n1"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
@@ -45,7 +46,7 @@
         "j40",
         "k35"
     ],
-    "inimigo_comum": ["b26", "b28", "b30", "b32"],
+    "inimigo_comum": ["b26", "b28", "b30", "n33"],
     "inimigo_escudo": ["b7"],
     "inimigo_cinto": ["m23"]
 }

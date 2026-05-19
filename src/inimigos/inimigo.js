@@ -88,7 +88,7 @@ function criarInimigo(idPalco, imagemPath, coord, direcao = 'e', tipo = 1) {
         ,garraBracos: []
         ,garraItemCarregado: null
     });
-    console.log(`Inimigo inserido em ${coord} (x: ${x}, y: ${y})`);
+    // console.log(`Inimigo inserido em ${coord} (x: ${x}, y: ${y})`);
 }
 
 /**

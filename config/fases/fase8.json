@@ -15,22 +15,24 @@
         "revolver": [
             "b16",
             "b18",
-            "n1",
-            "n7",
-            "n16"
+            "n1"
         ],
         "restauracao": [
             "c8",
             "n4",
-            "n10",
-            "n13",
-            "n19"
+            "n13"
         ],
         "jetpack": [
             "b11",
             "b14",
             "b17"
-        ]
+        ],
+        "municao_plus": [
+            "n10",
+            "n19"
+        ],
+        "escudo": "n7",
+        "bota": "n16"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [

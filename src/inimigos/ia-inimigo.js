@@ -458,7 +458,9 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             piscaLeve(inimigo.elemento);
         }
 
-        const limiteVida = Number(config.inimigoVidaMax ?? 3);
+        const limiteVida = typeof window.obterLimiteVidaInimigo === 'function'
+            ? window.obterLimiteVidaInimigo(config)
+            : Number(config.inimigoVidaMax ?? 3);
         return inimigo.vida >= limiteVida;
     }
 
@@ -1344,7 +1346,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 // Ativa a perseguição se o jogador estiver perto OU se detectar um tiro vindo no radar
                 // Não ativa perseguição se o jogador está em resgate do BB
                 if (!iaBloqueadaPorStun && !inimigo.perseguindo && !emResgateBB && (alvoPerseguicao || bbTemRoboAlvo) && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse || bbTemRoboAlvo || (inimigo.temGarra && distanciaAtual <= (config.garraAlcanceInimigo || 160)))) {
-                    inimigo.perseguindo = true; // Removido console.log de debug
+                    inimigo.perseguindo = true;
                     // console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
                 }
 
@@ -1638,7 +1640,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                                 aplicarRecuoRevolver(inimigo.armaElemento, isDoze ? 150 : 100);
                             }
                         }
-                        
+
                         // console.log(`Inimigo disparou! Munição restante: ${inimigo.municao}`); // Removido console.log de debug
                     }
 
@@ -1914,7 +1916,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     if (!iaBloqueadaPorStun && inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && inimigo.puloTimer === 0 && !inimigo.jumpQueued && !inimigo.estaAgachado && !inimigo.precisaAgacharPassagem && !temEstacaBaixoNoArcoDoPulo(inimigo, inimigo.direcao === 'd' ? 1 : -1)) {
                         // Agenda o pulo com um delay aleatório
                         inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
-                        inimigo.jumpQueued = true; // Removido console.log de debug
+                        inimigo.jumpQueued = true;
                         // console.log('Inimigo iniciou timer de pulo por obstrução:', inimigo.puloTimer, 'frames'); // Comentado conforme solicitado
                     }
                     verificarSnapInimigo(inimigo, xAnterior);

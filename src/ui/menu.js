@@ -7,6 +7,11 @@ let menuSelectedIndex = -1;
 let menuMode = 'main'; // main | controls
 let controlsSelectedIndex = -1;
 let controlsBindingAction = null;
+let menuDifficultyValue = 'normal';
+
+window.gameDifficulty = window.gameDifficulty || 'normal';
+
+const MENU_VOLUME_STEP = 0.05;
 
 const CONTROLES_STORAGE_KEY = 'plataformaControles';
 const CONTROLES_PADRAO = {
@@ -303,6 +308,75 @@ function criarPainelResumoSalvo() {
     return painel;
 }
 
+function criarPainelDificuldade() {
+    const painel = document.createElement('div');
+    painel.className = 'menu-difficulty-panel';
+
+    const titulo = document.createElement('div');
+    titulo.className = 'menu-difficulty-title';
+    titulo.textContent = 'DIFICULDADE';
+    painel.appendChild(titulo);
+
+    const opcoes = document.createElement('div');
+    opcoes.className = 'menu-difficulty-options';
+
+    [
+        { valor: 'easy', label: 'Easy' },
+        { valor: 'normal', label: 'Normal' },
+        { valor: 'hard', label: 'Hard' }
+    ].forEach((opcao) => {
+        const label = document.createElement('label');
+        label.className = 'menu-difficulty-option menu-nav-item';
+        label.dataset.menuMode = 'main';
+        label.dataset.navType = 'difficulty';
+        label.dataset.difficultyValue = opcao.valor;
+
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'menu-difficulty';
+        input.value = opcao.valor;
+        input.checked = menuDifficultyValue === opcao.valor;
+        input.tabIndex = -1;
+
+        const texto = document.createElement('span');
+        texto.textContent = opcao.label;
+
+        label.onmouseenter = () => {
+            menuSelectedIndex = getMainMenuNavItems().indexOf(label);
+            updateMenuVisuals();
+        };
+
+        label.onmouseleave = () => {
+            menuSelectedIndex = -1;
+            updateMenuVisuals();
+        };
+
+        label.onclick = () => {
+            selecionarDificuldadeMenu(opcao.valor);
+            menuSelectedIndex = getMainMenuNavItems().indexOf(label);
+            updateMenuVisuals();
+        };
+
+        label.appendChild(input);
+        label.appendChild(texto);
+        opcoes.appendChild(label);
+    });
+
+    painel.appendChild(opcoes);
+    return painel;
+}
+
+function criarAcaoSairDoJogo() {
+    return () => {
+        if (confirm('Deseja realmente sair do jogo?')) {
+            window.close();
+            setTimeout(() => {
+                alert('O navegador impediu o fechamento automatico. Por favor, feche a aba manualmente.');
+            }, 300);
+        }
+    };
+}
+
 /**
  * Retorna a lista de opcoes do menu, ajustando o comportamento para o inicio do jogo.
  */
@@ -358,14 +432,7 @@ const getActiveMenuOptions = () => {
         },
         reiniciarOption,
         {
-            label: 'SAIR', action: () => {
-                if (confirm('Deseja realmente sair do jogo?')) {
-                    window.close();
-                    setTimeout(() => {
-                        alert('O navegador impediu o fechamento automatico. Por favor, feche a aba manualmente.');
-                    }, 300);
-                }
-            }
+            label: 'SAIR', action: criarAcaoSairDoJogo()
         }
     ];
 
@@ -387,6 +454,101 @@ const getActiveMenuOptions = () => {
 
     return baseOptions;
 };
+
+function getMainMenuOptions() {
+    return getActiveMenuOptions().filter((opt) => opt.label !== 'SAIR');
+}
+
+function getCloseMenuOption() {
+    return getActiveMenuOptions().find((opt) => opt.label === 'SAIR') || {
+        label: 'SAIR',
+        action: criarAcaoSairDoJogo()
+    };
+}
+
+function getMainMenuNavItems() {
+    return Array.from(document.querySelectorAll('#pause-menu-overlay .menu-nav-item[data-menu-mode="main"]'));
+}
+
+function selecionarDificuldadeMenu(valor) {
+    menuDifficultyValue = valor;
+    window.gameDifficulty = valor;
+
+    const radios = document.querySelectorAll('#pause-menu-overlay input[name="menu-difficulty"]');
+    radios.forEach((radio) => {
+        radio.checked = radio.value === valor;
+    });
+}
+
+function ajustarVolumeMenu(delta) {
+    if (!window.AudioManager || typeof window.AudioManager.setMasterVolume !== 'function') return;
+
+    const volumeAtual = Number(window.AudioManager.masterVolume || 0);
+    const proximoVolume = Math.max(0, Math.min(1, Number((volumeAtual + delta).toFixed(2))));
+    window.AudioManager.setMasterVolume(proximoVolume);
+}
+
+function moverSelecaoDificuldade(origem, direcao) {
+    const niveis = ['easy', 'normal', 'hard'];
+    const indiceAtual = Math.max(0, niveis.indexOf(origem || menuDifficultyValue));
+    const proximoIndice = Math.max(0, Math.min(niveis.length - 1, indiceAtual + direcao));
+    const proximoValor = niveis[proximoIndice];
+
+    selecionarDificuldadeMenu(proximoValor);
+
+    const itens = getMainMenuNavItems();
+    const indiceItem = itens.findIndex((item) =>
+        item.dataset.navType === 'difficulty' && item.dataset.difficultyValue === proximoValor
+    );
+
+    if (indiceItem !== -1) {
+        menuSelectedIndex = indiceItem;
+    }
+}
+
+function ativarItemMenuPrincipal(item) {
+    if (!item) return;
+
+    const navType = item.dataset.navType;
+
+    if (navType === 'difficulty') {
+        selecionarDificuldadeMenu(item.dataset.difficultyValue);
+        updateMenuVisuals();
+        return;
+    }
+
+    if (navType === 'volume') {
+        return;
+    }
+
+    item.click();
+}
+
+function tratarAjusteHorizontalMenuPrincipal(item, key) {
+    if (!item) return false;
+
+    const direcao = (key === 'arrowleft' || key === 'a')
+        ? -1
+        : (key === 'arrowright' || key === 'd')
+            ? 1
+            : 0;
+
+    if (!direcao) return false;
+
+    if (item.dataset.navType === 'difficulty') {
+        moverSelecaoDificuldade(item.dataset.difficultyValue, direcao);
+        updateMenuVisuals();
+        return true;
+    }
+
+    if (item.dataset.navType === 'volume') {
+        ajustarVolumeMenu(direcao * MENU_VOLUME_STEP);
+        updateMenuVisuals();
+        return true;
+    }
+
+    return false;
+}
 
 window.togglePauseMenu = () => {
     if (window.isSkillMenuOpen) {
@@ -441,15 +603,17 @@ function handleMenuInput(e) {
     }
 
     const key = e.key.toLowerCase();
-    const currentOptions = getActiveMenuOptions();
-    if (!currentOptions || currentOptions.length === 0) return;
+    const currentItems = getMainMenuNavItems();
+    if (!currentItems || currentItems.length === 0) return;
 
     if (key === 'arrowup' || key === 'w') {
-        menuSelectedIndex = (menuSelectedIndex <= 0) ? currentOptions.length - 1 : menuSelectedIndex - 1;
+        menuSelectedIndex = (menuSelectedIndex <= 0) ? currentItems.length - 1 : menuSelectedIndex - 1;
         updateMenuVisuals();
     } else if (key === 'arrowdown' || key === 's') {
-        menuSelectedIndex = (menuSelectedIndex === -1 || menuSelectedIndex >= currentOptions.length - 1) ? 0 : menuSelectedIndex + 1;
+        menuSelectedIndex = (menuSelectedIndex === -1 || menuSelectedIndex >= currentItems.length - 1) ? 0 : menuSelectedIndex + 1;
         updateMenuVisuals();
+    } else if (tratarAjusteHorizontalMenuPrincipal(currentItems[menuSelectedIndex], key)) {
+        e.preventDefault();
     } else if (key === 'enter' || key === ' ') {
         e.preventDefault();
         if (menuSelectedIndex === -1) {
@@ -457,7 +621,7 @@ function handleMenuInput(e) {
         }
         
         try {
-            currentOptions[menuSelectedIndex].action();
+            ativarItemMenuPrincipal(currentItems[menuSelectedIndex]);
         } catch (error) {
             console.error('Menu: Erro ao executar acao do menu:', error);
         }
@@ -593,7 +757,32 @@ function renderMenuUI() {
     if (!targetLayer) return;
 
     const overlay = criarElementoOverlay();
+    const closeOption = menuMode === 'main' ? getCloseMenuOption() : null;
     const title = criarElementoTitulo();
+
+    if (closeOption) {
+        const closeButton = document.createElement('button');
+        closeButton.type = 'button';
+        closeButton.className = 'menu-close-button menu-nav-item';
+        closeButton.dataset.menuMode = 'main';
+        closeButton.dataset.navType = 'close';
+        closeButton.textContent = 'X';
+        closeButton.setAttribute('aria-label', 'Sair do jogo');
+        closeButton.title = 'Sair';
+        closeButton.onmouseenter = () => {
+            menuSelectedIndex = getMainMenuNavItems().indexOf(closeButton);
+            updateMenuVisuals();
+        };
+        closeButton.onmouseleave = () => {
+            menuSelectedIndex = -1;
+            updateMenuVisuals();
+        };
+        closeButton.onclick = (e) => {
+            e.stopPropagation();
+            closeOption.action();
+        };
+        overlay.appendChild(closeButton);
+    }
     
     overlay.appendChild(title);
     preencherConteudoPorModo(overlay);
@@ -617,12 +806,14 @@ function renderMainMenuContent(overlay) {
     optionsContainer.style.gap = '15px';
     optionsContainer.style.width = '220px';
 
-    const currentOptions = getActiveMenuOptions();
+    const currentOptions = getMainMenuOptions();
 
     // Função auxiliar para criar os botões e evitar repetição de código
     const criarBotaoMenu = (opt, index) => {
         const btn = document.createElement('div');
-        btn.className = 'menu-option menu-option--main';
+        btn.className = 'menu-option menu-option--main menu-nav-item';
+        btn.dataset.menuMode = 'main';
+        btn.dataset.navType = 'action';
         btn.innerText = opt.label;
 
         btn.onmouseenter = () => {
@@ -643,12 +834,10 @@ function renderMainMenuContent(overlay) {
     };
 
     currentOptions.forEach((opt, index) => {
-        // O botão SAIR será tratado separadamente na coluna da direita
-        if (opt.label === 'SAIR') return;
         optionsContainer.appendChild(criarBotaoMenu(opt, index));
     });
 
-    // Coluna da direita para agrupar o Painel de Resumo, o botão Sair e o Controle de Volume
+    // Coluna da direita para agrupar o Painel de Resumo, a dificuldade e o controle de volume
     const rightColumn = document.createElement('div');
     rightColumn.style.display = 'flex';
     rightColumn.style.flexDirection = 'column';
@@ -657,11 +846,7 @@ function renderMainMenuContent(overlay) {
 
     rightColumn.appendChild(criarPainelResumoSalvo());
 
-    // Se houver a opção SAIR, adiciona-a na coluna da direita para ficar com os outros itens
-    const indexSair = currentOptions.findIndex(o => o.label === 'SAIR');
-    if (indexSair !== -1) {
-        rightColumn.appendChild(criarBotaoMenu(currentOptions[indexSair], indexSair));
-    }
+    rightColumn.appendChild(criarPainelDificuldade());
 
     layout.appendChild(optionsContainer);
     layout.appendChild(rightColumn);
@@ -670,6 +855,34 @@ function renderMainMenuContent(overlay) {
     // Injeta a barra de volume do AudioManager na coluna da direita (abaixo do resumo)
     if (window.AudioManager && typeof window.AudioManager.renderVolumeControl === 'function') {
         window.AudioManager.renderVolumeControl(rightColumn);
+
+        const volumeWrapper = rightColumn.querySelector('.volume-control-wrapper');
+        const volumeSlider = volumeWrapper?.querySelector('.volume-slider');
+
+        if (volumeWrapper) {
+            volumeWrapper.classList.add('menu-volume-panel', 'menu-nav-item');
+            volumeWrapper.dataset.menuMode = 'main';
+            volumeWrapper.dataset.navType = 'volume';
+
+            volumeWrapper.onmouseenter = () => {
+                menuSelectedIndex = getMainMenuNavItems().indexOf(volumeWrapper);
+                updateMenuVisuals();
+            };
+
+            volumeWrapper.onmouseleave = () => {
+                menuSelectedIndex = -1;
+                updateMenuVisuals();
+            };
+
+            volumeWrapper.onclick = () => {
+                menuSelectedIndex = getMainMenuNavItems().indexOf(volumeWrapper);
+                updateMenuVisuals();
+            };
+        }
+
+        if (volumeSlider) {
+            volumeSlider.tabIndex = -1;
+        }
     }
 }
 
@@ -761,15 +974,22 @@ function renderControlsContent(overlay) {
 }
 
 function updateMenuVisuals() {
-    const elements = document.querySelectorAll('.menu-option');
-    const selected = menuMode === 'controls' ? controlsSelectedIndex : menuSelectedIndex;
+    if (menuMode === 'controls') {
+        const elements = document.querySelectorAll('.menu-option');
 
-    elements.forEach((el, index) => {
-        el.classList.remove('selected'); // Remove a classe de seleção de todos
-        
-        if (index === selected) {
-            el.classList.add('selected'); // Adiciona a classe de seleção ao elemento atual
-        }
+        elements.forEach((el, index) => {
+            el.classList.toggle('selected', index === controlsSelectedIndex);
+        });
+
+        return;
+    }
+
+    const items = getMainMenuNavItems();
+
+    items.forEach((item, index) => {
+        const isSelected = index === menuSelectedIndex;
+        item.classList.toggle('selected', isSelected && item.classList.contains('menu-option'));
+        item.classList.toggle('menu-nav-selected', isSelected && !item.classList.contains('menu-option'));
     });
 }
 

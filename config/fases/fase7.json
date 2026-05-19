@@ -14,14 +14,12 @@
     "itens": {
         "escudo": "l13",
         "revolver": "g7",
-        "restauracao": [
-            "b8",
-            "j1"
-        ],
+        "restauracao": "b8",
         "bota": [
             "h19",
             "l15"
-        ]
+        ],
+        "municao_plus": "n2"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
@@ -43,5 +41,8 @@
     "inimigo_escudo": ["h13"],
     "plataformasTerraSuperior2": [
         "i2"
+    ],
+    "plataformasTerraInferior2": [
+        "f1"
     ]
 }

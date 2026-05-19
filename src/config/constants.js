@@ -204,3 +204,14 @@ window.GAME_CONSTANTS = {
     INIMIGO_FENO_ID: 5,
     INIMIGO_COMUM_ID: 0,
 };
+
+window.obterLimiteVidaInimigo = function(configAtual = window.config) {
+    const limiteBase = Number(configAtual?.inimigoVidaMax ?? 3);
+    const dificuldadeAtual = String(window.gameDifficulty || 'normal').toLowerCase();
+
+    if (dificuldadeAtual === 'easy') {
+        return Math.max(1, limiteBase - 1);
+    }
+
+    return limiteBase;
+};

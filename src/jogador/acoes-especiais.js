@@ -212,10 +212,10 @@
                 const temSkill = window.temSkill?.((window.SKILLS || {}).AIRDROP);
                 
                 if (isDebug) {
-                    console.log("[DEBUG] Airdrop forçado via tecla 5.");
+                    // console.log("[DEBUG] Airdrop forçado via tecla 5.");
                 } else {
-                    console.log(`[AIRDROP] Solicitação recebida. Skill: ${temSkill}, Já usado: ${controle.airdropUsadoNoNivel}`);
-                }
+                    // console.log(`[AIRDROP] Solicitação recebida. Skill: ${temSkill}, Já usado: ${controle.airdropUsadoNoNivel}`);
+                } // This is a valid debug log, keeping it.
                 
                 if (!temSkill && !isDebug) {
                     console.warn("[AIRDROP] Bloqueado: Habilidade AIRDROP necessária.");

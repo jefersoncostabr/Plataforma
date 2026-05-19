@@ -472,7 +472,11 @@
                         inimigoAtingido.foiAtingidoNesteChute = true;
                         inimigoAtingido.vida = (inimigoAtingido.vida || 0) + 1;
 
-                        if (inimigoAtingido.vida < 3) animarDanoAlvo(inimigoAtingido);
+                        const limiteVidaInimigo = typeof window.obterLimiteVidaInimigo === 'function'
+                            ? window.obterLimiteVidaInimigo(config)
+                            : 3;
+
+                        if (inimigoAtingido.vida < limiteVidaInimigo) animarDanoAlvo(inimigoAtingido);
 
                         inimigoAtingido.stunned = false;
                         inimigoAtingido.stunTimer = 0;
@@ -488,7 +492,7 @@
                         inimigoAtingido.velocidadeKnockback = (valorKnockbackInimigo / duracaoRecuoInimigo) * direcaoKnockback;
                         virarFenoParaFonteDano(inimigoAtingido, controle.x + ((controle.largura || 32) / 2));
 
-                        if (inimigoAtingido.vida >= 3) {
+                        if (inimigoAtingido.vida >= limiteVidaInimigo) {
                             window.prepararMorteInimigo?.(inimigoAtingido, direcaoKnockback);
                         }
                     } else {

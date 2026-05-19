@@ -12,10 +12,7 @@
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
-        "garra": [
-            "b19",
-            "b31"
-        ],
+        "garra": "b19",
         "bota": [
             "o16",
             "o27"
@@ -24,9 +21,10 @@
             "b37",
             "o29"
         ],
-        "restauracao": "i40"
+        "restauracao": "i40",
+        "municao_plus": "o1"
     },
-    "inimigoAleatorio": [3, 0],
+    "inimigoAleatorio": [1, 0],
     "plataformas": [
         "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
         "d8",
@@ -37,7 +35,7 @@
         "n1", "n2", "n3", "n4"
     ],
     "inimigo_feno": ["b11", "b30"],
-    "inimigo_comum": ["b14", "b15", "b16", "b17", "b18", "b24", "b25", "b26", "b27", "b28", "b29", "i36"],
+    "inimigo_comum": ["b14", "b15", "b16", "b17", "b18", "b24", "b25", "b26", "b27", "b28", "b29", "i35"],
     "inimigo_revolver": ["b13", "b23"],
     "plataformasTerraSuperior": [
         "c7",
@@ -47,7 +45,6 @@
         "m14",
         "n16", "n18", "n19", "n20", "n21", "n22", "n23", "n24"
     ],
-    "inimigo_completo": ["i35"],
     "plataformasTerraSuperior2": [
         "k6"
     ],

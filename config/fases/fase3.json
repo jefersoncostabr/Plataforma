@@ -15,7 +15,8 @@
         "restauracao": [
             "g14",
             "n40"
-        ]
+        ],
+        "municao_plus": "g1"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
@@ -23,7 +24,7 @@
         "c11", "c32",
         "d12", "d31",
         "e13", "e30",
-        "f14", "f16", "f18", "f20", "f22", "f23", "f24", "f25", "f26", "f27", "f28", "f29",
+        "f1", "f4", "f5", "f14", "f16", "f18", "f20", "f22", "f23", "f24", "f25", "f26", "f27", "f28", "f29",
         "h26",
         "i27", "i28",
         "j29", "j30",
@@ -47,5 +48,8 @@
     ],
     "plataformasEstacaSup": [
         "m38"
+    ],
+    "plataformasTerraInferior2": [
+        "e7", "e8"
     ]
 }

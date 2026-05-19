@@ -1436,7 +1436,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             }
             
             // Aciona a nova animação de inclinação
-            if (armaElemento) {
+            if (armaElemento && typeof aplicarRecuoRevolver === 'function') {
                 if (typeof aplicarRecuoRevolver === 'function') {
                     if (armaEquipada === 'doze') {
                         // Para doze: recuo mais acentuado
@@ -1444,9 +1444,6 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                     } else {
                         // Para revolver: recuo padrão
                         aplicarRecuoRevolver(armaElemento, 100);
-                    }
-                } else {
-                    console.error("[ERRO] Função aplicarRecuoRevolver não encontrada! Verifique se o script foi carregado no HTML.");
                 }
             }
             
@@ -1952,10 +1949,14 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                                 }
                             }
 
+                            const limiteVidaInimigo = typeof window.obterLimiteVidaInimigo === 'function'
+                                ? window.obterLimiteVidaInimigo(config)
+                                : 3;
+
                             if (!bloqueouEscudoInimigo) {
                                 const danoTomado = (controle.danoProjetil || 1);
                                 inimigo.vida = (inimigo.vida || 0) + danoTomado;
-                                if (inimigo.vida < 3) animarDanoAlvo(inimigo);
+                                if (inimigo.vida < limiteVidaInimigo) animarDanoAlvo(inimigo);
                                 // Inimigo tipo 5 é Feno (alvo de treino) - você verá dano no comportamento
                             }
                             
@@ -1967,7 +1968,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
                             inimigo.elemento.style.left = inimigo.x + 'px';
 
-                            if (inimigo.vida >= 3) {
+                            if (inimigo.vida >= limiteVidaInimigo) {
                                 if (ehInimigoFeno(inimigo)) {
                                     processarMorteFeno(inimigo);
                                 } else {

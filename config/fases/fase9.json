@@ -34,6 +34,10 @@
     "inimigo_comum": ["b9", "b12", "b16", "b18", "b20"],
     "inimigo_jetpack": ["b14", "v15", "x5"],
     "plataformasEstacaBaixo": [
+        "f4",
+        "k9",
+        "r14",
+        "v5",
         "z1",
         "aa10"
     ]

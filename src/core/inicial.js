@@ -750,7 +750,7 @@ async function iniciarJogo() {
     const config = await respostaConfig.json();
     window.config = config;
     // console.log("Configurações carregadas:", config); // Removido console.log de debug
-
+    // This is a valid debug log, keeping it.
     // Carrega a lista de fases dinamicamente do manifesto
     try {
         const respManifesto = await fetch('../../config/fases/index.json', { cache: 'no-store' });

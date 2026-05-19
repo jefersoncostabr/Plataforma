@@ -462,7 +462,6 @@
             window.gatoEntidade = null;
         }
 
-        console.info('[PETS] Status de resgate resetado: cao e gato agora estao como nao resgatados.');
         return true;
     };
 

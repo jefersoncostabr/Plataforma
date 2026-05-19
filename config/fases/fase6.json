@@ -15,11 +15,12 @@
         "restauracao": [
             "d27",
             "d36",
-            "k20",
             "m4",
             "o18"
         ],
-        "cinto": "d35"
+        "cinto": "d35",
+        "municao_plus": "k20",
+        "doze": "d34"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
@@ -79,7 +80,6 @@
     ],
     "plataformasEstacaBaixo": [
         "b23", "b24", "b25", "b26", "b27", "b28", "b29", "b30", "b34", "b35", "b36", "b37", "b38", "b39",
-        "c1",
         "e37",
         "g35", "g36",
         "j6", "j7", "j8",

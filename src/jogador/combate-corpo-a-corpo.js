@@ -149,7 +149,11 @@
 
             window.AudioManager?.playSFX('impacto', 0.6);
 
-            if (inimigo.vida < 3) {
+            const limiteVidaInimigo = typeof window.obterLimiteVidaInimigo === 'function'
+                ? window.obterLimiteVidaInimigo(config)
+                : 3;
+
+            if (inimigo.vida < limiteVidaInimigo) {
                 animarDanoAlvo(inimigo);
             }
 
@@ -159,7 +163,7 @@
 
             virarFenoParaFonteDano(inimigo, controle.x + ((controle.largura || 32) / 2));
 
-            if (inimigo.vida >= 3) {
+            if (inimigo.vida >= limiteVidaInimigo) {
                 window.prepararMorteInimigo?.(inimigo, direcaoKnockback);
             }
 

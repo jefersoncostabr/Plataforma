@@ -483,13 +483,13 @@
         salvarCraftPersistido(craft);
 
         const skillSaverDisponivel = typeof window.salvarProgressoSkills === 'function';
-        console.log('[CRAFT RENASCIMENTO] Base atualizada.', {
-            craftId: craft.id,
-            fase: craft.fase,
-            modoRenascimento: craft.modoRenascimento,
-            nivel: craft.nivel,
-            skillSaverDisponivel
-        });
+        // console.log('[CRAFT RENASCIMENTO] Base atualizada.', {
+        //     craftId: craft.id,
+        //     fase: craft.fase,
+        //     modoRenascimento: craft.modoRenascimento,
+        //     nivel: craft.nivel,
+        //     skillSaverDisponivel
+        // });
 
         if (skillSaverDisponivel) {
             const salvouSkills = window.salvarProgressoSkills();
