@@ -918,7 +918,12 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     inimigo.inventario = [];
                     inimigo.estaColetando = false;
                     inimigo.timerColeta = 0;
-                    inimigo.municao = config.maxMunicao || 5;
+                    // Define a munição inicial baseada no tipo de arma, se houver
+                    if (inimigo.temArma) {
+                        inimigo.municao = inimigo.heldWeaponType === 'doze' ? 2 : (config.maxMunicao || 5);
+                    } else {
+                        inimigo.municao = 0; // Sem arma, sem munição
+                    }
                     inimigo.direcao = 'e';
                     // Propriedades já foram definidas via spread do TIPOS_INIMIGO no objeto
                     inimigo.jetpackAtivo = false;
@@ -941,7 +946,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     inimigo.spriteAndandoAgachado = window.obterSpriteItem('agachado2', config, 'equipado');
                     
                     // Preenche inventário inicial baseado no tipo
-                    if (inimigo.temArma) inimigo.inventario.push('revolver');
+                    if (inimigo.temArma) inimigo.inventario.push(inimigo.heldWeaponType === 'doze' ? 'doze' : 'revolver');
                     if (inimigo.temEscudo) inimigo.inventario.push('escudo');
                     if (inimigo.temBota) inimigo.inventario.push('bota');
                     if (inimigo.temJetpack) inimigo.inventario.push('jetpack');
@@ -1578,32 +1583,60 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         const dir = inimigo.direcao === 'd' ? 1 : -1;
                         const xPartida = (inimigo.direcao === 'd') ? inimigo.x + 32 : inimigo.x - config.PROJETIL_LARGURA;
                         const yPartida = inimigo.y + 12;
+                        
+                        // Detecta se a arma equipada é uma "doze" (shotgun)
+                        const isDoze = inimigo.heldWeaponType === 'doze' || 
+                                      (inimigo.armaElemento && inimigo.armaElemento.src.includes('doze')) ||
+                                      (inimigo.inventario && inimigo.inventario.includes('doze'));
 
-                        const projElemento = document.createElement('img');
-                        projElemento.src = config.spriteProjetil;
-                        projElemento.style.position = 'absolute';
-                        projElemento.style.width = config.PROJETIL_LARGURA + 'px';
-                        projElemento.style.height = config.PROJETIL_ALTURA + 'px';
-                        projElemento.style.left = xPartida + 'px';
-                        projElemento.style.bottom = yPartida + 'px';
-                        projElemento.style.imageRendering = 'pixelated';
-                        adicionarAoLayer(projElemento, window.LAYERS.PROJETEIS);
+                        const tiros = isDoze 
+                            ? [
+                                { dx: 0, dy: 0 },      // Tiro central
+                                { dx: 0, dy: 16 },     // Tiro superior
+                                { dx: 0, dy: -16 }     // Tiro inferior
+                            ]
+                            : [
+                                { dx: 0, dy: 0 }       // Tiro único (revolver)
+                            ];
 
-                        window.projeteis.push({
-                            x: xPartida,
-                            y: yPartida,
-                            direcao: dir,
-                            elemento: projElemento,
-                            origem: 'inimigo'
+                        tiros.forEach((tiro, indice) => {
+                            // Aplica o mesmo efeito de rajada (cascata) do jogador para a doze
+                            const delay = isDoze ? indice * 30 : 0;
+                            setTimeout(() => {
+                                if (inimigo.estaMorrendo || inimigo.estaMorto || !inimigo.elemento) return;
+
+                                const projElemento = document.createElement('img');
+                                projElemento.src = config.spriteProjetil;
+                                projElemento.style.position = 'absolute';
+                                projElemento.style.width = config.PROJETIL_LARGURA + 'px';
+                                projElemento.style.height = config.PROJETIL_ALTURA + 'px';
+                                projElemento.style.left = (xPartida + tiro.dx) + 'px';
+                                projElemento.style.bottom = (yPartida + tiro.dy) + 'px';
+                                projElemento.style.imageRendering = 'pixelated';
+                                projElemento.style.pointerEvents = 'none';
+                                adicionarAoLayer(projElemento, window.LAYERS.PROJETEIS);
+
+                                window.projeteis.push({
+                                    x: xPartida + tiro.dx,
+                                    y: yPartida + tiro.dy,
+                                    direcao: dir,
+                                    elemento: projElemento,
+                                    origem: 'inimigo'
+                                });
+                            }, delay);
                         });
                         
                         // Efeito visual de disparo na arma do inimigo
-                        if (typeof flashRapido === 'function' && inimigo.armaElemento) {
-                            flashRapido(inimigo.armaElemento);
-                        }
-                        // Aciona a nova animação de inclinação no inimigo
-                        if (typeof aplicarRecuoRevolver === 'function' && inimigo.armaElemento) {
-                            aplicarRecuoRevolver(inimigo.armaElemento);
+                        if (inimigo.armaElemento) {
+                            if (isDoze && typeof window.flashComVibacao === 'function') {
+                                window.flashComVibacao(inimigo.armaElemento);
+                            } else if (typeof flashRapido === 'function') {
+                                flashRapido(inimigo.armaElemento);
+                            }
+
+                            if (typeof aplicarRecuoRevolver === 'function') {
+                                aplicarRecuoRevolver(inimigo.armaElemento, isDoze ? 150 : 100);
+                            }
                         }
                         
                         // console.log(`Inimigo disparou! Munição restante: ${inimigo.municao}`); // Removido console.log de debug

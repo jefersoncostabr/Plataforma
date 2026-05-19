@@ -736,6 +736,10 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     inimigo.estaColetando = false;
                     inimigo.timerColeta = 0;
                     inimigo.municao = config.maxMunicao || 5;
+                    // Define a munição inicial baseada no tipo de arma, se houver
+                    if (inimigo.temArma) {
+                        inimigo.municao = (inimigo.heldWeaponType === 'doze' || inimigo.tipo === 10) ? 2 : (config.maxMunicao || 5);
+                    }
                     inimigo.direcao = 'e';
                     // Propriedades já foram definidas via spread do TIPOS_INIMIGO no objeto
                     inimigo.jetpackAtivo = false;
@@ -753,13 +757,19 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     inimigo.stunned = false; // Inicializa estado de stun
                     inimigo.stunTimer = 0;  // Inicializa timer de stun
                     // Preenche inventário inicial baseado no tipo
-                    if (inimigo.temArma) inimigo.inventario.push('revolver');
-                    if (inimigo.temEscudo) inimigo.inventario.push('escudo');
-                    if (inimigo.temBota) inimigo.inventario.push('bota');
-                    if (inimigo.temJetpack) inimigo.inventario.push('jetpack');
-                    if (inimigo.temGarra) inimigo.inventario.push('garra');
-                    if (inimigo.temCinto) inimigo.inventario.push('cinto');
-                    if (inimigo.temColete) inimigo.inventario.push('colete');
+                    if (inimigo.temArma) {
+                        const arma = inimigo.heldWeaponType || 'revolver';
+                        // Garante que o heldWeaponType esteja sincronizado com o tipo de inimigo (10 = doze)
+                        const arma = inimigo.heldWeaponType || (inimigo.tipo === 10 ? 'doze' : 'revolver');
+                        inimigo.heldWeaponType = arma; 
+                        if (!inimigo.inventario.includes(arma)) inimigo.inventario.push(arma);
+                    }
+                    if (inimigo.temEscudo && !inimigo.inventario.includes('escudo')) inimigo.inventario.push('escudo');
+                    if (inimigo.temBota && !inimigo.inventario.includes('bota')) inimigo.inventario.push('bota');
+                    if (inimigo.temJetpack && !inimigo.inventario.includes('jetpack')) inimigo.inventario.push('jetpack');
+                    if (inimigo.temGarra && !inimigo.inventario.includes('garra')) inimigo.inventario.push('garra');
+                    if (inimigo.temCinto && !inimigo.inventario.includes('cinto')) inimigo.inventario.push('cinto');
+                    if (inimigo.temColete && !inimigo.inventario.includes('colete')) inimigo.inventario.push('colete');
                     inimigo.cooldownPulo = 0;
                     inimigo.velocidadeY = 0;
                     inimigo.cooldownVooJetpack = 0;
@@ -1318,21 +1328,25 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         const xPartida = (inimigo.direcao === 'd') ? inimigo.x + 32 : inimigo.x - config.PROJETIL_LARGURA;
                         const yPartida = inimigo.y + 12;
                         
-                        const isDoze = inimigo.heldWeaponType === 'doze' || (inimigo.armaElemento && inimigo.armaElemento.src.includes('doze'));
+                        // Detecta se a arma equipada é uma "doze" (ID 10 ou tag)
+                        const isDoze = (inimigo.tipo === 10) || inimigo.heldWeaponType === 'doze' || 
+                                      (inimigo.armaElemento && inimigo.armaElemento.src.includes('doze'));
 
                         const tiros = isDoze 
                             ? [
-                                { dx: 0, dy: 0 },      // reto
-                                { dx: 0, dy: 16 },     // cima
-                                { dx: 0, dy: -16 }     // baixo
+                                { dx: 0, dy: 0 },      // Centro
+                                { dx: 0, dy: 16 },     // Superior
+                                { dx: 0, dy: -16 }     // Inferior
                             ]
                             : [
-                                { dx: 0, dy: 0 }
+                                { dx: 0, dy: 0 }       // Único
                             ];
 
                         tiros.forEach((tiro, indice) => {
                             const delay = isDoze ? indice * 30 : 0;
                             setTimeout(() => {
+                                if (inimigo.estaMorrendo || inimigo.estaMorto || !inimigo.elemento) return;
+
                                 const projElemento = document.createElement('img');
                                 projElemento.src = config.spriteProjetil;
                                 projElemento.style.position = 'absolute';
@@ -1341,6 +1355,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                                 projElemento.style.left = (xPartida + tiro.dx) + 'px';
                                 projElemento.style.bottom = (yPartida + tiro.dy) + 'px';
                                 projElemento.style.imageRendering = 'pixelated';
+                                projElemento.style.pointerEvents = 'none';
                                 adicionarAoLayer(projElemento, window.LAYERS.PROJETEIS);
 
                                 window.projeteis.push({
@@ -1354,12 +1369,16 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         });
                         
                         // Efeito visual de disparo na arma do inimigo
-                        if (typeof flashRapido === 'function' && inimigo.armaElemento) {
-                            flashRapido(inimigo.armaElemento);
-                        }
-                        // Aciona a nova animação de inclinação no inimigo
-                        if (typeof aplicarRecuoRevolver === 'function' && inimigo.armaElemento) {
-                            aplicarRecuoRevolver(inimigo.armaElemento);
+                        if (inimigo.armaElemento) {
+                            if (isDoze && typeof window.flashComVibacao === 'function') {
+                                window.flashComVibacao(inimigo.armaElemento);
+                            } else if (typeof flashRapido === 'function') {
+                                flashRapido(inimigo.armaElemento);
+                            }
+
+                            if (typeof aplicarRecuoRevolver === 'function') {
+                                aplicarRecuoRevolver(inimigo.armaElemento, isDoze ? 150 : 100);
+                            }
                         }
                         
                         // console.log(`Inimigo disparou! Munição restante: ${inimigo.municao}`);

@@ -12,8 +12,7 @@
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
-        "colete": "b3",
-        "cinto": "b4"
+        "restauracao": "c14"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
@@ -30,7 +29,5 @@
         "c11", "c17"
     ],
     "inimigo_comum": ["b26", "g32"],
-    "inimigo_feno": ["g17", "g24", "g31"],
-    "inimigo_com_doze": ["g15"],
-    "inimigo_com_bateria": ["d12"]
+    "inimigo_feno": ["g17", "g24", "g31"]
 }
