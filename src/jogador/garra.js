@@ -62,6 +62,28 @@
         controle.garraItemCarregado = controle.garraItemCarregado || null;
         controle.garraVermelha = !!controle.garraVermelha;
         controle.garraImpactosSolidos = Number(controle.garraImpactosSolidos || 0);
+        controle.temGarraPuxo = (typeof controle.temGarraPuxo === 'boolean') ? controle.temGarraPuxo : true;
+        controle.garraPuxando = !!controle.garraPuxando;
+        controle.garraAncoradaPos = controle.garraAncoradaPos || null;
+        controle.garraPullFrames = Number(controle.garraPullFrames || 0);
+
+        function limparEstadoPuxoGarra() {
+            controle.garraPuxando = false;
+            controle.garraAncoradaPos = null;
+            controle.garraPullFrames = 0;
+        }
+
+        function botaoGarraPressionado() {
+            if (!controle?.teclas) return false;
+            const binds = Array.isArray(window.controlesConfig?.garra) && window.controlesConfig.garra.length > 0
+                ? window.controlesConfig.garra
+                : ['j', 'J'];
+
+            return binds.some((bind) => {
+                const key = String(bind);
+                return !!(controle.teclas[key] || controle.teclas[key.toLowerCase()] || controle.teclas[key.toUpperCase()]);
+            });
+        }
 
         function atualizarVisualEstadoGarra() {
             if (typeof window.atualizarVisualGarra === 'function') {
@@ -103,7 +125,8 @@
         }
 
         function registrarImpactoSolidoGarra() {
-            if (!controle.temGarra || controle.itensGuardadosNoCinto || controle.garraVermelha) return;
+            // Não sofre dano durante o puxo
+            if (!controle.temGarra || controle.itensGuardadosNoCinto || controle.garraVermelha || controle.garraAnimEstado === 'puxando') return;
 
             const maxImpactos = Math.max(1, Number(config?.garraImpactosAteDanificar ?? window.config?.garraImpactosAteDanificar ?? 3));
             controle.garraImpactosSolidos = Number(controle.garraImpactosSolidos || 0) + 1;
@@ -122,6 +145,7 @@
                 controle.garraAnimEstado = 'prep';
                 controle.garraTimer = 18;
                 controle.garraDirecaoAnim = controle.direcao;
+                window.AudioManager?.playSFX('engrenagem', 0.5);
             }
         }
 
@@ -283,8 +307,15 @@
                 braco.style.bottom = controle.y + 'px';
             });
 
-            garraElemento.style.left = (controle.x + (controle.garraDist * dirX)) + 'px';
-            garraElemento.style.bottom = controle.y + 'px';
+            if (controle.garraAnimEstado === 'puxando' && controle.garraAncoradaPos) {
+                const alvoX = Number(controle.garraAncoradaPos.x || 0);
+                const alvoY = Number(controle.garraAncoradaPos.y || 0);
+                garraElemento.style.left = alvoX + 'px';
+                garraElemento.style.bottom = alvoY + 'px';
+            } else {
+                garraElemento.style.left = (controle.x + (controle.garraDist * dirX)) + 'px';
+                garraElemento.style.bottom = controle.y + 'px';
+            }
             garraElemento.style.transform = (controle.garraDirecaoAnim === 'e' ? 'scaleX(-1)' : 'scaleX(1)');
 
             if (controle.garraAnimEstado === 'prep') {
@@ -302,8 +333,20 @@
                     verificarColisaoComTiles(tipX, controle.y, 32, 32, window.plataformas)) {
                     criarImpactoVerticalGarra(tipX, controle.y);
                     registrarImpactoSolidoGarra();
-                    controle.garraAnimEstado = 'catching';
-                    controle.garraTimer = 18;
+                    controle.garraDist = proxDist;
+                    if (controle.temGarraPuxo && botaoGarraPressionado() && !controle.itensGuardadosNoCinto && !controle.garraVermelha) {
+                        controle.garraAncoradaPos = {
+                            x: tipX,
+                            y: controle.y
+                        };
+                        controle.garraPuxando = true;
+                        controle.garraPullFrames = 0;
+                        controle.garraAnimEstado = 'puxando';
+                    } else {
+                        limparEstadoPuxoGarra();
+                        controle.garraAnimEstado = 'catching';
+                        controle.garraTimer = 18;
+                    }
                     garraElemento.src = window.obterSpriteItem('garra_catching', config);
                 } else {
                     controle.garraDist = proxDist;
@@ -392,18 +435,86 @@
                     controle.garraBracos.push(braco);
                 }
                 if (controle.garraDist >= distMax && controle.garraItemCarregado === null) {
+                    limparEstadoPuxoGarra();
                     controle.garraAnimEstado = 'catching';
                     controle.garraTimer = 18;
                     garraElemento.src = window.obterSpriteItem('garra_catching', config);
                 }
             }
+            else if (controle.garraAnimEstado === 'puxando') {
+                const velPuxo = Math.max(1, Number(config?.garraVelocidadePuxo ?? 3));
+                const distParada = Math.max(2, Number(config?.garraPuxoDistanciaParada ?? 10));
+                const framesMax = Math.max(1, Number(config?.garraPuxoFramesMax ?? 180));
+
+                if (!controle.garraAncoradaPos || !botaoGarraPressionado() || !controle.temGarraPuxo || !controle.temGarra || controle.itensGuardadosNoCinto || controle.garraVermelha) {
+                    limparEstadoPuxoGarra();
+                    controle.garraAnimEstado = 'voltando';
+                    garraElemento.src = window.obterSpriteItem('garra_catching', config);
+                } else {
+                    controle.garraPullFrames += 1;
+                    const alvoX = Number(controle.garraAncoradaPos.x || 0);
+                    const alvoY = Number(controle.garraAncoradaPos.y || 0);
+                    const deltaX = alvoX - controle.x;
+                    const deltaY = alvoY - controle.y;
+                    const distancia = Math.hypot(deltaX, deltaY);
+
+                    if (distancia <= distParada || controle.garraPullFrames >= framesMax) {
+                        limparEstadoPuxoGarra();
+                        controle.garraAnimEstado = 'voltando';
+                        garraElemento.src = window.obterSpriteItem('garra_catching', config);
+                    } else {
+                        const passos = Math.max(1, Math.ceil(velPuxo / 2));
+                        const moverX = (deltaX / distancia) * (velPuxo / passos);
+                        const moverY = (deltaY / distancia) * (velPuxo / passos);
+                        let bloqueado = false;
+
+                        for (let i = 0; i < passos; i++) {
+                            const proxX = controle.x + moverX;
+                            const proxY = controle.y + moverY;
+
+                            if (typeof verificarColisaoComTiles === 'function') {
+                                const hit = verificarColisaoComTiles(
+                                    proxX + (controle.offsetX || 0),
+                                    proxY,
+                                    controle.largura || 20,
+                                    controle.altura || 25,
+                                    window.plataformas
+                                );
+
+                                if (hit) {
+                                    bloqueado = true;
+                                    break;
+                                }
+                            }
+
+                            controle.x = proxX;
+                            controle.y = proxY;
+                        }
+
+                        controle.garraDist = Math.max(0, Math.abs(alvoX - controle.x));
+
+                        if (controle.garraDist % 32 < velGarra && controle.garraBracos.length > 0) {
+                            const ultimoBraco = controle.garraBracos.pop();
+                            ultimoBraco.remove();
+                        }
+
+                        if (bloqueado) {
+                            limparEstadoPuxoGarra();
+                            controle.garraAnimEstado = 'voltando';
+                            garraElemento.src = window.obterSpriteItem('garra_catching', config);
+                        }
+                    }
+                }
+            }
             else if (controle.garraAnimEstado === 'catching') {
                 controle.garraTimer--;
                 if (controle.garraTimer <= 0) {
+                    limparEstadoPuxoGarra();
                     controle.garraAnimEstado = 'voltando';
                 }
             }
             else if (controle.garraAnimEstado === 'voltando') {
+                limparEstadoPuxoGarra();
                 controle.garraDist -= velGarra;
 
                 if (controle.garraItemCarregado && controle.garraItemCarregado.elemento) {

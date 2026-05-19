@@ -195,8 +195,12 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         temArma: false, // Inicia sem a capacidade de atirar
         temEscudo: false, // Inicia sem escudo
         temGarra: false,
+        temGarraPuxo: true,
         garraVermelha: false,
         garraImpactosSolidos: 0,
+        garraPuxando: false,
+        garraAncoradaPos: null,
+        garraPullFrames: 0,
         temCinto: false,
         temBota: false, // Inicia sem bota
         botaVermelha: false,
@@ -578,7 +582,6 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 }
             },
             onAcionarGarra: () => {
-                window.AudioManager?.playSFX('engrenagem', 0.5);
                 acionarGarra();
             },
             onToggleDebugGrade: () => {
@@ -1437,13 +1440,12 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             
             // Aciona a nova animação de inclinação
             if (armaElemento && typeof aplicarRecuoRevolver === 'function') {
-                if (typeof aplicarRecuoRevolver === 'function') {
-                    if (armaEquipada === 'doze') {
-                        // Para doze: recuo mais acentuado
-                        aplicarRecuoRevolver(armaElemento, 150);
-                    } else {
-                        // Para revolver: recuo padrão
-                        aplicarRecuoRevolver(armaElemento, 100);
+                if (armaEquipada === 'doze') {
+                    // Para doze: recuo mais acentuado
+                    aplicarRecuoRevolver(armaElemento, 150);
+                } else {
+                    // Para revolver: recuo padrão
+                    aplicarRecuoRevolver(armaElemento, 100);
                 }
             }
             
@@ -1638,7 +1640,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         }
 
         // Gravidade e Física Vertical (Sempre ativa, exceto se jetpack ativo)
-        if (typeof aplicarFisica === 'function' && !controle.jetpackAtivo) {
+        if (typeof aplicarFisica === 'function' && !controle.jetpackAtivo && !controle.garraPuxando) {
             const gravidadePlayerAtual = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.5) : (config.gravidadePlayer ?? 0.5);
             // Passamos a intenção de pulo para a física para garantir sincronia total
             aplicarFisica(controle, { ' ': puloAcabouDeSerPressionado }, forcaPuloFinal, gravidadePlayerAtual, 0);
