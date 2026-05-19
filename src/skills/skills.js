@@ -42,7 +42,8 @@ window.SKILLS = Object.freeze({
     KNOCKOUT: 'Knockout',
     PRECISAO: 'Precisão',
     SUPERDASH: 'SuperDash',
-    ADESTRAMENTO: 'Adestramento'
+    ADESTRAMENTO: 'Adestramento',
+    GARRA2: 'Garra 2'
 });
 window.temSkill = (nomeSkill) => Array.isArray(window.playerSkills) && window.playerSkills.includes(String(nomeSkill || ''));
 const SKILLS_STORAGE_KEY = 'plataformaSkills';

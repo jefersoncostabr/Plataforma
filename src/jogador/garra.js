@@ -62,7 +62,7 @@
         controle.garraItemCarregado = controle.garraItemCarregado || null;
         controle.garraVermelha = !!controle.garraVermelha;
         controle.garraImpactosSolidos = Number(controle.garraImpactosSolidos || 0);
-        controle.temGarraPuxo = (typeof controle.temGarraPuxo === 'boolean') ? controle.temGarraPuxo : true;
+        controle.temGarraPuxo = (typeof controle.temGarraPuxo === 'boolean') ? controle.temGarraPuxo : false;
         controle.garraPuxando = !!controle.garraPuxando;
         controle.garraAncoradaPos = controle.garraAncoradaPos || null;
         controle.garraPullFrames = Number(controle.garraPullFrames || 0);

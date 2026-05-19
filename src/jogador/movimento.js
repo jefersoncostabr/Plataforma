@@ -195,7 +195,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         temArma: false, // Inicia sem a capacidade de atirar
         temEscudo: false, // Inicia sem escudo
         temGarra: false,
-        temGarraPuxo: true,
+        temGarraPuxo: false,
         garraVermelha: false,
         garraImpactosSolidos: 0,
         garraPuxando: false,
