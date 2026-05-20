@@ -15,7 +15,8 @@
         mochila: ['Enter'],
         interagir: ['e', 'E'],
         abertura: ['y', 'Y'],
-        troca_pet: ['q', 'Q']
+        troca_pet: ['q', 'Q'],
+        carregando: ['t', 'T']
     };
 
     function normalizarControles(raw) {

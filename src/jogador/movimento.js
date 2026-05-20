@@ -7,8 +7,14 @@
  * @param {string} spriteAndando - Caminho da imagem andando.
  * @param {string} spriteChute - Caminho da imagem chutando.
  * @param {string} spriteNoAr - Caminho da imagem no ar.
+ * @param {string} spriteCarregando1 - Sprite de carregamento frame 1.
+ * @param {string} spriteCarregando2 - Sprite de carregamento frame 2.
+ * @param {string} spriteCarregando3 - Sprite de carregamento frame 3.
+ * @param {string} spriteCarregando4 - Sprite de carregamento frame 4.
+ * @param {string} spriteCarregando5 - Sprite de carregamento frame 5.
+ * @param {string} spriteCarregando6 - Sprite de carregamento frame 6.
  */
-window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spriteChute, spriteNoAr) {
+window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spriteChute, spriteNoAr, spriteCarregando1, spriteCarregando2, spriteCarregando3, spriteCarregando4, spriteCarregando5, spriteCarregando6) {
     const elemento = document.getElementById(id);
     if (!elemento) return;
 
@@ -235,6 +241,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         craftPreviewTipo: null,
         airdropUsadoNoNivel: false,
         estaAgachado: false,
+        carregando: false,
+        timerCarregando: 0,
+        frameCarregandoAtual: 0, // Nova propriedade para o contador de frames da animação de carregamento
         debugVelocidadeAtivo: false,
         visualFrameCounter: 0, // Contador para sincronizar frequência de efeitos
         ultimoLogVelocidadeMs: 0, 
@@ -1220,6 +1229,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         // Sincroniza o estado de chute com o timer
         atualizarEstadoChuteCorpoACorpo();
 
+        controle.carregando = acaoAtiva('carregando');
+
         controle.movendoHorizontal = false;
         const xAnterior = controle.x;
         const yAnterior = controle.y;
@@ -1857,7 +1868,13 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 sAndando,
                 sNoAr,
                 sAgachado,
-                sAgachadoAndando
+                sAgachadoAndando,
+                spriteCarregando1, // Passa todos os 6 sprites
+                spriteCarregando2,
+                spriteCarregando3,
+                spriteCarregando4,
+                spriteCarregando5,
+                spriteCarregando6
             );
         }
 

@@ -854,7 +854,13 @@ async function iniciarJogo() {
         '../../assets/personagem/Personagem_parado.png',
         '../../assets/personagem/Personagem_andando.png',
         '../../assets/personagem/personagem_chute2.png',
-        '../../assets/personagem/personagem_no_ar.png'
+        '../../assets/personagem/personagem_no_ar.png',
+        '../../assets/personagem/carregando/carregando1.png',
+        '../../assets/personagem/carregando/carregando2.png',
+        '../../assets/personagem/carregando/carregando3.png',
+        '../../assets/personagem/carregando/carregando4.png',
+        '../../assets/personagem/carregando/carregando5.png',
+        '../../assets/personagem/carregando/carregando6.png'
     );
     await iniciarIAInimigos(
         1, 

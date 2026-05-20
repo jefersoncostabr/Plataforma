@@ -12,7 +12,7 @@ function definirSpriteSeValido(elemento, sprite, fallbackSprite) {
     return true;
 }
 
-function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spriteNoAr, spriteAgachado, spriteAgachadoAndando) {
+function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spriteNoAr, spriteAgachado, spriteAgachadoAndando, spriteCarregando1, spriteCarregando2, spriteCarregando3, spriteCarregando4, spriteCarregando5, spriteCarregando6) {
     const desativarRespiracaoOciosaPet = controle?.tipo === 'cao' || controle?.tipo === 'gato';
 
     // 1. Inicialização de contadores e estado de ociosidade
@@ -39,6 +39,45 @@ function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spri
 
     const agachadoParado = spriteAgachado || spriteParado;
     const agachadoAndando = spriteAgachadoAndando || agachadoParado;
+
+    // 2. Animação de Carregamento (Tecla T)
+    if (controle.carregando && controle.noChao) {
+        resetIdleTimers();
+        if (controle.timerCarregando === undefined || controle.frameCarregandoAtual === undefined) {
+            controle.timerCarregando = 0;
+            controle.frameCarregandoAtual = 0;
+        }
+
+        const delayFrame1 = 20; // Duração do primeiro frame (aprox. 0.3s)
+        const frameDuration = 5; // Duração de cada frame subsequente (aprox. 0.08s)
+        const totalLoadingFrames = 6;
+        const loadingSprites = [spriteCarregando1, spriteCarregando2, spriteCarregando3, spriteCarregando4, spriteCarregando5, spriteCarregando6];
+
+        if (controle.frameCarregandoAtual === 0 && controle.timerCarregando < delayFrame1) {
+            definirSpriteSeValido(elemento, loadingSprites[0], spriteParado);
+            controle.timerCarregando++; // Incrementa o timer para o primeiro frame
+        } else if (controle.frameCarregandoAtual < totalLoadingFrames - 1) {
+            // Avança para o próximo frame após sua duração
+            if (controle.timerCarregando >= frameDuration) {
+                controle.frameCarregandoAtual++;
+                controle.timerCarregando = 0; // Reseta o timer para o novo frame
+            } else {
+                controle.timerCarregando++;
+            }
+            definirSpriteSeValido(elemento, loadingSprites[controle.frameCarregandoAtual], spriteParado);
+        } else {
+            // Fica no último frame enquanto o jogador segurar o botão
+            definirSpriteSeValido(elemento, loadingSprites[totalLoadingFrames - 1], spriteParado);
+        }
+
+        // Bloqueia as demais animações de movimento/idle
+        controle.contadorAnimacao = 0;
+        controle.frameAtual = 0;
+        return;
+    } else if (controle.timerCarregando > 0 || controle.frameCarregandoAtual > 0) { // Reseta apenas se estava ativo
+        controle.timerCarregando = 0;
+        controle.frameCarregandoAtual = 0;
+    }
 
     if (controle.estaAgachado && controle.noChao) {
         resetIdleTimers();

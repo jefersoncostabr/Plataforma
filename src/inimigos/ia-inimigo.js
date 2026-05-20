@@ -43,6 +43,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         inimigo.tipo = tipoNovo;
         inimigo.bossStageIndex = proximaEtapaIndex;
         inimigo.vida = 0;
+        inimigo.ehBBInimigo = tipoNovo === 12;
         inimigo.estaMorrendo = false;
         inimigo.framesMorrendo = 0;
         inimigo.estaMorto = false;
@@ -377,7 +378,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             inimigo.elemento.style.left = inimigo.x + 'px';
             inimigo.elemento.style.bottom = inimigo.y + 'px';
             inimigo.elemento.style.opacity = '1';
-            inimigo.elemento.src = config.spriteBBInteracao || config.spriteBB || '../../assets/personagem/bb/bb-interacao.png';
+            inimigo.elemento.src = config.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png';
         }
 
         window.AudioManager?.playSFX('engrenagem', 0.45);
@@ -390,7 +391,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         if (inimigo.faseFechamentoBB === 'interacao') {
             inimigo.timerFechamentoBB--;
             if (inimigo.elemento) {
-                inimigo.elemento.src = config.spriteBBInteracao || config.spriteBB || '../../assets/personagem/bb/bb-interacao.png';
+                inimigo.elemento.src = config.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png';
             }
             if (inimigo.timerFechamentoBB <= 0) {
                 inimigo.faseFechamentoBB = 'sumir';
@@ -762,6 +763,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 velocidadeY: 0,
                 isEnemy: true,
                 garraAnimEstado: 'idle',
+                ehBBInimigo: tipo === 12,
                 garraTimer: 0,
                 garraDist: 0,
                 garraBracos: [],
@@ -792,6 +794,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     inimigoObj[chave] = valor;
                 });
                 inimigoObj.tipo = tipoBaseEtapa;
+                inimigoObj.ehBBInimigo = tipoBaseEtapa === 12;
                 inimigoObj.temCabecaBB = tipoBaseEtapa === 12;
                 aplicarEquipamentosEtapaBoss(inimigoObj, etapaInicial);
             }
@@ -1482,7 +1485,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     } else {
                         iaBloqueadaPorStun = true;
                         if (inimigo.ehBBInimigo && inimigo.elemento) {
-                            inimigo.elemento.src = config.spriteBBInteracao || config.spriteBB || '../../assets/personagem/bb/bb-interacao.png';
+                            inimigo.elemento.src = config.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png';
                         }
                         // Faz o inimigo olhar de um lado para o outro
                         if (inimigo.stunTimer % 15 === 0) { // Troca de direção a cada 15 frames (aprox. 0.25s)
@@ -1852,7 +1855,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 // Ações que dependem da ativação (movimento e ataque) - só se não estiver afastando, coletando ou usando a garra
                 if (!iaBloqueadaPorStun && inimigo.perseguindo && !inimigo.afastando && !inimigo.estaColetando) {
                     // Lógica para INICIAR o chute
-                    if (!inimigo.ehBBInimigo && !inimigo.estaAgachado && distanciaAtual <= config.distanciaAtaqueInimigo && inimigo.cooldownChute === 0) {
+                    if (!bbTemRoboAlvo && !inimigo.estaAgachado && distanciaAtual <= config.distanciaAtaqueInimigo && inimigo.cooldownChute === 0) {
                         inimigo.tempoChute = config.tempoChute;
                         inimigo.cooldownChute = config.cooldownChute;
                         window.AudioManager?.playSFX('chute', 0.3);
@@ -1870,7 +1873,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     }
 
                     // Lógica para INICIAR o disparo
-                    if (!inimigo.ehBBInimigo && inimigo.temArma && !inimigo.itensGuardadosNoCinto && distanciaAtual <= alcanceTiro && distanciaAtual > config.distanciaAtaqueInimigo && inimigo.cooldownTiro === 0 && inimigo.municao > 0) {
+                    if (!bbTemRoboAlvo && inimigo.temArma && !inimigo.itensGuardadosNoCinto && distanciaAtual <= alcanceTiro && distanciaAtual > config.distanciaAtaqueInimigo && inimigo.cooldownTiro === 0 && inimigo.municao > 0) {
                         inimigo.cooldownTiro = config.cooldownTiro;
                         inimigo.municao--;
                         window.AudioManager?.playSFX('disparo', 0.4);
@@ -1986,7 +1989,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     }
 
                     // Lógica para INICIAR a Garra (se tiver e estiver no alcance)
-                    if (!inimigo.ehBBInimigo && inimigo.temGarra && !inimigo.itensGuardadosNoCinto && inimigo.garraAnimEstado === 'idle' && inimigo.cooldownGarra === 0 && distanciaAtual <= (config.garraAlcanceInimigo || 160)) {
+                    if (!bbTemRoboAlvo && inimigo.temGarra && !inimigo.itensGuardadosNoCinto && inimigo.garraAnimEstado === 'idle' && inimigo.cooldownGarra === 0 && distanciaAtual <= (config.garraAlcanceInimigo || 160)) {
                         window.AudioManager?.playSFX('engrenagem', 0.3);
                         inimigo.garraAnimEstado = 'prep';
                         inimigo.garraTimer = 18;
@@ -2092,12 +2095,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     };
 
                     // Seleciona sprites baseado em agachamento
-                    const spriteParadoBase = inimigo.ehBBInimigo
-                        ? (config.spriteBB || spriteParado)
-                        : (config.spriteParadoInimigo || spriteParado);
-                    const spriteAndandoBase = inimigo.ehBBInimigo
-                        ? (config.spriteBBAndando || spriteAndando)
-                        : (config.spriteAndandoInimigo || spriteAndando);
+                    const spriteParadoBase = config.spriteParadoInimigo || spriteParado;
+                    const spriteAndandoBase = config.spriteAndandoInimigo || spriteAndando;
                     const usarSpriteAgachado = inimigo.estaAgachado && !inimigo.ehBBInimigo;
 
                     const spriteParadoUsado = usarSpriteAgachado
@@ -2106,9 +2105,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     const spriteAndandoUsado = usarSpriteAgachado
                         ? inimigo.spriteAndandoAgachado
                         : spriteAndandoBase;
-                    const spriteNoArUsado = inimigo.ehBBInimigo
-                        ? (config.spriteBBAndando || config.spriteNoArInimigo || spriteNoAr)
-                        : (config.spriteNoArInimigo || spriteNoAr);
+                    const spriteNoArUsado = config.spriteNoArInimigo || spriteNoAr;
 
                     if (typeof atualizarAnimacao === 'function') {
                         atualizarAnimacao(
