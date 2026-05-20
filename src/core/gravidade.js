@@ -163,13 +163,50 @@ function aplicarFisica(controle, teclas, forcaPulo = 12, gravidade = 0.6, cooldo
     }
 
     // Verifica o comando de pulo (Somente Espaço)
-    const querPular = teclas[' '];
+    const querPular = !!teclas[' '];
+
+    // Jump Buffer opcional por entidade (opt-in): guarda o input por poucos frames.
+    const jumpBufferAtivo = !!controle.jumpBufferAtivo;
+    if (jumpBufferAtivo) {
+        const jumpBufferSegundos = Math.max(0, Number(controle.jumpBufferSegundos ?? 0.06));
+        const jumpBufferFramesMax = Math.max(0, Math.round(jumpBufferSegundos * 60));
+        const apertouPuloAgora = querPular && !controle.jumpBufferTeclaAnterior;
+        controle.jumpBufferTeclaAnterior = querPular;
+
+        if (apertouPuloAgora) {
+            controle.jumpBufferFramesRestantes = jumpBufferFramesMax;
+        } else if ((controle.jumpBufferFramesRestantes || 0) > 0) {
+            controle.jumpBufferFramesRestantes--;
+        }
+    }
+
+    const querPularComBuffer = querPular || (jumpBufferAtivo && (controle.jumpBufferFramesRestantes || 0) > 0);
+
+    // Coyote Time opcional por entidade (opt-in) para evitar impacto global.
+    const coyoteAtivo = !!controle.coyoteAtivo;
+    if (coyoteAtivo) {
+        const coyoteTimeSegundos = Math.max(0, Number(controle.coyoteTimeSegundos ?? 0.06));
+        const coyoteFramesMax = Math.max(0, Math.round(coyoteTimeSegundos * 60));
+        if (controle.noChao) {
+            controle.coyoteFramesRestantes = coyoteFramesMax;
+        } else if ((controle.coyoteFramesRestantes || 0) > 0) {
+            controle.coyoteFramesRestantes--;
+        }
+    }
+
+    const podePularDoChao = controle.noChao || (coyoteAtivo && (controle.coyoteFramesRestantes || 0) > 0);
 
     // Só permite iniciar o pulo se estiver no chão, não estiver chutando e o cooldown acabou
-    if (querPular && controle.noChao && !controle.chutando && (controle.cooldownPulo || 0) === 0) {
+    if (querPularComBuffer && podePularDoChao && !controle.chutando && (controle.cooldownPulo || 0) === 0) {
         // console.log("Fisica: Pulo executado! Força aplicada:", forcaPulo);
         controle.velocidadeY = forcaPulo;
         controle.noChao = false;
+        if (coyoteAtivo) {
+            controle.coyoteFramesRestantes = 0;
+        }
+        if (jumpBufferAtivo) {
+            controle.jumpBufferFramesRestantes = 0;
+        }
         
         // Define o cooldown se houver um valor
         if (cooldownValor > 0) {

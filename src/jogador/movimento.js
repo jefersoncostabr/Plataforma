@@ -190,6 +190,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         framesMorrendo: 0,
         cooldownPulo: 0,
         coyoteFramesRestantes: 0,
+        jumpBufferFramesRestantes: 0,
         cooldownTiro: 0,
         cooldownDanoEspinho: 0,
         municao: 0, // Inicia sem munição
@@ -1612,7 +1613,17 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         const teclaPuloAtiva = acaoAtiva('pulo') && controle.cooldownPosSuperDescida === 0;
         const puloAcabouDeSerPressionado = teclaPuloAtiva && !controle.espacoPressionado;
         controle.espacoPressionado = teclaPuloAtiva;
+
+        const jumpBufferSegundos = Math.max(0, Number(config.jumpBufferSegundos ?? 0.1));
+        const jumpBufferFramesMax = Math.max(0, Math.round(jumpBufferSegundos * 60));
+        if (puloAcabouDeSerPressionado) {
+            controle.jumpBufferFramesRestantes = jumpBufferFramesMax;
+        } else if (controle.jumpBufferFramesRestantes > 0) {
+            controle.jumpBufferFramesRestantes--;
+        }
+
         const podePuloInicial = controle.noChao || controle.coyoteFramesRestantes > 0;
+        const deveConsumirPuloInicial = puloAcabouDeSerPressionado || controle.jumpBufferFramesRestantes > 0;
 
         if (podePuloInicial) {
             // Se o pulo duplo foi usado no ar, inicia o cooldown agora que o jogador tocou o chão
@@ -1621,12 +1632,13 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 controle.doubleJumpUsedInAir = false; // Reseta a flag
             }
 
-            if (puloAcabouDeSerPressionado && controle.cooldownPulo === 0) { // Adicionado cooldownPulo para evitar pulo imediato
+            if (deveConsumirPuloInicial && controle.cooldownPulo === 0) { // Adicionado cooldownPulo para evitar pulo imediato
                 window.AudioManager?.playSFX('pulo', 0.5);
                 controle.pulosRealizados = 1;
                 controle.velocidadeY = forcaPuloFinal; // CORREÇÃO: Aplica a força do pulo no chão
                 controle.noChao = false;
                 controle.coyoteFramesRestantes = 0;
+                controle.jumpBufferFramesRestantes = 0;
                 controle.timerPuloDuplo = config.janelaPuloDuplo ?? 12; // Janela de tempo mais rigorosa: 10 frames (aprox. 0.16s)
             } else {
                 controle.pulosRealizados = 0;
