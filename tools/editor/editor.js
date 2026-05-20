@@ -370,6 +370,37 @@ window.onload = async () => {
         };
     }
 
+    // --- Organização dos botões para economia de espaço (3 linhas) ---
+    const parentContainer = btnNewPhase?.parentElement;
+    if (parentContainer) {
+        const group = document.createElement('div');
+        group.id = 'editor-controls-reorganized';
+        group.style.cssText = 'display: flex; flex-direction: column; gap: 5px; margin-top: 10px;';
+
+        // Linha 1: Nova Fase e Salvar Fase
+        const row1 = document.createElement('div');
+        row1.style.cssText = 'display: flex; gap: 5px;';
+        if (btnNewPhase) row1.appendChild(btnNewPhase);
+        if (btnSavePhase) row1.appendChild(btnSavePhase);
+
+        // Linha 2: Importar JSON e Exportar JSON
+        const row2 = document.createElement('div');
+        row2.style.cssText = 'display: flex; gap: 5px;';
+        if (btnImport) row2.appendChild(btnImport);
+        if (btnExport) row2.appendChild(btnExport);
+
+        // Linha 3: Vincular Arquivo e Limpar Tudo
+        const row3 = document.createElement('div');
+        row3.style.cssText = 'display: flex; gap: 5px;';
+        if (btnLinkSave) row3.appendChild(btnLinkSave);
+        if (btnClear) row3.appendChild(btnClear);
+
+        group.appendChild(row1);
+        group.appendChild(row2);
+        group.appendChild(row3);
+        parentContainer.appendChild(group);
+    }
+
     uiEditor.configurarControlesDimensoes();
     atualizarTamanhoStage();
     uiEditor.configurarPaletaDinamicaItens();

@@ -12,11 +12,7 @@
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
-        "restauracao": "c14",
-        "doze": "b1",
-        "colete": "c2",
-        "cinto": "c3",
-        "municao_plus": "c4"
+        "restauracao": "c14"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
@@ -33,14 +29,5 @@
         "c11", "c17"
     ],
     "inimigo_comum": ["b26", "g32"],
-    "inimigo_feno": ["g17", "g24", "g31"],
-    "inimigo_bb": [
-        {
-            "coord": "d13",
-            "skills": [
-                "Dash",
-                "SuperSalto"
-            ]
-        }
-    ]
+    "inimigo_feno": ["g17", "g24", "g31"]
 }
