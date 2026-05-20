@@ -122,6 +122,7 @@
     "minVelocidadePousoSom": -6,
     "velocidadePlayer": 3,
     "velocidadeCao": 3,
+    "coyoteTimeSegundos": 0.1,
     "multiplicadorPuloDuplo": 1.25,
     "agachadoMultiplicadorVelocidade": 0.45,
     "bonusPuloBota": 1.5,

@@ -189,6 +189,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         estaMorrendo: false,
         framesMorrendo: 0,
         cooldownPulo: 0,
+        coyoteFramesRestantes: 0,
         cooldownTiro: 0,
         cooldownDanoEspinho: 0,
         municao: 0, // Inicia sem munição
@@ -1600,11 +1601,20 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         if (controle.pesoTemporarioSuperDescida > 0) controle.pesoTemporarioSuperDescida--;
 
         // Lógica da Skill Passiva "Salto" - Pulo Duplo
+        const coyoteTimeSegundos = Math.max(0, Number(config.coyoteTimeSegundos ?? 0.1));
+        const coyoteFramesMax = Math.max(0, Math.round(coyoteTimeSegundos * 60));
+        if (controle.noChao) {
+            controle.coyoteFramesRestantes = coyoteFramesMax;
+        } else if (controle.coyoteFramesRestantes > 0) {
+            controle.coyoteFramesRestantes--;
+        }
+
         const teclaPuloAtiva = acaoAtiva('pulo') && controle.cooldownPosSuperDescida === 0;
         const puloAcabouDeSerPressionado = teclaPuloAtiva && !controle.espacoPressionado;
         controle.espacoPressionado = teclaPuloAtiva;
+        const podePuloInicial = controle.noChao || controle.coyoteFramesRestantes > 0;
 
-        if (controle.noChao) {
+        if (podePuloInicial) {
             // Se o pulo duplo foi usado no ar, inicia o cooldown agora que o jogador tocou o chão
             if (controle.doubleJumpUsedInAir) {
                 controle.cooldownPuloDuplo = 30; // Inicia o cooldown de 0.5 segundos
@@ -1615,6 +1625,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 window.AudioManager?.playSFX('pulo', 0.5);
                 controle.pulosRealizados = 1;
                 controle.velocidadeY = forcaPuloFinal; // CORREÇÃO: Aplica a força do pulo no chão
+                controle.noChao = false;
+                controle.coyoteFramesRestantes = 0;
                 controle.timerPuloDuplo = config.janelaPuloDuplo ?? 12; // Janela de tempo mais rigorosa: 10 frames (aprox. 0.16s)
             } else {
                 controle.pulosRealizados = 0;

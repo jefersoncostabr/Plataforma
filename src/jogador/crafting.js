@@ -133,7 +133,7 @@
         }
 
         function salvarCraftPersistido(craft) {
-            const faseOriginal = String(window.faseAtual
+            const faseOriginal = String(window.faseAtualNome || craft?.faseOriginal || craft?.fase || '').trim();
 
             const posicaoGrid = typeof window.ViewportUtils?.pixelsParaGrid === 'function'
                 ? window.ViewportUtils.pixelsParaGrid(craft.x, craft.y)
