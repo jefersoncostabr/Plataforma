@@ -1,6 +1,7 @@
 (function () {
     const TILE_SIZE = 32;
     const DEFAULT_PROPORTION = '1x1';
+    const BOSS_MAX_STAGES = 5;
 
     const PLATFORM_DEFS = [
         { type: 'plataforma', stateKey: 'plataformas', sprite: '../../assets/personagem/chao.png', label: 'Plataforma', kind: 'array' },
@@ -60,6 +61,7 @@
             posicaoCachorro: '',
             posicaoGaiolaGato: '',
             posicaoGato: '',
+            chefes: [],
             itens: {},
             inimigoAleatorio: [1, 0]
         };
@@ -74,6 +76,7 @@
     window.EditorConfig = {
         TILE_SIZE,
         DEFAULT_PROPORTION,
+        BOSS_MAX_STAGES,
         PLATFORM_DEFS,
         ENEMY_DEFS,
         SYSTEM_DEFS,

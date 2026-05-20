@@ -493,6 +493,10 @@ async function carregarFase(nomeArquivo) {
     // Carrega inimigos da fase
     if (typeof resetarInimigos === 'function') {
         const inimigosParaReset = [];
+        const tipoPorChave = {};
+        Object.entries(window.GAME_CONSTANTS?.TIPOS_INIMIGO || {}).forEach(([id, cfg]) => {
+            if (cfg?.chaveJSON) tipoPorChave[cfg.chaveJSON] = Number(id);
+        });
         
         // Itera sobre todos os tipos de inimigos definidos em constantes
         Object.entries(window.GAME_CONSTANTS.TIPOS_INIMIGO).forEach(([tipoId, tipoConfig]) => {
@@ -505,6 +509,28 @@ async function carregarFase(nomeArquivo) {
                     inimigosParaReset.push({tipo: parseInt(tipoId), pos: p});
                 });
             }
+        });
+
+        const chefes = Array.isArray(fase.chefes) ? fase.chefes : [];
+        chefes.forEach((chefe, indexChefe) => {
+            if (!chefe || typeof chefe !== 'object') return;
+
+            const coordChefe = String(chefe.coord || '').trim();
+            const etapas = Array.isArray(chefe.etapas) ? chefe.etapas : [];
+            const primeiraEtapa = etapas[0];
+            if (!coordChefe || !primeiraEtapa) return;
+
+            const baseNpc = String(primeiraEtapa.baseNpc || 'inimigo_comum').trim().toLowerCase();
+            const chaveJSON = baseNpc === 'inimigo_bb' ? 'inimigo_bb' : 'inimigo_comum';
+            const tipoInicial = Number(tipoPorChave[chaveJSON] ?? window.GAME_CONSTANTS?.INIMIGO_COMUM_ID ?? 0);
+
+            inimigosParaReset.push({
+                tipo: tipoInicial,
+                pos: { coord: coordChefe, direcao: 'e' },
+                bossId: String(chefe.id || `chefe-${indexChefe + 1}`),
+                bossStageIndex: 0,
+                bossEtapas: etapas
+            });
         });
         
         resetarInimigos(inimigosParaReset);

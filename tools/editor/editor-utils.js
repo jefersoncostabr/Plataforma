@@ -248,6 +248,40 @@
         merged.itens = normalizeItensData(merged.itens);
         if (Object.keys(merged.itens).length === 0) delete merged.itens;
 
+        const bossMaxStages = Math.max(1, Number(window.EditorConfig?.BOSS_MAX_STAGES ?? 5));
+        const equipamentosValidos = new Set(['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete', 'doze', 'bateria']);
+        const chefesEntrada = Array.isArray(merged.chefes) ? merged.chefes : [];
+        const porId = new Map();
+        chefesEntrada.forEach((chefe, idx) => {
+            if (!chefe || typeof chefe !== 'object') return;
+
+            const coord = String(chefe.coord || chefe.pos || chefe.coordInicial || '').trim();
+            if (!coord) return;
+
+            const etapasRaw = Array.isArray(chefe.etapas) ? chefe.etapas : [];
+            const etapas = etapasRaw
+                .map((etapa) => {
+                    const baseNpcRaw = String(etapa?.baseNpc || '').trim().toLowerCase();
+                    const baseNpc = baseNpcRaw === 'inimigo_bb' ? 'inimigo_bb' : 'inimigo_comum';
+                    const equipamentos = Array.isArray(etapa?.equipamentos)
+                        ? [...new Set(etapa.equipamentos.map((it) => String(it || '').trim().toLowerCase()).filter((it) => equipamentosValidos.has(it)))]
+                        : [];
+                    return { baseNpc, equipamentos };
+                })
+                .filter(Boolean)
+                .slice(0, bossMaxStages);
+
+            if (etapas.length === 0) {
+                etapas.push({ baseNpc: 'inimigo_comum', equipamentos: [] });
+            }
+
+            const id = String(chefe.id || `chefe-${idx + 1}`).trim() || `chefe-${idx + 1}`;
+            porId.set(id, { id, coord, etapas });
+        });
+
+        merged.chefes = [...porId.values()].sort((a, b) => sortCoords(a.coord, b.coord));
+        if (merged.chefes.length === 0) delete merged.chefes;
+
         merged.inimigoAleatorio = Array.isArray(merged.inimigoAleatorio) && merged.inimigoAleatorio.length >= 2
             ? [Number(merged.inimigoAleatorio[0] || 0), Number(merged.inimigoAleatorio[1] || 0)]
             : [1, 0];

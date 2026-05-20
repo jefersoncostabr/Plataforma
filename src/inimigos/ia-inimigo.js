@@ -19,11 +19,110 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         console.error('IA: Erro crítico! Funções de knockback não encontradas em inicial.js.');
     }
 
+    function tentarAvancarEtapaChefe(inimigo) {
+        if (!inimigo || !Array.isArray(inimigo.bossEtapas)) return false;
+
+        const etapas = normalizarEtapasBoss(inimigo.bossEtapas);
+        if (etapas.length <= 1) return false;
+
+        const etapaAtual = Math.max(0, Number(inimigo.bossStageIndex || 0));
+        const proximaEtapaIndex = etapaAtual + 1;
+        if (proximaEtapaIndex >= etapas.length) return false;
+
+        const etapa = etapas[proximaEtapaIndex];
+        const tipoNovo = obterTipoBaseDaEtapaBoss(etapa);
+        const tipoConfig = window.GAME_CONSTANTS?.TIPOS_INIMIGO?.[tipoNovo] || {};
+
+        limparVisuaisInimigo(inimigo);
+
+        Object.entries(tipoConfig).forEach(([chave, valor]) => {
+            if (chave === 'id') return;
+            inimigo[chave] = valor;
+        });
+
+        inimigo.tipo = tipoNovo;
+        inimigo.bossStageIndex = proximaEtapaIndex;
+        inimigo.vida = 0;
+        inimigo.estaMorrendo = false;
+        inimigo.framesMorrendo = 0;
+        inimigo.estaMorto = false;
+        inimigo.framesKnockbackRestante = 0;
+        inimigo.velocidadeKnockback = 0;
+        inimigo.velocidadeY = 0;
+        inimigo.perseguindo = false;
+        inimigo.estaColetando = false;
+        inimigo.temCabecaBB = tipoNovo === 12;
+        inimigo.garraAnimEstado = 'idle';
+        inimigo.garraTimer = 0;
+        inimigo.garraDist = 0;
+        inimigo.garraBracos = [];
+        inimigo.garraItemCarregado = null;
+        inimigo.cooldownGarra = 60;
+        inimigo.cooldownDashSkill = 0;
+        inimigo.cooldownDanoEspinho = 0;
+        inimigo.dashEsquivaFramesRestantes = 0;
+        inimigo.dashEsquivaDirecao = 0;
+        inimigo.velocidadeDashEsquiva = 0;
+        inimigo.coleteSlots = Array.from({ length: 6 }, () => null);
+        inimigo.cintoSlot = null;
+
+        aplicarEquipamentosEtapaBoss(inimigo, etapa);
+
+        if (tipoNovo === 12) {
+            if (!Array.isArray(inimigo.skills) || inimigo.skills.length === 0) {
+                inimigo.skills = ['Dash', 'SuperSalto'];
+            }
+            inimigo.temSkillDash = true;
+            inimigo.temSkillSuperSalto = true;
+        } else {
+            inimigo.temSkillDash = false;
+            inimigo.temSkillSuperSalto = false;
+        }
+
+        prepararInventarioInicialInimigo(inimigo, tipoNovo);
+
+        if (inimigo.elemento) {
+            if (tipoNovo === window.GAME_CONSTANTS?.INIMIGO_FENO_ID) {
+                inimigo.elemento.src = window.obterSpriteItem('feno', config, 'equipado');
+            } else {
+                inimigo.elemento.src = spriteParado;
+            }
+            inimigo.spriteBase = inimigo.elemento.src;
+            inimigo.elemento.style.filter = 'none';
+            inimigo.elemento.style.pointerEvents = 'none';
+            inimigo.elemento.style.display = 'block';
+            inimigo.elemento.style.left = `${inimigo.x}px`;
+            inimigo.elemento.style.bottom = `${inimigo.y}px`;
+            inimigo.elemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+        }
+
+        window.inicializarVisualEquipamentoEntidade(inimigo, inimigo.elemento?.parentElement, config);
+        window.sincronizarAcessoriosEntidade(inimigo, {
+            armaElemento: inimigo.armaElemento,
+            escudoElemento: inimigo.escudoElemento,
+            botaElemento: inimigo.botaElemento,
+            jetpackElemento: inimigo.jetpackElemento,
+            garraElemento: inimigo.garraElemento,
+            cintoElemento: inimigo.cintoElemento,
+            coleteElemento: inimigo.coleteElemento,
+            bateriaElemento: inimigo.bateriaElemento,
+            bbCabecaElemento: inimigo.bbCabecaElemento
+        }, { forçarSincroniaGarra: true });
+
+        return true;
+    }
+
+    window.tentarAvancarEtapaChefe = tentarAvancarEtapaChefe;
+
     /**
      * Inicia a sequência de lançamento (morte cartoon).
      */
     window.prepararMorteInimigo = (inimigo, direcaoX) => {
         if (inimigo.estaMorrendo || inimigo.estaMorto) return;
+
+        if (tentarAvancarEtapaChefe(inimigo)) {
+            return;
+        }
 
         // Dropa os itens que o inimigo possui no chão antes de iniciar a animação de voo
         if (typeof window.droparItensInimigo === 'function') {
@@ -182,14 +281,14 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         inimigo.dashEsquivaFramesRestantes = duracaoDash;
         inimigo.velocidadeDashEsquiva = distanciaDash / duracaoDash;
         inimigo.cooldownDashSkill = Math.max(duracaoDash, Number(config.inimigoDashEsquivaCooldown ?? 50));
-        if (inimigo.tipo === 12) {
-            console.log('[IA][InimigoBB] Dash de esquiva ativado.', {
-                x: inimigo.x,
-                alvoX,
-                direcao: inimigo.dashEsquivaDirecao,
-                cooldown: inimigo.cooldownDashSkill
-            });
-        }
+        // if (inimigo.tipo === 12) {
+        //     console.log('[IA][InimigoBB] Dash de esquiva ativado.', {
+        //         x: inimigo.x,
+        //         alvoX,
+        //         direcao: inimigo.dashEsquivaDirecao,
+        //         cooldown: inimigo.cooldownDashSkill
+        //     });
+        // }
         window.AudioManager?.playSFX('dash', 0.35);
         return true;
     }
@@ -526,6 +625,72 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         return inimigo.vida >= limiteVida;
     }
 
+    function normalizarEtapasBoss(etapas) {
+        if (!Array.isArray(etapas)) return [];
+        return etapas
+            .map((etapa) => {
+                const baseNpc = String(etapa?.baseNpc || '').trim().toLowerCase() === 'inimigo_bb' ? 'inimigo_bb' : 'inimigo_comum';
+                const equipamentos = Array.isArray(etapa?.equipamentos)
+                    ? [...new Set(etapa.equipamentos.map((e) => String(e || '').trim().toLowerCase()).filter(Boolean))]
+                    : [];
+                return { baseNpc, equipamentos };
+            })
+            .filter(Boolean)
+            .slice(0, 5);
+    }
+
+    function obterTipoBaseDaEtapaBoss(etapa) {
+        const baseNpc = String(etapa?.baseNpc || '').trim().toLowerCase();
+        return baseNpc === 'inimigo_bb' ? 12 : Number(window.GAME_CONSTANTS?.INIMIGO_COMUM_ID ?? 0);
+    }
+
+    function aplicarEquipamentosEtapaBoss(inimigo, etapa) {
+        const equipamentos = new Set(Array.isArray(etapa?.equipamentos) ? etapa.equipamentos : []);
+
+        inimigo.temArma = equipamentos.has('revolver') || equipamentos.has('doze');
+        inimigo.heldWeaponType = equipamentos.has('doze') ? 'doze' : (equipamentos.has('revolver') ? 'revolver' : null);
+        inimigo.temEscudo = equipamentos.has('escudo');
+        inimigo.temBota = equipamentos.has('bota');
+        inimigo.temJetpack = equipamentos.has('jetpack');
+        inimigo.temGarra = equipamentos.has('garra');
+        inimigo.temCinto = equipamentos.has('cinto');
+        inimigo.temColete = equipamentos.has('colete');
+        inimigo.temBateria = equipamentos.has('bateria');
+    }
+
+    function prepararInventarioInicialInimigo(inimigo, tipo) {
+        inimigo.inventario = [];
+
+        if (tipo === 10) {
+            inimigo.temArma = true;
+            inimigo.heldWeaponType = 'doze';
+            inimigo.municao = 2;
+            inimigo.inventario.push('doze');
+        }
+
+        if (tipo === 11) {
+            inimigo.temBateria = true;
+            inimigo.inventario.push('bateria');
+        }
+
+        if (inimigo.temArma) {
+            const tipoArma = inimigo.heldWeaponType || 'revolver';
+            inimigo.heldWeaponType = tipoArma;
+            if (!inimigo.inventario.includes(tipoArma)) {
+                inimigo.inventario.push(tipoArma);
+            }
+            inimigo.municao = (tipoArma === 'doze') ? 2 : 5;
+        }
+
+        if (inimigo.temEscudo) inimigo.inventario.push('escudo');
+        if (inimigo.temBota) inimigo.inventario.push('bota');
+        if (inimigo.temJetpack) inimigo.inventario.push('jetpack');
+        if (inimigo.temGarra) inimigo.inventario.push('garra');
+        if (inimigo.temCinto) inimigo.inventario.push('cinto');
+        if (inimigo.temColete) inimigo.inventario.push('colete');
+        if (inimigo.temBateria && !inimigo.inventario.includes('bateria')) inimigo.inventario.push('bateria');
+    }
+
     window.resetarInimigos = (dadosInimigos) => {
         // Limpa referências antigas e remove armas
         if (window.inimigos) {
@@ -614,49 +779,32 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             });
 
             const inimigoObj = window.inimigos[window.inimigos.length - 1];
-            inimigoObj.inventario = [];
-            if (tipo === 10) {
-                inimigoObj.temArma = true;
-                inimigoObj.heldWeaponType = 'doze';
-                inimigoObj.municao = 2;
-                inimigoObj.inventario.push('doze');
+            inimigoObj.bossEtapas = normalizarEtapasBoss(inimigoObj.bossEtapas);
+            inimigoObj.bossStageIndex = Math.max(0, Number(inimigoObj.bossStageIndex || 0));
+            inimigoObj.isBoss = inimigoObj.bossEtapas.length > 0;
+
+            if (inimigoObj.isBoss) {
+                const etapaInicial = inimigoObj.bossEtapas[inimigoObj.bossStageIndex] || inimigoObj.bossEtapas[0];
+                const tipoBaseEtapa = obterTipoBaseDaEtapaBoss(etapaInicial);
+                const tipoCfgEtapa = window.GAME_CONSTANTS?.TIPOS_INIMIGO?.[tipoBaseEtapa] || {};
+                Object.entries(tipoCfgEtapa).forEach(([chave, valor]) => {
+                    if (chave === 'id') return;
+                    inimigoObj[chave] = valor;
+                });
+                inimigoObj.tipo = tipoBaseEtapa;
+                inimigoObj.temCabecaBB = tipoBaseEtapa === 12;
+                aplicarEquipamentosEtapaBoss(inimigoObj, etapaInicial);
             }
 
-            if (tipo === 11) {
-                inimigoObj.temBateria = true;
-                inimigoObj.inventario.push('bateria');
-            }
-
-            if (tipo === 12) {
+            if (inimigoObj.tipo === 12) {
                 if (!Array.isArray(inimigoObj.skills) || inimigoObj.skills.length === 0) {
                     inimigoObj.skills = ['Dash', 'SuperSalto'];
                 }
                 inimigoObj.temSkillDash = true;
                 inimigoObj.temSkillSuperSalto = true;
-
-                console.log('[IA][InimigoBB] Spawn com skills:', {
-                    pos: posStr,
-                    skills: inimigoObj.skills
-                });
-            }
-            
-            if (inimigoObj.temArma) {
-                // Define o tipo de arma baseado no spawn. Se não definido, assume revolver.
-                const tipoArma = inimigoObj.heldWeaponType || 'revolver';
-                inimigoObj.heldWeaponType = tipoArma;
-                if (!inimigoObj.inventario.includes(tipoArma)) {
-                    inimigoObj.inventario.push(tipoArma);
-                }
-                // Aplica munição específica
-                inimigoObj.municao = (tipoArma === 'doze') ? 2 : 5;
             }
 
-            if (inimigoObj.temEscudo) inimigoObj.inventario.push('escudo');
-            if (inimigoObj.temBota) inimigoObj.inventario.push('bota');
-            if (inimigoObj.temJetpack) inimigoObj.inventario.push('jetpack');
-            if (inimigoObj.temGarra) inimigoObj.inventario.push('garra');
-            if (inimigoObj.temCinto) inimigoObj.inventario.push('cinto');
-            if (inimigoObj.temColete) inimigoObj.inventario.push('colete');
+            prepararInventarioInicialInimigo(inimigoObj, inimigoObj.tipo);
 
             // Inicialização visual centralizada
             window.inicializarVisualEquipamentoEntidade(inimigoObj, inimigoImg.parentElement, config);
@@ -984,10 +1132,11 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     : (inimigo.alturaEmPe || config.HITBOX_ALTURA);
 
                 const estaChutando = !inimigo.ehBBInimigo && inimigo.tempoChute > 0;
+                const botaAtiva = !!(inimigo.temBota && !inimigo.botaVermelha && !inimigo.itensGuardadosNoCinto);
 
-                // Unificação da velocidade: tratamos como número e aplicamos bônus se for tipo 3
+                // Unificação da velocidade: aplica bônus quando a bota está ativa no inimigo
                 let velAtiva = velAtivaBase;
-                if (inimigo.tipo === window.GAME_CONSTANTS.TIPOS_INIMIGO[3].id) {
+                if (botaAtiva) {
                     velAtiva += Number(config.bonusVelocidadeBota ?? 2);
                 }
                 
@@ -1434,7 +1583,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                 // Unificação da força de pulo: todos os tipos usam a mesma base numérica
                 let forcaPuloInimigo = forcaPuloInimigoBase;
-                if (inimigo.tipo === window.GAME_CONSTANTS.TIPOS_INIMIGO[3].id) { // Inimigo com bota
+                if (botaAtiva) {
                     forcaPuloInimigo += Number(config.bonusPuloBota ?? 1.5);
                 }
                 const inimigoComSkillDash = inimigoTemSkillDash(inimigo);
@@ -1468,12 +1617,12 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     // Define um delay randômico antes de pular
                     inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
                     inimigo.usarSuperPuloAgora = !!inimigoComSkillSuperSalto;
-                    if (inimigo.tipo === 12) {
-                        console.log('[IA][InimigoBB] Projétil detectado, preparando salto.', {
-                            superSalto: inimigo.usarSuperPuloAgora,
-                            timer: inimigo.puloTimer
-                        });
-                    }
+                    // if (inimigo.tipo === 12) {
+                    //     console.log('[IA][InimigoBB] Projétil detectado, preparando salto.', {
+                    //         superSalto: inimigo.usarSuperPuloAgora,
+                    //         timer: inimigo.puloTimer
+                    //     });
+                    // }
                     inimigo.jumpQueued = true; // Marca que um pulo foi agendado
                 }
 
@@ -1482,13 +1631,13 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     if (!temEstacaBaixoNoArcoDoPulo(inimigo, dirSuperPulo)) {
                         inimigo.puloTimer = Math.floor(Math.random() * (config.inimigoPuloDelayMax - config.inimigoPuloDelayMin + 1)) + config.inimigoPuloDelayMin;
                         inimigo.usarSuperPuloAgora = true;
-                        if (inimigo.tipo === 12) {
-                            console.log('[IA][InimigoBB] Altura grande detectada, preparando super pulo.', {
-                                yAlvo,
-                                yInimigo: inimigo.y,
-                                timer: inimigo.puloTimer
-                            });
-                        }
+                        // if (inimigo.tipo === 12) {
+                        //     console.log('[IA][InimigoBB] Altura grande detectada, preparando super pulo.', {
+                        //         yAlvo,
+                        //         yInimigo: inimigo.y,
+                        //         timer: inimigo.puloTimer
+                        //     });
+                        // }
                         inimigo.jumpQueued = true;
                     }
                 }
@@ -1714,7 +1863,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                         // Dash do inimigo (Suave e com bônus de bota)
                         const duracaoDash = 10;
-                        const multiplicadorChute = (inimigo.temBota && !inimigo.itensGuardadosNoCinto) ? 2 : 1;
+                        const multiplicadorChute = botaAtiva ? 2 : 1;
                         
                         inimigo.framesImpulsoRestante = duracaoDash;
                         inimigo.velocidadeDash = (config.impulsoChute * multiplicadorChute) / duracaoDash;

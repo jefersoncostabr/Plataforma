@@ -14,6 +14,7 @@
             adicionarElemento,
             removerElemento,
             setItemSelecionado,
+            onSelecionarItem = () => {},
             getItemDefinitions,
             tileSize = 32,
             pointToCoord = () => 'a1',
@@ -35,7 +36,9 @@
                 item.onclick = () => {
                     items.forEach(i => i.classList.remove('selected'));
                     item.classList.add('selected');
-                    setItemSelecionado(item.getAttribute('data-type'));
+                    const tipo = item.getAttribute('data-type');
+                    setItemSelecionado(tipo);
+                    onSelecionarItem(tipo);
                 };
             });
         }

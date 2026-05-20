@@ -12,6 +12,7 @@ const {
     iterarItensData = () => [],
     obterCoordEntrada
 } = window.EditorUtils || {};
+const createEmptyFaseData = window.EditorConfig?.createEmptyFaseData || (() => ({}));
 
 let COLS = 20; 
 let ROWS = 15; 
@@ -32,6 +33,13 @@ let itemDefinitions = {};
 
 let itemSelecionado = 'plataforma';
 let gradeVisivel = true;
+const BOSS_BASE_OPTIONS = [
+    { value: 'inimigo_comum', label: 'Inimigo comum' },
+    { value: 'inimigo_bb', label: 'BB' }
+];
+const BOSS_EQUIP_OPTIONS = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete', 'doze', 'bateria'];
+const BOSS_MAX_STAGES = Math.max(1, Number(window.EditorConfig?.BOSS_MAX_STAGES ?? 5));
+let chefeRascunhoPosicionamento = null;
 
 const stage = document.getElementById('game-stage');
 const stageArea = document.getElementById('stage-area');
@@ -143,6 +151,216 @@ function aplicarFaseDataEditor(novoEstado, opcoes = {}) {
     });
 }
 
+function obterChefesLista() {
+    if (!Array.isArray(faseData.chefes)) faseData.chefes = [];
+    return faseData.chefes;
+}
+
+function obterChefePorCoord(coord) {
+    return obterChefesLista().find((chefe) => String(chefe?.coord || '').trim() === String(coord || '').trim()) || null;
+}
+
+function removerChefePorCoord(coord) {
+    if (!Array.isArray(faseData.chefes) || faseData.chefes.length === 0) return false;
+    const antes = faseData.chefes.length;
+    faseData.chefes = faseData.chefes.filter((chefe) => String(chefe?.coord || '').trim() !== String(coord || '').trim());
+    return faseData.chefes.length !== antes;
+}
+
+function normalizarEtapasChefe(etapas) {
+    const entrada = Array.isArray(etapas) ? etapas : [];
+    const normalizadas = entrada.map((etapa) => {
+        const baseNpc = String(etapa?.baseNpc || '').trim().toLowerCase() === 'inimigo_bb' ? 'inimigo_bb' : 'inimigo_comum';
+        const equipamentos = Array.isArray(etapa?.equipamentos)
+            ? [...new Set(etapa.equipamentos.map((e) => String(e || '').trim().toLowerCase()).filter((e) => BOSS_EQUIP_OPTIONS.includes(e)))]
+            : [];
+        return { baseNpc, equipamentos };
+    }).slice(0, BOSS_MAX_STAGES);
+
+    if (normalizadas.length === 0) {
+        normalizadas.push({ baseNpc: 'inimigo_comum', equipamentos: [] });
+    }
+
+    return normalizadas;
+}
+
+function gerarIdChefe() {
+    return `chefe-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+}
+
+function abrirModalConfigChefe(chefeAtual = null) {
+    let overlay = document.getElementById('boss-editor-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'boss-editor-overlay';
+        overlay.className = 'boss-editor-overlay';
+        document.body.appendChild(overlay);
+    }
+
+    const titulo = chefeAtual ? 'Editar chefe' : 'Novo chefe';
+    const etapasIniciais = normalizarEtapasChefe(chefeAtual?.etapas || [{ baseNpc: 'inimigo_comum', equipamentos: [] }]);
+    let etapas = etapasIniciais.map((e) => ({ ...e, equipamentos: [...e.equipamentos] }));
+
+    const render = () => {
+        overlay.innerHTML = '';
+        overlay.style.display = 'flex';
+
+        const modal = document.createElement('div');
+        modal.className = 'boss-editor-modal';
+
+        const h = document.createElement('h3');
+        h.className = 'boss-editor-title';
+        h.textContent = `${titulo} (1 a ${BOSS_MAX_STAGES} etapas)`;
+        modal.appendChild(h);
+
+        const hint = document.createElement('p');
+        hint.className = 'boss-editor-hint';
+        hint.textContent = 'Cada etapa define NPC base e equipamentos. Depois clique no palco para posicionar a estrela do chefe.';
+        modal.appendChild(hint);
+
+        const lista = document.createElement('div');
+        lista.className = 'boss-stage-list';
+
+        etapas.forEach((etapa, idx) => {
+            const row = document.createElement('div');
+            row.className = 'boss-stage-row';
+
+            const top = document.createElement('div');
+            top.className = 'boss-stage-row-top';
+
+            const label = document.createElement('div');
+            label.className = 'boss-stage-label';
+            label.textContent = `Etapa ${idx + 1}`;
+
+            const actions = document.createElement('div');
+            actions.className = 'boss-stage-actions';
+
+            const selectBase = document.createElement('select');
+            BOSS_BASE_OPTIONS.forEach((op) => {
+                const opt = document.createElement('option');
+                opt.value = op.value;
+                opt.textContent = op.label;
+                selectBase.appendChild(opt);
+            });
+            selectBase.value = etapa.baseNpc;
+            selectBase.onchange = () => {
+                etapas[idx].baseNpc = selectBase.value === 'inimigo_bb' ? 'inimigo_bb' : 'inimigo_comum';
+            };
+
+            const btnRemover = document.createElement('button');
+            btnRemover.type = 'button';
+            btnRemover.style.background = '#7a2424';
+            btnRemover.textContent = 'Remover';
+            btnRemover.disabled = etapas.length <= 1;
+            btnRemover.onclick = () => {
+                if (etapas.length <= 1) return;
+                etapas.splice(idx, 1);
+                render();
+            };
+
+            actions.appendChild(selectBase);
+            actions.appendChild(btnRemover);
+            top.appendChild(label);
+            top.appendChild(actions);
+            row.appendChild(top);
+
+            const equipGrid = document.createElement('div');
+            equipGrid.className = 'boss-equip-grid';
+            BOSS_EQUIP_OPTIONS.forEach((equip) => {
+                const id = `boss-equip-${idx}-${equip}`;
+                const wrap = document.createElement('label');
+                const chk = document.createElement('input');
+                chk.type = 'checkbox';
+                chk.id = id;
+                chk.checked = etapa.equipamentos.includes(equip);
+                chk.onchange = () => {
+                    if (chk.checked) {
+                        if (!etapas[idx].equipamentos.includes(equip)) etapas[idx].equipamentos.push(equip);
+                    } else {
+                        etapas[idx].equipamentos = etapas[idx].equipamentos.filter((e) => e !== equip);
+                    }
+                };
+                wrap.appendChild(chk);
+                wrap.appendChild(document.createTextNode(` ${equip}`));
+                equipGrid.appendChild(wrap);
+            });
+
+            row.appendChild(equipGrid);
+            lista.appendChild(row);
+        });
+
+        modal.appendChild(lista);
+
+        const actions = document.createElement('div');
+        actions.className = 'boss-modal-actions';
+
+        const left = document.createElement('div');
+        left.style.display = 'flex';
+        left.style.gap = '8px';
+
+        const btnAddEtapa = document.createElement('button');
+        btnAddEtapa.type = 'button';
+        btnAddEtapa.style.background = '#0d6efd';
+        btnAddEtapa.textContent = 'Adicionar etapa';
+        btnAddEtapa.disabled = etapas.length >= BOSS_MAX_STAGES;
+        btnAddEtapa.onclick = () => {
+            if (etapas.length >= BOSS_MAX_STAGES) return;
+            etapas.push({ baseNpc: 'inimigo_comum', equipamentos: [] });
+            render();
+        };
+        left.appendChild(btnAddEtapa);
+        actions.appendChild(left);
+
+        const right = document.createElement('div');
+        right.style.display = 'flex';
+        right.style.gap = '8px';
+
+        const btnCancelar = document.createElement('button');
+        btnCancelar.type = 'button';
+        btnCancelar.style.background = '#555';
+        btnCancelar.textContent = 'Cancelar';
+        btnCancelar.onclick = () => {
+            overlay.style.display = 'none';
+            overlay.innerHTML = '';
+        };
+
+        const btnConfirmar = document.createElement('button');
+        btnConfirmar.type = 'button';
+        btnConfirmar.style.background = '#198754';
+        btnConfirmar.textContent = 'Confirmar';
+        btnConfirmar.onclick = () => {
+            const etapasFinal = normalizarEtapasChefe(etapas);
+            const chefeBase = {
+                id: chefeAtual?.id || gerarIdChefe(),
+                coord: String(chefeAtual?.coord || '').trim(),
+                etapas: etapasFinal
+            };
+
+            if (chefeAtual?.coord) {
+                removerChefePorCoord(chefeAtual.coord);
+                obterChefesLista().push(chefeBase);
+                aplicarFaseDataEditor(faseData);
+            } else {
+                chefeRascunhoPosicionamento = chefeBase;
+                alert('Configuração salva. Agora clique no palco para posicionar o chefe.');
+            }
+
+            overlay.style.display = 'none';
+            overlay.innerHTML = '';
+            atualizarVisual();
+        };
+
+        right.appendChild(btnCancelar);
+        right.appendChild(btnConfirmar);
+        actions.appendChild(right);
+
+        modal.appendChild(actions);
+        overlay.appendChild(modal);
+    };
+
+    render();
+}
+
 function obterLegendaCoord(coord) {
     const PLATFORM_DEFS = window.EditorConfig?.PLATFORM_DEFS || [];
     const ENEMY_DEFS = window.EditorConfig?.ENEMY_DEFS || [];
@@ -163,6 +381,11 @@ function obterLegendaCoord(coord) {
         }
 
         return def.label;
+    }
+
+    const chefe = obterChefePorCoord(coord);
+    if (chefe) {
+        return `Chefe (${Array.isArray(chefe.etapas) ? chefe.etapas.length : 0} etapas)`;
     }
 
     if (faseData.posicaoGaiola === coord) return 'Gaiola com Cão';
@@ -202,8 +425,6 @@ window.onload = async () => {
         });
     }
 
-    const createEmptyFaseData = window.EditorConfig?.createEmptyFaseData || (() => ({}));
-
     await carregarItemDefinitions();
 
     renderizadorEditor = window.criarRenderizadorEditor({
@@ -226,6 +447,12 @@ window.onload = async () => {
         adicionarElemento,
         removerElemento,
         setItemSelecionado: (tipo) => { itemSelecionado = tipo; },
+        onSelecionarItem: (tipo) => {
+            if (tipo === 'chefe') {
+                chefeRascunhoPosicionamento = null;
+                abrirModalConfigChefe(null);
+            }
+        },
         getItemDefinitions: () => itemDefinitions,
         tileSize: TILE_SIZE,
         pointToCoord,
@@ -495,6 +722,30 @@ function adicionarElemento(coord) {
         console.log(`[Editor] adicionarElemento: tipo=${itemSelecionado}, coord=${coord}`);
     }
 
+    if (itemSelecionado === 'chefe') {
+        const chefeExistente = obterChefePorCoord(coord);
+        if (chefeExistente) {
+            abrirModalConfigChefe(chefeExistente);
+            return;
+        }
+
+        if (!chefeRascunhoPosicionamento) {
+            abrirModalConfigChefe(null);
+            return;
+        }
+
+        removerChefePorCoord(coord);
+        const chefeFinal = {
+            id: chefeRascunhoPosicionamento.id || gerarIdChefe(),
+            coord,
+            etapas: normalizarEtapasChefe(chefeRascunhoPosicionamento.etapas)
+        };
+        obterChefesLista().push(chefeFinal);
+        chefeRascunhoPosicionamento = null;
+        aplicarFaseDataEditor(faseData);
+        return;
+    }
+
     if (itemSelecionado === 'item_capsula') {
         const itensCapsula = Array.isArray(faseData.itens?.capsula) ? faseData.itens.capsula : [];
         const indiceCapsula = itensCapsula.findIndex((item) => {
@@ -624,6 +875,8 @@ function removerElemento(coord) {
             return c !== coord;
         });
     });
+
+    removerChefePorCoord(coord);
 
     if (!faseData.itens || typeof faseData.itens !== 'object' || Array.isArray(faseData.itens)) {
         faseData.itens = {};

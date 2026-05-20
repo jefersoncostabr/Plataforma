@@ -124,6 +124,8 @@
 
             const elementos = stage.querySelectorAll('img');
             elementos.forEach(el => el.remove());
+            const marcadoresChefe = stage.querySelectorAll('.editor-boss-marker');
+            marcadoresChefe.forEach(el => el.remove());
 
             [...PLATFORM_DEFS, ...ENEMY_DEFS].forEach((def) => {
                 (faseData[def.stateKey] || []).forEach((entrada) => {
@@ -141,6 +143,33 @@
 
                     criarIcone(coord, def.sprite, def.className || '');
                 });
+            });
+
+            const chefes = Array.isArray(faseData.chefes) ? faseData.chefes : [];
+            chefes.forEach((chefe) => {
+                const coord = String(chefe?.coord || '').trim();
+                const partes = typeof coordToParts === 'function' ? coordToParts(coord) : null;
+                if (!partes) return;
+
+                const marker = document.createElement('div');
+                marker.className = 'editor-boss-marker';
+                marker.textContent = '★';
+                marker.title = `Chefe (${Array.isArray(chefe.etapas) ? chefe.etapas.length : 0} etapas)`;
+                marker.style.position = 'absolute';
+                marker.style.left = (partes.col * TILE_SIZE) + 'px';
+                marker.style.bottom = (partes.row * TILE_SIZE) + 'px';
+                marker.style.width = `${TILE_SIZE}px`;
+                marker.style.height = `${TILE_SIZE}px`;
+                marker.style.display = 'flex';
+                marker.style.alignItems = 'center';
+                marker.style.justifyContent = 'center';
+                marker.style.fontSize = '24px';
+                marker.style.fontWeight = '700';
+                marker.style.color = '#ffd84a';
+                marker.style.textShadow = '0 0 8px rgba(255, 216, 74, 0.6)';
+                marker.style.pointerEvents = 'none';
+                marker.style.zIndex = '42';
+                stage.appendChild(marker);
             });
 
             console.debug('[EditorRender] Render itens - itemDefinitions keys:', Object.keys(itemDefinitions || {}), 'itens raw:', faseData.itens);

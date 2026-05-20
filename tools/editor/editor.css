@@ -58,6 +58,101 @@ body {
     background: #333;
 }
 
+.boss-star-item {
+    color: #ffd84a;
+    font-size: 22px;
+    line-height: 24px;
+    text-align: center;
+    font-weight: 700;
+    user-select: none;
+}
+
+.boss-editor-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 3000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.boss-editor-modal {
+    width: min(760px, 94vw);
+    max-height: 86vh;
+    overflow: auto;
+    background: #1b1b1b;
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    padding: 14px;
+    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.45);
+}
+
+.boss-editor-title {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: #f2f2f2;
+}
+
+.boss-editor-hint {
+    margin: 0 0 10px 0;
+    color: #b8b8b8;
+    font-size: 12px;
+}
+
+.boss-stage-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.boss-stage-row {
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 8px;
+    background: #151515;
+}
+
+.boss-stage-row-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    gap: 8px;
+}
+
+.boss-stage-label {
+    font-size: 12px;
+    color: #d2d2d2;
+}
+
+.boss-stage-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.boss-equip-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px 8px;
+}
+
+.boss-equip-grid label {
+    font-size: 12px;
+    color: #d9d9d9;
+}
+
+.boss-modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.boss-modal-actions button {
+    margin-bottom: 0;
+}
+
 #stage-area {
     flex: 1;
     display: flex;
