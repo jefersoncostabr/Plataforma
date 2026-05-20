@@ -1750,6 +1750,17 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                     const novoY = aplicarSnapColisao(ctrl.y, 0, ctrl.altura, hit, 'cima');
                     ctrl.y = novoY;
                 } else if (incY > 0) { // Subindo
+                    const permiteCorrecaoQuina = hit.tipo !== 'estaca';
+                    if (permiteCorrecaoQuina && typeof window.tentarCorrecaoQuinaSubida === 'function') {
+                        const corrigiuQuina = window.tentarCorrecaoQuinaSubida(ctrl, window.plataformas, {
+                            maxDeslocamento: Math.max(0, Number(config.cornerCorrectionPxPlayer ?? 6)),
+                            passo: 1
+                        });
+                        if (corrigiuQuina) {
+                            return false;
+                        }
+                    }
+
                     ctrl.velocidadeY = 0;
                     // Usa função centralizada de snap
                     const novoY = aplicarSnapColisao(ctrl.y, 0, ctrl.altura, hit, 'baixo');

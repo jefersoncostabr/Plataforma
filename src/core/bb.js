@@ -649,8 +649,22 @@
                     }
                     // Se houver colisão com o teto (e não for o robô aberto subindo)
                     else if (hitTeto) {
-                        bb.y = window.aplicarSnapColisaoPadrao(bb.y, 0, bb.altura, hitTeto, 'baixo');
-                        bb.velocidadeY = 0;
+                        const permiteCorrecaoQuina = hitTeto.tipo !== 'estaca';
+                        if (permiteCorrecaoQuina && typeof window.tentarCorrecaoQuinaSubida === 'function') {
+                            const corrigiuQuina = window.tentarCorrecaoQuinaSubida(bb, window.plataformas, {
+                                maxDeslocamento: Math.max(0, Number(config.cornerCorrectionPxBB ?? config.cornerCorrectionPxPets ?? 4)),
+                                passo: 1,
+                                probeYOffset: bb.altura - 6,
+                                probeAltura: 6
+                            });
+                            if (!corrigiuQuina) {
+                                bb.y = window.aplicarSnapColisaoPadrao(bb.y, 0, bb.altura, hitTeto, 'baixo');
+                                bb.velocidadeY = 0;
+                            }
+                        } else {
+                            bb.y = window.aplicarSnapColisaoPadrao(bb.y, 0, bb.altura, hitTeto, 'baixo');
+                            bb.velocidadeY = 0;
+                        }
                     }
                 }
             }

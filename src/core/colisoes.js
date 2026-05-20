@@ -364,6 +364,61 @@ function verificarAreaTotalmenteLivre(x, y, largura = 32, altura = 32) {
 window.verificarAreaTotalmenteLivre = verificarAreaTotalmenteLivre;
 
 /**
+ * Tenta corrigir colisão em quina durante a subida, deslocando levemente no eixo X.
+ * Retorna true quando consegue um X válido e aplica o ajuste na entidade.
+ */
+function tentarCorrecaoQuinaSubida(entidade, plataformas = window.plataformas, opcoes = {}) {
+    if (!entidade || !plataformas) return false;
+
+    const maxDeslocamento = Math.max(0, Number(opcoes.maxDeslocamento ?? 6));
+    const passo = Math.max(1, Number(opcoes.passo ?? 1));
+    if (maxDeslocamento <= 0) return false;
+
+    const largura = Number(opcoes.largura ?? entidade.largura ?? 32);
+    const altura = Number(opcoes.altura ?? entidade.altura ?? 32);
+    const offsetX = Number(opcoes.offsetX ?? entidade.offsetX ?? 0);
+    const xOriginal = Number(entidade.x || 0);
+    const yAtual = Number(entidade.y || 0);
+
+    const probeYOffset = Number(opcoes.probeYOffset ?? 0);
+    const probeAltura = Number(opcoes.probeAltura ?? altura);
+
+    const prioridadeDireita = entidade.direcao === 'd';
+    const direcoes = prioridadeDireita ? [1, -1] : [-1, 1];
+
+    for (let desloc = passo; desloc <= maxDeslocamento; desloc += passo) {
+        for (const dir of direcoes) {
+            let xTeste = xOriginal + (desloc * dir);
+
+            if (typeof limitarPosicaoAoPalco === 'function') {
+                const ajustada = limitarPosicaoAoPalco(xTeste + offsetX, yAtual, largura, altura);
+                xTeste = ajustada.x - offsetX;
+            }
+
+            const hitTiles = typeof verificarColisaoComTiles === 'function'
+                ? verificarColisaoComTiles(xTeste + offsetX, yAtual + probeYOffset, largura, probeAltura, plataformas)
+                : null;
+
+            if (hitTiles) continue;
+
+            if (typeof window.verificarColisaoComVidroCapsula === 'function') {
+                const hitbox = { x: xTeste + offsetX, y: yAtual, largura, altura };
+                if (window.verificarColisaoComVidroCapsula(hitbox)) {
+                    continue;
+                }
+            }
+
+            entidade.x = xTeste;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+window.tentarCorrecaoQuinaSubida = tentarCorrecaoQuinaSubida;
+
+/**
  * ⚠️ FUNÇÃO CENTRALIZADA DE SNAP - Alternativa 2
  * Remove duplicação de código em movimentacao.js
  * 

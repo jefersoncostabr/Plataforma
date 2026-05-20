@@ -384,8 +384,24 @@
                     }
                     // Se houver colisão com o teto (e não for o robô aberto subindo)
                     else if (hitTeto) {
-                        pet.y = window.aplicarSnapColisaoPadrao(pet.y, 0, pet.altura, hitTeto, 'baixo');
-                        pet.velocidadeY = 0;
+                        const permiteCorrecaoQuina = hitTeto.tipo !== 'estaca';
+                        if (permiteCorrecaoQuina && typeof window.tentarCorrecaoQuinaSubida === 'function') {
+                            const corrigiuQuina = window.tentarCorrecaoQuinaSubida(pet, window.plataformas, {
+                                maxDeslocamento: Math.max(0, Number(config.cornerCorrectionPxPets ?? 4)),
+                                passo: 1,
+                                probeYOffset: pet.altura - 6,
+                                probeAltura: 6
+                            });
+                            if (corrigiuQuina) {
+                                // Mantém subida suave quando pega apenas a quina
+                            } else {
+                                pet.y = window.aplicarSnapColisaoPadrao(pet.y, 0, pet.altura, hitTeto, 'baixo');
+                                pet.velocidadeY = 0;
+                            }
+                        } else {
+                            pet.y = window.aplicarSnapColisaoPadrao(pet.y, 0, pet.altura, hitTeto, 'baixo');
+                            pet.velocidadeY = 0;
+                        }
                     }
                 }
             }
