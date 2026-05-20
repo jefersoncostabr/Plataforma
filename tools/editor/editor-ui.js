@@ -367,9 +367,10 @@
             if (!phaseList || !persistencia) return [];
 
             const formatarNome = (arquivo) => {
-                const semExt = String(arquivo || '').replace(/\.json$/i, '');
-                if (semExt.toLowerCase() === 'treino') return 'Treino';
-                return semExt.replace(/fase(\d+)/i, 'Fase $1');
+                const partes = String(arquivo || '').split('/');
+                const nomeOriginal = partes.pop().replace(/\.json$/i, '');
+                if (nomeOriginal.toLowerCase() === 'treino') return 'Treino (Raiz)';
+                return nomeOriginal.replace(/fase(\d+)/i, 'Fase $1');
             };
 
             const marcarAtiva = (arquivoAtivo) => {
@@ -421,7 +422,22 @@
                     return [];
                 }
 
-                arquivos.forEach((arquivo) => {
+                // Agrupar por pastas
+                const grupos = {};
+                arquivos.forEach(arq => {
+                    const pasta = arq.includes('/') ? arq.split('/')[0] : 'Raiz';
+                    if (!grupos[pasta]) grupos[pasta] = [];
+                    grupos[pasta].push(arq);
+                });
+
+                Object.keys(grupos).sort().forEach(grupo => {
+                    const header = document.createElement('div');
+                    header.className = 'phase-group-header';
+                    header.textContent = grupo.toUpperCase().replace('_', ' ');
+                    header.style.cssText = "padding: 5px; background: #333; color: #eee; font-size: 10px; margin-top: 5px;";
+                    phaseList.appendChild(header);
+
+                    grupos[grupo].forEach((arquivo) => {
                     const botao = document.createElement('button');
                     botao.type = 'button';
                     botao.className = 'phase-entry';
@@ -429,6 +445,7 @@
                     botao.textContent = formatarNome(arquivo);
                     botao.onclick = () => carregarFaseArquivo(arquivo);
                     phaseList.appendChild(botao);
+                    });
                 });
 
                 return arquivos;

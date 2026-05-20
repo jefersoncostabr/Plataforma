@@ -24,13 +24,14 @@ function obterIndiceFaseInicial(valorFaseInicial) {
     return Math.max(0, Math.min(indiceNormalizado, window.niveis.length - 1));
 }
 
-function obterIndiceFasePorNome(nomeArquivo = '') {
-    const alvo = String(nomeArquivo || '').split('/').pop().trim().toLowerCase();
+function obterIndiceFasePorNome(identificador = '') {
+    const alvo = String(identificador || '').trim().toLowerCase();
     if (!alvo) return -1;
 
     return window.niveis.findIndex((caminho) => {
-        const nome = String(caminho || '').split('/').pop().trim().toLowerCase();
-        return nome === alvo;
+        const pathRelativo = String(caminho || '').replace('../../config/fases/', '').toLowerCase();
+        if (alvo.includes('/')) return pathRelativo === alvo;
+        return pathRelativo === alvo || pathRelativo.endsWith('/' + alvo);
     });
 }
 
@@ -195,6 +196,7 @@ async function carregarFase(nomeArquivo) {
 
     forcarDestravamentoGeral(window.playerControle);
 
+    const pathRelativoLocal = String(nomeArquivo || '').replace('../../config/fases/', '');
     window.faseAtualNome = String(nomeArquivo || '').split('/').pop() || String(nomeArquivo || '');
     if (typeof window.removerTodosCrafts === 'function') {
         window.removerTodosCrafts();
@@ -203,7 +205,7 @@ async function carregarFase(nomeArquivo) {
     // Bloqueia o reset se houver base instalada, checkpoint, se for a última fase ou se virmos de uma transição de nível.
     const isLastPhase = window.nivelAtual === (window.niveis.length - 1);
     const craftSalvo = typeof window.obterCraftPersistido === 'function' ? window.obterCraftPersistido() : null;
-    const temBaseNestaFase = craftSalvo && craftSalvo.fase === window.faseAtualNome.toLowerCase();
+    const temBaseNestaFase = craftSalvo && (craftSalvo.fase === pathRelativoLocal.toLowerCase() || craftSalvo.fase === window.faseAtualNome.toLowerCase());
     
     // Verifica se existe um checkpoint de equipamento para evitar limpeza indevida no reinício
     const temCheckpoint = typeof window.carregarCheckpointEquipamentoSalvo === 'function' && !!window.carregarCheckpointEquipamentoSalvo();
@@ -249,6 +251,8 @@ async function carregarFase(nomeArquivo) {
         
         // Expõe os dados da fase para o AudioManager e outros sistemas
         window.faseAtualData = fase;
+        // Armazena o caminho relativo puro para o editor/persistência
+        window.faseAtualPathRelativo = String(nomeArquivo).replace('../../config/fases/', '');
     } catch (erro) {
         console.error("Erro ao carregar nível:", erro);
         alert("Erro técnico: O arquivo da fase não foi encontrado ou está corrompido.");
@@ -571,14 +575,14 @@ window.proximoNivel = async function() {
         if (respManifesto.ok) {
             const manifesto = await respManifesto.json();
             const listaRaw = manifesto.fases || manifesto;
-            const listaCampanha = listaRaw.filter(nome => !String(nome).toLowerCase().includes('treino.json'));
+            const listaCampanha = listaRaw.filter(nome => !String(nome).toLowerCase().endsWith('treino.json'));
             window.niveis = listaCampanha.map(nome => `../../config/fases/${nome}`);
         }
     } catch (e) { console.error("Erro ao atualizar lista de fases na transição:", e); }
 
     // 2. Sincroniza o nivelAtual com o arquivo que acabamos de completar
     // Isso evita que o jogo se perca se a lista for reordenada
-    const indiceConfirmado = obterIndiceFasePorNome(window.faseAtualNome);
+    const indiceConfirmado = obterIndiceFasePorNome(window.faseAtualPathRelativo || window.faseAtualNome);
     if (indiceConfirmado >= 0) window.nivelAtual = indiceConfirmado;
 
     const proximoIndice = window.nivelAtual + 1;
@@ -761,7 +765,7 @@ async function iniciarJogo() {
         const listaRaw = manifesto.fases || manifesto;
 
         // Filtra o arquivo de treino para que ele não faça parte da progressão normal (campanha)
-        const listaCampanha = listaRaw.filter(nome => !String(nome).toLowerCase().includes('treino.json'));
+        const listaCampanha = listaRaw.filter(nome => !String(nome).toLowerCase().endsWith('treino.json'));
         window.niveis = listaCampanha.map(nome => `../../config/fases/${nome}`);
     } catch (e) { console.error("Erro ao carregar lista de fases:", e); }
 

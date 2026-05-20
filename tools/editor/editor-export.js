@@ -163,6 +163,9 @@
         }
 
         async function salvarViaServidorLocal(jsonStr) {
+            console.log(`[Editor] Enviando solicitação de salvamento para: ${arquivoFaseAtual}`);
+            console.log(`[Editor] DEBUG: fileName enviado ao servidor: "${arquivoFaseAtual}"`);
+            
             const resposta = await fetch(`${saveServerUrl}/save-phase`, {
                 method: 'POST',
                 headers: {
@@ -186,6 +189,7 @@
             }
 
             ultimoJSONSalvo = jsonStr;
+            console.log(`[Editor] Salvo com sucesso no servidor: ${arquivoFaseAtual}`);
             atualizarStatus(`salvo automaticamente em ${arquivoFaseAtual}.`, 'success');
             return true;
         }

@@ -15,9 +15,9 @@ const {
 
 let COLS = 20; 
 let ROWS = 15; 
-// LOCALIZAÇÃO: Define o diretório base para leitura e gravação das fases (relativo ao editor.html)
+// LOCALIZAÇÃO: Caminho base para o sistema de arquivos onde o servidor Node.js buscará/salvará os JSONs
 const PHASES_BASE_PATH = '../../config/fases/';
-const PHASES_MANIFEST_PATH = `${PHASES_BASE_PATH}index.json`;
+// Atualiza a lista de candidatos para incluir as novas pastas
 const PHASE_DISCOVERY_CANDIDATES = [
     'treino.json',
     ...Array.from({ length: 50 }, (_, i) => `nivel_1/fase${i + 1}.json`),
@@ -279,7 +279,7 @@ window.onload = async () => {
 
             if (nivelOpcao === null) return; // Cancelou o prompt
 
-            // LOCALIZAÇÃO: Define o prefixo (subpasta) com base na escolha de nível no prompt
+            // LOCALIZAÇÃO: Lógica que determina se a nova fase vai para a raiz ou para subpastas de níveis
             let prefixo = "";
             if (nivelOpcao === "1") prefixo = "nivel_1/";
             else if (nivelOpcao === "2") prefixo = "nivel_2/";
@@ -290,7 +290,7 @@ window.onload = async () => {
             let maxNum = 0;
 
             arquivos.forEach(arq => {
-                // Verifica se o arquivo pertence ao nível selecionado para reiniciar a contagem
+                // Verifica se o arquivo pertence ao nível selecionado para reiniciar a contagem por pasta
                 const pertenceAoNivel = prefixo ? arq.startsWith(prefixo) : !arq.includes('/');
                 if (pertenceAoNivel) {
                     const match = arq.match(/fase(\d+)\.json$/i);
@@ -301,10 +301,9 @@ window.onload = async () => {
                 }
             });
 
-            // LOCALIZAÇÃO: Define o nome final do arquivo que será enviado ao servidor para gravação física
+            // LOCALIZAÇÃO: Geração do nome do arquivo incremental para evitar sobrescrita acidental
             const novoNome = `${prefixo}fase${maxNum + 1}.json`;
-            console.log(`[Editor] Gerando nova fase: ${novoNome} (Baseado em ${maxNum} arquivos existentes no nível selecionado)`);
-            console.log(`[Editor] DEBUG: Prefixo: "${prefixo}", Novo Nome Calculado: "${novoNome}"`);
+            console.log(`[Editor] Gerando nova fase: ${novoNome} (Contagem reiniciada para esta pasta)`);
 
             if (confirm(`Deseja criar a "${novoNome}" do zero?`)) {
                 aplicarFaseDataEditor(createEmptyFaseData({
@@ -312,7 +311,6 @@ window.onload = async () => {
                 }), { arquivoFaseAtual: novoNome });
 
                 atualizarTamanhoStage();
-                console.log(`[Editor] DEBUG: Chamando salvarAutomaticamenteAgora com arquivoFaseAtual: "${novoNome}"`);
                 if (persistenciaEditor) {
                     await persistenciaEditor.salvarAutomaticamenteAgora();
 

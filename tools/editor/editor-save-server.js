@@ -66,26 +66,43 @@ async function handleSavePhase(req, res) {
         const fileName = String(payload.fileName || payload.arquivo || '').trim();
         const content = String(payload.content || payload.conteudo || '');
 
+
         if (!fileName) {
             return sendJson(res, 400, { ok: false, error: 'Nome do arquivo é obrigatório.' });
         }
 
-        const safeName = path.basename(fileName);
-        if (!safeName.toLowerCase().endsWith('.json')) {
+        // Valida fileName para garantir que é um caminho relativo seguro dentro de PHASES_DIR
+        // Não deve conter '..' e deve terminar com '.json'
+        const normalizedFileName = path.normalize(fileName);
+        const isSafePath = !normalizedFileName.startsWith('..') && !path.isAbsolute(normalizedFileName) && normalizedFileName.toLowerCase().endsWith('.json');
+
+        if (!isSafePath) {
+            console.error(`[Server] ERRO: Nome de arquivo inválido ou inseguro: "${fileName}"`);
             return sendJson(res, 400, { ok: false, error: 'O arquivo deve ser .json.' });
         }
 
         JSON.parse(content);
 
-        const destino = path.join(PHASES_DIR, safeName);
+        // Usa o nome do arquivo normalizado diretamente para incluir subpastas
+        const destino = path.join(PHASES_DIR, normalizedFileName);
+
+        // Verifica se o caminho final ainda está dentro do diretório permitido
+        if (!destino.startsWith(PHASES_DIR)) {
+            console.error(`[Server] ERRO: Tentativa de salvar arquivo fora do diretório permitido: "${destino}" (PHASES_DIR: "${PHASES_DIR}")`);
+            return sendJson(res, 400, { ok: false, error: 'Tentativa de salvar arquivo fora do diretório permitido.' });
+        }
+        
+        console.log(`[Server] DEBUG: Caminho final de destino no servidor: "${destino}"`);
+
         await fs.promises.writeFile(destino, content.endsWith('\n') ? content : `${content}\n`, 'utf8');
 
         return sendJson(res, 200, {
             ok: true,
-            fileName: safeName,
-            relativePath: `config/fases/${safeName}`
+            fileName: normalizedFileName,
+            relativePath: `config/fases/${normalizedFileName}`
         });
     } catch (error) {
+        console.error(`[Server] ERRO ao salvar fase: ${error.message}`);
         return sendJson(res, 500, { ok: false, error: error.message });
     }
 }
