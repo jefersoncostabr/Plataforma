@@ -11,6 +11,111 @@
 function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteChute, spriteNoAr) {
     const config = window.config || {}; // Usa as configurações globais
 
+    function iniciarPiscaMudancaFormaBoss(inimigo) {
+        if (!inimigo) return;
+
+        const duracaoTotal = Math.max(500, Number(config.bossTrocaFormaPiscaMs ?? 900));
+        const intervaloPisca = Math.max(50, Number(config.bossTrocaFormaPiscaIntervaloMs ?? 90));
+        const afastamentoTotal = Math.max(96, Number(config.bossTrocaFormaAfastamentoPx ?? 96));
+        const afastamentoVelocidade = Math.max(2, Number(config.bossTrocaFormaAfastamentoVelPx ?? 4));
+        const player = window.playerControle;
+
+        const estadoPlayerAnterior = player ? {
+            stunned: !!player.stunned,
+            stunTimer: Number(player.stunTimer || 0),
+            velocidadeHorizontalAtual: Number(player.velocidadeHorizontalAtual || 0),
+            velocidadeY: Number(player.velocidadeY || 0),
+            movendoHorizontal: !!player.movendoHorizontal
+        } : null;
+
+        inimigo.transicaoFormaBossAtiva = true;
+        inimigo.velocidadeKnockback = 0;
+        inimigo.velocidadeY = 0;
+        inimigo.perseguindo = false;
+        inimigo.estaColetando = false;
+
+        if (player) {
+            const framesBloqueio = Math.ceil((duracaoTotal + ((afastamentoTotal / afastamentoVelocidade) * 16)) / 16);
+            player.stunned = true;
+            player.stunTimer = Math.max(2, framesBloqueio);
+            player.velocidadeHorizontalAtual = 0;
+            player.velocidadeY = 0;
+            player.movendoHorizontal = false;
+        }
+
+        let visivel = true;
+        const alternarPisca = () => {
+            if (!inimigo?.elemento) return;
+            visivel = !visivel;
+            inimigo.elemento.style.opacity = visivel ? '1' : '0.25';
+        };
+
+        const intervaloId = window.setInterval(alternarPisca, intervaloPisca);
+
+        const concluirTransicao = () => {
+            if (inimigo?.elemento) {
+                inimigo.elemento.style.opacity = '1';
+            }
+            inimigo.transicaoFormaBossAtiva = false;
+
+            if (player && estadoPlayerAnterior) {
+                player.stunned = estadoPlayerAnterior.stunned;
+                player.stunTimer = estadoPlayerAnterior.stunTimer;
+                player.velocidadeHorizontalAtual = estadoPlayerAnterior.velocidadeHorizontalAtual;
+                player.velocidadeY = estadoPlayerAnterior.velocidadeY;
+                player.movendoHorizontal = estadoPlayerAnterior.movendoHorizontal;
+            }
+        };
+
+        const iniciarAfastamento = () => {
+            let restante = afastamentoTotal;
+            const direcaoAfastar = player ? (Number(player.x || 0) >= Number(inimigo.x || 0) ? -1 : 1) : (inimigo.direcao === 'd' ? 1 : -1);
+
+            const tickAfastamento = () => {
+                if (!inimigo || restante <= 0) {
+                    concluirTransicao();
+                    return;
+                }
+
+                const passo = Math.min(afastamentoVelocidade, restante);
+                inimigo.x = Number(inimigo.x || 0) + (passo * direcaoAfastar);
+                inimigo.direcao = direcaoAfastar > 0 ? 'd' : 'e';
+                restante -= passo;
+
+                if (inimigo.elemento) {
+                    inimigo.elemento.style.left = inimigo.x + 'px';
+                    inimigo.elemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+                }
+
+                if (typeof window.sincronizarAcessoriosEntidade === 'function') {
+                    window.sincronizarAcessoriosEntidade(inimigo, {
+                        armaElemento: inimigo.armaElemento,
+                        escudoElemento: inimigo.escudoElemento,
+                        botaElemento: inimigo.botaElemento,
+                        jetpackElemento: inimigo.jetpackElemento,
+                        garraElemento: inimigo.garraElemento,
+                        cintoElemento: inimigo.cintoElemento,
+                        coleteElemento: inimigo.coleteElemento,
+                        bateriaElemento: inimigo.bateriaElemento,
+                        bbCabecaElemento: inimigo.bbCabecaElemento
+                    }, { forçarSincroniaGarra: true });
+                }
+
+                requestAnimationFrame(tickAfastamento);
+            };
+
+            requestAnimationFrame(tickAfastamento);
+        };
+
+        window.setTimeout(() => {
+            window.clearInterval(intervaloId);
+            if (inimigo?.elemento) {
+                inimigo.elemento.style.opacity = '1';
+            }
+            iniciarAfastamento();
+        }, duracaoTotal);
+    }
+
     if (typeof window.sincronizarAcessoriosEntidade !== 'function') {
         console.error('IA: Erro ao carregar sincronizacao-visual.js. A IA visual pode falhar.');
     }
@@ -110,18 +215,49 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             bbCabecaElemento: inimigo.bbCabecaElemento
         }, { forçarSincroniaGarra: true });
 
+        iniciarPiscaMudancaFormaBoss(inimigo);
+
         return true;
     }
 
     window.tentarAvancarEtapaChefe = tentarAvancarEtapaChefe;
 
+    function ativarBooleanoDerrotaChefe(inimigo) {
+        const bossId = String(inimigo?.bossId || '').trim();
+        if (!bossId) return false;
+
+        let cutsceneIniciou = false;
+
+        // A cutscene de derrota deve tocar para qualquer chefe com bossId.
+        if (typeof window.iniciarAnimacaoDerrotaChefeEvento === 'function') {
+            cutsceneIniciou = !!window.iniciarAnimacaoDerrotaChefeEvento(inimigo);
+        }
+
+        // A flag booleana global continua opcional, controlada pelo editor.
+        if (!inimigo?.bossAtivaBooleanoAoDerrotar) return cutsceneIniciou;
+
+        window.flagsChefesDerrotados = window.flagsChefesDerrotados || {};
+        window.flagsChefesDerrotados[bossId] = true;
+        window[`chefeDerrotado_${bossId}`] = true;
+        return cutsceneIniciou;
+    }
+
     /**
      * Inicia a sequência de lançamento (morte cartoon).
      */
     window.prepararMorteInimigo = (inimigo, direcaoX) => {
-        if (inimigo.estaMorrendo || inimigo.estaMorto) return;
+        if (inimigo.estaMorrendo || inimigo.estaMorto || inimigo.cutsceneDerrotaChefeAtiva) return;
 
         if (tentarAvancarEtapaChefe(inimigo)) {
+            return;
+        }
+
+        const cutsceneChefeAtiva = ativarBooleanoDerrotaChefe(inimigo);
+
+        if (cutsceneChefeAtiva) {
+            inimigo.cutsceneDerrotaChefeAtiva = true;
+            inimigo.perseguindo = false;
+            inimigo.estaColetando = false;
             return;
         }
 
@@ -130,8 +266,10 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             window.droparItensInimigo(inimigo);
         }
 
-        // Remove os acessórios visuais do inimigo imediatamente para que o corpo voe "limpo"
-        limparVisuaisInimigo(inimigo);
+        // Durante a cutscene de chefe mantemos os sprites do robô/acessórios visíveis.
+        if (!cutsceneChefeAtiva) {
+            limparVisuaisInimigo(inimigo);
+        }
 
         // Limpa o inventário lógico para garantir que não haverá processamento residual ou drop duplicado
         if (Array.isArray(inimigo.inventario)) inimigo.inventario = [];
@@ -866,6 +1004,33 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             for (let i = window.inimigos.length - 1; i >= 0; i--) {
                 const inimigo = window.inimigos[i];
                 if (!inimigo) continue;
+
+                if (inimigo.transicaoFormaBossAtiva) {
+                    inimigo.velocidadeKnockback = 0;
+                    inimigo.velocidadeY = 0;
+                    inimigo.perseguindo = false;
+                    inimigo.estaColetando = false;
+                    if (inimigo.elemento) {
+                        inimigo.elemento.style.left = inimigo.x + 'px';
+                        inimigo.elemento.style.bottom = inimigo.y + 'px';
+                    }
+                    window.sincronizarAcessoriosEntidade(inimigo, {
+                        armaElemento: inimigo.armaElemento,
+                        escudoElemento: inimigo.escudoElemento,
+                        botaElemento: inimigo.botaElemento,
+                        jetpackElemento: inimigo.jetpackElemento,
+                        garraElemento: inimigo.garraElemento,
+                        cintoElemento: inimigo.cintoElemento,
+                        coleteElemento: inimigo.coleteElemento,
+                        bateriaElemento: inimigo.bateriaElemento,
+                        bbCabecaElemento: inimigo.bbCabecaElemento
+                    }, { forçarSincroniaGarra: true });
+                    continue;
+                }
+
+                if (inimigo.cutsceneDerrotaChefeAtiva) {
+                    continue;
+                }
 
                 if (inimigo && inimigo.estaMorrendo) {
                     // Usa a gravidade universal ou a gravidade específica do inimigo

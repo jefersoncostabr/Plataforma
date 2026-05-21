@@ -199,6 +199,7 @@ function abrirModalConfigChefe(chefeAtual = null) {
 
     const titulo = chefeAtual ? 'Editar chefe' : 'Novo chefe';
     const etapasIniciais = normalizarEtapasChefe(chefeAtual?.etapas || [{ baseNpc: 'inimigo_comum', equipamentos: [] }]);
+    let ativaBooleanoAoDerrotar = !!chefeAtual?.ativaBooleanoAoDerrotar;
     let etapas = etapasIniciais.map((e) => ({ ...e, equipamentos: [...e.equipamentos] }));
 
     const render = () => {
@@ -291,6 +292,26 @@ function abrirModalConfigChefe(chefeAtual = null) {
 
         modal.appendChild(lista);
 
+        const wrapBooleanoDerrota = document.createElement('label');
+        wrapBooleanoDerrota.style.display = 'flex';
+        wrapBooleanoDerrota.style.alignItems = 'center';
+        wrapBooleanoDerrota.style.gap = '8px';
+        wrapBooleanoDerrota.style.margin = '10px 0';
+
+        const chkBooleanoDerrota = document.createElement('input');
+        chkBooleanoDerrota.type = 'checkbox';
+        chkBooleanoDerrota.checked = ativaBooleanoAoDerrotar;
+        chkBooleanoDerrota.onchange = () => {
+            ativaBooleanoAoDerrotar = !!chkBooleanoDerrota.checked;
+        };
+
+        const txtBooleanoDerrota = document.createElement('span');
+        txtBooleanoDerrota.textContent = 'Ativar booleano ao derrotar este chefe';
+
+        wrapBooleanoDerrota.appendChild(chkBooleanoDerrota);
+        wrapBooleanoDerrota.appendChild(txtBooleanoDerrota);
+        modal.appendChild(wrapBooleanoDerrota);
+
         const actions = document.createElement('div');
         actions.className = 'boss-modal-actions';
 
@@ -333,7 +354,8 @@ function abrirModalConfigChefe(chefeAtual = null) {
             const chefeBase = {
                 id: chefeAtual?.id || gerarIdChefe(),
                 coord: String(chefeAtual?.coord || '').trim(),
-                etapas: etapasFinal
+                etapas: etapasFinal,
+                ativaBooleanoAoDerrotar: !!ativaBooleanoAoDerrotar
             };
 
             if (chefeAtual?.coord) {
@@ -722,6 +744,12 @@ function adicionarElemento(coord) {
         console.log(`[Editor] adicionarElemento: tipo=${itemSelecionado}, coord=${coord}`);
     }
 
+    const chefeExistenteNoClique = obterChefePorCoord(coord);
+    if (chefeExistenteNoClique && itemSelecionado !== 'chefe') {
+        abrirModalConfigChefe(chefeExistenteNoClique);
+        return;
+    }
+
     if (itemSelecionado === 'chefe') {
         const chefeExistente = obterChefePorCoord(coord);
         if (chefeExistente) {
@@ -738,7 +766,8 @@ function adicionarElemento(coord) {
         const chefeFinal = {
             id: chefeRascunhoPosicionamento.id || gerarIdChefe(),
             coord,
-            etapas: normalizarEtapasChefe(chefeRascunhoPosicionamento.etapas)
+            etapas: normalizarEtapasChefe(chefeRascunhoPosicionamento.etapas),
+            ativaBooleanoAoDerrotar: !!chefeRascunhoPosicionamento.ativaBooleanoAoDerrotar
         };
         obterChefesLista().push(chefeFinal);
         chefeRascunhoPosicionamento = null;

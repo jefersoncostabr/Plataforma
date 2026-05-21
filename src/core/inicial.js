@@ -529,7 +529,8 @@ async function carregarFase(nomeArquivo) {
                 pos: { coord: coordChefe, direcao: 'e' },
                 bossId: String(chefe.id || `chefe-${indexChefe + 1}`),
                 bossStageIndex: 0,
-                bossEtapas: etapas
+                bossEtapas: etapas,
+                bossAtivaBooleanoAoDerrotar: !!chefe.ativaBooleanoAoDerrotar
             });
         });
         

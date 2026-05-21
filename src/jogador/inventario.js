@@ -1508,7 +1508,6 @@
                     if (municaoAtual < maxMunicao) {
                         // Incrementa munição até o máximo
                         controle.municao = Math.min(maxMunicao, municaoAtual + 1);
-                        // console.log(`[MUNIÇÃO] +1 munição coletada. ${controle.heldWeaponType}: ${controle.municao}/${maxMunicao}`);
                         window.AudioManager?.playSFX('recarga', 0.6);
                         salvarInventario();
                         atualizarMochilaUI();
@@ -1516,7 +1515,7 @@
                     } else {
                         // Se munição está no máximo, tenta guardar a caixa no colete/cinto
                         const guardouEmSlot = guardarItemNoColete(item, itemData) || guardarItemNoCinto(item, itemData);
-                        if (guardouEmSlot) { // This is a valid debug log, keeping it.
+                        if (guardouEmSlot) {
                             registrarItemNoInventario(item.tipo);
                             console.log(`[MUNIÇÃO] Caixa guardada (munição já no máximo)`);
                             return true;

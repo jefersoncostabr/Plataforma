@@ -276,7 +276,8 @@
             }
 
             const id = String(chefe.id || `chefe-${idx + 1}`).trim() || `chefe-${idx + 1}`;
-            porId.set(id, { id, coord, etapas });
+            const ativaBooleanoAoDerrotar = !!chefe.ativaBooleanoAoDerrotar;
+            porId.set(id, { id, coord, etapas, ativaBooleanoAoDerrotar });
         });
 
         merged.chefes = [...porId.values()].sort((a, b) => sortCoords(a.coord, b.coord));

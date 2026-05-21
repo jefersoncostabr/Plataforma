@@ -1867,8 +1867,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         // Condição de Game Over por queda (buraco)
         if (controle.y < -64) {
             // Transforma em Skill Passiva: Verifica se o player possui a skill Resgate
-            if (window.temSkill?.((window.SKILLS || {}).RESGATE)) {
-                console.log("Habilidade Passiva: Resgate Ativado!");
+            if (window.temSkill?.((window.SKILLS || {}).RESGATE)) { // Removido console.log de debug
                 const larguraPalco = window.mundoLargura || 640; // Removido console.log de debug
                 const alturaPalco = window.mundoAltura || 480;
                 const larguraPlayer = 32;
@@ -1876,8 +1875,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 controle.x = Math.random() * (larguraPalco - larguraPlayer);
                 controle.y = alturaPalco - 64; 
                 controle.velocidadeY = 0; 
-                controle.usandoParaquedas = true; 
-                console.log(`Teleporte concluído para X: ${controle.x.toFixed(0)}, Y: ${controle.y}. Paraquedas ativado.`);
+                controle.usandoParaquedas = true; // Removido console.log de debug
 
                 // Lógica de dano ao cair (Mantida comentada conforme solicitado):
                 // controle.dano = (controle.dano || 0) + 1;
