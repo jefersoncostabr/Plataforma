@@ -460,16 +460,18 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
         const guardados = !!controle.itensGuardadosNoCinto;
         const permiteRecolherColete = coleteRecolhivelNoCinto(config);
         const selecao = controle.selecaoCinto || 'todos';
+        const escudoVisualAtivo = !!(controle.temEscudo || controle.escudoVermelho);
+        const botaVisualAtiva = !!(controle.temBota && !controle.botaVermelha);
 
         if (cintoElemento) cintoElemento.style.display = controle.temCinto ? 'block' : 'none';
         
         const armaVisivel = (controle.temArma && !guardados && (selecao === 'todos' || selecao === 'arma'));
         if (armaElemento) armaElemento.style.display = armaVisivel ? 'block' : 'none';
         
-        const escudoVisivel = ((controle.temEscudo || controle.escudoVermelho) && !guardados && (selecao === 'todos' || selecao === 'escudo'));
+        const escudoVisivel = (escudoVisualAtivo && !guardados && (selecao === 'todos' || selecao === 'escudo'));
         if (escudoElemento) escudoElemento.style.display = escudoVisivel ? 'block' : 'none';
         
-        if (botaElemento) botaElemento.style.display = (controle.temBota && !guardados) ? 'block' : 'none';
+        if (botaElemento) botaElemento.style.display = (botaVisualAtiva && !guardados) ? 'block' : 'none';
         if (botaElemento) botaElemento.style.filter = controle.botaVermelha ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
         if (coleteElemento) coleteElemento.style.display = (controle.temColete && (!guardados || !permiteRecolherColete)) ? 'block' : 'none';
         if (jetpackElemento) jetpackElemento.style.display = (controle.temJetpack && !guardados) ? 'block' : 'none';
@@ -765,7 +767,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
             }
         }
 
-        if (controle.temBota && !controle.itensGuardadosNoCinto) {
+        if ((controle.temBota && !controle.botaVermelha) && !controle.itensGuardadosNoCinto) {
             botaElemento.style.left = controle.x + 'px';
             botaElemento.style.bottom = controle.y + 'px';
             botaElemento.style.transform = elemento.style.transform;

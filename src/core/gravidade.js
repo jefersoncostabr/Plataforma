@@ -57,6 +57,7 @@ window.aplicarSnapColisaoPadrao = function(valor, offset, dimensao, hit, direcao
 window.aplicarSnapColisao = window.aplicarSnapColisaoPadrao;
 
 function temEscudoAtivoPadrao(entidade) {
+    if (entidade?.eletricidadeTemporariaAtiva) return true;
     return !!(entidade?.temEscudo && !entidade?.escudoVermelho && !entidade?.itensGuardadosNoCinto);
 }
 

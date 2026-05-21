@@ -108,8 +108,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
     function atualizarVisualEscudo() {
         const selecao = controle.selecaoCinto || 'todos';
         const participandoDaSelecao = (selecao === 'todos' || selecao === 'escudo');
+        const escudoAtivoVisual = !!(controle.temEscudo || controle.escudoVermelho);
 
-        if ((controle.temEscudo || controle.escudoVermelho) && !controle.itensGuardadosNoCinto && participandoDaSelecao) {
+        if (escudoAtivoVisual && !controle.itensGuardadosNoCinto && participandoDaSelecao) {
             escudoElemento.style.display = 'block';
         } else {
             escudoElemento.style.display = 'none';
@@ -121,8 +122,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
     function atualizarVisualBota() {
         if (!botaElemento) return;
+        const botaAtivaVisual = !!(controle.temBota && !controle.botaVermelha);
 
-        if (controle.temBota && !controle.itensGuardadosNoCinto) {
+        if (botaAtivaVisual && !controle.itensGuardadosNoCinto) {
             botaElemento.style.display = 'block';
         } else {
             botaElemento.style.display = 'none';
@@ -242,6 +244,10 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         airdropUsadoNoNivel: false,
         estaAgachado: false,
         carregando: false,
+        eletricidadeTemporariaAtiva: false,
+        eletricidadeTemporariaAte: 0,
+        ultimoToqueCarregandoMs: 0,
+        janelaDuploToqueCarregandoMs: 300,
         timerCarregando: 0,
         frameCarregandoAtual: 0, // Nova propriedade para o contador de frames da animação de carregamento
         debugVelocidadeAtivo: false,
@@ -388,6 +394,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
     function atualizarEstadoPesoJogador() {
         const itensGuardadosNoCinto = !!controle.itensGuardadosNoCinto;
+        const botaAtiva = !!((controle.temBota && !controle.botaVermelha) || controle.eletricidadeTemporariaAtiva) && !itensGuardadosNoCinto;
         const totalEquipamentosSemBota = [
             !!controle.temArma && !itensGuardadosNoCinto,
             !!(controle.temEscudo || controle.escudoVermelho) && !itensGuardadosNoCinto,
@@ -398,7 +405,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         controle.pesadoPorEquipamento = totalEquipamentosSemBota >= 3;
         const pesoTemporarioAtivo = Number(controle.pesoTemporarioSuperDescida || 0) > 0;
         controle.pesado = controle.pesadoPorEquipamento || pesoTemporarioAtivo;
-        controle.leveComBota = !!controle.temBota && !controle.botaVermelha && !itensGuardadosNoCinto && totalEquipamentosSemBota <= 1 && !controle.pesado;
+        controle.leveComBota = botaAtiva && totalEquipamentosSemBota <= 1 && !controle.pesado;
         return controle.pesado;
     }
 
@@ -821,6 +828,10 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
     function atualizar() {
         // Garante que o Player use a configuração global atualizada a cada frame
         const config = window.config || {};
+        const agoraMsEletricidade = (typeof performance !== 'undefined' && typeof performance.now === 'function')
+            ? performance.now()
+            : Date.now();
+        controle.eletricidadeTemporariaAtiva = Number(controle.eletricidadeTemporariaAte || 0) > agoraMsEletricidade;
         
         // Lógica de Sprites Armados: seleciona o conjunto de sprites baseado no revólver equipado
         const estaComRevolver = controle.temArma && !controle.itensGuardadosNoCinto;
@@ -1240,12 +1251,13 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         const selecao = controle.selecaoCinto || 'todos';
         const escudoNoToggle = (selecao === 'todos' || selecao === 'escudo');
 
-        let velAtiva = (window.temEscudoAtivoPadrao(controle) && escudoNoToggle)
+        const escudoFisicoAtivoSemPenalidadeEletrica = !!(controle.temEscudo && !controle.escudoVermelho && !controle.itensGuardadosNoCinto);
+        let velAtiva = (escudoFisicoAtivoSemPenalidadeEletrica && escudoNoToggle)
             ? Math.max(0, velBase - (config.escudoVelocidadeReduzida ?? 2))
             : velBase;
 
         // Aplica o bônus de velocidade se estiver usando a bota
-        if (controle.temBota && !controle.botaVermelha && !controle.itensGuardadosNoCinto) {
+        if (((controle.temBota && !controle.botaVermelha) || controle.eletricidadeTemporariaAtiva) && !controle.itensGuardadosNoCinto) {
             velAtiva += Number(config.bonusVelocidadeBota ?? 2);
         }
 
@@ -1623,7 +1635,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
         // Calcula a força do pulo final: se tiver a bota, soma o bônus definido nas configurações
         const baseForcaPulo = config.gravidadeUniversal ? (config.forcaGravidade?.forcaPulo ?? 10) : (config.forcaPuloPlayer || 10);
-        const forcaPuloFinal = (controle.temBota && !controle.botaVermelha && !controle.itensGuardadosNoCinto)
+        const forcaPuloFinal = (((controle.temBota && !controle.botaVermelha) || controle.eletricidadeTemporariaAtiva) && !controle.itensGuardadosNoCinto)
             ? (baseForcaPulo + (config.bonusPuloBota || 1.5)) 
             : baseForcaPulo; // Clique duplo (timing para a skill Salto)
         if (controle.timerPuloDuplo > 0) controle.timerPuloDuplo--;

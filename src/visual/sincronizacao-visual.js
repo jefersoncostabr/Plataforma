@@ -21,6 +21,7 @@ window.inicializarVisualEquipamentoEntidade = function(entidade, parentElement, 
         'cintoElemento':  { flag: 'temCinto',   z: '6', sprite: 'cinto',    fallback: '../../assets/personagem/cinto.png', offY: -2 },
         'coleteElemento': { flag: 'temColete',  z: '6', sprite: 'colete',   fallback: '../../assets/personagem/colete.png', offY: 0 },
         'bateriaElemento': { flag: 'temBateria', z: '7', sprite: 'bateria', fallback: '../../assets/personagem/objetos/bateria.png', offY: 0 },
+        'vfxEletricidadeElemento': { flag: 'carregando', z: '11', sprite: 'vfx_eletricidade', fallback: 'assets/vfx/eletreciade_player/eletrecidade1.png', offY: 0 },
         'bbCabecaElemento': { flag: 'temCabecaBB', z: '10', sprite: 'bb_cabeca', fallback: '../../assets/personagem/bb_cabeca.png', offY: 0 }
     };
 
@@ -60,6 +61,10 @@ window.inicializarVisualEquipamentoEntidade = function(entidade, parentElement, 
         if (entidade[key]) {
             const ocultarPeloCinto = !!(entidade.itensGuardadosNoCinto && key !== 'cintoElemento');
             let visivel = !!entidade[info.flag] && !ocultarPeloCinto;
+
+            if (key === 'vfxEletricidadeElemento') {
+                visivel = !!(entidade.carregando || entidade.eletricidadeTemporariaAtiva) && !ocultarPeloCinto;
+            }
 
             // Mecânica de seleção seletiva do cinto (Item 1.5 - Toggle E)
             if (visivel && entidade.temCinto && entidade.selecaoCinto && entidade.selecaoCinto !== 'todos') {
@@ -124,6 +129,9 @@ window.sincronizarAcessoriosEntidade = function(entidade, elementos, opcoes = {}
             : {})
         ,...(entidade.bbCabecaElemento && !Object.prototype.hasOwnProperty.call(elementos, 'bbCabecaElemento')
             ? { bbCabecaElemento: entidade.bbCabecaElemento }
+            : {})
+        ,...(entidade.vfxEletricidadeElemento && !Object.prototype.hasOwnProperty.call(elementos, 'vfxEletricidadeElemento')
+            ? { vfxEletricidadeElemento: entidade.vfxEletricidadeElemento }
             : {})
     };
 

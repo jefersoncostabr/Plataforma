@@ -53,7 +53,8 @@
             window.AudioManager?.playSFX('chute', 0.4);
 
             const duracaoDash = 10;
-            const multiplicadorChute = (controle.temBota && !controle.botaVermelha && !controle.itensGuardadosNoCinto) ? 2 : 1;
+            const botaAtivaNoChute = ((controle.temBota && !controle.botaVermelha) || controle.eletricidadeTemporariaAtiva) && !controle.itensGuardadosNoCinto;
+            const multiplicadorChute = botaAtivaNoChute ? 2 : 1;
             controle.framesImpulsoRestante = duracaoDash;
             controle.velocidadeDash = (Number(config.impulsoChute ?? 0) * multiplicadorChute) / duracaoDash;
 
@@ -144,7 +145,9 @@
             inimigo.foiAtingidoNesteChute = true;
             inimigo.estaColetando = false;
             inimigo.timerColeta = 0;
-            const dano = Number(controle.danoChute || 1);
+            const danoBase = Number(controle.danoChute || 1);
+            const bonusDanoEletrico = controle.eletricidadeTemporariaAtiva ? 1 : 0;
+            const dano = danoBase + bonusDanoEletrico;
             inimigo.vida = (inimigo.vida || 0) + dano;
 
             window.AudioManager?.playSFX('impacto', 0.6);

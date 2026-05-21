@@ -14,6 +14,12 @@ function definirSpriteSeValido(elemento, sprite, fallbackSprite) {
 
 function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spriteNoAr, spriteAgachado, spriteAgachadoAndando, spriteCarregando1, spriteCarregando2, spriteCarregando3, spriteCarregando4, spriteCarregando5, spriteCarregando6) {
     const desativarRespiracaoOciosaPet = controle?.tipo === 'cao' || controle?.tipo === 'gato';
+    const agoraMs = (typeof performance !== 'undefined' && typeof performance.now === 'function')
+        ? performance.now()
+        : Date.now();
+    const eletricidadeTemporariaAtiva = Number(controle.eletricidadeTemporariaAte || 0) > agoraMs;
+    controle.eletricidadeTemporariaAtiva = eletricidadeTemporariaAtiva;
+    const vfxEletricidadeAtivo = !!controle.carregando || eletricidadeTemporariaAtiva;
 
     // 1. Inicialização de contadores e estado de ociosidade
     if (controle._idle2sAtivo == null) {
@@ -39,6 +45,23 @@ function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spri
 
     const agachadoParado = spriteAgachado || spriteParado;
     const agachadoAndando = spriteAgachadoAndando || agachadoParado;
+
+    // VFX de eletricidade (ativa ao segurar T ou por 60s no duplo toque de T)
+    if (controle.vfxEletricidadeElemento && vfxEletricidadeAtivo) {
+        controle.vfxEletricidadeElemento.style.display = 'block';
+        const seqEletricidade = [1, 2, 3, 4, 5, 6, 5, 4, 3, 2]; // 1-6 e volta
+        if (controle._vfxElecTimer === undefined) {
+            controle._vfxElecTimer = 0;
+            controle._vfxElecIdx = 0;
+        }
+        controle._vfxElecTimer++;
+        if (controle._vfxElecTimer >= 7) { // Velocidade da eletricidade
+            controle._vfxElecTimer = 0;
+            controle._vfxElecIdx = (controle._vfxElecIdx + 1) % seqEletricidade.length;
+            const frameNum = seqEletricidade[controle._vfxElecIdx];
+            controle.vfxEletricidadeElemento.src = `assets/vfx/eletreciade_player/eletrecidade${frameNum}.png`;
+        }
+    }
 
     // 2. Animação de Carregamento (Tecla T)
     if (controle.carregando && controle.noChao) {
@@ -74,9 +97,16 @@ function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spri
         controle.contadorAnimacao = 0;
         controle.frameAtual = 0;
         return;
-    } else if (controle.timerCarregando > 0 || controle.frameCarregandoAtual > 0) { // Reseta apenas se estava ativo
-        controle.timerCarregando = 0;
-        controle.frameCarregandoAtual = 0;
+    } else {
+        if (controle.timerCarregando > 0 || controle.frameCarregandoAtual > 0) { // Reseta apenas se estava ativo
+            controle.timerCarregando = 0;
+            controle.frameCarregandoAtual = 0;
+        }
+        if (controle.vfxEletricidadeElemento && !vfxEletricidadeAtivo) {
+            controle.vfxEletricidadeElemento.style.display = 'none';
+            controle._vfxElecTimer = undefined;
+            controle._vfxElecIdx = undefined;
+        }
     }
 
     if (controle.estaAgachado && controle.noChao) {

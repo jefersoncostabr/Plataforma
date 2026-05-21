@@ -163,6 +163,22 @@
                 controle.acoesDiscretas.interagir = true;
             }
 
+            if (!e.repeat && teclaEhAcao(e.key, 'carregando')) {
+                const agoraMs = (typeof performance !== 'undefined' && typeof performance.now === 'function')
+                    ? performance.now()
+                    : Date.now();
+                const ultimoToque = Number(controle.ultimoToqueCarregandoMs || 0);
+                const janelaDuploToque = Number(controle.janelaDuploToqueCarregandoMs ?? 300);
+                const foiDuploToque = (agoraMs - ultimoToque) > 0 && (agoraMs - ultimoToque) <= janelaDuploToque;
+
+                controle.ultimoToqueCarregandoMs = agoraMs;
+
+                if (foiDuploToque) {
+                    controle.eletricidadeTemporariaAte = agoraMs + 20000;
+                    controle.eletricidadeTemporariaAtiva = true;
+                }
+            }
+
             if (!e.repeat && window.temSkill?.((window.SKILLS || {}).DASH)) {
                 const apertouEsquerda = teclaEhAcao(e.key, 'esquerda');
                 const apertouDireita = teclaEhAcao(e.key, 'direita');
