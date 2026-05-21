@@ -424,6 +424,8 @@
             if (tipo === 'garra' && config.spriteGarraPlayer) return config.spriteGarraPlayer;
             if (tipo === 'cinto' && config.spriteCintoPlayer) return config.spriteCintoPlayer;
             if (tipo === 'colete' && config.spriteColeteParado) return config.spriteColeteParado;
+            // Definição centralizada do caminho do muzzle flash (usado em efeitos-visuais.js)
+            if (tipo === 'muzzle_flash') return config.spriteMuzzleFlash || '../../assets/vfx/efeito_disparo.png';
             // Estados de animação e Personagem
             if (tipo === 'agachado' && config.spriteAgachadoPlayer) return config.spriteAgachadoPlayer;
             if (tipo === 'agachado2' && config.spriteAgachadoAndandoPlayer) return config.spriteAgachadoAndandoPlayer;

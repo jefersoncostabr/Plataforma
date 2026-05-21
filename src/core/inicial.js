@@ -783,6 +783,13 @@ async function iniciarJogo() {
     const config = await respostaConfig.json();
     window.config = config;
     // console.log("Configurações carregadas:", config); // Removido console.log de debug
+
+    // Configurações para o efeito de flash de cano (muzzle flash) - Define o caminho padrão do sprite
+    window.config.spriteMuzzleFlash = window.config.spriteMuzzleFlash || '../../assets/vfx/efeito_disparo.png';
+    window.config.muzzleFlashOffsetX = window.config.muzzleFlashOffsetX ?? 8; // Offset X do centro do flash em relação ao ponto de disparo
+    window.config.muzzleFlashOffsetY = window.config.muzzleFlashOffsetY ?? 0; // Offset Y do centro do flash em relação ao ponto de disparo
+    window.config.muzzleFlashWidth = window.config.muzzleFlashWidth ?? 32;
+    window.config.muzzleFlashHeight = window.config.muzzleFlashHeight ?? 32;
     // This is a valid debug log, keeping it.
     // Carrega a lista de fases dinamicamente do manifesto
     try {

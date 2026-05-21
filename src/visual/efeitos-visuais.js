@@ -320,6 +320,7 @@ window.criarAnimacaoImpacto2Frames = function(opcoes = {}) {
         y,
         largura = 24,
         altura = 24,
+        flipX = false,
         offsetX = 0,
         offsetY = 0,
         frameDurationMs = 70,
@@ -350,6 +351,8 @@ window.criarAnimacaoImpacto2Frames = function(opcoes = {}) {
     impacto.style.imageRendering = 'pixelated';
     impacto.style.pointerEvents = 'none';
     impacto.style.opacity = `${Math.max(0, Math.min(1, Number(opacidade) || 1))}`;
+    impacto.style.transformOrigin = 'center center';
+    impacto.style.transform = flipX ? 'scaleX(-1)' : '';
 
     if (typeof zIndex === 'number') {
         impacto.style.zIndex = String(zIndex);

@@ -1396,8 +1396,31 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             const xPartida = (controle.direcao === 'd') ? controle.x + 36 : controle.x - 8;
             const yPartida = controle.y + 16; // Alinhado verticalmente com o centro
 
-            // Detecta qual arma está equipada (revolver ou doze)
             const armaEquipada = controle.heldWeaponType || 'revolver';
+
+            // Efeito visual de flash de cano (muzzle flash)
+            if (typeof window.criarAnimacaoImpacto2Frames === 'function' && typeof window.obterSpriteItem === 'function') {
+                const escalaFlash = (armaEquipada === 'doze') ? 1.5 : 1.0;
+                // Obtém o caminho do sprite definido no inventário/config
+                const spriteFlash = window.obterSpriteItem('muzzle_flash', config, 'equipado');
+                const ajusteMuzzleDirecional = (controle.direcao === 'd') ? 6 : -6;
+                const ajusteMuzzleVertical = -4;
+
+                window.criarAnimacaoImpacto2Frames({
+                    x: ((controle.direcao === 'd') ? controle.x + 32 + (config.muzzleFlashOffsetX ?? 8) : controle.x - (config.muzzleFlashOffsetX ?? 8)) + ajusteMuzzleDirecional,
+                    y: controle.y + 16 + (config.muzzleFlashOffsetY ?? 0) + ajusteMuzzleVertical,
+                    largura: (config.muzzleFlashWidth ?? 32) * escalaFlash,
+                    altura: (config.muzzleFlashHeight ?? 32) * escalaFlash,
+                    flipX: controle.direcao !== 'd',
+                    frameDurationMs: 40, // Duração bem curta para o efeito de piscar
+                    opacidade: 0.6, // Transparência suave
+                    frames: [
+                        spriteFlash, 
+                        'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', // Frame transparente para o "blink"
+                        spriteFlash
+                    ]
+                });
+            }
 
             // Padrão de tiro: Revolver = 1 tiro reto | Doze = 3 tiros (1 reto + 2 diagonais)
             const tiros = armaEquipada === 'doze' 

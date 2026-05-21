@@ -1134,7 +1134,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     ? (config.agachadoHitboxAltura ?? 16)
                     : (inimigo.alturaEmPe || config.HITBOX_ALTURA);
 
-                const estaChutando = !inimigo.ehBBInimigo && inimigo.tempoChute > 0;
+                const estaChutando = inimigo.tempoChute > 0;
                 const botaAtiva = !!(inimigo.temBota && !inimigo.botaVermelha && !inimigo.itensGuardadosNoCinto);
 
                 // Unificação da velocidade: aplica bônus quando a bota está ativa no inimigo
@@ -1215,14 +1215,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 // End of one-time initialization block
 
                 // Atualiza timers de chute
-                if (!inimigo.ehBBInimigo && inimigo.tempoChute > 0) inimigo.tempoChute--;
-                if (!inimigo.ehBBInimigo && inimigo.cooldownChute > 0) inimigo.cooldownChute--;
-                if (inimigo.ehBBInimigo) {
-                    inimigo.tempoChute = 0;
-                    inimigo.cooldownChute = 0;
-                    inimigo.framesImpulsoRestante = 0;
-                    inimigo.velocidadeDash = 0;
-                }
+                if (inimigo.tempoChute > 0) inimigo.tempoChute--;
+                if (inimigo.cooldownChute > 0) inimigo.cooldownChute--;
                 if (inimigo.cooldownTiro > 0) inimigo.cooldownTiro--;
                 if (inimigo.puloTimer > 0) inimigo.puloTimer--; // Decrementa o timer de pulo
                 if (inimigo.tempoAfastamento > 0) inimigo.tempoAfastamento--;
@@ -1882,10 +1876,30 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         const xPartida = (inimigo.direcao === 'd') ? inimigo.x + 32 : inimigo.x - config.PROJETIL_LARGURA;
                         const yPartida = inimigo.y + 12;
                         
-                        // Detecta se a arma equipada é uma "doze" (shotgun)
-                        const isDoze = inimigo.heldWeaponType === 'doze' || 
-                                      (inimigo.armaElemento && inimigo.armaElemento.src.includes('doze')) ||
-                                      (inimigo.inventario && inimigo.inventario.includes('doze'));
+                        const armaInimigo = inimigo.heldWeaponType || (inimigo.tipo === 10 ? 'doze' : 'revolver');
+                        const isDoze = armaInimigo === 'doze';
+
+                        // Obtém o caminho do sprite de muzzle flash para os inimigos
+                        const spriteFlashInimigo = (typeof window.obterSpriteItem === 'function') 
+                            ? window.obterSpriteItem('muzzle_flash', config, 'equipado') 
+                            : '../../assets/vfx/efeito_disparo.png';
+
+                        const escalaFlashInimigo = isDoze ? 1.5 : 1.0;
+                        const ajusteMuzzleDirecionalInimigo = (inimigo.direcao === 'd') ? 6 : -6;
+                        const ajusteMuzzleVerticalInimigo = -4;
+
+                        if (typeof window.criarAnimacaoImpacto2Frames === 'function') {
+                            window.criarAnimacaoImpacto2Frames({
+                                x: ((inimigo.direcao === 'd') ? inimigo.x + 32 + (config.muzzleFlashOffsetX ?? 8) : inimigo.x - (config.muzzleFlashOffsetX ?? 8)) + ajusteMuzzleDirecionalInimigo,
+                                y: inimigo.y + 12 + (config.muzzleFlashOffsetY ?? 0) + ajusteMuzzleVerticalInimigo,
+                                largura: (config.muzzleFlashWidth ?? 32) * escalaFlashInimigo,
+                                altura: (config.muzzleFlashHeight ?? 32) * escalaFlashInimigo,
+                                flipX: inimigo.direcao !== 'd',
+                                frameDurationMs: 40,
+                                opacidade: 0.6,
+                                frames: [spriteFlashInimigo, 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', spriteFlashInimigo]
+                            });
+                        }
 
                         const tiros = isDoze 
                             ? [

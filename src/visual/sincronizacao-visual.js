@@ -157,6 +157,7 @@ window.sincronizarAcessoriosEntidade = function(entidade, elementos, opcoes = {}
 
         // Aplicação de regras específicas de offset e transform
         if (chave === 'coleteElemento') posY += offsetYAgachado;
+        if (chave === 'bbCabecaElemento') posY += offsetYAgachado;
         if (chave === 'jetFogoElemento' && opcoes.offsetYFogo !== undefined) posY += opcoes.offsetYFogo;
         
         // Se houver uma string de transform específica (ex: recuo de arma)
