@@ -17,6 +17,7 @@ window.aplicarEfeitosSkills = () => {
     controle.distanciaDash = 0;
     controle.janelaDuploToqueDash = 250;
     controle.temGarraPuxo = false;
+    controle.temGarra2 = false;
 
     const itensGuardadosNoCinto = !!controle.itensGuardadosNoCinto;
     const totalEquipamentosSemBota = [
@@ -84,9 +85,14 @@ window.aplicarEfeitosSkills = () => {
                 // Habilita o controle manual do cão aliado (Lógica processada no movimento.js)
                 break;
 
-            case skills.GARRA2:
+            case skills.GARRA:
                 // Libera a tração avançada da garra (passagem estreita e estado de puxo).
                 controle.temGarraPuxo = true;
+                break;
+
+            case skills.GARRA2:
+                // Habilita a funcionalidade de carga da Garra 2
+                controle.temGarra2 = true;
                 break;
         }
     });

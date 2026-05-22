@@ -43,6 +43,7 @@ window.SKILLS = Object.freeze({
     PRECISAO: 'Precisão',
     SUPERDASH: 'SuperDash',
     ADESTRAMENTO: 'Adestramento',
+    GARRA: 'Garra',
     GARRA2: 'Garra 2'
 });
 window.temSkill = (nomeSkill) => Array.isArray(window.playerSkills) && window.playerSkills.includes(String(nomeSkill || ''));
@@ -198,6 +199,7 @@ function normalizarSkillsAdquiridas(acquired = [], skillsNormalizadas = {}, skil
     if (!Array.isArray(acquired)) return [];
 
     const nomesValidos = new Set(Object.keys(skillsNormalizadas));
+    const acquiredNormalizado = acquired.map((skill) => String(skill || '')).filter(Boolean);
     const idParaNome = Object.entries(skillsOriginais).reduce((acc, [id, skill]) => {
         if (skill && typeof skill === 'object' && skill.nome) {
             acc[id] = String(skill.nome);
@@ -205,8 +207,12 @@ function normalizarSkillsAdquiridas(acquired = [], skillsNormalizadas = {}, skil
         return acc;
     }, {});
 
-    return [...new Set(acquired
-        .map((skill) => idParaNome[skill] || skill)
+    return [...new Set(acquiredNormalizado
+        .map((skill) => {
+            const convertido = idParaNome[skill] || skill;
+            if (convertido === 'Garra de Resgate BB') return 'Garra 2';
+            return convertido;
+        })
         .filter((skill) => nomesValidos.size === 0 || nomesValidos.has(skill)))];
 }
 
@@ -236,7 +242,7 @@ window.ganharXP = (quantidade = 1) => {
 window.carregarDadosSkills = async (forçarReset = false) => {
     try {
 
-        const resposta = await fetch('../../config/skills-dados.json?v=20260417-dash-skill');
+        const resposta = await fetch('../../config/skills-dados.json?v=20260522-skill-garra-rename');
         const dados = await resposta.json();
         const skillsOriginais = dados.skills || {};
         const skillsNormalizadas = normalizarEstruturaSkills(skillsOriginais);

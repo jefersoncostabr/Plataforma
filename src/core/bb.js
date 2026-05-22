@@ -405,106 +405,6 @@
         return true;
     }
 
-    function iniciarResgateBBPelaGarra(bb, controle, config, opcoes = {}) {
-        if (!bb || bb.estaMorto || bb.estaMorrendo) return false;
-        return iniciarAnimacaoAberturaBB(bb, config, {
-            controle,
-            x: opcoes.x,
-            y: opcoes.y,
-            direcao: opcoes.direcao
-        });
-    }
-
-    function removerInimigoParaResgateBB(inimigo) {
-        if (!inimigo) return;
-
-        if (Array.isArray(window.inimigos)) {
-            const idx = window.inimigos.indexOf(inimigo);
-            if (idx >= 0) {
-                window.inimigos.splice(idx, 1);
-            }
-        }
-
-        const elementos = [
-            inimigo.elemento,
-            inimigo.armaElemento,
-            inimigo.escudoElemento,
-            inimigo.botaElemento,
-            inimigo.jetpackElemento,
-            inimigo.garraElemento,
-            inimigo.cintoElemento,
-            inimigo.coleteElemento,
-            inimigo.jetFogoElemento,
-            inimigo.bbCabecaElemento,
-            inimigo.bateriaElemento,
-            inimigo.vfxEletricidadeElemento
-        ];
-
-        elementos.forEach((el) => {
-            if (el && typeof el.remove === 'function') {
-                el.remove();
-            }
-        });
-    }
-
-    function iniciarResgateBBPeloInimigo(inimigo, controle, config, opcoes = {}) {
-        if (!inimigo || inimigo.estaMorto || inimigo.estaMorrendo) return false;
-
-        const posX = Number(inimigo.x || 0);
-        const posY = Number(inimigo.y || 0);
-        const cfg = config || window.config || {};
-
-        removerInimigoParaResgateBB(inimigo);
-
-        if (typeof window.criarRoboAbertoInterativo === 'function') {
-            window.criarRoboAbertoInterativo(posX, posY, {
-                origem: 'resgate-garra-bb',
-                imagemPath: cfg.spriteAberturaPlayerFinal || '../../assets/personagem/per_aberto.png'
-            });
-        }
-
-        if (!window.bbEntidade || !window.bbEntidade.elemento) {
-            if (typeof window.inicializarBB === 'function') {
-                window.inicializarBB(posX, posY, cfg);
-            }
-        }
-
-        const bb = window.bbEntidade;
-        if (!bb) return false;
-
-        bb.x = posX;
-        bb.y = posY;
-        bb.direcao = (controle?.direcao === 'e') ? 'e' : 'd';
-        if (bb.elemento) {
-            bb.elemento.style.left = bb.x + 'px';
-            bb.elemento.style.bottom = bb.y + 'px';
-            bb.elemento.style.display = 'block';
-            bb.elemento.src = bb.spriteParado || cfg.spriteBB || '../../assets/personagem/bb/bb-parado.png';
-        }
-
-        bb.emAnimacaoAbertura = false;
-        bb.sendoPuxadoPelaGarra = false;
-        bb.framesAnimacaoAbertura = 0;
-        bb.spriteAberturaAtual = '';
-        bb.garraControle = null;
-        bb.garraPontoInicial = null;
-        bb.garraDirecao = 1;
-        bb.stunned = false;
-        bb.stunTimer = 0;
-        bb.movendoHorizontal = false;
-        bb.velocidadeY = 0;
-        bb.interagindo = false;
-
-        if (bb.corpoRoboAbertoElemento) {
-            bb.corpoRoboAbertoElemento.remove();
-            bb.corpoRoboAbertoElemento = null;
-        }
-
-        window.controlandoBB = false;
-        window.AudioManager?.playSFX('engrenagem', 0.5);
-
-        return true;
-    }
 
     function atualizarAnimacaoAberturaBB(bb, config) {
         if (!bb?.emAnimacaoAbertura) return false;
@@ -604,8 +504,6 @@
         return true;
     }
 
-    window.iniciarResgateBBPelaGarra = iniciarResgateBBPelaGarra;
-    window.iniciarResgateBBPeloInimigo = iniciarResgateBBPeloInimigo;
 
     function bbAbrirInimigoPreso(bb, inimigo, config, teclas) {
         if (!bb || !inimigo || inimigo.emAberturaPorBB || inimigo.estaMorto || inimigo.estaMorrendo) {
@@ -982,6 +880,25 @@
             // Gravidade e física vertical
             if (typeof window.aplicarFisica === 'function') {
                 window.aplicarFisica(bb, teclasParaFisica, forcaPuloBase, gravidade, 30);
+            }
+
+            if (Number(bb.framesKnockbackRestante || 0) > 0 && Number(bb.velocidadeKnockback || 0) !== 0) {
+                bb.movendoHorizontal = true;
+                bb.direcao = bb.velocidadeKnockback < 0 ? 'e' : 'd';
+
+                if (typeof window.aplicarDeslocamentoHorizontalComColisaoPadrao === 'function') {
+                    window.aplicarDeslocamentoHorizontalComColisaoPadrao(bb, bb.velocidadeKnockback, window.plataformas, {
+                        maxPasso: 1,
+                        cancelarKnockbackAoColidir: true
+                    });
+                } else {
+                    bb.x += bb.velocidadeKnockback;
+                }
+
+                bb.framesKnockbackRestante = Math.max(0, Number(bb.framesKnockbackRestante || 0) - 1);
+                if (bb.framesKnockbackRestante <= 0) {
+                    bb.velocidadeKnockback = 0;
+                }
             }
 
             // Colisão vertical

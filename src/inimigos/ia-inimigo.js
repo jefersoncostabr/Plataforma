@@ -1632,12 +1632,17 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 }
 
                 // Aplica knockback se estiver ativo
+                // Garra 2: Se o inimigo estiver especificamente preso pelo choque da garra, o timer de stun não diminui.
+                const sendoEletrocutadoPeloPlayer = !!(window.playerControle?.garra2Ativa && inimigo.stunned && inimigo.presoPorGarra2);
+
+                if (inimigo.stunTimer > 0 && !sendoEletrocutadoPeloPlayer) {
+                    inimigo.stunTimer--;
+                }
+
                 if (inimigo.framesKnockbackRestante > 0) {
                     window.aplicarDeslocamentoHorizontalComColisaoPadrao(inimigo, inimigo.velocidadeKnockback, window.plataformas, { config, maxPasso: config.inimigoKnockbackPassoMax ?? 1, cancelarKnockbackAoColidir: true });
                     inimigo.framesKnockbackRestante--;
                 }
-                // Decrementa o timer de stun
-                if (inimigo.stunTimer > 0) inimigo.stunTimer--;
 
                 let iaBloqueadaPorStun = false;
 
@@ -1645,8 +1650,20 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 if (inimigo.stunned) {
                     if (inimigo.stunTimer <= 0) {
                         inimigo.stunned = false; // Fim do stun
+                        inimigo.elemento.style.filter = 'none';
+                        inimigo.elemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
                     } else {
                         iaBloqueadaPorStun = true;
+
+                        // Animação de Choque (VFX no inimigo) enquanto a Garra 2 o segura
+                        if (sendoEletrocutadoPeloPlayer) {
+                            const brilhoChoque = Math.random() > 0.5 ? 'brightness(4) saturate(10) hue-rotate(180deg)' : 'brightness(1.5) contrast(2)';
+                            const tremorX = (Math.random() * 4) - 2;
+                            const tremorY = (Math.random() * 4) - 2;
+                            inimigo.elemento.style.filter = brilhoChoque;
+                            inimigo.elemento.style.transform = (inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)') + ` translate(${tremorX}px, ${tremorY}px)`;
+                        }
+
                         if (inimigo.ehBBInimigo && inimigo.elemento) {
                             inimigo.elemento.src = config.spriteBB || '../../assets/personagem/bb/bb-parado.png';
                         }
@@ -1879,7 +1896,10 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     }
                 } else if (typeof aplicarFisica === 'function') {
                     const inimigoTeclasParaFisica = { ' ': window.debugInimigoTeclas && window.debugInimigoTeclas[' '] };
-                    aplicarFisica(inimigo, inimigoTeclasParaFisica, forcaPuloInimigo, gravidadeInimigoAtual, config.inimigoPuloCooldown || 0);
+                    // Se estiver sendo eletrocutado, ignora a física/gravidade para não cair da garra
+                    if (!sendoEletrocutadoPeloPlayer) {
+                        aplicarFisica(inimigo, inimigoTeclasParaFisica, forcaPuloInimigo, gravidadeInimigoAtual, config.inimigoPuloCooldown || 0);
+                    }
                 }
 
                 // Colisão Vertical constante para garantir que o inimigo pule e caia corretamente

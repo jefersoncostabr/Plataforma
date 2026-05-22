@@ -13,6 +13,8 @@
 - **Interagir / Construir (Crafting)**: `E` (Agachado para construir)
 - **Sinalizador (AirDrop)**: `U` ou `W + I` (Consome habilidade)
 - **Abrir/Fechar Armadura**: `Y` (Ejeta o BB ou entra no casco)
+- **Troca de pet: Q
+- **Carregamendo: T
 
 ## Aliados (Cão e Gato)
 *Para assumir o controle: Agache-se e encoste no pet, então pressione `Q`.*

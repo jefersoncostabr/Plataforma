@@ -374,26 +374,23 @@
                         };
 
                         if (detectarColisaoHitbox(hitboxGarra, hitboxInimigo, 0, 0, 0)) {
-                            if (window.temSkill?.(window.SKILLS?.BB_GRAPPLE)
-                                && typeof window.iniciarResgateBBPeloInimigo === 'function'
-                                && window.iniciarResgateBBPeloInimigo(inimigo, controle, config, {
-                                    x: hitboxInimigo.x,
-                                    y: hitboxInimigo.y,
-                                    direcao: dirX
-                                })) {
-                                controle.garraAnimEstado = 'voltando';
-                                garraElemento.src = window.obterSpriteItem('garra_catching', config);
-                                grabbedSomething = true;
-                                break;
-                            }
-
                             controle.garraItemCarregado = inimigo;
                             inimigo.stunned = true;
                             inimigo.stunTimer = Number(config.garraStunDuration ?? 180);
-                            inimigo.garraAnimEstado = 'idle';
                             inimigo.foiAtingidoNesteChute = false;
-                            window.inimigos.splice(j, 1);
-                            controle.garraAnimEstado = 'voltando';
+
+                            if (controle.garra2Ativa) {
+                                // Garra 2: Segura e choca. NÃO remove da lista global para a IA processar o stun visual.
+                                controle.garraAnimEstado = 'catching';
+                                controle.garraTimer = 18;
+                                inimigo.presoPorGarra2 = true;
+                            } else {
+                                // Caminho normal: remove do mundo para puxar e chutar
+                                inimigo.garraAnimEstado = 'idle';
+                                window.inimigos.splice(j, 1);
+                                controle.garraAnimEstado = 'voltando';
+                            }
+
                             garraElemento.src = window.obterSpriteItem('garra_catching', config);
                             grabbedSomething = true;
                             break;
@@ -495,10 +492,49 @@
                 }
             }
             else if (controle.garraAnimEstado === 'catching') {
-                controle.garraTimer--;
-                if (controle.garraTimer <= 0) {
+                // Se for Garra 2 e estiver segurando um inimigo, congela o timer e sincroniza posição
+                if (controle.garra2Ativa && controle.garraItemCarregado && controle.garraItemCarregado.presoPorGarra2) {
+                    controle.garraTimer = 18; 
+                    
+                    const inimigo = controle.garraItemCarregado;
+                    if (inimigo && inimigo.elemento) {
+                        const dirX = controle.garraDirecaoAnim === 'd' ? 1 : -1;
+                        const tipX = controle.x + (controle.garraDist * dirX);
+                        
+                        // Sincroniza posição do inimigo com a ponta da garra enquanto o player estiver chocando
+                        inimigo.x = tipX - (inimigo.offsetX || 0);
+                        inimigo.y = controle.y;
+                        inimigo.velocidadeY = 0;
+                        inimigo.elemento.style.left = inimigo.x + 'px';
+                        inimigo.elemento.style.bottom = inimigo.y + 'px';
+                        
+                        // Garante que o inimigo continue atordoado enquanto o botão é segurado
+                        inimigo.stunned = true;
+                        if (inimigo.stunTimer < 10) inimigo.stunTimer = 20;
+
+                        if (typeof window.sincronizarAcessoriosEntidade === 'function') {
+                            window.sincronizarAcessoriosEntidade(inimigo, {
+                                armaElemento: inimigo.armaElemento,
+                                escudoElemento: inimigo.escudoElemento,
+                                botaElemento: inimigo.botaElemento,
+                                jetpackElemento: inimigo.jetpackElemento,
+                                garraElemento: inimigo.garraElemento,
+                                cintoElemento: inimigo.cintoElemento,
+                                coleteElemento: inimigo.coleteElemento
+                            }, { forçarSincroniaGarra: true });
+                        }
+                    }
+                } else {
+                    controle.garraTimer--;
+                    if (controle.garraTimer <= 0) {
+                        // Ao soltar o choque da Garra 2, solta o inimigo no lugar e volta a garra vazia
+                        if (controle.garraItemCarregado && controle.garraItemCarregado.presoPorGarra2) {
+                            controle.garraItemCarregado.presoPorGarra2 = false;
+                            controle.garraItemCarregado = null; 
+                        }
                     limparEstadoPuxoGarra();
                     controle.garraAnimEstado = 'voltando';
+                    }
                 }
             }
             else if (controle.garraAnimEstado === 'voltando') {

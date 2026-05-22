@@ -1241,6 +1241,12 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         atualizarEstadoChuteCorpoACorpo();
 
         controle.carregando = acaoAtiva('carregando');
+        controle.garra2Ativa = !!(controle.temGarra2 && acaoAtiva('garra') && !controle.stunned && !controle.estaMorrendo);
+        
+        if (controle.garra2Ativa) {
+            // Log para confirmar que a Garra 2 está tentando manter a extensão
+            console.log("[GARRA 2] Segurando carga elétrica. Puxo e chute bloqueados.");
+        }
 
         controle.movendoHorizontal = false;
         const xAnterior = controle.x;

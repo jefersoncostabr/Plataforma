@@ -19,7 +19,12 @@ function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spri
         : Date.now();
     const eletricidadeTemporariaAtiva = Number(controle.eletricidadeTemporariaAte || 0) > agoraMs;
     controle.eletricidadeTemporariaAtiva = eletricidadeTemporariaAtiva;
-    const vfxEletricidadeAtivo = !!controle.carregando || eletricidadeTemporariaAtiva;
+    const vfxEletricidadeAtivo = !!controle.carregando || eletricidadeTemporariaAtiva || !!controle.garra2Ativa;
+
+    // Console de debug para verificar o estado da Garra 2 e do efeito visual
+    if (controle.garra2Ativa) {
+        console.log("[DEBUG CHOQUE] Garra 2 detectada. VFX Ativo:", vfxEletricidadeAtivo, "| Elemento no DOM:", !!controle.vfxEletricidadeElemento);
+    }
 
     // 1. Inicialização de contadores e estado de ociosidade
     if (controle._idle2sAtivo == null) {
