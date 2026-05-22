@@ -274,7 +274,7 @@ body {
 .menu-difficulty-options {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 }
 
 .menu-difficulty-option {
@@ -318,6 +318,93 @@ body {
 .menu-difficulty-option span {
     flex: 1;
     letter-spacing: 0.3px;
+}
+
+.menu-slot-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    text-align: left;
+    padding: 5px 8px;
+}
+
+.menu-slot-option--occupied {
+    border-color: rgba(89, 219, 160, 0.6);
+    background: linear-gradient(90deg, rgba(31, 95, 67, 0.45) 0%, rgba(255, 255, 255, 0.08) 100%);
+}
+
+.menu-slot-option--in-use {
+    border-color: rgba(121, 255, 182, 0.95);
+    box-shadow:
+        inset 0 0 0 1px rgba(121, 255, 182, 0.35),
+        0 0 12px rgba(56, 181, 113, 0.28);
+}
+
+.menu-slot-option--active {
+    border-color: rgba(255, 255, 255, 0.72);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.menu-slot-option--in-use.menu-slot-option--active {
+    border-color: rgba(188, 255, 220, 1);
+    box-shadow:
+        inset 0 0 0 1px rgba(188, 255, 220, 0.55),
+        0 0 14px rgba(56, 181, 113, 0.36);
+}
+
+.menu-slot-name {
+    flex: 0 0 auto;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+}
+
+.menu-slot-badge {
+    flex: 0 0 auto;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+    color: #0f2419;
+    background: #d2d2d2;
+    border-radius: 999px;
+    padding: 1px 5px;
+}
+
+.menu-slot-option--occupied .menu-slot-badge {
+    background: #9ce4bf;
+    color: #0d3020;
+}
+
+.menu-slot-option--in-use .menu-slot-badge {
+    background: #7effb5;
+    color: #07301e;
+}
+
+.menu-slot-status {
+    flex: 1;
+    font-size: 9px;
+    opacity: 0.88;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.menu-slot-delete-btn {
+    border: 1px solid rgba(255, 120, 120, 0.65);
+    background: rgba(190, 48, 48, 0.2);
+    color: #ffd6d6;
+    border-radius: 999px;
+    padding: 1px 6px;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+}
+
+.menu-slot-delete-btn:hover {
+    background: rgba(227, 74, 74, 0.4);
+    border-color: rgba(255, 170, 170, 0.95);
 }
 
 .menu-volume-panel {

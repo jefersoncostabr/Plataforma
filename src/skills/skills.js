@@ -50,9 +50,23 @@ const SKILLS_STORAGE_KEY = 'plataformaSkills';
 window.salvarProgressoSkills = salvarProgressoSkills;
 window.carregarProgressoSkillsSalvo = carregarProgressoSkillsSalvo;
 
+function obterSlotAtivoId() {
+    if (window.SaveSlots && typeof window.SaveSlots.getActiveSlotId === 'function') {
+        return window.SaveSlots.getActiveSlotId();
+    }
+    return 'slot1';
+}
+
+function obterChaveSkillsStorage() {
+    if (window.SaveSlots && typeof window.SaveSlots.getStorageKey === 'function') {
+        return window.SaveSlots.getStorageKey(SKILLS_STORAGE_KEY, obterSlotAtivoId());
+    }
+    return SKILLS_STORAGE_KEY;
+}
+
 function carregarProgressoSkillsSalvo() {
     try {
-        const raw = localStorage.getItem(SKILLS_STORAGE_KEY);
+        const raw = localStorage.getItem(obterChaveSkillsStorage());
         if (raw) {
             const parsed = JSON.parse(raw);
 
@@ -109,8 +123,14 @@ function salvarProgressoSkills() {
 
         if (!estadoPersistencia.permite) {
 
-            localStorage.removeItem(SKILLS_STORAGE_KEY);
+            localStorage.removeItem(obterChaveSkillsStorage());
             return false;
+        }
+
+        const slotId = obterSlotAtivoId();
+        let slotDifficulty = String(window.gameDifficulty || 'normal').toLowerCase();
+        if (window.SaveSlots && typeof window.SaveSlots.getSlotDifficulty === 'function') {
+            slotDifficulty = window.SaveSlots.getSlotDifficulty(slotId);
         }
 
         const estado = {
@@ -119,11 +139,16 @@ function salvarProgressoSkills() {
             acquired: [...new Set((Array.isArray(window.playerSkills) ? window.playerSkills : [])
                 .map((skill) => String(skill || ''))
                 .filter(Boolean))],
+            slotDifficulty,
             salvoEm: Date.now()
         };
 
+        if (window.SaveSlots && typeof window.SaveSlots.setSlotDifficulty === 'function') {
+            window.SaveSlots.setSlotDifficulty(slotId, slotDifficulty);
+        }
 
-        localStorage.setItem(SKILLS_STORAGE_KEY, JSON.stringify(estado)); // This is a valid debug log, keeping it.
+
+        localStorage.setItem(obterChaveSkillsStorage(), JSON.stringify(estado)); // This is a valid debug log, keeping it.
         return true;
     } catch (error) {
         // console.error('[SKILL SAVE] ✗ Falha ao salvar progresso:', error);
@@ -221,6 +246,10 @@ window.carregarDadosSkills = async (forçarReset = false) => {
 
         if (!forçarReset && progressoSalvo && typeof progressoSalvo === 'object') { // This is a valid debug log, keeping it.
 
+            if (progressoSalvo.slotDifficulty) {
+                window.gameDifficulty = String(progressoSalvo.slotDifficulty).toLowerCase();
+            }
+
             window.playerXP = Number(progressoSalvo.playerXP ?? progressoSalvo.xp ?? 0);
             window.skillPoints = Number(progressoSalvo.skillPoints ?? 0);
             window.playerSkills = normalizarSkillsAdquiridas(
@@ -228,16 +257,12 @@ window.carregarDadosSkills = async (forçarReset = false) => {
                 skillsNormalizadas,
                 skillsOriginais
             ); // This is a valid debug log, keeping it.
-        } else if (forçarReset || window.playerSkills.length === 0) { // This is a valid debug log, keeping it.
-
+        } else {
+            // Se não houver progresso salvo ou se for um reset forçado, carregamos obrigatoriamente
+            // os valores iniciais do JSON de dados, garantindo que o progresso não seja compartilhado entre slots.
             window.playerXP = Number(dados.playerStats?.xp || 0);
             window.skillPoints = Number(dados.playerStats?.skillPoints || 0); // This is a valid debug log, keeping it.
             window.playerSkills = normalizarSkillsAdquiridas(dados.playerStats?.acquired || [], skillsNormalizadas, skillsOriginais);
-        } else {
-
-            window.playerXP = Number(window.playerXP || 0);
-            window.skillPoints = Number(window.skillPoints || 0);
-            window.playerSkills = normalizarSkillsAdquiridas(window.playerSkills, skillsNormalizadas, skillsOriginais);
         }
 
 

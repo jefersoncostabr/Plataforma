@@ -779,6 +779,12 @@ window.reiniciarJogo = async function(porMorte = true) {
 async function iniciarJogo() {
     window.isFirstStart = true;
 
+    if (window.SaveSlots && typeof window.SaveSlots.init === 'function') {
+        window.SaveSlots.init();
+        window.slotAtualID = window.SaveSlots.getActiveSlotId();
+        window.gameDifficulty = window.SaveSlots.getSlotDifficulty(window.slotAtualID);
+    }
+
     // Carrega configurações globais
     const respostaConfig = await fetch('../../config/configuracoes.json', { cache: 'no-store' });
     const config = await respostaConfig.json();

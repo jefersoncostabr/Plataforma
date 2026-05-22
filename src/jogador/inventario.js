@@ -21,6 +21,24 @@
         }
     };
 
+    function obterSlotAtivoId() {
+        if (window.SaveSlots && typeof window.SaveSlots.getActiveSlotId === 'function') {
+            return window.SaveSlots.getActiveSlotId();
+        }
+        return 'slot1';
+    }
+
+    function resolverChaveStorage(baseKey) {
+        if (window.SaveSlots && typeof window.SaveSlots.getStorageKey === 'function') {
+            return window.SaveSlots.getStorageKey(baseKey, obterSlotAtivoId());
+        }
+        return baseKey;
+    }
+
+    function resolverChaveRuntime() {
+        return `${INVENTARIO_RUNTIME_KEY}_${obterSlotAtivoId()}`;
+    }
+
     function normalizarConfigColete(raw = {}) {
         const base = JSON.parse(JSON.stringify(COLETE_CONFIG_PADRAO));
         const capacidade = Number(raw?.capacidade);
@@ -165,25 +183,26 @@
     }
 
     function lerEstadoInventarioDoStorage(storageKey = INVENTARIO_STORAGE_KEY) {
+        const chaveFinal = resolverChaveStorage(storageKey);
         try {
-            const raw = localStorage.getItem(storageKey);
+            const raw = localStorage.getItem(chaveFinal);
             if (!raw) return null;
             return JSON.parse(raw);
         } catch (error) {
-            console.error(`Erro ao ler inventário salvo (${storageKey}):`, error);
+            console.error(`Erro ao ler inventário salvo (${chaveFinal}):`, error);
             return null;
         }
     }
 
     function lerEstadoInventarioRuntime() {
-        const estado = window[INVENTARIO_RUNTIME_KEY];
+        const estado = window[resolverChaveRuntime()];
         return estado && typeof estado === 'object'
             ? JSON.parse(JSON.stringify(estado))
             : null;
     }
 
     function salvarEstadoInventarioRuntime(estado) {
-        window[INVENTARIO_RUNTIME_KEY] = estado && typeof estado === 'object'
+        window[resolverChaveRuntime()] = estado && typeof estado === 'object'
             ? JSON.parse(JSON.stringify(estado))
             : null;
         return true;
@@ -275,21 +294,22 @@
         try {
             const estado = serializarInventarioDoControle(controle);
             if (!estado) return false;
+            const chaveFinal = resolverChaveStorage(storageKey);
 
             if (storageKey === INVENTARIO_STORAGE_KEY) {
                 salvarEstadoInventarioRuntime(estado);
                 
                 // Só persiste no localStorage se as condições de "Base Instalada" forem atendidas.
                 if (podePersistirDados()) {
-                    localStorage.setItem(INVENTARIO_STORAGE_KEY, JSON.stringify(estado));
+                    localStorage.setItem(chaveFinal, JSON.stringify(estado));
                 }
                 return true;
             }
 
-            localStorage.setItem(storageKey, JSON.stringify(estado));
+            localStorage.setItem(chaveFinal, JSON.stringify(estado));
             return true;
         } catch (error) {
-            console.error(`Erro ao salvar inventário (${storageKey}):`, error);
+            console.error(`Erro ao salvar inventário (${resolverChaveStorage(storageKey)}):`, error);
             return false;
         }
     }
@@ -308,7 +328,7 @@
                 nivelBase: Number(extras?.nivelBase || 0)
             };
 
-            localStorage.setItem(CHECKPOINT_EQUIPAMENTO_STORAGE_KEY, JSON.stringify(estado));
+            localStorage.setItem(resolverChaveStorage(CHECKPOINT_EQUIPAMENTO_STORAGE_KEY), JSON.stringify(estado));
             return {
                 ok: true,
                 motivo: 'Equipamento salvo nesta base. O personagem renascerá com esse loadout.'
@@ -323,7 +343,7 @@
         if (!baseComPersistenciaAtiva()) {
             salvarEstadoInventarioRuntime(null);
             try {
-                localStorage.removeItem(INVENTARIO_STORAGE_KEY);
+                localStorage.removeItem(resolverChaveStorage(INVENTARIO_STORAGE_KEY));
             } catch (_) {}
             return false;
         }
@@ -332,7 +352,7 @@
         if (!checkpoint) {
             salvarEstadoInventarioRuntime(null);
             try {
-                localStorage.removeItem(INVENTARIO_STORAGE_KEY);
+                localStorage.removeItem(resolverChaveStorage(INVENTARIO_STORAGE_KEY));
             } catch (_) {}
             return false;
         }
@@ -346,7 +366,7 @@
             };
 
             salvarEstadoInventarioRuntime(estado);
-            localStorage.removeItem(INVENTARIO_STORAGE_KEY);
+            localStorage.removeItem(resolverChaveStorage(INVENTARIO_STORAGE_KEY));
             return true;
         } catch (error) {
             console.error('Erro ao aplicar checkpoint de equipamento:', error);
@@ -355,13 +375,12 @@
     }
 
     function limparInventarioSalvo() {
-        window[INVENTARIO_RUNTIME_KEY] = null;
-        localStorage.removeItem(INVENTARIO_RUNTIME_KEY); // Limpeza extra de segurança
-        localStorage.removeItem(INVENTARIO_STORAGE_KEY);
+        window[resolverChaveRuntime()] = null;
+        localStorage.removeItem(resolverChaveStorage(INVENTARIO_STORAGE_KEY));
     }
 
     function limparCheckpointEquipamentoSalvo() {
-        localStorage.removeItem(CHECKPOINT_EQUIPAMENTO_STORAGE_KEY);
+        localStorage.removeItem(resolverChaveStorage(CHECKPOINT_EQUIPAMENTO_STORAGE_KEY));
     }
 
     function aplicarInventarioSalvoNoControle(controle, inventarioSalvo = carregarInventarioSalvo()) {

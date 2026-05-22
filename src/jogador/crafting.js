@@ -11,6 +11,20 @@
         4: '../../assets/craft/craft_nivel3.png'
     };
 
+    function obterSlotAtivoId() {
+        if (window.SaveSlots && typeof window.SaveSlots.getActiveSlotId === 'function') {
+            return window.SaveSlots.getActiveSlotId();
+        }
+        return 'slot1';
+    }
+
+    function resolverChaveStorage(baseKey) {
+        if (window.SaveSlots && typeof window.SaveSlots.getStorageKey === 'function') {
+            return window.SaveSlots.getStorageKey(baseKey, obterSlotAtivoId());
+        }
+        return baseKey;
+    }
+
     function normalizarModoRenascimento(valor) {
         const modo = String(valor || '').trim().toLowerCase();
         return MODOS_RENASCIMENTO_VALIDOS.has(modo) ? modo : null;
@@ -31,7 +45,7 @@
 
     function lerCraftPersistidoStorage() {
         try {
-            const raw = localStorage.getItem(CRAFT_PERSISTENCE_KEY);
+            const raw = localStorage.getItem(resolverChaveStorage(CRAFT_PERSISTENCE_KEY));
             return raw ? JSON.parse(raw) : null;
         } catch (error) {
             console.warn('Craft: falha ao ler base persistida.', error);
@@ -152,7 +166,7 @@
             };
 
             try {
-                localStorage.setItem(CRAFT_PERSISTENCE_KEY, JSON.stringify(registro));
+                localStorage.setItem(resolverChaveStorage(CRAFT_PERSISTENCE_KEY), JSON.stringify(registro));
                 return true;
             } catch (error) {
                 console.warn('Craft: falha ao salvar base persistida.', error);
@@ -162,7 +176,7 @@
 
         function limparCraftPersistido() {
             try {
-                localStorage.removeItem(CRAFT_PERSISTENCE_KEY);
+                localStorage.removeItem(resolverChaveStorage(CRAFT_PERSISTENCE_KEY));
             } catch (error) {
                 console.warn('Craft: falha ao limpar base persistida.', error);
             }
@@ -881,9 +895,9 @@
             removerTodosCrafts(true);
 
             try {
-                localStorage.removeItem(CRAFT_PERSISTENCE_KEY);
-                localStorage.removeItem('plataformaCheckpointEquipamento');
-                localStorage.removeItem('plataformaInventario');
+                localStorage.removeItem(resolverChaveStorage(CRAFT_PERSISTENCE_KEY));
+                localStorage.removeItem(resolverChaveStorage('plataformaCheckpointEquipamento'));
+                localStorage.removeItem(resolverChaveStorage('plataformaInventario'));
             } catch (_) {}
 
             if (typeof window.limparCheckpointEquipamentoSalvo === 'function') {

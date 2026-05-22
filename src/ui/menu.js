@@ -7,11 +7,141 @@ let menuSelectedIndex = -1;
 let menuMode = 'main'; // main | controls
 let controlsSelectedIndex = -1;
 let controlsBindingAction = null;
-let menuDifficultyValue = 'normal';
+let menuSelectedSlotId = null;
+const menuDraftDifficultyBySlot = {};
 
 window.gameDifficulty = window.gameDifficulty || 'normal';
 
 const MENU_VOLUME_STEP = 0.05;
+
+const DEFAULT_SLOT_IDS = ['slot1', 'slot2', 'slot3'];
+const DIFFICULTY_LEVELS = ['easy', 'normal', 'hard'];
+
+function getSlotIds() {
+    const ids = window.SaveSlots?.SLOT_IDS;
+    return Array.isArray(ids) && ids.length > 0 ? ids : DEFAULT_SLOT_IDS;
+}
+
+function normalizarSlotId(slotId) {
+    const alvo = String(slotId || '').toLowerCase();
+    return getSlotIds().includes(alvo) ? alvo : 'slot1';
+}
+
+function getStorageKeyForSlot(baseKey, slotId) {
+    const id = normalizarSlotId(slotId);
+    if (window.SaveSlots && typeof window.SaveSlots.getStorageKey === 'function') {
+        return window.SaveSlots.getStorageKey(baseKey, id);
+    }
+    return baseKey;
+}
+
+function getSlotLabel(slotId) {
+    const index = getSlotIds().indexOf(normalizarSlotId(slotId));
+    return `SLOT ${Math.max(1, index + 1)}`;
+}
+
+function formatarDificuldade(valor) {
+    const normalized = String(valor || 'normal').toLowerCase();
+    if (normalized === 'easy') return 'Easy';
+    if (normalized === 'hard') return 'Hard';
+    return 'Normal';
+}
+
+function getSlotDifficultyPersistida(slotId) {
+    const id = normalizarSlotId(slotId);
+    if (window.SaveSlots && typeof window.SaveSlots.getSlotDifficulty === 'function') {
+        return window.SaveSlots.getSlotDifficulty(id);
+    }
+    return 'normal';
+}
+
+function slotDificuldadeTravada(slotId) {
+    if (window.SaveSlots && typeof window.SaveSlots.isDifficultyLocked === 'function') {
+        return window.SaveSlots.isDifficultyLocked(normalizarSlotId(slotId));
+    }
+    return false;
+}
+
+function slotTemSave(slotId) {
+    const id = normalizarSlotId(slotId);
+    if (window.SaveSlots && typeof window.SaveSlots.isSlotOccupied === 'function') {
+        return window.SaveSlots.isSlotOccupied(id);
+    }
+    return false;
+}
+
+function inicializarDraftDificuldades() {
+    getSlotIds().forEach((slotId) => {
+        if (!slotTemSave(slotId) && !menuDraftDifficultyBySlot[slotId]) {
+            menuDraftDifficultyBySlot[slotId] = 'normal';
+        }
+    });
+}
+
+function getSlotSelecionadoMenu() {
+    inicializarDraftDificuldades();
+    if (!menuSelectedSlotId) {
+        const ativo = window.SaveSlots?.getActiveSlotId?.() || 'slot1';
+        menuSelectedSlotId = normalizarSlotId(ativo);
+    }
+    return menuSelectedSlotId;
+}
+
+function getDificuldadeDraftSlot(slotId) {
+    const id = normalizarSlotId(slotId);
+    if (!menuDraftDifficultyBySlot[id]) {
+        menuDraftDifficultyBySlot[id] = 'normal';
+    }
+    return menuDraftDifficultyBySlot[id];
+}
+
+function alternarDificuldadeDraftSlot(slotId, direcao = 1) {
+    const id = normalizarSlotId(slotId);
+    const atual = getDificuldadeDraftSlot(id);
+    const indiceAtual = Math.max(0, DIFFICULTY_LEVELS.indexOf(atual));
+    const proximoIndice = (indiceAtual + (direcao >= 0 ? 1 : -1) + DIFFICULTY_LEVELS.length) % DIFFICULTY_LEVELS.length;
+    const proxima = DIFFICULTY_LEVELS[proximoIndice];
+    menuDraftDifficultyBySlot[id] = proxima;
+    return proxima;
+}
+
+function selecionarSlotMenu(slotId, opcoes = {}) {
+    const id = normalizarSlotId(slotId);
+    const ciclarSeVazio = !!opcoes.ciclarSeVazio;
+    const direcao = Number(opcoes.direcao || 1);
+
+    menuSelectedSlotId = id;
+    if (window.SaveSlots && typeof window.SaveSlots.setActiveSlotId === 'function') {
+        window.SaveSlots.setActiveSlotId(id);
+    }
+
+    const slotOcupado = slotTemSave(id);
+    if (window.isFirstStart && ciclarSeVazio && !slotOcupado && !slotDificuldadeTravada(id)) {
+        window.gameDifficulty = alternarDificuldadeDraftSlot(id, direcao);
+        return;
+    }
+
+    window.gameDifficulty = slotOcupado ? getSlotDifficultyPersistida(id) : getDificuldadeDraftSlot(id);
+}
+
+function excluirSaveDoSlot(slotId) {
+    const id = normalizarSlotId(slotId);
+    if (!slotTemSave(id)) return;
+
+    const confirmar = confirm(`Excluir o save do ${getSlotLabel(id)}? Esta acao nao pode ser desfeita.`);
+    if (!confirmar) return;
+
+    if (window.SaveSlots && typeof window.SaveSlots.clearSlot === 'function') {
+        window.SaveSlots.clearSlot(id);
+    }
+
+    menuDraftDifficultyBySlot[id] = 'normal';
+    if (menuSelectedSlotId === id) {
+        window.gameDifficulty = getDificuldadeDraftSlot(id);
+    }
+
+    renderMenuUI();
+}
 
 const CONTROLES_STORAGE_KEY = 'plataformaControles';
 const CONTROLES_PADRAO = {
@@ -120,9 +250,10 @@ const EQUIPAMENTOS_RESUMO = [
     { tipo: 'colete', label: 'Colete', configKey: 'spriteItemColete', fallback: 'assets/personagem/colete_coletavel.png' }
 ];
 
-function lerJsonStorage(chave) {
+function lerJsonStorage(chave, slotId = null) {
+    const chaveFinal = slotId ? getStorageKeyForSlot(chave, slotId) : chave;
     try {
-        const valor = localStorage.getItem(chave);
+        const valor = localStorage.getItem(chaveFinal);
         return valor ? JSON.parse(valor) : null;
     } catch (_) {
         return null;
@@ -191,10 +322,10 @@ function criarChipResumo(texto, cor = '#3a3a3a', corTexto = '#fff') {
     return chip;
 }
 
-function criarPainelResumoSalvo() {
-    const inventarioSalvo = lerJsonStorage('plataformaCheckpointEquipamento') || {};
-    const baseSalva = lerJsonStorage('plataformaCraftPersistente') || {};
-    const skillsSalvas = lerJsonStorage('plataformaSkills') || {};
+function criarPainelResumoSalvo(slotId = getSlotSelecionadoMenu()) {
+    const inventarioSalvo = lerJsonStorage('plataformaCheckpointEquipamento', slotId) || {};
+    const baseSalva = lerJsonStorage('plataformaCraftPersistente', slotId) || {};
+    const skillsSalvas = lerJsonStorage('plataformaSkills', slotId) || {};
     const equipamentos = extrairEquipamentosConquistados(inventarioSalvo);
     const qtdSkills = Array.isArray(skillsSalvas?.acquired)
         ? new Set(skillsSalvas.acquired.map((item) => String(item || ''))).size
@@ -204,6 +335,10 @@ function criarPainelResumoSalvo() {
     const xp = Number(skillsSalvas?.playerXP ?? skillsSalvas?.xp ?? 0);
     const modoBase = String(baseSalva?.modoRenascimento || '').toLowerCase();
     const nivelBase = Math.max(0, Number(baseSalva?.nivel || 0));
+    const slotOcupado = slotTemSave(slotId);
+    const dificuldade = slotTemSave(slotId)
+        ? getSlotDifficultyPersistida(slotId)
+        : getDificuldadeDraftSlot(slotId);
 
     const painel = document.createElement('div');
     painel.style.width = '188px';
@@ -217,13 +352,35 @@ function criarPainelResumoSalvo() {
     painel.style.flexDirection = 'column';
     painel.style.gap = '8px';
 
+    const tituloWrap = document.createElement('div');
+    tituloWrap.style.display = 'flex';
+    tituloWrap.style.alignItems = 'center';
+    tituloWrap.style.justifyContent = 'space-between';
+    tituloWrap.style.gap = '8px';
+
     const titulo = document.createElement('div');
-    titulo.textContent = 'SALVO';
+    titulo.textContent = `${getSlotLabel(slotId)} ${slotOcupado ? 'SALVO' : 'NOVO'}`;
     titulo.style.fontSize = '11px';
     titulo.style.fontWeight = '800';
     titulo.style.letterSpacing = '2px';
     titulo.style.opacity = '0.9';
-    painel.appendChild(titulo);
+    tituloWrap.appendChild(titulo);
+
+    if (slotOcupado) {
+        const excluirBtn = document.createElement('button');
+        excluirBtn.type = 'button';
+        excluirBtn.className = 'menu-slot-delete-btn';
+        excluirBtn.textContent = 'EXCLUIR';
+        excluirBtn.title = `Excluir save do ${getSlotLabel(slotId)}`;
+        excluirBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            excluirSaveDoSlot(slotId);
+        };
+        tituloWrap.appendChild(excluirBtn);
+    }
+
+    painel.appendChild(tituloWrap);
 
     const equipamentosWrap = document.createElement('div');
     equipamentosWrap.style.display = 'flex';
@@ -259,9 +416,10 @@ function criarPainelResumoSalvo() {
     skillsRow.style.display = 'flex';
     skillsRow.style.flexWrap = 'wrap';
     skillsRow.style.gap = '6px';
+    skillsRow.appendChild(criarChipResumo(formatarDificuldade(dificuldade), '#37474f'));
     skillsRow.appendChild(criarChipResumo(`★ ${qtdSkills}`, '#3f51b5'));
     skillsRow.appendChild(criarChipResumo(`XP ${xp}`, '#5b2a86'));
-    if (lerJsonStorage('plataformaCheckpointEquipamento')) {
+    if (inventarioSalvo && Object.keys(inventarioSalvo).length > 0) {
         skillsRow.appendChild(criarChipResumo('CP', '#0c8b62'));
     }
     painel.appendChild(skillsRow);
@@ -312,54 +470,77 @@ function criarPainelDificuldade() {
     const painel = document.createElement('div');
     painel.className = 'menu-difficulty-panel';
 
-    const titulo = document.createElement('div');
-    titulo.className = 'menu-difficulty-title';
-    titulo.textContent = 'DIFICULDADE';
-    painel.appendChild(titulo);
-
     const opcoes = document.createElement('div');
     opcoes.className = 'menu-difficulty-options';
 
-    [
-        { valor: 'easy', label: 'Easy' },
-        { valor: 'normal', label: 'Normal' },
-        { valor: 'hard', label: 'Hard' }
-    ].forEach((opcao) => {
-        const label = document.createElement('label');
-        label.className = 'menu-difficulty-option menu-nav-item';
-        label.dataset.menuMode = 'main';
-        label.dataset.navType = 'difficulty';
-        label.dataset.difficultyValue = opcao.valor;
+    const slotSelecionado = getSlotSelecionadoMenu();
+    const slotAtivoPersistido = normalizarSlotId(window.SaveSlots?.getActiveSlotId?.() || slotSelecionado);
 
-        const input = document.createElement('input');
-        input.type = 'radio';
-        input.name = 'menu-difficulty';
-        input.value = opcao.valor;
-        input.checked = menuDifficultyValue === opcao.valor;
-        input.tabIndex = -1;
+    getSlotIds().forEach((slotId) => {
+        const slotOcupado = slotTemSave(slotId);
+        const slotTravado = slotDificuldadeTravada(slotId);
+        const slotEmUso = slotOcupado && slotId === slotAtivoPersistido;
+        const dificuldade = slotOcupado ? getSlotDifficultyPersistida(slotId) : getDificuldadeDraftSlot(slotId);
 
-        const texto = document.createElement('span');
-        texto.textContent = opcao.label;
+        const linha = document.createElement('div');
+        linha.className = 'menu-difficulty-option menu-slot-option';
+        if (window.isFirstStart) {
+            linha.classList.add('menu-nav-item');
+            linha.dataset.menuMode = 'main';
+            linha.dataset.navType = 'slot';
+        }
+        linha.dataset.slotId = slotId;
+        linha.dataset.slotEmpty = slotOcupado ? '0' : '1';
+        linha.dataset.slotLocked = slotTravado ? '1' : '0';
+        linha.dataset.slotDifficulty = dificuldade;
+        linha.dataset.slotStatus = slotOcupado ? 'ocupado' : 'vazio';
 
-        label.onmouseenter = () => {
-            menuSelectedIndex = getMainMenuNavItems().indexOf(label);
+        if (slotOcupado) {
+            linha.classList.add('menu-slot-option--occupied');
+        }
+        if (slotEmUso) {
+            linha.classList.add('menu-slot-option--in-use');
+        }
+
+        if (slotSelecionado === slotId) {
+            linha.classList.add('menu-slot-option--active');
+        }
+
+        const nome = document.createElement('span');
+        nome.className = 'menu-slot-name';
+        nome.textContent = getSlotLabel(slotId);
+
+        const badge = document.createElement('span');
+        badge.className = 'menu-slot-badge';
+        badge.textContent = slotEmUso ? 'EM USO' : (slotOcupado ? 'SALVO' : 'NOVO');
+
+        const status = document.createElement('span');
+        status.className = 'menu-slot-status';
+        status.textContent = formatarDificuldade(dificuldade);
+
+        linha.onmouseenter = () => {
+            if (!window.isFirstStart) return;
+            menuSelectedIndex = getMainMenuNavItems().indexOf(linha);
             updateMenuVisuals();
         };
 
-        label.onmouseleave = () => {
+        linha.onmouseleave = () => {
+            if (!window.isFirstStart) return;
             menuSelectedIndex = -1;
             updateMenuVisuals();
         };
 
-        label.onclick = () => {
-            selecionarDificuldadeMenu(opcao.valor);
-            menuSelectedIndex = getMainMenuNavItems().indexOf(label);
-            updateMenuVisuals();
+        linha.onclick = () => {
+            if (!window.isFirstStart) return;
+            selecionarSlotMenu(slotId, { ciclarSeVazio: true, direcao: 1 });
+            menuSelectedIndex = getMainMenuNavItems().indexOf(linha);
+            renderMenuUI();
         };
 
-        label.appendChild(input);
-        label.appendChild(texto);
-        opcoes.appendChild(label);
+        linha.appendChild(nome);
+        linha.appendChild(badge);
+        linha.appendChild(status);
+        opcoes.appendChild(linha);
     });
 
     painel.appendChild(opcoes);
@@ -377,20 +558,22 @@ function criarAcaoSairDoJogo() {
     };
 }
 
+function acaoVoltarParaMenuInicial() {
+    window.isFirstStart = true;
+    menuMode = 'main';
+    menuSelectedIndex = 0;
+    controlsSelectedIndex = 0;
+    controlsBindingAction = null;
+
+    const slotAtivo = window.SaveSlots?.getActiveSlotId?.() || getSlotSelecionadoMenu();
+    menuSelectedSlotId = normalizarSlotId(slotAtivo);
+    renderMenuUI();
+}
+
 /**
  * Retorna a lista de opcoes do menu, ajustando o comportamento para o inicio do jogo.
  */
 const getActiveMenuOptions = () => {
-    const temColete = !!window.playerControle?.temColete;
-    const coleleOption = temColete ? {
-        label: 'COLETE', action: () => {
-            window.togglePauseMenu();
-            if (typeof window.toggleMochilaMenu === 'function') {
-                window.toggleMochilaMenu(window.playerControle);
-            }
-        }
-    } : null;
-
     const controlesOption = {
         label: 'CONTROLES', action: () => {
             menuMode = 'controls';
@@ -421,7 +604,6 @@ const getActiveMenuOptions = () => {
                 window.toggleSkillMenu();
             }
         },
-        ...(coleleOption ? [coleleOption] : []),
         controlesOption,
         {
             label: 'TREINO', action: () => {
@@ -440,6 +622,34 @@ const getActiveMenuOptions = () => {
         return [
             {
                 label: 'INICIAR', action: async () => {
+                    const slotId = getSlotSelecionadoMenu();
+                    if (!slotId) {
+                        alert('Selecione um slot antes de iniciar.');
+                        return;
+                    }
+
+                    const slotOcupado = slotTemSave(slotId);
+                    const dificuldadeInicial = slotOcupado
+                        ? getSlotDifficultyPersistida(slotId)
+                        : getDificuldadeDraftSlot(slotId);
+
+                    if (window.SaveSlots && typeof window.SaveSlots.setActiveSlotId === 'function') {
+                        window.SaveSlots.setActiveSlotId(slotId);
+                    }
+
+                    if (window.SaveSlots && typeof window.SaveSlots.setSlotDifficulty === 'function') {
+                        window.SaveSlots.setSlotDifficulty(slotId, dificuldadeInicial);
+                    }
+
+                    window.gameDifficulty = dificuldadeInicial;
+                    if (window.SaveSlots && typeof window.SaveSlots.lockDifficultyForSlot === 'function') {
+                        window.SaveSlots.lockDifficultyForSlot(slotId);
+                    }
+
+                    if (typeof window.carregarDadosSkills === 'function') {
+                        await window.carregarDadosSkills(false);
+                    }
+
                     window.isFirstStart = false;
                     window.togglePauseMenu();
                     if (typeof window.reiniciarJogo === 'function') {
@@ -470,16 +680,6 @@ function getMainMenuNavItems() {
     return Array.from(document.querySelectorAll('#pause-menu-overlay .menu-nav-item[data-menu-mode="main"]'));
 }
 
-function selecionarDificuldadeMenu(valor) {
-    menuDifficultyValue = valor;
-    window.gameDifficulty = valor;
-
-    const radios = document.querySelectorAll('#pause-menu-overlay input[name="menu-difficulty"]');
-    radios.forEach((radio) => {
-        radio.checked = radio.value === valor;
-    });
-}
-
 function ajustarVolumeMenu(delta) {
     if (!window.AudioManager || typeof window.AudioManager.setMasterVolume !== 'function') return;
 
@@ -488,31 +688,14 @@ function ajustarVolumeMenu(delta) {
     window.AudioManager.setMasterVolume(proximoVolume);
 }
 
-function moverSelecaoDificuldade(origem, direcao) {
-    const niveis = ['easy', 'normal', 'hard'];
-    const indiceAtual = Math.max(0, niveis.indexOf(origem || menuDifficultyValue));
-    const proximoIndice = Math.max(0, Math.min(niveis.length - 1, indiceAtual + direcao));
-    const proximoValor = niveis[proximoIndice];
-
-    selecionarDificuldadeMenu(proximoValor);
-
-    const itens = getMainMenuNavItems();
-    const indiceItem = itens.findIndex((item) =>
-        item.dataset.navType === 'difficulty' && item.dataset.difficultyValue === proximoValor
-    );
-
-    if (indiceItem !== -1) {
-        menuSelectedIndex = indiceItem;
-    }
-}
-
 function ativarItemMenuPrincipal(item) {
     if (!item) return;
 
     const navType = item.dataset.navType;
 
-    if (navType === 'difficulty') {
-        selecionarDificuldadeMenu(item.dataset.difficultyValue);
+    if (navType === 'slot') {
+        selecionarSlotMenu(item.dataset.slotId, { ciclarSeVazio: true, direcao: 1 });
+        renderMenuUI();
         updateMenuVisuals();
         return;
     }
@@ -535,8 +718,14 @@ function tratarAjusteHorizontalMenuPrincipal(item, key) {
 
     if (!direcao) return false;
 
-    if (item.dataset.navType === 'difficulty') {
-        moverSelecaoDificuldade(item.dataset.difficultyValue, direcao);
+    if (item.dataset.navType === 'slot') {
+        if (!window.isFirstStart) return false;
+
+        selecionarSlotMenu(item.dataset.slotId, {
+            ciclarSeVazio: item.dataset.slotEmpty === '1' && item.dataset.slotLocked !== '1',
+            direcao
+        });
+        renderMenuUI();
         updateMenuVisuals();
         return true;
     }
@@ -558,6 +747,7 @@ window.togglePauseMenu = () => {
         window.isMenuOpen = true;
         menuMode = 'main';
         menuSelectedIndex = 0;
+        menuSelectedSlotId = window.SaveSlots?.getActiveSlotId?.() || menuSelectedSlotId;
         renderMenuUI();
         window.addEventListener('keydown', handleMenuInput);
         return;
@@ -570,6 +760,7 @@ window.togglePauseMenu = () => {
         window.isMenuOpen = true;
         menuMode = 'main';
         menuSelectedIndex = 0;
+        menuSelectedSlotId = window.SaveSlots?.getActiveSlotId?.() || menuSelectedSlotId;
         renderMenuUI();
         window.addEventListener('keydown', handleMenuInput);
         return;
@@ -584,6 +775,7 @@ window.togglePauseMenu = () => {
     if (window.isMenuOpen) {
         menuMode = 'main';
         menuSelectedIndex = 0;
+        menuSelectedSlotId = window.SaveSlots?.getActiveSlotId?.() || menuSelectedSlotId;
         controlsSelectedIndex = 0;
         controlsBindingAction = null;
         renderMenuUI();
@@ -757,18 +949,18 @@ function renderMenuUI() {
     if (!targetLayer) return;
 
     const overlay = criarElementoOverlay();
-    const closeOption = menuMode === 'main' ? getCloseMenuOption() : null;
+    const closeAction = menuMode === 'main' ? acaoVoltarParaMenuInicial : null;
     const title = criarElementoTitulo();
 
-    if (closeOption) {
+    if (closeAction) {
         const closeButton = document.createElement('button');
         closeButton.type = 'button';
         closeButton.className = 'menu-close-button menu-nav-item';
         closeButton.dataset.menuMode = 'main';
         closeButton.dataset.navType = 'close';
         closeButton.textContent = 'X';
-        closeButton.setAttribute('aria-label', 'Sair do jogo');
-        closeButton.title = 'Sair';
+        closeButton.setAttribute('aria-label', 'Voltar ao menu inicial');
+        closeButton.title = 'Menu inicial';
         closeButton.onmouseenter = () => {
             menuSelectedIndex = getMainMenuNavItems().indexOf(closeButton);
             updateMenuVisuals();
@@ -779,7 +971,7 @@ function renderMenuUI() {
         };
         closeButton.onclick = (e) => {
             e.stopPropagation();
-            closeOption.action();
+            closeAction();
         };
         overlay.appendChild(closeButton);
     }
@@ -792,6 +984,8 @@ function renderMenuUI() {
 }
 
 function renderMainMenuContent(overlay) {
+    const slotSelecionado = getSlotSelecionadoMenu();
+
     const layout = document.createElement('div');
     layout.style.display = 'flex';
     layout.style.alignItems = 'center';
@@ -844,7 +1038,7 @@ function renderMainMenuContent(overlay) {
     rightColumn.style.gap = '10px';
     rightColumn.style.width = '188px'; // Mantém a largura consistente com o painel de resumo
 
-    rightColumn.appendChild(criarPainelResumoSalvo());
+    rightColumn.appendChild(criarPainelResumoSalvo(slotSelecionado));
 
     rightColumn.appendChild(criarPainelDificuldade());
 
