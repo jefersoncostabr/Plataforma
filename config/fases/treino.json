@@ -12,10 +12,7 @@
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
-        "revolver": [
-            "b14",
-            "f1"
-        ],
+        "revolver": "f1",
         "escudo": "f4",
         "jetpack": "f10",
         "garra": "f13",
@@ -23,10 +20,7 @@
         "restauracao": "i3",
         "scrap": "i15",
         "colete": "i9",
-        "doze": [
-            "b10",
-            "f7"
-        ],
+        "doze": "f7",
         "bota": "b3"
     },
     "inimigoAleatorio": [1, 0],
@@ -38,5 +32,15 @@
     "plataformasTerraInferior": [
         "b19"
     ],
-    "inimigo_feno": ["b5"]
+    "inimigo_feno": ["b5"],
+    "inimigo_comum": ["c20"],
+    "inimigo_bb": [
+        {
+            "coord": "b9",
+            "skills": [
+                "Dash",
+                "SuperSalto"
+            ]
+        }
+    ]
 }

@@ -20,6 +20,9 @@
         const idElemento = 'pet-bb';
         const antigo = document.getElementById(idElemento);
         if (antigo) antigo.remove();
+        if (window.bbEntidade?.corpoRoboAbertoElemento) {
+            window.bbEntidade.corpoRoboAbertoElemento.remove();
+        }
 
         // Cria elemento do BB
         const img = document.createElement('img');
@@ -63,6 +66,14 @@
             cooldownTrocaCorpo: 0,
             ePressionadoAnterior: false,
             qPressionadoAnterior: false,
+            emAnimacaoAbertura: false,
+            sendoPuxadoPelaGarra: false,
+            framesAnimacaoAbertura: 0,
+            spriteAberturaAtual: '',
+            corpoRoboAbertoElemento: null,
+            garraControle: null,
+            garraDirecao: 1,
+            garraPontoInicial: null,
             spriteParado: spritePadrao,
             spriteAndando: config.spriteBBAndando || '../../assets/personagem/bb/bb-andando.png',
             spriteInteracao: config.spriteBBInteracao || '../../assets/personagem/bb/bb-interacao.png',
@@ -213,6 +224,15 @@
         const stunSaidaFrames = Math.max(12, Number(config.bbInimigoStunSaidaFrames ?? 45));
         const direcaoKnock = inimigo.direcao === 'e' ? -1 : 1;
 
+        // Força a transformação da entidade em um "Novo Bebê" (BB Inimigo Tipo 12)
+        const idTipoBB = 12;
+        const cfgBB = window.GAME_CONSTANTS?.TIPOS_INIMIGO?.[idTipoBB] || {};
+        Object.entries(cfgBB).forEach(([chave, valor]) => {
+            if (chave !== 'id') inimigo[chave] = valor;
+        });
+        inimigo.tipo = idTipoBB;
+        inimigo.temCabecaBB = true;
+
         inimigo.emAberturaPorBB = false;
         inimigo.ehBBInimigo = true;
         inimigo.presoPorPet = false;
@@ -226,10 +246,15 @@
         inimigo.estaAgachado = false;
         inimigo.contadorAnimacao = 0;
         inimigo.frameAtual = 0;
-        inimigo.altura = inimigo.alturaEmPe || Number(config.HITBOX_ALTURA || inimigo.altura || 30);
+        // Forca hitbox do BB ao sair do robo.
+        inimigo.largura = Math.max(1, Number(config.bbHitboxLargura ?? 9));
+        inimigo.altura = Math.max(1, Number(config.bbHitboxAltura ?? 15));
+        inimigo.offsetX = Number(config.bbHitboxOffsetX ?? 11);
 
         const deslocSaida = inimigo.direcao === 'e' ? -12 : 12;
         inimigo.x = Number(inimigo.x || 0) + deslocSaida;
+
+        console.log(`[BB Interaction] Entidade liberada: Novo Bebê Inimigo (Tipo ${idTipoBB}) emergiu do robô aberto.`);
 
         if (typeof window.limitarPosicaoAoPalco === 'function') {
             const ajustada = window.limitarPosicaoAoPalco(
@@ -243,7 +268,7 @@
         }
 
         if (inimigo.elemento) {
-            inimigo.elemento.src = config.spriteBBInteracao || config.spriteBB || '../../assets/personagem/bb/bb-interacao.png';
+            inimigo.elemento.src = config.spriteBB || '../../assets/personagem/bb/bb-parado.png';
             inimigo.elemento.style.left = inimigo.x + 'px';
             inimigo.elemento.style.bottom = inimigo.y + 'px';
 
@@ -264,10 +289,332 @@
         }
     }
 
+    function obterSpritesAberturaBB(config) {
+        return [
+            config.spriteAberturaPlayer1 || '../../assets/personagem/personagem_parado2.png',
+            config.spriteAberturaPlayer2 || '../../assets/personagem/per_abrindo1.png',
+            config.spriteAberturaPlayer3 || '../../assets/personagem/per_abrindo2.png',
+            config.spriteAberturaPlayerFinal || '../../assets/personagem/per_aberto.png'
+        ];
+    }
+
+    function atualizarPosicaoCorpoAbertoBB(bb) {
+        if (!bb?.corpoRoboAbertoElemento) return;
+        const xBase = bb.garraPontoInicial ? bb.garraPontoInicial.x : bb.x;
+        const yBase = bb.garraPontoInicial ? bb.garraPontoInicial.y : bb.y;
+        bb.corpoRoboAbertoElemento.style.left = xBase + 'px';
+        bb.corpoRoboAbertoElemento.style.bottom = yBase + 'px';
+    }
+
+    function finalizarResgateBB(bb, config) {
+        if (!bb) return false;
+
+        const player = window.playerControle;
+        const direcaoKnock = player && typeof player.x === 'number'
+            ? (bb.x < player.x ? -1 : 1)
+            : (bb.garraDirecao || 1);
+
+        bb.sendoPuxadoPelaGarra = false;
+        bb.emAnimacaoAbertura = false;
+        bb.framesAnimacaoAbertura = 0;
+        bb.spriteAberturaAtual = '';
+        bb.stunned = false;
+        bb.stunTimer = 0;
+        bb.garraControle = null;
+        bb.garraPontoInicial = null;
+
+        if (bb.elemento) {
+            bb.elemento.style.display = 'block';
+        }
+
+        if (typeof window.aplicarKnockback === 'function') {
+            const forca = typeof window.obterForcaKnockback === 'function'
+                ? window.obterForcaKnockback(config, 'bbKick')
+                : Number(config?.bbKickKnockbackForce ?? config?.knockbackInimigo ?? 150);
+            window.aplicarKnockback(bb, forca, direcaoKnock, 15);
+        }
+
+        window.AudioManager?.playSFX('chute', 0.4);
+        window.AudioManager?.playSFX('impacto', 0.6);
+
+        if (typeof window.criarAnimacaoImpacto2Frames === 'function') {
+            window.criarAnimacaoImpacto2Frames({
+                x: bb.x + ((bb.largura || 32) / 2),
+                y: bb.y + ((bb.altura || 32) / 2),
+                largura: 40,
+                altura: 40,
+                offsetY: 6,
+                opacidade: 1,
+                frameDurationMs: 130
+            });
+        }
+
+        return true;
+    }
+
+    function iniciarAnimacaoAberturaBB(bb, config, opcoes = {}) {
+        if (!bb || bb.emAnimacaoAbertura || bb.sendoPuxadoPelaGarra || bb.estaMorto || bb.estaMorrendo) {
+            return false;
+        }
+
+        const sprites = obterSpritesAberturaBB(config).filter((sprite) => typeof sprite === 'string' && sprite.trim() !== '');
+        if (sprites.length === 0) return false;
+
+        bb.emAnimacaoAbertura = true;
+        bb.sendoPuxadoPelaGarra = false;
+        bb.framesAnimacaoAbertura = 0;
+        bb.spriteAberturaAtual = sprites[0];
+        bb.stunned = true;
+        bb.stunTimer = Math.max(180, Number(config.bbStunResgateFrames ?? 9999));
+        bb.garraControle = opcoes.controle || null;
+        bb.garraDirecao = Number.isFinite(opcoes.direcao) && opcoes.direcao !== 0 ? opcoes.direcao : (bb.direcao === 'e' ? -1 : 1);
+        bb.garraPontoInicial = {
+            x: Number(opcoes.x ?? bb.x ?? 0),
+            y: Number(opcoes.y ?? bb.y ?? 0)
+        };
+
+        if (bb.elemento) {
+            bb.elemento.style.display = 'none';
+        }
+
+        if (bb.corpoRoboAbertoElemento) {
+            bb.corpoRoboAbertoElemento.remove();
+        }
+
+        const corpoAberto = document.createElement('img');
+        corpoAberto.className = 'bb-corpo-aberto-resgate';
+        corpoAberto.style.position = 'absolute';
+        corpoAberto.style.width = '32px';
+        corpoAberto.style.height = '32px';
+        corpoAberto.style.imageRendering = 'pixelated';
+        corpoAberto.style.pointerEvents = 'none';
+        corpoAberto.style.zIndex = '99';
+        corpoAberto.style.left = bb.garraPontoInicial.x + 'px';
+        corpoAberto.style.bottom = bb.garraPontoInicial.y + 'px';
+        corpoAberto.src = sprites[0];
+
+        const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
+        if (palco) {
+            if (window.LAYERS?.INIMIGOS && typeof window.adicionarAoLayer === 'function') {
+                window.adicionarAoLayer(corpoAberto, window.LAYERS.INIMIGOS);
+            } else {
+                palco.appendChild(corpoAberto);
+            }
+        }
+
+        bb.corpoRoboAbertoElemento = corpoAberto;
+        window.AudioManager?.playSFX('engrenagem', 0.5);
+        return true;
+    }
+
+    function iniciarResgateBBPelaGarra(bb, controle, config, opcoes = {}) {
+        if (!bb || bb.estaMorto || bb.estaMorrendo) return false;
+        return iniciarAnimacaoAberturaBB(bb, config, {
+            controle,
+            x: opcoes.x,
+            y: opcoes.y,
+            direcao: opcoes.direcao
+        });
+    }
+
+    function removerInimigoParaResgateBB(inimigo) {
+        if (!inimigo) return;
+
+        if (Array.isArray(window.inimigos)) {
+            const idx = window.inimigos.indexOf(inimigo);
+            if (idx >= 0) {
+                window.inimigos.splice(idx, 1);
+            }
+        }
+
+        const elementos = [
+            inimigo.elemento,
+            inimigo.armaElemento,
+            inimigo.escudoElemento,
+            inimigo.botaElemento,
+            inimigo.jetpackElemento,
+            inimigo.garraElemento,
+            inimigo.cintoElemento,
+            inimigo.coleteElemento,
+            inimigo.jetFogoElemento,
+            inimigo.bbCabecaElemento,
+            inimigo.bateriaElemento,
+            inimigo.vfxEletricidadeElemento
+        ];
+
+        elementos.forEach((el) => {
+            if (el && typeof el.remove === 'function') {
+                el.remove();
+            }
+        });
+    }
+
+    function iniciarResgateBBPeloInimigo(inimigo, controle, config, opcoes = {}) {
+        if (!inimigo || inimigo.estaMorto || inimigo.estaMorrendo) return false;
+
+        const posX = Number(inimigo.x || 0);
+        const posY = Number(inimigo.y || 0);
+        const cfg = config || window.config || {};
+
+        removerInimigoParaResgateBB(inimigo);
+
+        if (typeof window.criarRoboAbertoInterativo === 'function') {
+            window.criarRoboAbertoInterativo(posX, posY, {
+                origem: 'resgate-garra-bb',
+                imagemPath: cfg.spriteAberturaPlayerFinal || '../../assets/personagem/per_aberto.png'
+            });
+        }
+
+        if (!window.bbEntidade || !window.bbEntidade.elemento) {
+            if (typeof window.inicializarBB === 'function') {
+                window.inicializarBB(posX, posY, cfg);
+            }
+        }
+
+        const bb = window.bbEntidade;
+        if (!bb) return false;
+
+        bb.x = posX;
+        bb.y = posY;
+        bb.direcao = (controle?.direcao === 'e') ? 'e' : 'd';
+        if (bb.elemento) {
+            bb.elemento.style.left = bb.x + 'px';
+            bb.elemento.style.bottom = bb.y + 'px';
+            bb.elemento.style.display = 'block';
+            bb.elemento.src = bb.spriteParado || cfg.spriteBB || '../../assets/personagem/bb/bb-parado.png';
+        }
+
+        bb.emAnimacaoAbertura = false;
+        bb.sendoPuxadoPelaGarra = false;
+        bb.framesAnimacaoAbertura = 0;
+        bb.spriteAberturaAtual = '';
+        bb.garraControle = null;
+        bb.garraPontoInicial = null;
+        bb.garraDirecao = 1;
+        bb.stunned = false;
+        bb.stunTimer = 0;
+        bb.movendoHorizontal = false;
+        bb.velocidadeY = 0;
+        bb.interagindo = false;
+
+        if (bb.corpoRoboAbertoElemento) {
+            bb.corpoRoboAbertoElemento.remove();
+            bb.corpoRoboAbertoElemento = null;
+        }
+
+        window.controlandoBB = false;
+        window.AudioManager?.playSFX('engrenagem', 0.5);
+
+        return true;
+    }
+
+    function atualizarAnimacaoAberturaBB(bb, config) {
+        if (!bb?.emAnimacaoAbertura) return false;
+
+        const sprites = obterSpritesAberturaBB(config).filter((sprite) => typeof sprite === 'string' && sprite.trim() !== '');
+        if (sprites.length === 0) return false;
+
+        const tempoFrame = Math.max(1, Number(config.tempoAberturaFrame ?? 20));
+        const indiceFrame = Math.min(sprites.length - 1, Math.floor(bb.framesAnimacaoAbertura / tempoFrame));
+        bb.spriteAberturaAtual = sprites[indiceFrame] || sprites[sprites.length - 1];
+
+        if (bb.corpoRoboAbertoElemento) {
+            bb.corpoRoboAbertoElemento.src = bb.spriteAberturaAtual;
+            atualizarPosicaoCorpoAbertoBB(bb);
+        }
+
+        bb.framesAnimacaoAbertura += 1;
+        const totalFrames = tempoFrame * sprites.length;
+        if (bb.framesAnimacaoAbertura >= totalFrames) {
+            bb.emAnimacaoAbertura = false;
+            bb.sendoPuxadoPelaGarra = true;
+            bb.framesAnimacaoAbertura = 0;
+            bb.spriteAberturaAtual = sprites[sprites.length - 1] || bb.spriteAberturaAtual;
+            if (bb.elemento) {
+                bb.elemento.style.display = 'block';
+            }
+            if (bb.corpoRoboAbertoElemento) {
+                bb.corpoRoboAbertoElemento.src = bb.spriteAberturaAtual;
+                atualizarPosicaoCorpoAbertoBB(bb);
+            }
+            window.AudioManager?.playSFX('engrenagem', 0.45);
+            return false;
+        }
+
+        return true;
+    }
+
+    function atualizarPuxoBB(bb, config) {
+        if (!bb?.sendoPuxadoPelaGarra) return false;
+
+        const controle = bb.garraControle || window.playerControle;
+        const player = window.playerControle;
+        const direcao = bb.garraDirecao || 1;
+        const garraDist = Math.max(0, Number(controle?.garraDist || 0));
+        const alvoX = controle && typeof controle.x === 'number'
+            ? Number(controle.x) + (garraDist * direcao)
+            : Number(player?.x || bb.x || 0);
+        const alvoY = Number(controle?.y ?? player?.y ?? bb.y ?? 0);
+
+        const velocidadePuxo = Math.max(1, Number(config?.garraVelocidadePuxo ?? 3));
+        const deltaX = alvoX - bb.x;
+        const deltaY = alvoY - bb.y;
+        const distancia = Math.hypot(deltaX, deltaY);
+
+        if (distancia <= Math.max(4, Number(config?.garraPuxoDistanciaParada ?? 10))) {
+            return finalizarResgateBB(bb, config);
+        }
+
+        const passo = velocidadePuxo / Math.max(1, Math.ceil(velocidadePuxo / 2));
+        bb.x += (deltaX / Math.max(distancia, 0.0001)) * passo;
+        bb.y += (deltaY / Math.max(distancia, 0.0001)) * passo;
+
+        if (bb.elemento) {
+            bb.elemento.style.left = bb.x + 'px';
+            bb.elemento.style.bottom = bb.y + 'px';
+        }
+
+        if (bb.corpoRoboAbertoElemento) {
+            atualizarPosicaoCorpoAbertoBB(bb);
+        }
+
+        bb.velocidadeY = 0;
+        bb.movendoHorizontal = false;
+        bb.noChao = false;
+        bb.stunned = true;
+        bb.stunTimer = Math.max(bb.stunTimer || 0, 9999);
+
+        if (typeof window.detectarColisaoHitbox === 'function' && player) {
+            const hitboxBB = {
+                x: bb.x + (bb.offsetX || 0),
+                y: bb.y,
+                largura: bb.largura,
+                altura: bb.altura
+            };
+            const hitboxPlayer = {
+                x: player.x + (player.offsetX || 0),
+                y: player.y,
+                largura: player.largura,
+                altura: player.altura
+            };
+
+            if (window.detectarColisaoHitbox(hitboxBB, hitboxPlayer, 0, 0, 0)) {
+                return finalizarResgateBB(bb, config);
+            }
+        }
+
+        return true;
+    }
+
+    window.iniciarResgateBBPelaGarra = iniciarResgateBBPelaGarra;
+    window.iniciarResgateBBPeloInimigo = iniciarResgateBBPeloInimigo;
+
     function bbAbrirInimigoPreso(bb, inimigo, config, teclas) {
         if (!bb || !inimigo || inimigo.emAberturaPorBB || inimigo.estaMorto || inimigo.estaMorrendo) {
             return false;
         }
+
+        console.log(`[BB Interaction] BB Jogador iniciando abertura do inimigo (Tipo: ${inimigo.tipoNome || inimigo.tipo}) preso por pet.`);
 
         inimigo.emAberturaPorBB = true;
         inimigo.stunned = true;
@@ -316,7 +663,10 @@
                 });
             }
 
+            // Reverte para a lógica de transformar o inimigo no Novo Bebê (Tipo 12)
+            // Isso evita interferir na posição ou estado do jogador.
             converterInimigoEmBBInimigo(inimigo, config);
+
             window.AudioManager?.playSFX('engrenagem', 0.45);
         };
 
@@ -461,6 +811,25 @@
 
         if (!window.isPaused && bb && window.config) {
             const config = window.config;
+
+            if (bb.emAnimacaoAbertura) {
+                atualizarAnimacaoAberturaBB(bb, config);
+            }
+
+            if (bb.sendoPuxadoPelaGarra) {
+                atualizarPuxoBB(bb, config);
+            }
+
+            if (bb.emAnimacaoAbertura || bb.sendoPuxadoPelaGarra) {
+                if (bb.elemento) {
+                    bb.elemento.style.left = bb.x + 'px';
+                    bb.elemento.style.bottom = bb.y + 'px';
+                    bb.elemento.style.display = bb.emAnimacaoAbertura ? 'none' : 'block';
+                }
+
+                requestAnimationFrame(() => cicloVidaBB(bb, idControle));
+                return;
+            }
 
             // Configurações de física (iguais ao cao)
             let forcaPuloBase = (config.gravidadeUniversal 
@@ -756,6 +1125,18 @@
 
     window.despawnBB = function () {
         window.controlandoBB = false;
+
+        if (window.bbEntidade?.corpoRoboAbertoElemento) {
+            window.bbEntidade.corpoRoboAbertoElemento.remove();
+            window.bbEntidade.corpoRoboAbertoElemento = null;
+        }
+
+        if (window.bbEntidade) {
+            window.bbEntidade.emAnimacaoAbertura = false;
+            window.bbEntidade.sendoPuxadoPelaGarra = false;
+            window.bbEntidade.garraControle = null;
+            window.bbEntidade.garraPontoInicial = null;
+        }
 
         bbIdAtivo++;
 

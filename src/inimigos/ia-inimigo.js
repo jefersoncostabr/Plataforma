@@ -1644,7 +1644,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     } else {
                         iaBloqueadaPorStun = true;
                         if (inimigo.ehBBInimigo && inimigo.elemento) {
-                            inimigo.elemento.src = config.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png';
+                            inimigo.elemento.src = config.spriteBB || '../../assets/personagem/bb/bb-parado.png';
                         }
                         // Faz o inimigo olhar de um lado para o outro
                         if (inimigo.stunTimer % 15 === 0) { // Troca de direção a cada 15 frames (aprox. 0.25s)
@@ -2274,8 +2274,13 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     };
 
                     // Seleciona sprites baseado em agachamento
-                    const spriteParadoBase = config.spriteParadoInimigo || spriteParado;
-                    const spriteAndandoBase = config.spriteAndandoInimigo || spriteAndando;
+                    const ehBBInimigo = !!inimigo.ehBBInimigo;
+                    const spriteParadoBase = ehBBInimigo
+                        ? (config.spriteBB || '../../assets/personagem/bb/bb-parado.png')
+                        : (config.spriteParadoInimigo || spriteParado);
+                    const spriteAndandoBase = ehBBInimigo
+                        ? (config.spriteBBAndando || config.spriteBB || '../../assets/personagem/bb/bb-andando.png')
+                        : (config.spriteAndandoInimigo || spriteAndando);
                     const usarSpriteAgachado = inimigo.estaAgachado && !inimigo.ehBBInimigo;
 
                     const spriteParadoUsado = usarSpriteAgachado
@@ -2284,7 +2289,9 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     const spriteAndandoUsado = usarSpriteAgachado
                         ? inimigo.spriteAndandoAgachado
                         : spriteAndandoBase;
-                    const spriteNoArUsado = config.spriteNoArInimigo || spriteNoAr;
+                    const spriteNoArUsado = ehBBInimigo
+                        ? (config.spriteBBAndando || config.spriteBB || '../../assets/personagem/bb/bb-andando.png')
+                        : (config.spriteNoArInimigo || spriteNoAr);
 
                     if (typeof atualizarAnimacao === 'function') {
                         atualizarAnimacao(

@@ -374,6 +374,19 @@
                         };
 
                         if (detectarColisaoHitbox(hitboxGarra, hitboxInimigo, 0, 0, 0)) {
+                            if (window.temSkill?.(window.SKILLS?.BB_GRAPPLE)
+                                && typeof window.iniciarResgateBBPeloInimigo === 'function'
+                                && window.iniciarResgateBBPeloInimigo(inimigo, controle, config, {
+                                    x: hitboxInimigo.x,
+                                    y: hitboxInimigo.y,
+                                    direcao: dirX
+                                })) {
+                                controle.garraAnimEstado = 'voltando';
+                                garraElemento.src = window.obterSpriteItem('garra_catching', config);
+                                grabbedSomething = true;
+                                break;
+                            }
+
                             controle.garraItemCarregado = inimigo;
                             inimigo.stunned = true;
                             inimigo.stunTimer = Number(config.garraStunDuration ?? 180);

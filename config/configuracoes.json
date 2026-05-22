@@ -29,6 +29,7 @@
     "cooldownDanoEspinho": 24,
     "knockbackEspinho": 90,
     "knockbackEspinhoUpY": 8,
+    "bbKickKnockbackForce": 180,
     "toleranciaPassarAgachadoEspinho": 1,
     "distanciaMaxTeleporteCao": 600,
     "debugInimigosParados": false,

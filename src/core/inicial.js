@@ -154,6 +154,7 @@ window.obterForcaKnockback = function(config, tipo) {
     if (tipo === 'inimigoChute') return Number(cfg.knockbackPlayer ?? 120);
     if (tipo === 'inimigoProjetil') return Number(cfg.knockbackProjetilPlayer ?? 80);
     if (tipo === 'espinho') return Number(cfg.knockbackEspinhoInimigo ?? cfg.knockbackEspinho ?? 70);
+    if (tipo === 'bbKick') return Number(cfg.bbKickKnockbackForce ?? cfg.knockbackInimigo ?? 150);
     return 0;
 };
 
