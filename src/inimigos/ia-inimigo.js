@@ -526,10 +526,14 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
     function atualizarFechamentoBBInimigo(inimigo) {
         if (!inimigo || !inimigo.emFechamentoPorBB) return false;
 
+        const spriteParadoBB = config.spriteBB || '../../assets/personagem/bb/bb-parado.png';
+        const spriteParadoInimigoPadrao = config.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png';
+        const spriteParadoFechamento = inimigo.ehBBInimigo ? spriteParadoBB : spriteParadoInimigoPadrao;
+
         if (inimigo.faseFechamentoBB === 'interacao') {
             inimigo.timerFechamentoBB--;
             if (inimigo.elemento) {
-                inimigo.elemento.src = config.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png';
+                inimigo.elemento.src = spriteParadoFechamento;
             }
             if (inimigo.timerFechamentoBB <= 0) {
                 inimigo.faseFechamentoBB = 'sumir';
@@ -549,7 +553,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     config.spriteAberturaPlayer3,
                     config.spriteAberturaPlayer2,
                     config.spriteAberturaPlayer1,
-                    config.spriteParadoInimigo
+                    spriteParadoFechamento
                 ].filter((s) => typeof s === 'string' && s.trim() !== '');
                 if (inimigo.elemento) inimigo.elemento.style.opacity = '1';
             }
@@ -559,7 +563,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         if (inimigo.faseFechamentoBB === 'fechando') {
             const lista = Array.isArray(inimigo.spritesFechamentoBB) && inimigo.spritesFechamentoBB.length > 0
                 ? inimigo.spritesFechamentoBB
-                : [config.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png'];
+                : [spriteParadoFechamento];
 
             const idx = Math.min(inimigo.indiceFechamentoBB || 0, lista.length - 1);
             if (inimigo.elemento) {

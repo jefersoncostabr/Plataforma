@@ -254,8 +254,6 @@
         const deslocSaida = inimigo.direcao === 'e' ? -12 : 12;
         inimigo.x = Number(inimigo.x || 0) + deslocSaida;
 
-        console.log(`[BB Interaction] Entidade liberada: Novo Bebê Inimigo (Tipo ${idTipoBB}) emergiu do robô aberto.`);
-
         if (typeof window.limitarPosicaoAoPalco === 'function') {
             const ajustada = window.limitarPosicaoAoPalco(
                 inimigo.x + (inimigo.offsetX || 0),
@@ -613,8 +611,6 @@
         if (!bb || !inimigo || inimigo.emAberturaPorBB || inimigo.estaMorto || inimigo.estaMorrendo) {
             return false;
         }
-
-        console.log(`[BB Interaction] BB Jogador iniciando abertura do inimigo (Tipo: ${inimigo.tipoNome || inimigo.tipo}) preso por pet.`);
 
         inimigo.emAberturaPorBB = true;
         inimigo.stunned = true;
