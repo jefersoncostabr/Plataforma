@@ -11,7 +11,7 @@
         garra: ['j', 'J'],
         cinto: ['l', 'L'],
         airdrop: ['u', 'U'],
-        debugImpacto: ['h', 'H'],
+
         mochila: ['Enter'],
         interagir: ['e', 'E'],
         abertura: ['y', 'Y'],

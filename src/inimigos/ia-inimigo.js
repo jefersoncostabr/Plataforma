@@ -1648,12 +1648,81 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                 // Lógica de Stun: Se o inimigo estiver atordoado, ele não faz mais nada
                 if (inimigo.stunned) {
+                    // Logs de debug para monitorar o carregamento do choque da Garra 2
+                    if (sendoEletrocutadoPeloPlayer && (window.DEBUG_MODE?.ENEMY_AI || window.DEBUG_MODE?.LOG_LEVELS)) {
+                        console.info(`[Garra 2] Choque acumulado no inimigo ${inimigo.id}: ${inimigo.tempoEletrocutadoGarra2} frames.`);
+                    }
+
                     if (inimigo.stunTimer <= 0) {
                         inimigo.stunned = false; // Fim do stun
                         inimigo.elemento.style.filter = 'none';
                         inimigo.elemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+
+                        // LÓGICA DE RECUPERAÇÃO: Reseta flags de controle ao acordar do stun
+                        // O BB agora caminhará até o robô naturalmente via IA de perseguição em vez de teletransportar
+                    inimigo.presoPorGarra2 = false;
+                    inimigo.tempoEletrocutadoGarra2 = 0;
                     } else {
                         iaBloqueadaPorStun = true;
+                    // Contador de tempo eletrocutado pela Garra 2
+                    if (sendoEletrocutadoPeloPlayer) {
+                        inimigo.tempoEletrocutadoGarra2 = (inimigo.tempoEletrocutadoGarra2 || 0) + 1;
+                        
+                        // === MECÂNICA DE TRANSFORMAÇÃO: Ejeção do piloto pela Garra 2 ===
+                        const thresholdEjeção = 15; // ~250ms de choque contínuo
+                        if (inimigo.tempoEletrocutadoGarra2 === thresholdEjeção && !inimigo.ehBBInimigo) {
+                            console.info('[Garra 2] Limiar de choque atingido! Ejetando piloto do robô.', { inimigoId: inimigo.id });
+                            
+                            // 1. Cria o casco vazio (Robo Aberto)
+                            if (typeof window.criarRoboAbertoInterativo === 'function') {
+                                window.criarRoboAbertoInterativo(inimigo.x, inimigo.y, {
+                                    origem: 'garra2-shock-eject',
+                                    imagemPath: config.spriteAberturaPlayerFinal || '../../assets/personagem/per_aberto.png'
+                                });
+                                console.info('[Garra 2] Casco robótico residual criado no local.');
+                            }
+
+                            // 2. Transforma o inimigo atual em BB Inimigo (Tipo 12)
+                            if (typeof window.converterInimigoEmBBInimigo === 'function') {
+                                window.converterInimigoEmBBInimigo(inimigo, config);
+                                
+                                // === LIBERAÇÃO E KNOCKBACK ===
+                                console.info('[Garra 2] Soltando entidade e aplicando knockback de ejeção.');
+                                
+                                // Solta o inimigo da Garra 2 para permitir o movimento físico
+                                inimigo.presoPorGarra2 = false;
+                                inimigo.tempoEletrocutadoGarra2 = 0;
+                                
+                                // Calcula direção do knockback (oposta ao jogador)
+                                const direcaoKnock = (inimigo.x >= playerX) ? 1 : -1;
+                                const forcaKnockEjeção = window.obterForcaKnockback(config, 'playerChute') * 1.2; 
+                                
+                                // Reaplica o stun para garantir que ele não se mova durante o knockback
+                                inimigo.stunned = true;
+                                inimigo.stunTimer = 60; // 1 segundo de confusão
+                                window.aplicarKnockback(inimigo, forcaKnockEjeção, direcaoKnock, 20);
+
+                                // Limpa a referência na garra do jogador para evitar que ele seja puxado de volta
+                                if (window.playerControle && window.playerControle.garraItemCarregado === inimigo) {
+                                    window.playerControle.garraItemCarregado = null;
+                                    window.playerControle.garraAnimEstado = 'voltando';
+                                }
+                                
+                                // Configura comportamento BB: Fugir do player ao acordar
+                                inimigo.afastando = true;
+                                inimigo.tempoAfastamento = 120; // 2 segundos de fuga programada
+                                inimigo.perseguindo = true;
+                                
+                                console.info('[Garra 2] Transformação concluída. Comportamento de Fuga configurado.');
+                            } else {
+                                console.error('[Garra 2] ERRO: window.converterInimigoEmBBInimigo não encontrada.');
+                            }
+                            
+                            window.AudioManager?.playSFX('engrenagem', 0.6);
+                        }
+                    } else {
+                        inimigo.tempoEletrocutadoGarra2 = 0;
+                    }
 
                         // Animação de Choque (VFX no inimigo) enquanto a Garra 2 o segura
                         if (sendoEletrocutadoPeloPlayer) {
@@ -2036,6 +2105,13 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                 let movendoDestaVez = false;
                 // Ações que dependem da ativação (movimento e ataque) - só se não estiver afastando, coletando ou usando a garra
+
+                // BB PRIORIDADE: Se encontrou robô, para de fugir e vai direto buscar a armadura
+                if (bbTemRoboAlvo) {
+                    inimigo.afastando = false;
+                    inimigo.tempoAfastamento = 0;
+                }
+
                 if (!iaBloqueadaPorStun && inimigo.perseguindo && !inimigo.afastando && !inimigo.estaColetando) {
                     // Lógica para INICIAR o chute
                     if (!bbTemRoboAlvo && !inimigo.estaAgachado && distanciaAtual <= config.distanciaAtaqueInimigo && inimigo.cooldownChute === 0) {

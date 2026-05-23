@@ -1159,26 +1159,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         }
 
         // Debug/Teste: dispara manualmente o VFX de impacto no centro do jogador.
-        if (acaoAtiva('debugImpacto')) {
-            consumirAcao('debugImpacto');
 
-            if (typeof window.criarAnimacaoImpacto2Frames === 'function') {
-                const hitboxX = controle.x + (controle.offsetX || 0);
-                const hitboxY = controle.y;
-                const impactoX = hitboxX + ((controle.largura || 0) / 2);
-                const impactoY = hitboxY + ((controle.altura || 0) / 2);
-
-                window.criarAnimacaoImpacto2Frames({
-                    x: impactoX,
-                    y: impactoY,
-                    largura: 40,
-                    altura: 40,
-                    offsetY: 6,
-                    opacidade: 1,
-                    frameDurationMs: 130
-                });
-            }
-        }
 
         // Atualiza a interface de visão
         atualizarHUD();
@@ -1242,11 +1223,6 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
         controle.carregando = acaoAtiva('carregando');
         controle.garra2Ativa = !!(controle.temGarra2 && acaoAtiva('garra') && !controle.stunned && !controle.estaMorrendo);
-        
-        if (controle.garra2Ativa) {
-            // Log para confirmar que a Garra 2 está tentando manter a extensão
-            console.log("[GARRA 2] Segurando carga elétrica. Puxo e chute bloqueados.");
-        }
 
         controle.movendoHorizontal = false;
         const xAnterior = controle.x;
@@ -1351,7 +1327,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 };
                 
                 window.inimigos.forEach(inimigo => {
-                    if (inimigo.estaMorto || inimigo.stunned) return;
+                    if (inimigo.estaMorto || inimigo.stunned || inimigo.ehBBInimigo) return;
                     
                     const hitboxInimigo = {
                         x: inimigo.x + (inimigo.offsetX || 0),
@@ -1979,7 +1955,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                     for (let j = window.inimigos.length - 1; j >= 0; j--) {
                         const inimigo = window.inimigos[j];
                         
-                        if (inimigo.estaMorto) continue;
+                        if (inimigo.estaMorto || inimigo.ehBBInimigo) continue;
 
                         const hitboxInimigo = {
                             x: inimigo.x + (inimigo.offsetX || 0),

@@ -287,6 +287,8 @@
         }
     }
 
+    window.converterInimigoEmBBInimigo = converterInimigoEmBBInimigo;
+
     function obterSpritesAberturaBB(config) {
         return [
             config.spriteAberturaPlayer1 || '../../assets/personagem/personagem_parado2.png',

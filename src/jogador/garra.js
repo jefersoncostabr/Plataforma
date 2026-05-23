@@ -360,6 +360,8 @@
                 if (window.inimigos && window.inimigos.length > 0) {
                     for (let j = window.inimigos.length - 1; j >= 0; j--) {
                         const inimigo = window.inimigos[j];
+                        if (inimigo.ehBBInimigo) continue;
+
                         const hitboxGarra = {
                             x: parseInt(garraElemento.style.left),
                             y: parseInt(garraElemento.style.bottom),
