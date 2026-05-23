@@ -33,7 +33,6 @@
         "b19"
     ],
     "inimigo_feno": ["b5"],
-    "inimigo_comum": ["c20"],
     "inimigo_bb": [
         {
             "coord": "b9",

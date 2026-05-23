@@ -29,7 +29,7 @@
         { type: 'inimigo_completo', stateKey: 'inimigo_completo', sprite: '../../assets/personagem/Personagem_parado.png', label: 'Inimigo Completo', className: 'enemy-marker golden-bg', kind: 'array' },
         { type: 'inimigo_com_doze', stateKey: 'inimigo_com_doze', sprite: '../../assets/personagem/doze_coletavel.png', label: 'Inimigo com Doze', className: 'enemy-marker', kind: 'array' },
         { type: 'inimigo_com_bateria', stateKey: 'inimigo_com_bateria', sprite: '../../assets/personagem/objetos/bateria_coletavel.png', label: 'Inimigo com Bateria', className: 'enemy-marker', kind: 'array' },
-        { type: 'inimigo_bb', stateKey: 'inimigo_bb', sprite: '../../assets/personagem/bb_cabeca.png', label: 'Inimigo BB', className: 'enemy-marker', kind: 'array' }
+        // { type: 'inimigo_bb', ... } removido
     ];
 
     const SYSTEM_DEFS = [

@@ -21,8 +21,7 @@ window.inicializarVisualEquipamentoEntidade = function(entidade, parentElement, 
         'cintoElemento':  { flag: 'temCinto',   z: '6', sprite: 'cinto',    fallback: '../../assets/personagem/cinto.png', offY: -2 },
         'coleteElemento': { flag: 'temColete',  z: '6', sprite: 'colete',   fallback: '../../assets/personagem/colete.png', offY: 0 },
         'bateriaElemento': { flag: 'temBateria', z: '7', sprite: 'bateria', fallback: '../../assets/personagem/objetos/bateria.png', offY: 0 },
-        'vfxEletricidadeElemento': { flag: 'carregando', z: '11', sprite: 'vfx_eletricidade', fallback: 'assets/vfx/eletreciade_player/eletrecidade1.png', offY: 0 },
-        'bbCabecaElemento': { flag: 'temCabecaBB', z: '10', sprite: 'bb_cabeca', fallback: '../../assets/personagem/bb_cabeca.png', offY: 0 }
+        'vfxEletricidadeElemento': { flag: 'carregando', z: '11', sprite: 'vfx_eletricidade', fallback: 'assets/vfx/eletreciade_player/eletrecidade1.png', offY: 0 }
     };
 
     Object.entries(mapaEquipamentos).forEach(([key, info]) => {
@@ -118,17 +117,12 @@ window.sincronizarAcessoriosEntidade = function(entidade, elementos, opcoes = {}
         'jetpackElemento': { y: 0 },
         'coleteElemento': { y: 0 },
         'bateriaElemento': { y: 0 },
-        // Ajuste fino para sobrepor a cabeca do BB um pouco mais baixa sobre o corpo base.
-        'bbCabecaElemento': { x: 0, y: 2 }
     };
 
     const elementosVisuais = {
         ...elementos,
         ...(entidade.bateriaElemento && !Object.prototype.hasOwnProperty.call(elementos, 'bateriaElemento')
             ? { bateriaElemento: entidade.bateriaElemento }
-            : {})
-        ,...(entidade.bbCabecaElemento && !Object.prototype.hasOwnProperty.call(elementos, 'bbCabecaElemento')
-            ? { bbCabecaElemento: entidade.bbCabecaElemento }
             : {})
         ,...(entidade.vfxEletricidadeElemento && !Object.prototype.hasOwnProperty.call(elementos, 'vfxEletricidadeElemento')
             ? { vfxEletricidadeElemento: entidade.vfxEletricidadeElemento }
@@ -165,7 +159,6 @@ window.sincronizarAcessoriosEntidade = function(entidade, elementos, opcoes = {}
 
         // Aplicação de regras específicas de offset e transform
         if (chave === 'coleteElemento') posY += offsetYAgachado;
-        if (chave === 'bbCabecaElemento') posY += offsetYAgachado;
         if (chave === 'jetFogoElemento' && opcoes.offsetYFogo !== undefined) posY += opcoes.offsetYFogo;
         
         // Se houver uma string de transform específica (ex: recuo de arma)

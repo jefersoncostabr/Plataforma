@@ -261,8 +261,7 @@
             const etapasRaw = Array.isArray(chefe.etapas) ? chefe.etapas : [];
             const etapas = etapasRaw
                 .map((etapa) => {
-                    const baseNpcRaw = String(etapa?.baseNpc || '').trim().toLowerCase();
-                    const baseNpc = baseNpcRaw === 'inimigo_bb' ? 'inimigo_bb' : 'inimigo_comum';
+                    const baseNpc = 'inimigo_comum'; // lógica bb removida
                     const equipamentos = Array.isArray(etapa?.equipamentos)
                         ? [...new Set(etapa.equipamentos.map((it) => String(it || '').trim().toLowerCase()).filter((it) => equipamentosValidos.has(it)))]
                         : [];

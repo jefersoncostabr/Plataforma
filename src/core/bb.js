@@ -218,77 +218,6 @@
         }
     }
 
-    function converterInimigoEmBBInimigo(inimigo, config) {
-        if (!inimigo) return;
-
-        const stunSaidaFrames = Math.max(12, Number(config.bbInimigoStunSaidaFrames ?? 45));
-        const direcaoKnock = inimigo.direcao === 'e' ? -1 : 1;
-
-        // Força a transformação da entidade em um "Novo Bebê" (BB Inimigo Tipo 12)
-        const idTipoBB = 12;
-        const cfgBB = window.GAME_CONSTANTS?.TIPOS_INIMIGO?.[idTipoBB] || {};
-        Object.entries(cfgBB).forEach(([chave, valor]) => {
-            if (chave !== 'id') inimigo[chave] = valor;
-        });
-        inimigo.tipo = idTipoBB;
-        inimigo.temCabecaBB = true;
-
-        inimigo.emAberturaPorBB = false;
-        inimigo.ehBBInimigo = true;
-        inimigo.presoPorPet = false;
-        inimigo.presoPorPetTipo = null;
-        inimigo.stunned = true;
-        inimigo.stunTimer = stunSaidaFrames;
-        inimigo.perseguindo = true;
-        inimigo.afastando = false;
-        inimigo.tempoAfastamento = 0;
-        inimigo.estaColetando = false;
-        inimigo.estaAgachado = false;
-        inimigo.contadorAnimacao = 0;
-        inimigo.frameAtual = 0;
-        // Forca hitbox do BB ao sair do robo.
-        inimigo.largura = Math.max(1, Number(config.bbHitboxLargura ?? 9));
-        inimigo.altura = Math.max(1, Number(config.bbHitboxAltura ?? 15));
-        inimigo.offsetX = Number(config.bbHitboxOffsetX ?? 11);
-
-        const deslocSaida = inimigo.direcao === 'e' ? -12 : 12;
-        inimigo.x = Number(inimigo.x || 0) + deslocSaida;
-
-        if (typeof window.limitarPosicaoAoPalco === 'function') {
-            const ajustada = window.limitarPosicaoAoPalco(
-                inimigo.x + (inimigo.offsetX || 0),
-                inimigo.y,
-                inimigo.largura,
-                inimigo.altura
-            );
-            inimigo.x = ajustada.x - (inimigo.offsetX || 0);
-            inimigo.y = ajustada.y;
-        }
-
-        if (inimigo.elemento) {
-            inimigo.elemento.src = config.spriteBB || '../../assets/personagem/bb/bb-parado.png';
-            inimigo.elemento.style.left = inimigo.x + 'px';
-            inimigo.elemento.style.bottom = inimigo.y + 'px';
-
-            // Feedback de "dano": piscada branca ao BB inimigo surgir.
-            if (typeof window.piscaLeve === 'function') {
-                window.piscaLeve(inimigo.elemento);
-            } else if (typeof window.flashElement === 'function') {
-                window.flashElement(inimigo.elemento, 120, 8);
-            }
-        }
-
-        // Aplica knockback padrão no surgimento e em seguida mantém o stun já configurado.
-        if (typeof window.aplicarKnockback === 'function') {
-            const forcaPadrao = typeof window.obterKnockbackPadrao === 'function'
-                ? window.obterKnockbackPadrao(config, 'playerProjetil')
-                : (typeof window.obterForcaKnockback === 'function' ? window.obterForcaKnockback(config, 'playerProjetil') : 0);
-            window.aplicarKnockback(inimigo, forcaPadrao, direcaoKnock, 15);
-        }
-    }
-
-    window.converterInimigoEmBBInimigo = converterInimigoEmBBInimigo;
-
     function obterSpritesAberturaBB(config) {
         return [
             config.spriteAberturaPlayer1 || '../../assets/personagem/personagem_parado2.png',
@@ -551,18 +480,12 @@
                 setTimeout(rodarAbertura, tempoEtapaMs);
                 return;
             }
-
             if (typeof window.criarRoboAbertoInterativo === 'function') {
                 window.criarRoboAbertoInterativo(xCorpoAberto, yCorpoAberto, {
                     origem: 'inimigo-aberto-bb',
                     imagemPath: spriteFinalAbertura
                 });
             }
-
-            // Reverte para a lógica de transformar o inimigo no Novo Bebê (Tipo 12)
-            // Isso evita interferir na posição ou estado do jogador.
-            converterInimigoEmBBInimigo(inimigo, config);
-
             window.AudioManager?.playSFX('engrenagem', 0.45);
         };
 

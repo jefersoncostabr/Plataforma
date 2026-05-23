@@ -503,9 +503,6 @@ async function carregarFase(nomeArquivo) {
             const chaveJSON = tipoConfig.chaveJSON;
             if (fase[chaveJSON]) {
                 fase[chaveJSON].forEach(p => {
-                    if (chaveJSON === 'inimigo_bb') {
-                        console.log('[Fase][InimigoBB] Entrada carregada do JSON:', p);
-                    }
                     inimigosParaReset.push({tipo: parseInt(tipoId), pos: p});
                 });
             }
@@ -521,7 +518,7 @@ async function carregarFase(nomeArquivo) {
             if (!coordChefe || !primeiraEtapa) return;
 
             const baseNpc = String(primeiraEtapa.baseNpc || 'inimigo_comum').trim().toLowerCase();
-            const chaveJSON = baseNpc === 'inimigo_bb' ? 'inimigo_bb' : 'inimigo_comum';
+            const chaveJSON = 'inimigo_comum';
             const tipoInicial = Number(tipoPorChave[chaveJSON] ?? window.GAME_CONSTANTS?.INIMIGO_COMUM_ID ?? 0);
 
             inimigosParaReset.push({

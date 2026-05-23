@@ -65,29 +65,7 @@ function criarInimigo(idPalco, imagemPath, coord, direcao = 'e', tipo = 1) {
     adicionarAoLayer(inimigoImg, window.LAYERS.INIMIGOS);
 
     // Registra o inimigo para detecção de colisão (inclui física vertical)
-    window.inimigos.push({
-        x,
-        y,
-        largura: window.config?.HITBOX_LARGURA || 20,
-        altura: window.config?.HITBOX_ALTURA || 30,
-        offsetX: window.config?.HITBOX_OFFSET_X || 6,
-        elemento: inimigoImg,
-        velocidadeY: 0,
-        noChao: true,
-        tipo: tipo
-        ,
-        framesKnockbackRestante: 0, // Inicializa frames de knockback
-        velocidadeKnockback: 0, // Inicializa velocidade de knockback
-        puloTimer: 0, // Inicializa o timer de pulo
-        jumpQueued: false // Inicializa a flag de pulo agendado
-        ,isEnemy: true // Flag to identify as an enemy
-        // Propriedades da Garra para o inimigo
-        ,garraAnimEstado: 'idle' // idle, prep, esticando, catching, voltando
-        ,garraTimer: 0
-        ,garraDist: 0
-        ,garraBracos: []
-        ,garraItemCarregado: null
-    });
+    // (Removido inimigo_bb)
     // console.log(`Inimigo inserido em ${coord} (x: ${x}, y: ${y})`);
 }
 

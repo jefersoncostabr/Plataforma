@@ -134,12 +134,7 @@
                         : String(entrada?.coord || entrada?.pos || '').trim();
                     if (!coord) return;
 
-                    // Renderização especial para o Inimigo BB no palco (Corpo + Cabeça sobreposta)
-                    if (def.type === 'inimigo_bb') {
-                        criarIcone(coord, '../../assets/personagem/Personagem_parado.png', def.className || '');
-                        criarIcone(coord, '../../assets/personagem/bb_cabeca.png', def.className || '', { zIndex: 5 });
-                        return;
-                    }
+                    // (Removido inimigo_bb do render)
 
                     criarIcone(coord, def.sprite, def.className || '');
                 });

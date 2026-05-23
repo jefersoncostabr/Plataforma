@@ -17,7 +17,7 @@
             "coord": "b13",
             "etapas": [
                 {
-                    "baseNpc": "inimigo_comum"
+                    "baseNpc": "inimigo_bb"
                 },
                 {
                     "baseNpc": "inimigo_bb"

@@ -97,7 +97,6 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         cintoElemento: inimigo.cintoElemento,
                         coleteElemento: inimigo.coleteElemento,
                         bateriaElemento: inimigo.bateriaElemento,
-                        bbCabecaElemento: inimigo.bbCabecaElemento
                     }, { forçarSincroniaGarra: true });
                 }
 
@@ -148,7 +147,6 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         inimigo.tipo = tipoNovo;
         inimigo.bossStageIndex = proximaEtapaIndex;
         inimigo.vida = 0;
-        inimigo.ehBBInimigo = tipoNovo === 12;
         inimigo.estaMorrendo = false;
         inimigo.framesMorrendo = 0;
         inimigo.estaMorto = false;
@@ -157,7 +155,6 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         inimigo.velocidadeY = 0;
         inimigo.perseguindo = false;
         inimigo.estaColetando = false;
-        inimigo.temCabecaBB = tipoNovo === 12;
         inimigo.garraAnimEstado = 'idle';
         inimigo.garraTimer = 0;
         inimigo.garraDist = 0;
@@ -174,16 +171,10 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
         aplicarEquipamentosEtapaBoss(inimigo, etapa);
 
-        if (tipoNovo === 12) {
-            if (!Array.isArray(inimigo.skills) || inimigo.skills.length === 0) {
-                inimigo.skills = ['Dash', 'SuperSalto'];
-            }
-            inimigo.temSkillDash = true;
-            inimigo.temSkillSuperSalto = true;
-        } else {
-            inimigo.temSkillDash = false;
-            inimigo.temSkillSuperSalto = false;
-        }
+        inimigo.temSkillDash = false;
+        inimigo.temSkillSuperSalto = false;
+        if (inimigo.elemento) inimigo.elemento.style.display = 'block';
+
 
         prepararInventarioInicialInimigo(inimigo, tipoNovo);
 
@@ -212,7 +203,6 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             cintoElemento: inimigo.cintoElemento,
             coleteElemento: inimigo.coleteElemento,
             bateriaElemento: inimigo.bateriaElemento,
-            bbCabecaElemento: inimigo.bbCabecaElemento
         }, { forçarSincroniaGarra: true });
 
         iniciarPiscaMudancaFormaBoss(inimigo);
@@ -526,7 +516,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
     function atualizarFechamentoBBInimigo(inimigo) {
         if (!inimigo || !inimigo.emFechamentoPorBB) return false;
 
-        const spriteParadoBB = config.spriteBB || '../../assets/personagem/bb/bb-parado.png';
+        const spriteParadoBB = config.spriteBB || 'Personagem_parado.png';
         const spriteParadoInimigoPadrao = config.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png';
         const spriteParadoFechamento = inimigo.ehBBInimigo ? spriteParadoBB : spriteParadoInimigoPadrao;
 
@@ -665,29 +655,36 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         if (tipo !== 'airdrop' && tipo !== 'restauracao' && !inimigo.inventario.includes(tipo)) {
             inimigo.inventario.push(tipo);
         }
-        if (typeof window.removerVisualItemColetavel === 'function') {
-            window.removerVisualItemColetavel(item);
-        } else if (item.elemento && typeof item.elemento.remove === 'function') {
-            item.elemento.remove();
+        if (!inimigo.bbCabecaElemento && inimigo.elemento && inimigo.elemento.parentElement) {
+            const cabeca = document.createElement('img');
+            cabeca.src = config.spriteBB || 'Personagem_parado.png';
+            cabeca.style.position = 'absolute';
+            cabeca.style.width = '32px';
+            cabeca.style.height = '32px';
+            cabeca.style.left = inimigo.x + 'px';
+            cabeca.style.bottom = (inimigo.y + 10) + 'px';
+            cabeca.style.zIndex = '10';
+            cabeca.style.pointerEvents = 'none';
+            cabeca.style.imageRendering = 'pixelated';
+            cabeca.style.transform = inimigo.elemento.style.transform;
+            inimigo.elemento.parentElement.appendChild(cabeca);
+            inimigo.bbCabecaElemento = cabeca;
+
+            console.log('[CHEFE BB] Cabeça do BB sobreposta criada:', cabeca.src);
         }
     }
 
     function limparVisuaisInimigo(inimigo) {
-        if (!inimigo) return;
-
+        // Remove elementos visuais extras do inimigo e reseta flags de equipamentos
         const elementos = [
-            'armaElemento',
-            'botaElemento',
             'escudoElemento',
+            'botaElemento',
             'jetpackElemento',
-            'jetFogoElemento',
             'garraElemento',
             'cintoElemento',
             'coleteElemento',
-            'bateriaElemento',
-            'bbCabecaElemento'
+            'bateriaElemento'
         ];
-
         elementos.forEach((chave) => {
             const el = inimigo[chave];
             if (el && typeof el.remove === 'function') el.remove();
@@ -772,7 +769,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         if (!Array.isArray(etapas)) return [];
         return etapas
             .map((etapa) => {
-                const baseNpc = String(etapa?.baseNpc || '').trim().toLowerCase() === 'inimigo_bb' ? 'inimigo_bb' : 'inimigo_comum';
+                const baseNpc = String(etapa?.baseNpc || '').trim().toLowerCase();
                 const equipamentos = Array.isArray(etapa?.equipamentos)
                     ? [...new Set(etapa.equipamentos.map((e) => String(e || '').trim().toLowerCase()).filter(Boolean))]
                     : [];
@@ -784,7 +781,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
     function obterTipoBaseDaEtapaBoss(etapa) {
         const baseNpc = String(etapa?.baseNpc || '').trim().toLowerCase();
-        return baseNpc === 'inimigo_bb' ? 12 : Number(window.GAME_CONSTANTS?.INIMIGO_COMUM_ID ?? 0);
+        return Number(window.GAME_CONSTANTS?.INIMIGO_COMUM_ID ?? 0);
     }
 
     function aplicarEquipamentosEtapaBoss(inimigo, etapa) {
@@ -881,7 +878,9 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 palco.appendChild(inimigoImg);
             }
 
-            window.inimigos.push({
+
+            // Criação do objeto base do inimigo
+            const objInimigo = {
                 ...extrasPos,
                 ...extrasDado,
                 x: pos.x,
@@ -905,7 +904,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 velocidadeY: 0,
                 isEnemy: true,
                 garraAnimEstado: 'idle',
-                ehBBInimigo: tipo === 12,
+                ehBBInimigo: extrasDado && typeof extrasDado.baseNpc === 'string' && extrasDado.baseNpc.trim().toLowerCase() === 'inimigo_bb',
                 garraTimer: 0,
                 garraDist: 0,
                 garraBracos: [],
@@ -919,8 +918,13 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 estaAgachado: false,
                 spriteParadoAgachado: window.obterSpriteItem('agachado', config, 'equipado'),
                 spriteAndandoAgachado: window.obterSpriteItem('agachado2', config, 'equipado'),
-                temCabecaBB: tipo === 12
-            });
+                // temCabecaBB removido, agora partes estão em inimigo.bbPartes
+            };
+
+            // Se for inimigo tipo 12, adiciona a cabeça do BB sobreposta
+            // Criação de cabeça sobreposta removida, agora partes estão em inimigoObj.bbPartes
+
+            window.inimigos.push(objInimigo);
 
             const inimigoObj = window.inimigos[window.inimigos.length - 1];
             inimigoObj.bossEtapas = normalizarEtapasBoss(inimigoObj.bossEtapas);
@@ -961,7 +965,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             }
 
             // Sincroniza posições iniciais
-            [inimigoObj.armaElemento, inimigoObj.escudoElemento, inimigoObj.botaElemento, inimigoObj.jetpackElemento, inimigoObj.garraElemento, inimigoObj.cintoElemento, inimigoObj.coleteElemento, inimigoObj.bateriaElemento, inimigoObj.bbCabecaElemento].forEach(el => {
+            [inimigoObj.armaElemento, inimigoObj.escudoElemento, inimigoObj.botaElemento, inimigoObj.jetpackElemento, inimigoObj.garraElemento, inimigoObj.cintoElemento, inimigoObj.coleteElemento, inimigoObj.bateriaElemento].forEach(el => {
                 if (el) {
                     el.style.left = pos.x + 'px';
                     el.style.bottom = pos.y + 'px';
@@ -1027,7 +1031,6 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         cintoElemento: inimigo.cintoElemento,
                         coleteElemento: inimigo.coleteElemento,
                         bateriaElemento: inimigo.bateriaElemento,
-                        bbCabecaElemento: inimigo.bbCabecaElemento
                     }, { forçarSincroniaGarra: true });
                     continue;
                 }
@@ -1071,11 +1074,6 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         }
                     }
                     continue; // Pula o processamento da IA normal
-                }
-
-                if (inimigo.emFechamentoPorBB) {
-                    atualizarFechamentoBBInimigo(inimigo);
-                    continue;
                 }
 
                 // Lógica especial para o Alvo de Feno (Tipo 5)
@@ -1151,11 +1149,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 }
 
                 // Refinamento IA: Detecta itens de interesse (AirDrop ou equipamentos que ainda não possui)
-                const bbPodeBuscarRobo = !!(inimigo.ehBBInimigo && !inimigo.stunned && Number(inimigo.stunTimer || 0) <= 0);
-                const roboAlvoBB = bbPodeBuscarRobo ? obterRoboAbertoMaisProximo(inimigo) : null;
-                const bbTemRoboAlvo = !!(bbPodeBuscarRobo && roboAlvoBB && roboAlvoBB.ativo);
-
-                const itemInteresse = (inimigo.ehBBInimigo ? null : window.itensColetaveis?.find(it => {
+                const itemInteresse = window.itensColetaveis?.find(it => {
                     if (it.coletavel === false || window.itemDefinitions?.[it.tipo]?.coletavel === false) return false;
                     // Se já possui o item e não é consumível, ignora
                     const jaTem = it.tipo !== 'airdrop' && it.tipo !== 'restauracao' && inimigo.inventario.includes(it.tipo);
@@ -1169,27 +1163,13 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     }
 
                     return Math.abs(it.x - inimigo.x) <= 220 && Math.abs(it.y - inimigo.y) <= 160;
-                }));
+                });
                 
-                // Se houver um item de interesse por perto, ele vira o alvo prioritário da IA
-                const xAlvo = bbTemRoboAlvo
-                    ? Number(roboAlvoBB.spawnX ?? roboAlvoBB.x ?? alvoPerseguicaoX)
-                    : (itemInteresse ? itemInteresse.x : alvoPerseguicaoX);
-                const yAlvo = bbTemRoboAlvo
-                    ? Number(roboAlvoBB.spawnY ?? roboAlvoBB.y ?? alvoPerseguicaoY)
-                    : (itemInteresse ? itemInteresse.y : alvoPerseguicaoY);
+                const xAlvo = itemInteresse ? itemInteresse.x : alvoPerseguicaoX;
+                const yAlvo = itemInteresse ? itemInteresse.y : alvoPerseguicaoY;
                 
                 // Navegação Inteligente: Desvio de teto (Reactive Pathfinding)
                 let xAlvoNavegacao = xAlvo;
-                const alvoAcimaIA = yAlvo > inimigo.y + 40;
-                if (alvoAcimaIA && inimigo.noChao && typeof window.IAUtils !== 'undefined') {
-                    if (window.IAUtils.estaSobTeto(inimigo)) {
-                        const saidaX = window.IAUtils.encontrarSaidaTeto(inimigo, xAlvo > inimigo.x ? 1 : -1);
-                        if (saidaX !== null) {
-                            xAlvoNavegacao = saidaX;
-                        }
-                    }
-                }
 
                 if (typeof window.inicializarEstadoCinto === 'function') {
                     window.inicializarEstadoCinto(inimigo);
@@ -1291,13 +1271,6 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 inimigo.precisaAgacharPassagem = precisaAgacharAFrente;
                 inimigo.estaAgachado = precisaPassagemBaixa && !temEquipamentoVisivelBloqueandoAgachamento;
 
-                if (inimigo.estaAgachado && (inimigo.tempoChute || 0) > 0) {
-                    inimigo.tempoChute = 0;
-                    inimigo.framesImpulsoRestante = 0;
-                    inimigo.velocidadeDash = 0;
-                    inimigo.jaAtacouNesteChute = true;
-                }
-                
                 // Ajusta a hitbox de acordo com o estado agachado (ANTES das colisões, como o player)
                 inimigo.altura = inimigo.estaAgachado
                     ? (config.agachadoHitboxAltura ?? 16)
@@ -1648,38 +1621,35 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                 // Lógica de Stun: Se o inimigo estiver atordoado, ele não faz mais nada
                 if (inimigo.stunned) {
-                    // Logs de debug para monitorar o carregamento do choque da Garra 2
-                    if (sendoEletrocutadoPeloPlayer && (window.DEBUG_MODE?.ENEMY_AI || window.DEBUG_MODE?.LOG_LEVELS)) {
-                        console.info(`[Garra 2] Choque acumulado no inimigo ${inimigo.id}: ${inimigo.tempoEletrocutadoGarra2} frames.`);
-                    }
-
                     if (inimigo.stunTimer <= 0) {
                         inimigo.stunned = false; // Fim do stun
                         inimigo.elemento.style.filter = 'none';
                         inimigo.elemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
 
                         // LÓGICA DE RECUPERAÇÃO: Reseta flags de controle ao acordar do stun
-                        // O BB agora caminhará até o robô naturalmente via IA de perseguição em vez de teletransportar
-                    inimigo.presoPorGarra2 = false;
-                    inimigo.tempoEletrocutadoGarra2 = 0;
+                        inimigo.presoPorGarra2 = false;
+                        inimigo.tempoEletrocutadoGarra2 = 0;
                     } else {
                         iaBloqueadaPorStun = true;
                     // Contador de tempo eletrocutado pela Garra 2
                     if (sendoEletrocutadoPeloPlayer) {
                         inimigo.tempoEletrocutadoGarra2 = (inimigo.tempoEletrocutadoGarra2 || 0) + 1;
                         
+                        // Feedback sonoro de "carga" elétrica enquanto segura o botão
+                        if (inimigo.tempoEletrocutadoGarra2 % 20 === 1) {
+                             window.AudioManager?.playSFX('choque', 0.4);
+                        }
+
                         // === MECÂNICA DE TRANSFORMAÇÃO: Ejeção do piloto pela Garra 2 ===
-                        const thresholdEjeção = 15; // ~250ms de choque contínuo
-                        if (inimigo.tempoEletrocutadoGarra2 === thresholdEjeção && !inimigo.ehBBInimigo) {
-                            console.info('[Garra 2] Limiar de choque atingido! Ejetando piloto do robô.', { inimigoId: inimigo.id });
-                            
+                        // Aumentado para 60 frames (~1 segundo) para criar a fase de eletrocução solicitada
+                        const thresholdEjeção = 60; 
+                        if (inimigo.tempoEletrocutadoGarra2 >= thresholdEjeção && !inimigo.ehBBInimigo) {
                             // 1. Cria o casco vazio (Robo Aberto)
                             if (typeof window.criarRoboAbertoInterativo === 'function') {
                                 window.criarRoboAbertoInterativo(inimigo.x, inimigo.y, {
                                     origem: 'garra2-shock-eject',
                                     imagemPath: config.spriteAberturaPlayerFinal || '../../assets/personagem/per_aberto.png'
                                 });
-                                console.info('[Garra 2] Casco robótico residual criado no local.');
                             }
 
                             // 2. Transforma o inimigo atual em BB Inimigo (Tipo 12)
@@ -1687,8 +1657,6 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                                 window.converterInimigoEmBBInimigo(inimigo, config);
                                 
                                 // === LIBERAÇÃO E KNOCKBACK ===
-                                console.info('[Garra 2] Soltando entidade e aplicando knockback de ejeção.');
-                                
                                 // Solta o inimigo da Garra 2 para permitir o movimento físico
                                 inimigo.presoPorGarra2 = false;
                                 inimigo.tempoEletrocutadoGarra2 = 0;
@@ -1702,6 +1670,12 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                                 inimigo.stunTimer = 60; // 1 segundo de confusão
                                 window.aplicarKnockback(inimigo, forcaKnockEjeção, direcaoKnock, 20);
 
+                                // Feedback de impacto solicitado: som de impacto e flash branco de dano
+                                window.AudioManager?.playSFX('impacto', 0.8);
+                                if (typeof window.flashElement === 'function' && inimigo.elemento) {
+                                    window.flashElement(inimigo.elemento, 300, 10);
+                                }
+
                                 // Limpa a referência na garra do jogador para evitar que ele seja puxado de volta
                                 if (window.playerControle && window.playerControle.garraItemCarregado === inimigo) {
                                     window.playerControle.garraItemCarregado = null;
@@ -1712,8 +1686,6 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                                 inimigo.afastando = true;
                                 inimigo.tempoAfastamento = 120; // 2 segundos de fuga programada
                                 inimigo.perseguindo = true;
-                                
-                                console.info('[Garra 2] Transformação concluída. Comportamento de Fuga configurado.');
                             } else {
                                 console.error('[Garra 2] ERRO: window.converterInimigoEmBBInimigo não encontrada.');
                             }
@@ -1726,15 +1698,19 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                         // Animação de Choque (VFX no inimigo) enquanto a Garra 2 o segura
                         if (sendoEletrocutadoPeloPlayer) {
+                            // A intensidade do tremor aumenta conforme o tempo de choque (de 2px até 8px)
+                            const progresso = Math.min(1, inimigo.tempoEletrocutadoGarra2 / 60);
+                            const amplitude = 2 + (progresso * 6);
+                            
                             const brilhoChoque = Math.random() > 0.5 ? 'brightness(4) saturate(10) hue-rotate(180deg)' : 'brightness(1.5) contrast(2)';
-                            const tremorX = (Math.random() * 4) - 2;
-                            const tremorY = (Math.random() * 4) - 2;
+                            const tremorX = (Math.random() * amplitude) - (amplitude / 2);
+                            const tremorY = (Math.random() * amplitude) - (amplitude / 2);
                             inimigo.elemento.style.filter = brilhoChoque;
                             inimigo.elemento.style.transform = (inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)') + ` translate(${tremorX}px, ${tremorY}px)`;
                         }
 
                         if (inimigo.ehBBInimigo && inimigo.elemento) {
-                            inimigo.elemento.src = config.spriteBB || '../../assets/personagem/bb/bb-parado.png';
+                            inimigo.elemento.src = config.spriteBB || 'Personagem_parado.png';
                         }
                         // Faz o inimigo olhar de um lado para o outro
                         if (inimigo.stunTimer % 15 === 0) { // Troca de direção a cada 15 frames (aprox. 0.25s)
@@ -1757,26 +1733,6 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     inimigo.perseguindo = false;
                     inimigo.afastando = false;
                     inimigo.tempoAfastamento = 0;
-                }
-
-                if (!iaBloqueadaPorStun && bbTemRoboAlvo && typeof window.detectarColisaoHitbox === 'function') {
-                    const hitboxInimigoBB = {
-                        x: inimigo.x + (inimigo.offsetX || 0),
-                        y: inimigo.y,
-                        largura: inimigo.largura,
-                        altura: inimigo.altura
-                    };
-                    const hitboxRoboAlvo = {
-                        x: Number(roboAlvoBB.x ?? roboAlvoBB.spawnX ?? 0),
-                        y: Number(roboAlvoBB.y ?? roboAlvoBB.spawnY ?? 0),
-                        largura: Number(roboAlvoBB.largura ?? 18),
-                        altura: Number(roboAlvoBB.altura ?? 16)
-                    };
-
-                    if (window.detectarColisaoHitbox(hitboxInimigoBB, hitboxRoboAlvo, 0, 0, 0)) {
-                        iniciarFechamentoBBInimigo(inimigo, roboAlvoBB);
-                        continue;
-                    }
                 }
 
                 // Lógica de detecção de proximidade excessiva com o jogador
@@ -1855,7 +1811,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                 // Ativa a perseguição se o jogador estiver perto OU se detectar um tiro vindo no radar
                 // Não ativa perseguição se o jogador está em resgate do BB
-                if (!iaBloqueadaPorStun && !inimigo.perseguindo && !emResgateBB && (alvoPerseguicao || bbTemRoboAlvo) && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse || bbTemRoboAlvo || (inimigo.temGarra && distanciaAtual <= (config.garraAlcanceInimigo || 160)))) {
+                if (!iaBloqueadaPorStun && !inimigo.perseguindo && !emResgateBB && alvoPerseguicao && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse || (inimigo.temGarra && distanciaAtual <= (config.garraAlcanceInimigo || 160)))) {
                     inimigo.perseguindo = true;
                     // console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
                 }
@@ -2106,15 +2062,9 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 let movendoDestaVez = false;
                 // Ações que dependem da ativação (movimento e ataque) - só se não estiver afastando, coletando ou usando a garra
 
-                // BB PRIORIDADE: Se encontrou robô, para de fugir e vai direto buscar a armadura
-                if (bbTemRoboAlvo) {
-                    inimigo.afastando = false;
-                    inimigo.tempoAfastamento = 0;
-                }
-
                 if (!iaBloqueadaPorStun && inimigo.perseguindo && !inimigo.afastando && !inimigo.estaColetando) {
                     // Lógica para INICIAR o chute
-                    if (!bbTemRoboAlvo && !inimigo.estaAgachado && distanciaAtual <= config.distanciaAtaqueInimigo && inimigo.cooldownChute === 0) {
+                    if (!inimigo.estaAgachado && distanciaAtual <= config.distanciaAtaqueInimigo && inimigo.cooldownChute === 0) {
                         inimigo.tempoChute = config.tempoChute;
                         inimigo.cooldownChute = config.cooldownChute;
                         window.AudioManager?.playSFX('chute', 0.3);
@@ -2132,7 +2082,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     }
 
                     // Lógica para INICIAR o disparo
-                    if (!bbTemRoboAlvo && inimigo.temArma && !inimigo.itensGuardadosNoCinto && distanciaAtual <= alcanceTiro && distanciaAtual > config.distanciaAtaqueInimigo && inimigo.cooldownTiro === 0 && inimigo.municao > 0) {
+                    if (inimigo.temArma && !inimigo.itensGuardadosNoCinto && distanciaAtual <= alcanceTiro && distanciaAtual > config.distanciaAtaqueInimigo && inimigo.cooldownTiro === 0 && inimigo.municao > 0) {
                         inimigo.cooldownTiro = config.cooldownTiro;
                         inimigo.municao--;
                         window.AudioManager?.playSFX('disparo', 0.4);
@@ -2268,7 +2218,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     }
 
                     // Lógica para INICIAR a Garra (se tiver e estiver no alcance)
-                    if (!bbTemRoboAlvo && inimigo.temGarra && !inimigo.itensGuardadosNoCinto && inimigo.garraAnimEstado === 'idle' && inimigo.cooldownGarra === 0 && distanciaAtual <= (config.garraAlcanceInimigo || 160)) {
+                    if (inimigo.temGarra && !inimigo.itensGuardadosNoCinto && inimigo.garraAnimEstado === 'idle' && inimigo.cooldownGarra === 0 && distanciaAtual <= (config.garraAlcanceInimigo || 160)) {
                         window.AudioManager?.playSFX('engrenagem', 0.3);
                         inimigo.garraAnimEstado = 'prep';
                         inimigo.garraTimer = 18;
@@ -2373,15 +2323,9 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         chutando: inimigo.tempoChute > 0
                     };
 
-                    // Seleciona sprites baseado em agachamento
-                    const ehBBInimigo = !!inimigo.ehBBInimigo;
-                    const spriteParadoBase = ehBBInimigo
-                        ? (config.spriteBB || '../../assets/personagem/bb/bb-parado.png')
-                        : (config.spriteParadoInimigo || spriteParado);
-                    const spriteAndandoBase = ehBBInimigo
-                        ? (config.spriteBBAndando || config.spriteBB || '../../assets/personagem/bb/bb-andando.png')
-                        : (config.spriteAndandoInimigo || spriteAndando);
-                    const usarSpriteAgachado = inimigo.estaAgachado && !inimigo.ehBBInimigo;
+                    const spriteParadoBase = config.spriteParadoInimigo || spriteParado;
+                    const spriteAndandoBase = config.spriteAndandoInimigo || spriteAndando;
+                    const usarSpriteAgachado = inimigo.estaAgachado;
 
                     const spriteParadoUsado = usarSpriteAgachado
                         ? inimigo.spriteParadoAgachado 
@@ -2389,9 +2333,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     const spriteAndandoUsado = usarSpriteAgachado
                         ? inimigo.spriteAndandoAgachado
                         : spriteAndandoBase;
-                    const spriteNoArUsado = ehBBInimigo
-                        ? (config.spriteBBAndando || config.spriteBB || '../../assets/personagem/bb/bb-andando.png')
-                        : (config.spriteNoArInimigo || spriteNoAr);
+                    const spriteNoArUsado = config.spriteNoArInimigo || spriteNoAr;
 
                     if (typeof atualizarAnimacao === 'function') {
                         atualizarAnimacao(
@@ -2535,6 +2477,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     // inimigo.y = posAjustada.y;
                 }
 
+
                 // Atualiza a posição no DOM (Sempre, para refletir gravidade, movimento e knockback)
                 inimigo.elemento.style.left = inimigo.x + 'px';
                 inimigo.elemento.style.bottom = inimigo.y + 'px';
@@ -2558,7 +2501,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     jetFogoElemento: inimigo.jetFogoElemento,
                     garraElemento: inimigo.garraElemento,
                     cintoElemento: inimigo.cintoElemento,
-                    coleteElemento: inimigo.coleteElemento
+                    coleteElemento: inimigo.coleteElemento,
+                    bateriaElemento: inimigo.bateriaElemento
                 }, {
                     transformArma,
                     offsetYFogo: -4 + tremorFogo

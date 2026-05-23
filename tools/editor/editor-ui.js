@@ -172,19 +172,7 @@
                         catInimigos.appendChild(containerInimigo);
                     }
 
-                    // Ajuste do Inimigo BB (Corpo do inimigo + Cabeça do BB sobreposta) para a paleta
-                    let itemBB = catInimigos.querySelector('[data-type="inimigo_bb"]');
-                    const containerBB = document.createElement('div');
-                    containerBB.className = 'palette-item';
-                    containerBB.setAttribute('data-type', 'inimigo_bb');
-                    containerBB.title = 'Inimigo BB';
-                    containerBB.style.cssText = `position:relative; display:inline-block; width:32px; height:32px;`;
-                    containerBB.innerHTML = `
-                        <img src="../../assets/personagem/Personagem_parado.png" style="position:absolute; left:0; top:0; width:32px; height:32px; image-rendering:pixelated; pointer-events:none;">
-                        <img src="../../assets/personagem/bb_cabeca.png" style="position:absolute; left:0; top:0; width:32px; height:32px; image-rendering:pixelated; pointer-events:none;">
-                    `;
-                    if (itemBB) { itemBB.replaceWith(containerBB); } 
-                    else { catInimigos.appendChild(containerBB); }
+                    // (Removido inimigo_bb da paleta)
 
                     const enemyDefs = window.EditorConfig?.ENEMY_DEFS || [];
                     const tiposNoDOM = new Set(

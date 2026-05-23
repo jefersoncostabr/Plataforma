@@ -35,7 +35,7 @@ let itemSelecionado = 'plataforma';
 let gradeVisivel = true;
 const BOSS_BASE_OPTIONS = [
     { value: 'inimigo_comum', label: 'Inimigo comum' },
-    { value: 'inimigo_bb', label: 'BB' }
+    // { value: 'inimigo_bb', label: 'BB' } removido
 ];
 const BOSS_EQUIP_OPTIONS = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete', 'doze', 'bateria'];
 const BOSS_MAX_STAGES = Math.max(1, Number(window.EditorConfig?.BOSS_MAX_STAGES ?? 5));
@@ -170,7 +170,7 @@ function removerChefePorCoord(coord) {
 function normalizarEtapasChefe(etapas) {
     const entrada = Array.isArray(etapas) ? etapas : [];
     const normalizadas = entrada.map((etapa) => {
-        const baseNpc = String(etapa?.baseNpc || '').trim().toLowerCase() === 'inimigo_bb' ? 'inimigo_bb' : 'inimigo_comum';
+        const baseNpc = 'inimigo_comum'; // lógica bb removida
         const equipamentos = Array.isArray(etapa?.equipamentos)
             ? [...new Set(etapa.equipamentos.map((e) => String(e || '').trim().toLowerCase()).filter((e) => BOSS_EQUIP_OPTIONS.includes(e)))]
             : [];
@@ -245,7 +245,7 @@ function abrirModalConfigChefe(chefeAtual = null) {
             });
             selectBase.value = etapa.baseNpc;
             selectBase.onchange = () => {
-                etapas[idx].baseNpc = selectBase.value === 'inimigo_bb' ? 'inimigo_bb' : 'inimigo_comum';
+                etapas[idx].baseNpc = 'inimigo_comum'; // lógica bb removida
             };
 
             const btnRemover = document.createElement('button');
@@ -848,9 +848,7 @@ function adicionarElemento(coord) {
                 return c !== coord;
             });
 
-            if (definition.type === 'inimigo_bb') {
-                faseData[definition.stateKey].push({ coord, skills: ['Dash', 'SuperSalto'] });
-            } else {
+            if (definition.type !== 'inimigo_bb') {
                 faseData[definition.stateKey].push(coord);
             }
 

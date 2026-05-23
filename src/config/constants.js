@@ -198,19 +198,6 @@ window.GAME_CONSTANTS = {
             ehFeno: false,
             temBateria: true,
         },
-        12: {
-            id: 12,
-            nome: 'bb',
-            chaveJSON: 'inimigo_bb',
-            temArma: false,
-            temEscudo: false,
-            temBota: false,
-            temJetpack: false,
-            temGarra: false,
-            temCinto: false,
-            temColete: false,
-            ehFeno: false,
-        },
     },
 
     // ⭐ IDs especiais de tipos de inimigo
