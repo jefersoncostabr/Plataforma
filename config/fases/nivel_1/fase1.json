@@ -1,7 +1,7 @@
 {
     "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
-    "objetivo": "e40",
+    "objetivo": "f40",
     "posicaoAlavanca": "",
     "posicaoRoboDesativado": "",
     "posicaoRoboAberto": "",
@@ -12,22 +12,22 @@
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
-        "restauracao": "c14"
+        "garra": "b10"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
         "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
-        "b28",
-        "c12", "c13", "c15", "c16", "c28",
-        "d14",
-        "f15", "f16", "f17", "f18", "f19", "f20", "f22", "f23", "f24", "f25", "f26", "f27", "f29", "f30", "f31", "f32", "f33", "f34"
-    ],
-    "plataformasTerraSuperior": [
-        "b9", "b10", "b18", "b19"
+        "b7", "b12",
+        "c7", "c12",
+        "d12", "d35", "d37",
+        "f22", "f23", "f24", "f25", "f33", "f38",
+        "g15", "g16", "g17", "g18", "g19", "g28", "g29", "g30", "g31", "g40",
+        "j14",
+        "k1",
+        "m2", "m4", "m6", "m8", "m10", "m12"
     ],
     "plataformasTerraInferior2": [
-        "c11", "c17"
+        "d7"
     ],
-    "inimigo_comum": ["b26", "g32"],
-    "inimigo_feno": ["g17", "g24", "g31"]
+    "inimigo_comum": ["b29"]
 }

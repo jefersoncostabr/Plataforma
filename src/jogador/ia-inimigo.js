@@ -1320,7 +1320,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     }
 
                     // Lógica para INICIAR o disparo
-                    if (inimigo.temArma && !inimigo.itensGuardadosNoCinto && distanciaAtual <= alcanceTiro && distanciaAtual > config.distanciaAtaqueInimigo && inimigo.cooldownTiro === 0 && inimigo.municao > 0) {
+                    if (!inimigo.ehBBInimigo && inimigo.temArma && !inimigo.itensGuardadosNoCinto && distanciaAtual <= alcanceTiro && distanciaAtual > config.distanciaAtaqueInimigo && inimigo.cooldownTiro === 0 && inimigo.municao > 0) {
                         inimigo.cooldownTiro = config.cooldownTiro;
                         inimigo.municao--;
                         window.AudioManager?.playSFX('disparo', 0.4);
@@ -1434,7 +1434,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     }
 
                     // Lógica para INICIAR a Garra (se tiver e estiver no alcance)
-                    if (inimigo.temGarra && !inimigo.itensGuardadosNoCinto && inimigo.garraAnimEstado === 'idle' && inimigo.cooldownGarra === 0 && distanciaAtual <= (config.garraAlcanceInimigo || 160)) {
+                    if (!inimigo.ehBBInimigo && inimigo.temGarra && !inimigo.itensGuardadosNoCinto && inimigo.garraAnimEstado === 'idle' && inimigo.cooldownGarra === 0 && distanciaAtual <= (config.garraAlcanceInimigo || 160)) {
                         window.AudioManager?.playSFX('engrenagem', 0.3);
                         inimigo.garraAnimEstado = 'prep';
                         inimigo.garraTimer = 18;
@@ -1553,7 +1553,10 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     }
 
                     if (estaChutando) {
-                        inimigo.elemento.src = config.spriteChuteInimigo || spriteChute;
+                        // BB não chuta, mas caso o estado mude indevidamente, usa o parado como fallback visual
+                        inimigo.elemento.src = inimigo.ehBBInimigo 
+                            ? (config.spriteBB || '../../assets/personagem/bb/bb-parado.png')
+                            : (config.spriteChuteInimigo || spriteChute);
 
                         if (inimigo.framesImpulsoRestante > 0) {
                             const direcaoDash = (inimigo.direcao === 'd' ? 1 : -1);

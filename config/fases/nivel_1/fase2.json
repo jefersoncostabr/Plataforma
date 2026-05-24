@@ -39,9 +39,15 @@
         "f35",
         "j40", "j41", "j42"
     ],
-    "inimigo_bb": ["b26", "b35", "d35", "l30"],
+    "inimigo_bb": [
+        "b26",
+        "b35",
+        "d35",
+        "l30"
+    ],
     "inimigo_feno": ["b7"],
     "plataformasEstacaBaixo": [
         "b19"
-    ]
+    ],
+    "inimigo_comum": ["d18"]
 }

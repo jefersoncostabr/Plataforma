@@ -314,6 +314,9 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         ,garraDist: 0
         ,garraBracos: []
         ,garraItemCarregado: null
+        ,presoPorGarra2: false
+        ,tempoEletrocutadoGarra2: 0
+        ,ehBBInimigo: false
         ,itensGuardadosNoCinto: false
         ,cintoAnimando: false
         ,cintoAnimTimeout: null
