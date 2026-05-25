@@ -32,7 +32,8 @@
         img.src = spritePadrao;
         img.id = idElemento;
         img.className = 'entidade-player-bb';
-        img.style.cssText = `position: absolute; width: 32px; height: 32px; image-rendering: pixelated; z-index: 100; pointer-events: none; transform-origin: center center; transition: transform 0.05s linear;`;
+        // CSS seco, sem transição
+        img.style.cssText = 'position: absolute; width: 32px; height: 32px; image-rendering: pixelated; z-index: 100; pointer-events: none; transform-origin: center center;';
         img.style.left = x + 'px';
         img.style.bottom = y + 'px';
 
@@ -966,12 +967,14 @@
         bb.elemento.style.left = bb.x + 'px';
         bb.elemento.style.bottom = bb.y + 'px';
 
-        // Aplicar rotação de pulo (igual ao cao)
+        // // Aplicar rotação de pulo (igual ao cao)
         if (typeof window.aplicarRotacaoVerticalPet === 'function') {
             window.aplicarRotacaoVerticalPet(bb);
         } else {
             bb.elemento.style.transform = bb.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
         }
+
+
 
         requestAnimationFrame(() => cicloVidaBB(bb, idControle));
     }
