@@ -1,0 +1,9 @@
+{
+    "nome": "inimigo_teste",
+    "vida": 20,
+    "dano": 3,
+    "sprite": "inimigo_bb/sprite.png",
+    "ia": "agressivo",
+    "comportamentos": ["patrulha"],
+    "drops": ["scrap", "bateria"]
+}

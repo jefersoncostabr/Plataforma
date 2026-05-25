@@ -1,4 +1,4 @@
-// Função global para transformar BB NPC em inimigo ao entrar em casco/robo
+// Função global para transformar o BB em inimigo (Tipo 12) ao entrar em casco/robô
 typeof window !== 'undefined' && (window.criarInimigoApartirDeBB = function(x, y) {
     // Parâmetros: x, y em pixels
     const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');

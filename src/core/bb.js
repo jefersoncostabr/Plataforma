@@ -3,7 +3,7 @@
     window.bbEntidade = null;
     window.controlandoBB = false;
     
-    // IDs separados para evitar que o spawn de um NPC mate o loop do BB do Player
+    // ID único para gerenciar a instância ativa do BB do jogador
     let playerBBIdAtivo = 0;
 
     /**
@@ -1017,7 +1017,7 @@
     };
 
     /**
-     * Remove um NPC BB específico pelo ID
+     * Remove a entidade BB ativa e encerra o modo de controle
      */
     window.despawnBB = function () {
         window.controlandoBB = false;
