@@ -968,11 +968,8 @@
         bb.elemento.style.bottom = bb.y + 'px';
 
         // // Aplicar rotação de pulo (igual ao cao)
-        if (typeof window.aplicarRotacaoVerticalPet === 'function') {
-            window.aplicarRotacaoVerticalPet(bb);
-        } else {
-            bb.elemento.style.transform = bb.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
-        }
+        // Flip seco, sem animação de inclinação
+        bb.elemento.style.transform = bb.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
 
 
 
