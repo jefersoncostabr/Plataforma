@@ -117,7 +117,7 @@
     "garraPuxoFramesMax": 180,
     "maxMunicao": 5,
     "dashDuracao": 8,
-    "distanciaDash": 64,
+    "distanciaDash": 256,
     "janelaDuploToqueDash": 250,
     "superDescidaVelocidadeInicial": -20,
     "minVelocidadePousoSom": -6,

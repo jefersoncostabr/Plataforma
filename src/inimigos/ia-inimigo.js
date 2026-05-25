@@ -547,6 +547,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
     function limparVisuaisInimigo(inimigo) {
         // Remove elementos visuais extras do inimigo e reseta flags de equipamentos
         const elementos = [
+            'armaElemento',
             'escudoElemento',
             'botaElemento',
             'jetpackElemento',

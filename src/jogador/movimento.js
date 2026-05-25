@@ -1254,7 +1254,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         if (dashDisponivel && controle.dashSolicitado && (controle.cooldownDash || 0) === 0 && !controle.estaAgachado) {
             window.AudioManager?.playSFX('dash', 0.5);
             const duracaoDash = Math.max(1, Number(config.dashDuracao ?? 8));
-            const distanciaDashBase = Math.max(0, Number(config.distanciaDash ?? 64));
+            const distanciaDashBase = Math.max(0, Number(config.distanciaDash ?? 64)); // CONFIGURAÇÃO DASH PADRÃO: 64 pixels (valor de fallback se não definido no JSON)
             const multiplicadorDashBota = controle.leveComBota ? 2 : 1;
             const distanciaDash = controle.pesado
                 ? (distanciaDashBase / 2)

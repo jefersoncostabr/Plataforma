@@ -55,7 +55,7 @@ window.aplicarEfeitosSkills = () => {
                 controle.dashHabilitado = true;
                 controle.cooldownDashMax = 45;
                 controle.dashDuracao = 8;
-                controle.distanciaDash = 128;
+                controle.distanciaDash = 128; // CONFIGURAÇÃO DASH PADRÃO: define 128px como base ao adquirir a skill
                 controle.janelaDuploToqueDash = 250;
                 break;
             
