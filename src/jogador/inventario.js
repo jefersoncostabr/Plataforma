@@ -1526,7 +1526,9 @@
                 
                     if (municaoAtual < maxMunicao) {
                         // Incrementa munição até o máximo
-                        controle.municao = Math.min(maxMunicao, municaoAtual + 1);
+                        // controle.municao = Math.min(maxMunicao, municaoAtual + 1);
+                        // Recarrega o pente completamente ao coletar a caixa
+                        controle.municao = maxMunicao;
                         window.AudioManager?.playSFX('recarga', 0.6);
                         salvarInventario();
                         atualizarMochilaUI();
@@ -1536,7 +1538,6 @@
                         const guardouEmSlot = guardarItemNoColete(item, itemData) || guardarItemNoCinto(item, itemData);
                         if (guardouEmSlot) {
                             registrarItemNoInventario(item.tipo);
-                            console.log(`[MUNIÇÃO] Caixa guardada (munição já no máximo)`);
                             return true;
                         }
                         return false;

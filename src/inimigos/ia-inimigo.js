@@ -461,11 +461,29 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         }
     }
 
+
     function inimigoColetarItemGarra(inimigo, item) {
         if (!item || !item.tipo) return;
         if (item.coletavel === false || window.itemDefinitions?.[item.tipo]?.coletavel === false) return;
 
         const tipo = item.tipo;
+
+        // Impede coleta se inimigo não tiver cinto nem colete (exceto se o item for cinto ou colete)
+        if (!inimigo.temCinto && !inimigo.temColete && tipo !== 'cinto' && tipo !== 'colete') {
+            // Passa direto, não interage
+            return;
+        }
+
+        // Para restauração, só coleta se realmente precisar
+        if (tipo === 'restauracao') {
+            const config = window.config || {};
+            const precisaMunicao = inimigo.temArma && (inimigo.municao || 0) < (config.maxMunicao || 5);
+            const precisaEscudo = inimigo.temEscudo && (inimigo.escudoVermelho || (inimigo.escudoProtegido || 0) > 0);
+            if (!precisaMunicao && !precisaEscudo) {
+                // Passa direto, não interage
+                return;
+            }
+        }
 
         // 1. Atualiza estado lógico (Flags fundamentais para comportamento e visual)
         if (tipo === 'revolver') {
@@ -519,7 +537,11 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         if (tipo !== 'airdrop' && tipo !== 'restauracao' && !inimigo.inventario.includes(tipo)) {
             inimigo.inventario.push(tipo);
         }
-        // Removido código de cabeça BB sobreposta (sprites prontos já existem)
+
+        // Remove o sprite do item coletado
+        if (typeof window.removerVisualItemColetavel === 'function') {
+            window.removerVisualItemColetavel(item);
+        }
     }
 
     function limparVisuaisInimigo(inimigo) {
@@ -985,18 +1007,23 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                 let xAnterior = inimigo.x;
 
-                // Refinamento IA: Detecta itens de interesse (AirDrop ou equipamentos que ainda não possui)
+
+                // Refinamento IA: Detecta itens de interesse (AirDrop, equipamentos vestíveis, restauração/munição se precisar)
                 const itemInteresse = window.itensColetaveis?.find(it => {
                     if (it.coletavel === false || window.itemDefinitions?.[it.tipo]?.coletavel === false) return false;
-                    // Se já possui o item e não é consumível, ignora
                     const jaTem = it.tipo !== 'airdrop' && it.tipo !== 'restauracao' && inimigo.inventario.includes(it.tipo);
                     if (jaTem) return false;
 
-                    // Se for restauração, só se interessa se estiver sem munição ou com escudo danificado
+                    // Só persegue e coleta restauração/munição se realmente precisar
                     if (it.tipo === 'restauracao') {
                         const precisaMunicao = inimigo.temArma && (inimigo.municao || 0) < (config.maxMunicao || 5);
                         const precisaEscudo = inimigo.temEscudo && (inimigo.escudoVermelho || (inimigo.escudoProtegido || 0) > 0);
                         if (!precisaMunicao && !precisaEscudo) return false;
+                    }
+
+                    // Só persegue se pode coletar: precisa ter cinto ou colete, ou o item for cinto/colete
+                    if (!inimigo.temCinto && !inimigo.temColete && it.tipo !== 'cinto' && it.tipo !== 'colete') {
+                        return false;
                     }
 
                     return Math.abs(it.x - inimigo.x) <= 220 && Math.abs(it.y - inimigo.y) <= 160;
