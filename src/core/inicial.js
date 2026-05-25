@@ -186,6 +186,8 @@ async function carregarFase(nomeArquivo) {
         window.AudioManager.stopAllSounds();
     }
 
+
+
     limparAnimacaoDanoJogador();
     if (typeof window.fecharTelaInteracao === 'function') {
         window.fecharTelaInteracao();
@@ -486,7 +488,6 @@ async function carregarFase(nomeArquivo) {
 
         processarPet('cao', window.isCaoResgatado, window.caoNaBase, fase.posicaoGaiola, window.iniciarCao);
         processarPet('gato', window.isGatoResgatado, window.gatoNaBase, fase.posicaoGaiolaGato, window.iniciarGato);
-
         // Verificação de compatibilidade de gaiolas (log removido)
     }
 

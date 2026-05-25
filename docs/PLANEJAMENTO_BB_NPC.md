@@ -171,7 +171,7 @@ Como a preferência foi **campo separado ou arquivo separado**, o plano de dados
 ---
 
 ## Critérios de sucesso
-- O BB NPC aparece e se comporta conforme o BB existente.
+- O BB NPC aparece e se comporta conforme o BB existente. (pegar a física,  hitbox sprites do jogador quando bb)
 - Não há vazamento de timers/RAF após despawn.
 - É possível ter BB NPC em uma fase sem usar singleton fixo.
 - O “BB inimigo” continua funcionando.

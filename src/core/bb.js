@@ -2,24 +2,26 @@
     // Estado global do BB
     window.bbEntidade = null;
     window.controlandoBB = false;
-    let bbIdAtivo = 0;
+    
+    // IDs separados para evitar que o spawn de um NPC mate o loop do BB do Player
+    let playerBBIdAtivo = 0;
 
     /**
-     * Inicializa o BB com a mesma física do cao
+     * Cria a entidade do Bebê (BB) para controle do jogador
      */
-    window.inicializarBB = function (x, y, gameConfig) {
+    window.spawnEntidadePlayerBB = function (x, y, gameConfig) {
         const palco = document.getElementById('game-stage') || document.getElementById('jogo-container');
         if (!palco) return;
 
-        bbIdAtivo++;
-        const meuId = bbIdAtivo;
-
+        playerBBIdAtivo++;
+        const meuId = playerBBIdAtivo;
         const config = gameConfig || window.config || {};
 
-        // Remove BB anterior
+        // O BB do player é tratado como entidade única
         const idElemento = 'pet-bb';
         const antigo = document.getElementById(idElemento);
         if (antigo) antigo.remove();
+        
         if (window.bbEntidade?.corpoRoboAbertoElemento) {
             window.bbEntidade.corpoRoboAbertoElemento.remove();
         }
@@ -29,7 +31,7 @@
         const spritePadrao = config.spriteBB || '../../assets/personagem/bb/bb-parado.png';
         img.src = spritePadrao;
         img.id = idElemento;
-        img.className = 'npc-pet npc-bb';
+        img.className = 'entidade-player-bb';
         img.style.cssText = `position: absolute; width: 32px; height: 32px; image-rendering: pixelated; z-index: 100; pointer-events: none; transform-origin: center center; transition: transform 0.05s linear;`;
         img.style.left = x + 'px';
         img.style.bottom = y + 'px';
@@ -86,6 +88,7 @@
             temCinto: true,
             estaAgachado: false
         };
+        bb.id = meuId;
 
         // Inicializa um sistema de crafting dedicado ao BB
         bb.craftingSystem = window.criarSistemaCraftingJogador({
@@ -111,18 +114,27 @@
         });
 
         window.bbEntidade = bb;
+
+
         requestAnimationFrame(() => cicloVidaBB(bb, meuId));
+        return bb;
+    };
+
+    // Shim para manter compatibilidade com o sistema de ejeção do player
+    window.inicializarBB = function (x, y, cfg) {
+        return window.spawnEntidadePlayerBB(x, y, cfg);
     };
 
     function bbPodeFecharNoPlayer(bb, player) {
-        if (!bb || !player || typeof window.detectarColisaoHitbox !== 'function') {
+        // Apenas o BB controlado pode fechar no player
+        if (!bb || !player || !window.controlandoBB || window.bbEntidade !== bb) {
             return false;
         }
 
         const hitboxBB = {
             x: bb.x + (bb.offsetX || 0),
             y: bb.y,
-            largura: bb.largura,
+            largura: bb.largura || 9,
             altura: bb.altura
         };
 
@@ -186,7 +198,7 @@
 
         const fenoId = window.GAME_CONSTANTS?.INIMIGO_FENO_ID ?? 5;
         for (const inimigo of window.inimigos) {
-            if (!inimigo || inimigo.estaMorto || inimigo.estaMorrendo || inimigo.emAberturaPorBB) continue;
+            if (!inimigo || inimigo.estaMorto || inimigo.estaMorrendo) continue;
             if (inimigo.tipo === fenoId) continue;
             if (!inimigo.presoPorPet) continue;
 
@@ -235,6 +247,11 @@
         bb.corpoRoboAbertoElemento.style.bottom = yBase + 'px';
     }
 
+    // Variáveis globais para chute
+    let chuteAtivo = false;
+    let direcaoChute = null;
+    let tempoChute = 0;
+
     function finalizarResgateBB(bb, config) {
         if (!bb) return false;
 
@@ -263,6 +280,12 @@
             window.aplicarKnockback(bb, forca, direcaoKnock, 15);
         }
 
+
+        // Marca chute como ativo e guarda direção
+        chuteAtivo = true;
+        direcaoChute = bb.direcao;
+        tempoChute = 18; // frames de duração do chute (ajuste se necessário)
+        if (window.console) console.log('[BB] Chute iniciado. Direção:', direcaoChute);
         window.AudioManager?.playSFX('chute', 0.4);
         window.AudioManager?.playSFX('impacto', 0.6);
 
@@ -437,11 +460,10 @@
 
 
     function bbAbrirInimigoPreso(bb, inimigo, config, teclas) {
-        if (!bb || !inimigo || inimigo.emAberturaPorBB || inimigo.estaMorto || inimigo.estaMorrendo) {
+        if (!bb || !inimigo || inimigo.estaMorto || inimigo.estaMorrendo) {
             return false;
         }
 
-        inimigo.emAberturaPorBB = true;
         inimigo.stunned = true;
         inimigo.stunTimer = 9999;
         inimigo.presoPorPet = false;
@@ -623,13 +645,47 @@
     }
 
     function cicloVidaBB(bb, idControle) {
-        // Verifica se este BB foi substituído
-        if (bbIdAtivo !== idControle) return;
+        // BUG FIX: Garante que múltiplos NPCs mantenham seus loops ativos.
+        // Se for o BB do player, permitimos apenas o loop do ID mais recente para evitar duplicidade na ejeção.
+        const ehInstanciaPlayer = window.bbEntidade === bb;
+        if (ehInstanciaPlayer && playerBBIdAtivo !== idControle) return;
+        if (!bb || !bb.elemento || !bb.elemento.parentNode) return;
 
         const player = window.playerControle;
 
         if (!window.isPaused && bb && window.config) {
             const config = window.config;
+
+
+
+            // Lógica de cancelamento do chute se apertar direção contrária
+            if (chuteAtivo && direcaoChute !== null && tempoChute > 0) {
+                const teclas = window.playerControle?.teclas || {};
+                // Se olhando para direita e pressionar esquerda
+                if (direcaoChute === 'd' && (teclas['a'] || teclas['A'] || teclas['ArrowLeft'])) {
+                    chuteAtivo = false;
+                    direcaoChute = null;
+                    tempoChute = 0;
+                    if (window.console) console.log('[BB] Chute cancelado: pressionou esquerda durante chute para direita');
+                }
+                // Se olhando para esquerda e pressionar direita
+                else if (direcaoChute === 'e' && (teclas['d'] || teclas['D'] || teclas['ArrowRight'])) {
+                    chuteAtivo = false;
+                    direcaoChute = null;
+                    tempoChute = 0;
+                    if (window.console) console.log('[BB] Chute cancelado: pressionou direita durante chute para esquerda');
+                }
+            }
+
+            // Reduz o tempo do chute se ativo
+            if (chuteAtivo && tempoChute > 0) {
+                tempoChute--;
+                if (tempoChute <= 0) {
+                    chuteAtivo = false;
+                    direcaoChute = null;
+                    if (window.console) console.log('[BB] Chute finalizado por tempo.');
+                }
+            }
 
             if (bb.emAnimacaoAbertura) {
                 atualizarAnimacaoAberturaBB(bb, config);
@@ -660,7 +716,9 @@
                 : (config.gravidadeCao ?? 0.5);
                 
             let velocidadeBase = (config.velocidadeCao || 3) - 2;
-
+            
+            // Garante velocidade de NPC se não estiver sendo controlado
+            const ehInstanciaAtiva = window.bbEntidade === bb;
             let teclasParaFisica = {};
 
             if (bb.cooldownPulo > 0) bb.cooldownPulo--;
@@ -668,7 +726,7 @@
             if (Number(bb.cooldownInteracaoRoboAposMusgo || 0) > 0) bb.cooldownInteracaoRoboAposMusgo--;
             if (Number(bb.cooldownInteracaoAlavanca || 0) > 0) bb.cooldownInteracaoAlavanca--;
 
-            if (window.controlandoBB) {
+            if (window.controlandoBB && ehInstanciaAtiva) {
                 const teclas = window.playerControle?.teclas || {};
                 const ePressionadoFrame = !!(teclas['e'] || teclas['E'] || teclas['KeyE']);
                 const qPressionadoFrame = !!(teclas['q'] || teclas['Q'] || teclas['KeyQ']);
@@ -885,15 +943,12 @@
         if (bb.interagindo) {
             bb.elemento.src = bb.spriteInteracao;
         } else {
-            // Animação: alterna entre parado e andando quando em movimento.
-            // Ajuste: ao controlar o BB, ele não deve “voltar” para sprite parado
-            // enquanto há input horizontal ativo, mesmo que bb.noChao oscile.
             const teclas = window.playerControle?.teclas || {};
             const inputHorizontalAtivo =
-                teclas['a'] || teclas['A'] || teclas['ArrowLeft'] ||
-                teclas['d'] || teclas['D'] || teclas['ArrowRight'];
+                (window.controlandoBB && window.bbEntidade === bb) &&
+                (teclas['a'] || teclas['A'] || teclas['ArrowLeft'] || teclas['d'] || teclas['D'] || teclas['ArrowRight']);
 
-            if (bb.movendoHorizontal && (bb.noChao || inputHorizontalAtivo)) {
+            if (bb.movendoHorizontal && (bb.noChao || inputHorizontalAtivo || !window.controlandoBB)) {
                 bb.contadorAnimacao++;
                 if (bb.contadorAnimacao >= 10) {
                     bb.frameAtual = bb.frameAtual === 0 ? 1 : 0;
@@ -961,28 +1016,23 @@
         window.cameraZoomFactor = 1;
     };
 
+    /**
+     * Remove um NPC BB específico pelo ID
+     */
     window.despawnBB = function () {
         window.controlandoBB = false;
-
-        if (window.bbEntidade?.corpoRoboAbertoElemento) {
-            window.bbEntidade.corpoRoboAbertoElemento.remove();
-            window.bbEntidade.corpoRoboAbertoElemento = null;
+        
+        // Limpa BB do player
+        const bb = window.bbEntidade;
+        if (bb) {
+            if (bb.corpoRoboAbertoElemento) bb.corpoRoboAbertoElemento.remove();
+            if (bb.elemento) bb.elemento.remove();
+            
+            bb.emAnimacaoAbertura = false;
+            bb.sendoPuxadoPelaGarra = false;
+            playerBBIdAtivo++;
+            window.bbEntidade = null;
         }
-
-        if (window.bbEntidade) {
-            window.bbEntidade.emAnimacaoAbertura = false;
-            window.bbEntidade.sendoPuxadoPelaGarra = false;
-            window.bbEntidade.garraControle = null;
-            window.bbEntidade.garraPontoInicial = null;
-        }
-
-        bbIdAtivo++;
-
-        if (window.bbEntidade?.elemento) {
-            window.bbEntidade.elemento.remove();
-        }
-
-        window.bbEntidade = null;
     };
 
     /**

@@ -61,13 +61,15 @@
     function normalizarEntradaCoord(entrada) {
         if (typeof entrada === 'string') {
             const coord = entrada.trim();
-            return coord ? coord : null;
+            // Garante que a string segue o padrão de coordenada (ex: b15)
+            // Isso remove automaticamente strings como "coord" do array ao salvar
+            return /^[a-z]+\d+$/i.test(coord) ? coord : null;
         }
 
         if (!entrada || typeof entrada !== 'object') return null;
 
         const coord = String(entrada.coord || entrada.pos || entrada.position || '').trim();
-        if (!coord) return null;
+        if (!coord || !/^[a-z]+\d+$/i.test(coord)) return null;
 
         const normalizado = { ...entrada, coord };
         delete normalizado.pos;

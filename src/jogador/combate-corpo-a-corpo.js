@@ -106,7 +106,7 @@
         }
 
         function processarAcertoChuteEmInimigo(inimigo) {
-            if (!controle.chutando || !inimigo || inimigo.estaMorto || inimigo.ehBBInimigo || inimigo.foiAtingidoNesteChute) {
+            if (!controle.chutando || !inimigo || inimigo.estaMorto || inimigo.foiAtingidoNesteChute) {
                 return false;
             }
 

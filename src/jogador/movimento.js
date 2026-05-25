@@ -1955,7 +1955,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                     for (let j = window.inimigos.length - 1; j >= 0; j--) {
                         const inimigo = window.inimigos[j];
                         
-                        if (inimigo.estaMorto || inimigo.ehBBInimigo) continue;
+                        if (inimigo.estaMorto) continue;
 
                         const hitboxInimigo = {
                             x: inimigo.x + (inimigo.offsetX || 0),
