@@ -1485,6 +1485,7 @@
                         }
                     }
 
+                    // Fallback: se não trocou a arma, tenta armazenar o item no cinto ou mochila
                     const guardouEmSlot = guardarItemNoCinto(item, itemData) || guardarItemNoColete(item, itemData);
                     if (guardouEmSlot) {
                         registrarItemNoInventario(item.tipo);
@@ -1492,27 +1493,13 @@
                         atualizarMochilaUI();
                         return true;
                     }
-                    return false;
                 }
-
-                // Fallback: tenta converter em munição quando aplicável.
-                if (tentarConverterArmaColetadaEmMunicao(item)) {
-                    return true;
-                }
-
-                // Se não conseguiu equipar nem converter em munição (ex.: munição cheia), não consome o item.
-                return false;
-            }
-
-            if (tentarConverterArmaColetadaEmMunicao(item)) {
-                return true;
             }
 
             // Apenas tenta aplicar no corpo se for um equipamento vestível (corpo)
-                // Tratamento especial para munição_plus: incrementa munição da arma atual até o máximo
-                if (item.tipo === 'municao_plus') {
-                    if (!controle.temArma) {
-                        // Se não tem arma, guarda a munição no colete ou cinto
+            if (item.tipo === 'municao_plus') {
+                if (!controle.temArma) {
+                    // Se não tem arma, guarda a munição no colete ou cinto
                         const guardouEmSlot = guardarItemNoColete(item, itemData) || guardarItemNoCinto(item, itemData);
                         if (guardouEmSlot) {
                             registrarItemNoInventario(item.tipo);
@@ -1542,7 +1529,7 @@
                         }
                         return false;
                     }
-                }
+            }
 
             const ehEquipamentoCorpo = ['revolver', 'doze', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete'].includes(item.tipo);
             if (ehEquipamentoCorpo && (!itemJaAtivoNoCorpo(item.tipo) || precisaDeItemAgora(item.tipo))) {

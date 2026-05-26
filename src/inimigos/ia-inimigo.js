@@ -468,9 +468,12 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
         const tipo = item.tipo;
 
-        // Impede coleta se inimigo não tiver cinto nem colete (exceto se o item for cinto ou colete)
-        if (!inimigo.temCinto && !inimigo.temColete && tipo !== 'cinto' && tipo !== 'colete') {
-            // Passa direto, não interage
+        const propAtivo = {revolver:'temArma', doze:'temArma', escudo:'temEscudo', bota:'temBota', jetpack:'temJetpack', garra:'temGarra', cinto:'temCinto', colete:'temColete'}[tipo];
+        const jaTemNoCorpo = propAtivo ? !!inimigo[propAtivo] : false;
+        const jaTemMesmoItem = jaTemNoCorpo && (['revolver', 'doze'].includes(tipo) ? inimigo.heldWeaponType === tipo : true);
+
+        // Se já tem exatamente o mesmo item equipado e não tem mochila para guardar a sobra, ignora
+        if (jaTemMesmoItem && !inimigo.temCinto && !inimigo.temColete && tipo !== 'cinto' && tipo !== 'colete') {
             return;
         }
 
@@ -1022,10 +1025,11 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         if (!precisaMunicao && !precisaEscudo) return false;
                     }
 
-                    // Só persegue se pode coletar: precisa ter cinto ou colete, ou o item for cinto/colete
-                    if (!inimigo.temCinto && !inimigo.temColete && it.tipo !== 'cinto' && it.tipo !== 'colete') {
-                        return false;
-                    }
+                // Só ignora se já tiver no corpo e não tiver storage
+                const jaTemNoCorpoIt = !!inimigo[({revolver:'temArma', doze:'temArma', escudo:'temEscudo', bota:'temBota', jetpack:'temJetpack', garra:'temGarra', cinto:'temCinto', colete:'temColete'}[it.tipo])];
+                if (jaTemNoCorpoIt && !inimigo.temCinto && !inimigo.temColete && it.tipo !== 'cinto' && it.tipo !== 'colete') {
+                    return false;
+                }
 
                     return Math.abs(it.x - inimigo.x) <= 220 && Math.abs(it.y - inimigo.y) <= 160;
                 });
@@ -1798,12 +1802,13 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         const hitboxInimigoBody = { x: inimigo.x + (inimigo.offsetX || 0), y: inimigo.y, largura: inimigo.largura, altura: inimigo.altura };
                         const hitboxItemBody = { x: item.x, y: item.y, largura: 32, altura: 32 };
 
-                        if (typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(hitboxInimigoBody, hitboxItemBody, -6, -6, -6)) {
+                        // Expandimos a margem para 8 para facilitar a detecção por inimigos (que têm hitboxes finas)
+                        if (typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(hitboxInimigoBody, hitboxItemBody, 8, 8, 8)) {
                             
                             // O inimigo só tenta pegar o que ele ainda não tem
                             if (item.tipo !== 'airdrop' && 
-                                ((item.tipo === 'revolver' && inimigo.temArma && inimigo.municao > 0) ||
-                                 (item.tipo === 'doze' && inimigo.temArma && inimigo.municao > 0) ||
+                                ((item.tipo === 'revolver' && inimigo.heldWeaponType === 'revolver' && inimigo.municao > 0) ||
+                                 (item.tipo === 'doze' && inimigo.heldWeaponType === 'doze' && inimigo.municao > 0) ||
                                  (item.tipo === 'escudo' && inimigo.temEscudo) ||
                                  (item.tipo === 'bota' && inimigo.temBota) ||
                                  (item.tipo === 'jetpack' && inimigo.temJetpack) ||

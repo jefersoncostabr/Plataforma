@@ -1239,7 +1239,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         const hitboxInimigoBody = { x: inimigo.x + (inimigo.offsetX || 0), y: inimigo.y, largura: inimigo.largura, altura: inimigo.altura };
                         const hitboxItemBody = { x: item.x, y: item.y, largura: 32, largura: 32, altura: 32 };
 
-                        if (typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(hitboxInimigoBody, hitboxItemBody, -6, -6, -6)) {
+                        // Expandimos a margem para facilitar a detecção (hitbox do inimigo é estreita)
+                        if (typeof detectarColisaoHitbox === 'function' && detectarColisaoHitbox(hitboxInimigoBody, hitboxItemBody, 8, 8, 8)) {
                             
                             // O inimigo só tenta pegar o que ele ainda não tem
                             if (item.tipo !== 'airdrop' && 
