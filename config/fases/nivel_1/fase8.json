@@ -27,17 +27,16 @@
             "b14",
             "b17"
         ],
-        "municao_plus": [
-            "n10",
-            "n19"
-        ],
+        "municao_plus": "n10",
         "escudo": "n7",
-        "bota": "n16"
+        "bota": "n16",
+        "doze": "n19"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
         "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a10", "a11", "a13", "a14", "a16", "a17", "a18", "a19", "a20",
         "b8",
+        "f5",
         "g10", "g11", "g13", "g14",
         "m1", "m4", "m7", "m10", "m13", "m16", "m19"
     ],

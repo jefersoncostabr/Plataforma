@@ -22,7 +22,10 @@
             "o29"
         ],
         "restauracao": "i40",
-        "municao_plus": "o1"
+        "municao_plus": [
+            "m1",
+            "o1"
+        ]
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
@@ -41,7 +44,7 @@
         "c7",
         "h34", "h35", "h36", "h37", "h39", "h40",
         "k10",
-        "l12",
+        "l1", "l12",
         "m14",
         "n16", "n18", "n19", "n20", "n21", "n22", "n23", "n24"
     ],

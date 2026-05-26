@@ -13,7 +13,6 @@
     "posicaoGato": "",
     "itens": {
         "revolver": "o3",
-        "cinto": "o6",
         "restauracao": "l4",
         "municao_plus": "b17"
     },
@@ -44,7 +43,8 @@
         "b19"
     ],
     "bbNPCs": [
-        "coord", "b15",
+        "coord",
+        "b15",
         "d18"
     ],
     "inimigo_comum": ["b31"]
