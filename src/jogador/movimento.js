@@ -2020,9 +2020,10 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                                 }
                             }
 
-                            const limiteVidaInimigo = typeof window.obterLimiteVidaInimigo === 'function'
-                                ? window.obterLimiteVidaInimigo(config)
-                                : 3;
+                            const limiteVidaInimigo = inimigo.vidaMax ?? (
+                                typeof window.obterLimiteVidaInimigo === 'function'
+                                    ? window.obterLimiteVidaInimigo(config)
+                                    : 3);
 
                             if (!bloqueouEscudoInimigo) {
                                 const danoTomado = (controle.danoProjetil || 1);

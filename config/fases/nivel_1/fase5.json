@@ -46,7 +46,10 @@
         "j40",
         "k35"
     ],
-    "inimigo_comum": ["b26", "b28", "b30", "n33"],
+    "inimigo_comum": ["b30", "n33"],
     "inimigo_escudo": ["b7"],
-    "inimigo_cinto": ["m23"]
+    "inimigo_cinto": ["m23"],
+    "humano": [
+        "b18", "b26", "b28"
+    ]
 }

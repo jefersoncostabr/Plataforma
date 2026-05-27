@@ -43,7 +43,7 @@
     "plataformasEstacaSup": [
         "a9", "a15"
     ],
-    "inimigo_comum": ["b7", "b11", "b13", "b19", "b20", "h10", "h11", "h13", "h14"],
+    "inimigo_comum": ["b11", "b13", "b19", "b20", "h11", "h13"],
     "plataformasTerraInferior2": [
         "h9", "h15"
     ],
@@ -56,5 +56,9 @@
     "inimigo_escudo": ["g12"],
     "plataformasTerraSuperior": [
         "f12"
+    ],
+    "humano": [
+        "b7",
+        "h10", "h14"
     ]
 }

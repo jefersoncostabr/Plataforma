@@ -23,5 +23,9 @@
     "plataformasTerraSuperior": [
         "h34", "h35", "h36", "h37", "h39", "h40"
     ],
-    "inimigo_completo": ["b21"]
+    "inimigo_completo": ["b21"],
+    "humano": [
+        "i36",
+        "k1"
+    ]
 }

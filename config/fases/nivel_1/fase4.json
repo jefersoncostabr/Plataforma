@@ -54,6 +54,7 @@
     ],
     "plataformasTerraInferior": [
         "b14", "b15", "b18",
+        "e16",
         "p17",
         "u19"
     ],
@@ -64,8 +65,13 @@
     "plataformasEstacaSup": [
         "b16"
     ],
-    "inimigo_revolver": ["b21", "b22", "b23", "b24"],
-    "inimigo_escudo": ["b13", "b32", "v25"],
+    "inimigo_revolver": ["b21", "b24"],
+    "inimigo_escudo": ["b13", "b32"],
     "inimigo_feno": ["v20", "v26"],
-    "inimigo_comum": ["q21", "r22", "r24"]
+    "humano": [
+        "b22", "b23",
+        "q21",
+        "r22", "r24",
+        "v24"
+    ]
 }

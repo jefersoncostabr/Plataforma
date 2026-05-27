@@ -32,7 +32,6 @@
         "l35",
         "m36", "m37", "m39", "m40"
     ],
-    "inimigo_comum": ["b18", "b32", "g27"],
     "inimigo_revolver": ["b37", "g18"],
     "inimigo_feno": ["b11", "b23"],
     "plataformasTerraSuperior": [
@@ -51,5 +50,9 @@
     ],
     "plataformasTerraInferior2": [
         "e7", "e8"
+    ],
+    "humano": [
+        "b18", "b32",
+        "g27"
     ]
 }

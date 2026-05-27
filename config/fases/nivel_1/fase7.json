@@ -38,7 +38,13 @@
         "l2",
         "m2"
     ],
-    "inimigo_comum": ["b18", "e8", "h5", "i3", "l14", "l18"],
+    "inimigo_comum": ["h5", "l14"],
     "inimigo_escudo": ["h13"],
-    "inimigo_revolver": ["h20"]
+    "inimigo_revolver": ["h20"],
+    "humano": [
+        "b18",
+        "e8",
+        "i3",
+        "l18"
+    ]
 }

@@ -26,7 +26,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             spriteChute: '../../assets/personagem/humano/humano_soco.png', // <-- Caminho correto para sprite de soco
             podeAtacar: true, // Libera IA de ataque
             tempoChuteMax: 18, // Duração do soco (frames)
-            tempoChuteCooldown: 160, // Frequência menor: espera mais tempo (1.5s) entre ataques
+            tempoChuteCooldown: 160, // Frequência menor: 160 é o certo
             chaveJSON: 'humano'
         };
     }

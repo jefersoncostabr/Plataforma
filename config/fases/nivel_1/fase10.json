@@ -38,7 +38,7 @@
         "n1", "n2", "n3", "n4"
     ],
     "inimigo_feno": ["b11", "b30"],
-    "inimigo_comum": ["b14", "b15", "b16", "b17", "b18", "b24", "b25", "b26", "b27", "b28", "b29", "i35"],
+    "inimigo_comum": ["b14", "b16", "b18", "b25", "b27", "b29", "i35"],
     "inimigo_revolver": ["b13", "b23"],
     "plataformasTerraSuperior": [
         "c7",
@@ -51,5 +51,8 @@
     "plataformasTerraSuperior2": [
         "k6"
     ],
-    "inimigo_escudo": ["k1"]
+    "inimigo_escudo": ["k1"],
+    "humano": [
+        "b15", "b17", "b24", "b26", "b28"
+    ]
 }

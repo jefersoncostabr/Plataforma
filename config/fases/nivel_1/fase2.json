@@ -47,5 +47,9 @@
         "b15",
         "d18"
     ],
-    "inimigo_comum": ["b31"]
+    "inimigo_comum": ["b31"],
+    "humano": [
+        "d18",
+        "m29"
+    ]
 }
