@@ -9,47 +9,37 @@
     "posicaoMusgoRoboDesativado": "",
     "posicaoGaiola": "",
     "posicaoCachorro": "",
-    "posicaoGaiolaGato": "h39",
+    "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
-        "revolver": "o3",
-        "restauracao": "l4",
-        "municao_plus": "b17"
+        "cinto": "l1"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
-        "b20",
-        "c17", "c18", "c19", "c32", "c33", "c34", "c35", "c36", "c37", "c38",
-        "h17",
-        "i13",
-        "j7",
-        "k4", "k27", "k28", "k29", "k30", "k31", "k32", "k33",
-        "m9", "m12", "m15", "m18", "m21", "m24",
-        "n3", "n6"
-    ],
-    "plataformasTerraSuperior": [
-        "b16",
-        "g39",
-        "l38"
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
+        "b7",
+        "c7", "c12",
+        "d12", "d35",
+        "f22", "f23", "f24", "f25", "f33", "f38",
+        "g15", "g16", "g17", "g18", "g19", "g28", "g29", "g30", "g31", "g40",
+        "j14",
+        "k1",
+        "m2", "m4", "m6", "m8", "m10", "m12"
     ],
     "plataformasTerraInferior2": [
-        "a18", "a19", "a20", "a21",
-        "f35",
-        "j40", "j41", "j42"
+        "d7", "d37",
+        "j16"
     ],
-    "inimigo_feno": ["b7"],
-    "plataformasEstacaBaixo": [
-        "b19"
+    "inimigo_comum": ["b29"],
+    "plataformasTerraSuperior": [
+        "b12",
+        "h13",
+        "l15"
     ],
-    "bbNPCs": [
-        "coord",
-        "b15",
-        "d18"
+    "plataformasEstacaSup": [
+        "i13"
     ],
-    "inimigo_comum": ["b31"],
     "humano": [
-        "d18",
-        "m29"
+        "e11", "e17"
     ]
 }

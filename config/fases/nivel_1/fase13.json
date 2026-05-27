@@ -1,0 +1,40 @@
+{
+    "proporcao": "1x1",
+    "posicaoInicialJogador": "b2",
+    "objetivo": "f19",
+    "posicaoAlavanca": "",
+    "posicaoRoboDesativado": "",
+    "posicaoRoboAberto": "",
+    "posicaoMusgoRoboAberto": "",
+    "posicaoMusgoRoboDesativado": "",
+    "posicaoGaiola": "",
+    "posicaoCachorro": "",
+    "posicaoGaiolaGato": "",
+    "posicaoGato": "",
+    "chefes": [
+        {
+            "id": "chefe-1779303734679-872",
+            "coord": "b13",
+            "etapas": [
+                {
+                    "baseNpc": "inimigo_bb"
+                },
+                {
+                    "baseNpc": "inimigo_bb"
+                },
+                {
+                    "baseNpc": "inimigo_bb",
+                    "equipamentos": [
+                        "bota",
+                        "colete",
+                        "cinto"
+                    ]
+                }
+            ]
+        }
+    ],
+    "inimigoAleatorio": [1, 0],
+    "plataformas": [
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20"
+    ]
+}

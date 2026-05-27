@@ -540,6 +540,7 @@ window.onload = async () => {
 
     if (btnNewPhase) {
         btnNewPhase.onclick = async () => {
+            // 1. Escolher nível
             const nivelOpcao = prompt(
                 "Em qual nível deseja criar a nova fase?\n\n" +
                 "0: Raiz (config/fases/)\n" +
@@ -547,74 +548,149 @@ window.onload = async () => {
                 "2: Nível 2 (config/fases/nivel_2/)",
                 "2"
             );
-
             if (nivelOpcao === null) return; // Cancelou o prompt
-
-            // LOCALIZAÇÃO: Define o prefixo (subpasta) com base na escolha de nível no prompt
             let prefixo = "";
             if (nivelOpcao === "1") prefixo = "nivel_1/";
             else if (nivelOpcao === "2") prefixo = "nivel_2/";
             else if (nivelOpcao !== "0") { alert("Opção inválida."); return; }
 
-            // Detecta arquivos existentes para calcular o próximo número NO NÍVEL ESCOLHIDO
+            // 2. Escolher modo de criação
+            const modo = prompt(
+                "Como deseja criar a nova fase?\n" +
+                "1: Criar no fim (padrão)\n" +
+                "2: Inserir em posição específica (por número)",
+                "1"
+            );
+            if (modo === null) return;
+
+            // Detecta arquivos existentes para calcular limites
             const arquivos = await uiEditor.detectarExistentes();
             let maxNum = 0;
-
+            const numsExistentes = [];
             arquivos.forEach(arq => {
-                // Verifica se o arquivo pertence ao nível selecionado para reiniciar a contagem
                 const pertenceAoNivel = prefixo ? arq.startsWith(prefixo) : !arq.includes('/');
                 if (pertenceAoNivel) {
                     const match = arq.match(/fase(\d+)\.json$/i);
                     if (match) {
                         const num = parseInt(match[1]);
+                        numsExistentes.push(num);
                         if (num > maxNum) maxNum = num;
                     }
                 }
             });
 
-            // LOCALIZAÇÃO: Define o nome final do arquivo que será enviado ao servidor para gravação física
-            const novoNome = `${prefixo}fase${maxNum + 1}.json`;
-            console.log(`[Editor] Gerando nova fase: ${novoNome} (Baseado em ${maxNum} arquivos existentes no nível selecionado)`);
-            console.log(`[Editor] DEBUG: Prefixo: "${prefixo}", Novo Nome Calculado: "${novoNome}"`);
+            let novoNome = "";
+            let N = null;
+            if (modo === "2") {
+                // Inserção por número
+                const nStr = prompt(`Informe o número da posição desejada (1 a ${maxNum}):`, "1");
+                if (nStr === null) return;
+                N = parseInt(nStr);
+                if (isNaN(N) || N <= 0) {
+                    alert("Número inválido.");
+                    return;
+                }
+                if (N >= maxNum + 1) {
+                    alert("Número igual ou maior que a quantidade de fases. Será criada no fim.");
+                    N = maxNum + 1;
+                }
+                novoNome = `${prefixo}fase${N}.json`;
+            } else {
+                // Criar no fim (padrão)
+                N = maxNum + 1;
+                novoNome = `${prefixo}fase${N}.json`;
+            }
 
+            // Checa se já existe faseN.json
+            const existeFaseN = numsExistentes.includes(N);
+
+            // Se modo inserção e já existe, pedir confirmação para shift/renomeação
+
+            if (modo === "2" && existeFaseN) {
+                if (!confirm(`A fase ${novoNome} já existe. Deseja inserir aqui e renumerar as fases seguintes?`)) {
+                    alert("Operação cancelada.");
+                    return;
+                }
+                // Determina o escopo para o backend
+                let scope = '';
+                if (prefixo === 'nivel_1/') scope = 'nivel_1';
+                else if (prefixo === 'nivel_2/') scope = 'nivel_2';
+
+                // Chama o endpoint de shift/renomeação
+                try {
+                    const resp = await fetch('/shift-phases', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ scope, N })
+                    });
+                    const data = await resp.json();
+                    if (!data.ok) {
+                        alert('Erro ao renomear fases: ' + (data.error || 'Erro desconhecido.'));
+                        return;
+                    }
+                } catch (e) {
+                    alert('Erro técnico ao renomear fases: ' + e.message);
+                    return;
+                }
+            }
+
+            // Criação normal (fim ou posição livre)
             if (confirm(`Deseja criar a "${novoNome}" do zero?`)) {
                 aplicarFaseDataEditor(createEmptyFaseData({
                     proporcao: "1x1"
                 }), { arquivoFaseAtual: novoNome });
 
                 atualizarTamanhoStage();
-                console.log(`[Editor] DEBUG: Chamando salvarAutomaticamenteAgora com arquivoFaseAtual: "${novoNome}"`);
                 if (persistenciaEditor) {
                     await persistenciaEditor.salvarAutomaticamenteAgora();
-
                     // Atualiza o manifesto index.json automaticamente
                     try {
                         const resp = await fetch(PHASES_MANIFEST_PATH, { cache: 'no-store' });
                         if (resp.ok) {
                             const manifesto = await resp.json();
-                            const lista = manifesto.fases || manifesto;
-                            
-                            if (Array.isArray(lista) && !lista.includes(novoNome)) {
-                                lista.push(novoNome);
-                                
-                                // Ordena a lista numericamente para evitar que fase11 fique antes da fase2
-                                lista.sort((a, b) => {
-                                    const numA = parseInt(a.match(/\d+/)?.[0] || 0);
-                                    const numB = parseInt(b.match(/\d+/)?.[0] || 0);
-                                    return numA - numB;
-                                });
+                            let lista = manifesto.fases || manifesto;
+                            if (!Array.isArray(lista)) lista = [];
 
-                                await fetch('/save-phase', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ 
-                                        fileName: 'index.json', 
-                                        content: JSON.stringify(manifesto, null, 4) 
-                                    })
-                                });
-                                console.log(`[Editor] Manifesto atualizado com a nova fase: ${novoNome}`);
-                                if (uiEditor && uiEditor.detectarExistentes) await uiEditor.detectarExistentes();
-                            }
+                            // Remove todas as fases do escopo afetado
+                            let escopoPrefix = prefixo;
+                            const isFaseDoEscopo = (f) => escopoPrefix ? f.startsWith(escopoPrefix) : !f.includes('/');
+                            lista = lista.filter(f => !isFaseDoEscopo(f));
+
+                            // Detecta arquivos reais do escopo após shift
+                            let escopoDir = 'config/fases/';
+                            if (prefixo === 'nivel_1/') escopoDir += 'nivel_1/';
+                            else if (prefixo === 'nivel_2/') escopoDir += 'nivel_2/';
+                            // Busca todos os fase{k}.json do escopo
+                            let faseFiles = [];
+                            try {
+                                const req = await fetch(escopoDir);
+                                if (req.ok) {
+                                    const html = await req.text();
+                                    // Extrai nomes de arquivos fase{k}.json do HTML de listagem
+                                    faseFiles = Array.from(html.matchAll(/fase(\d+)\.json/g)).map(m => `${escopoPrefix}fase${m[1]}.json`);
+                                }
+                            } catch (e) {}
+                            // Garante que a nova fase está presente
+                            if (!faseFiles.includes(novoNome)) faseFiles.push(novoNome);
+                            // Ordena numericamente
+                            faseFiles.sort((a, b) => {
+                                const numA = parseInt(a.match(/fase(\d+)\.json/)?.[1] || 0);
+                                const numB = parseInt(b.match(/fase(\d+)\.json/)?.[1] || 0);
+                                return numA - numB;
+                            });
+                            // Junta com as fases de outros escopos
+                            lista = [...lista, ...faseFiles];
+                            if (manifesto.fases) manifesto.fases = lista;
+                            else manifesto = lista;
+                            await fetch('/save-phase', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ 
+                                    fileName: 'index.json', 
+                                    content: JSON.stringify(manifesto, null, 4) 
+                                })
+                            });
+                            if (uiEditor && uiEditor.detectarExistentes) await uiEditor.detectarExistentes();
                         }
                     } catch (e) { console.error("Erro ao atualizar index.json:", e); }
                 }

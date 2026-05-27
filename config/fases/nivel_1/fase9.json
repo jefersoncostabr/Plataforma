@@ -1,7 +1,7 @@
 {
-    "proporcao": "2x1",
+    "proporcao": "1x1",
     "posicaoInicialJogador": "b2",
-    "objetivo": "ab20",
+    "objetivo": "f19",
     "posicaoAlavanca": "",
     "posicaoRoboDesativado": "",
     "posicaoRoboAberto": "",
@@ -13,35 +13,52 @@
     "posicaoGato": "",
     "itens": {
         "revolver": [
-            "t15",
-            "x6"
+            "b16",
+            "b18",
+            "n1"
         ],
-        "restauracao": "m15",
-        "jetpack": "ab18",
-        "colete": "ab13",
-        "doze": "ab1"
+        "restauracao": [
+            "c8",
+            "n4",
+            "n13"
+        ],
+        "jetpack": [
+            "b11",
+            "b14",
+            "b17"
+        ],
+        "municao_plus": "n10",
+        "escudo": "n7",
+        "bota": "n16",
+        "doze": "n19"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20",
-        "g4", "g5",
-        "l9", "l10", "l15",
-        "s14", "s15",
-        "w5", "w6",
-        "aa1", "aa2",
-        "ab10", "ab11"
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a10", "a11", "a13", "a14", "a16", "a17", "a18", "a19", "a20",
+        "b8",
+        "f5",
+        "g10", "g11", "g13", "g14",
+        "m1", "m4", "m7", "m10", "m13", "m16", "m19"
     ],
-    "inimigo_comum": ["b16", "b20", "z14"],
-    "inimigo_jetpack": ["b14", "x5"],
+    "plataformasEstacaSup": [
+        "a9", "a15"
+    ],
+    "inimigo_comum": ["b11", "b13", "b19", "b20", "h11", "h13"],
+    "plataformasTerraInferior2": [
+        "h9", "h15"
+    ],
     "plataformasEstacaBaixo": [
-        "f4",
-        "k9",
-        "r14",
-        "v5",
-        "z1",
-        "aa10"
+        "l4", "l10", "l13", "l19"
+    ],
+    "plataformasTerraInferior": [
+        "c15"
+    ],
+    "inimigo_escudo": ["g12"],
+    "plataformasTerraSuperior": [
+        "f12"
     ],
     "humano": [
-        "b9", "b12", "b18"
+        "b7",
+        "h10", "h14"
     ]
 }

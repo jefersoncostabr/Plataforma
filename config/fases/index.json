@@ -1,17 +1,6 @@
 {
     "fases": [
         "treino.json",
-        "nivel_1/fase1.json",
-        "nivel_1/fase2.json",
-        "nivel_1/fase3.json",
-        "nivel_1/fase4.json",
-        "nivel_1/fase5.json",
-        "nivel_1/fase6.json",
-        "nivel_1/fase7.json",
-        "nivel_1/fase8.json",
-        "nivel_1/fase9.json",
-        "nivel_1/fase10.json",
-        "nivel_1/fase11.json",
-        "nivel_1/fase12.json"
+        "nivel_1/fase1.json"
     ]
 }

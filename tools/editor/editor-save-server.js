@@ -1,3 +1,45 @@
+// Shift/renomeação descendente de fases para inserção por número
+async function handleShiftPhases(req, res) {
+    try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || '{}');
+        const scope = String(payload.scope || '').trim(); // '', 'nivel_1', 'nivel_2'
+        const N = parseInt(payload.N);
+        if (!N || N <= 0) return sendJson(res, 400, { ok: false, error: 'N inválido.' });
+
+        // Determina pasta base
+        let dir = PHASES_DIR;
+        if (scope === 'nivel_1') dir = path.join(PHASES_DIR, 'nivel_1');
+        else if (scope === 'nivel_2') dir = path.join(PHASES_DIR, 'nivel_2');
+
+        // Lista arquivos fase{k}.json
+        const files = await fs.promises.readdir(dir);
+        const faseFiles = files
+            .map(f => ({
+                name: f,
+                match: f.match(/^fase(\d+)\.json$/i)
+            }))
+            .filter(f => f.match)
+            .map(f => ({
+                name: f.name,
+                k: parseInt(f.match[1])
+            }))
+            .filter(f => f.k >= N)
+            .sort((a, b) => b.k - a.k); // ordem decrescente
+
+        // Renomeia de trás pra frente
+        for (const f of faseFiles) {
+            const oldPath = path.join(dir, `fase${f.k}.json`);
+            const newPath = path.join(dir, `fase${f.k + 1}.json`);
+            await fs.promises.rename(oldPath, newPath);
+        }
+
+        return sendJson(res, 200, { ok: true, shifted: faseFiles.length });
+    } catch (error) {
+        console.error(`[Server] ERRO ao shift phases: ${error.message}`);
+        return sendJson(res, 500, { ok: false, error: error.message });
+    }
+}
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -194,8 +236,13 @@ const server = http.createServer(async (req, res) => {
         });
     }
 
+
     if (req.method === 'POST' && url.pathname === '/save-phase') {
         return handleSavePhase(req, res);
+    }
+
+    if (req.method === 'POST' && url.pathname === '/shift-phases') {
+        return handleShiftPhases(req, res);
     }
 
     return handleStatic(req, res, url.pathname);

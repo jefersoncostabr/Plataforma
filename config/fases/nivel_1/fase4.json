@@ -1,5 +1,5 @@
 {
-    "proporcao": "2x2",
+    "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
     "objetivo": "e40",
     "posicaoAlavanca": "",
@@ -7,71 +7,52 @@
     "posicaoRoboAberto": "",
     "posicaoMusgoRoboAberto": "",
     "posicaoMusgoRoboDesativado": "",
-    "posicaoGaiola": "k10",
+    "posicaoGaiola": "",
     "posicaoCachorro": "",
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
         "restauracao": [
-            "b19",
-            "b26",
-            "m30",
-            "ac1",
-            "ac40"
+            "g14",
+            "n40"
         ],
-        "doze": "j3"
+        "municao_plus": "g1"
     },
     "inimigoAleatorio": [1, 0],
-    "plataformasNeve": [
+    "plataformas": [
         "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
-        "b17",
-        "c8", "c33",
-        "d9", "d32",
-        "e10", "e32",
-        "f11", "f32",
-        "g11", "g31",
-        "h12", "h31",
-        "i3", "i13", "i31",
-        "j10", "j13", "j30",
-        "k13", "k30",
-        "l14", "l30",
-        "m15", "m29",
-        "n16", "n29",
-        "o29",
-        "p18", "p20", "p21", "p22", "p23", "p24", "p25", "p26", "p28",
-        "q18", "q28",
-        "r18", "r28",
-        "s19", "s27",
-        "t16", "t19", "t27",
-        "u20", "u21", "u22", "u23", "u24", "u25", "u26",
-        "v14",
-        "w12",
-        "x10",
-        "y8",
-        "z6",
-        "aa3", "aa38",
-        "ab1", "ab2", "ab39", "ab40"
+        "c11", "c32",
+        "d12", "d31",
+        "e13", "e30",
+        "f1", "f4", "f5", "f14", "f16", "f18", "f20", "f22", "f23", "f24", "f25", "f26", "f27", "f28", "f29",
+        "h26",
+        "i27", "i28",
+        "j29", "j30",
+        "k31", "k32", "k33",
+        "l35",
+        "m36", "m37", "m39", "m40"
     ],
-    "plataformasTerraInferior": [
-        "b14", "b15", "b18",
-        "e16",
-        "p17",
-        "u19"
+    "inimigo_revolver": ["b37", "g18"],
+    "inimigo_feno": ["b11", "b23"],
+    "plataformasTerraSuperior": [
+        "b33"
+    ],
+    "plataformasEstacaBaixo": [
+        "e29",
+        "l38"
     ],
     "plataformasTerraSuperior2": [
-        "b8", "b33",
-        "q19", "q27"
+        "e28",
+        "l37", "l39"
     ],
     "plataformasEstacaSup": [
-        "b16"
+        "m38"
     ],
-    "inimigo_revolver": ["b21", "b24"],
-    "inimigo_escudo": ["b13", "b32"],
-    "inimigo_feno": ["v20", "v26"],
+    "plataformasTerraInferior2": [
+        "e7", "e8"
+    ],
     "humano": [
-        "b22", "b23",
-        "q21",
-        "r22", "r24",
-        "v24"
+        "b18", "b32",
+        "g27"
     ]
 }
