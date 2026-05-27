@@ -200,6 +200,7 @@ async function carregarFase(nomeArquivo) {
 
     const pathRelativoLocal = String(nomeArquivo || '').replace('../../config/fases/', '');
     window.faseAtualNome = String(nomeArquivo || '').split('/').pop() || String(nomeArquivo || '');
+    window.isTraining = window.faseAtualNome.toLowerCase().includes('treino');
     if (typeof window.removerTodosCrafts === 'function') {
         window.removerTodosCrafts();
     }
@@ -663,6 +664,7 @@ window.proximoNivel = async function() {
 // Reinicia a fase atual
 window.reiniciarJogo = async function(porMorte = true) {
     limparAnimacaoDanoJogador();
+    const eraModoTreino = window.isTraining;
 
     // A limpeza agora é gerenciada seletivamente dentro de carregarFase para suportar checkpoints e bases. // Removido console.log de debug
 
@@ -688,7 +690,6 @@ window.reiniciarJogo = async function(porMorte = true) {
 
     // Reseta estado do jogador
     if (window.playerControle) {
-        window.isTraining = false;
         window.playerControle.dano = 0;
         window.playerControle.teclas = {};
         window.playerControle.movendoHorizontal = false;
@@ -741,14 +742,18 @@ window.reiniciarJogo = async function(porMorte = true) {
         }
     }
 
-    const indiceSpawnpoint = usarSpawnpointDaBase
-        ? obterIndiceFasePorNome(renascimentoBase?.faseOriginal || renascimentoBase?.fase)
-        : -1;
-    window.nivelAtual = indiceSpawnpoint >= 0
-        ? indiceSpawnpoint
-        : obterIndiceFaseInicial(window.config?.faseInicial);
+    if (eraModoTreino) {
+        await carregarFase('../../config/fases/treino.json');
+    } else {
+        const indiceSpawnpoint = usarSpawnpointDaBase
+            ? obterIndiceFasePorNome(renascimentoBase?.faseOriginal || renascimentoBase?.fase)
+            : -1;
+        window.nivelAtual = indiceSpawnpoint >= 0
+            ? indiceSpawnpoint
+            : obterIndiceFaseInicial(window.config?.faseInicial);
 
-    await carregarFase(window.niveis[window.nivelAtual]);
+        await carregarFase(window.niveis[window.nivelAtual]);
+    }
 
     if (temCheckpointEquipamento && window.playerControle && typeof window.aplicarInventarioSalvoNoControle === 'function') {
         window.aplicarInventarioSalvoNoControle(window.playerControle);
@@ -798,7 +803,7 @@ async function iniciarJogo() {
         const folders = ['nivel_1/', 'nivel_2/'];
         const levelsPerFolder = 50; // Aumentado para suportar até 50 fases por pasta
         
-        const candidatos = ['treino.json'];
+        const candidatos = [];
         // Gera lista de candidatos para busca automática em todas as pastas conhecidas
         for (const folder of folders) {
             for (let i = 1; i <= levelsPerFolder; i++) {
@@ -822,9 +827,6 @@ async function iniciarJogo() {
 
         // Mantém ordenação numérica pelo nome faseX.json
         validados.sort((a, b) => {
-            // Treino sempre no topo
-            if (a === 'treino.json') return -1;
-            if (b === 'treino.json') return 1;
             // Ordenação natural (alfabética e numérica) para respeitar as pastas e números das fases
             return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
         });
