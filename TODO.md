@@ -1,35 +1,8 @@
-## [Feature] Criador de Fases: Inserção por Número
+# TODO - Remover dependência de config/fases/index.json (escopo restrito)
 
-### 1. UI/Editor
-- [ ] Adicionar opção na UI para escolher entre "criar no fim" ou "inserir por número"
-- [ ] Implementar campo/input para número N e validação (numérico, >0, não vazio)
-
-### 2. Lógica de Inserção
-- [ ] Se modo "criar no fim": manter comportamento atual
-- [ ] Se modo "inserir por número":
-	- [ ] Validar N < quantidade de fases no escopo
-	- [ ] Se N >= quantidade, forçar "criar no fim" e informar usuário
-	- [ ] Se N disponível, criar direto
-	- [ ] Se N ocupado, pedir confirmação
-		- [ ] Se confirmado: shift/renomeação descendente, criar nova fase, atualizar index
-		- [ ] Se cancelado: abortar
-
-### 3. Persistência/Backend
-- [ ] Implementar rotina de shift/renomeação e atualização do manifesto/index
-- [ ] Garantir ordenação numérica no index após qualquer operação
-
-### 4. Mensagens/UX
-- [ ] Mensagens de erro e confirmação conforme regras do plano
-
-### 5. Testes Manuais
-- [ ] Testar todos os fluxos e escopos (raiz, nivel_1, nivel_2)
-# TODO - Feature: Criador de Fases com Inserção por Número (Planejado)
-
-- [x] Revisar fluxo atual do editor para criação de novas fases (identificar pontos de UI e persistência)
-- [x] Atualizar especificação do comportamento: inserir por número **somente se** N < nº de fases existentes no escopo (senão forçar modo padrão 'criar no fim')
-- [ ] Definir contrato da rotina de shift/renomeação (renomear k>=N para k+1 sem exclusão)
-- [ ] Definir atualização do manifest `config/fases/index.json` para refletir renumeração
-- [ ] Definir mensagens/UX de confirmação e casos de erro (N inválido, tentativa fora do limite permitido)
-- [ ] Preparar lista de testes manuais (raiz, nivel_1, nivel_2; N em posições válidas e inválidas)
-
+- [ ] Criar função de descoberta de fases em `src/core/inicial.js` que preenche `window.niveis` sem buscar `index.json`.
+- [ ] Remover/alterar o carregamento inicial de `window.niveis` e a atualização de manifesto em `window.proximoNivel` para não depender de `index.json`.
+- [ ] Garantir que `window.niveis` contém caminhos compatíveis com `carregarFase`.
+- [ ] Garantir compatibilidade com `craftPersistido` via `window.faseAtualNome`/`faseAtualPathRelativo` (sem migração extra).
+- [ ] Teste manual: iniciar jogo, concluir fase 1, avançar e reiniciar.
 

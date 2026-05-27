@@ -3,7 +3,7 @@
  */
 
 
-window.niveis = []; // Será preenchido dinamicamente pelo index.json
+window.niveis = []; // Será preenchido dinamicamente sem index.json
 
 window.nivelAtual = 0;
 window.isTraining = false; // Flag para identificar se o jogador está no modo treino
@@ -594,16 +594,8 @@ window.proximoNivel = async function() {
         return;
     }
 
-    // 1. Recarrega o manifesto para garantir que a fase 11 (ou mais novas) seja detectada
-    try {
-        const respManifesto = await fetch('../../config/fases/index.json', { cache: 'no-store' });
-        if (respManifesto.ok) {
-            const manifesto = await respManifesto.json();
-            const listaRaw = manifesto.fases || manifesto;
-            const listaCampanha = listaRaw.filter(nome => !String(nome).toLowerCase().endsWith('treino.json'));
-            window.niveis = listaCampanha.map(nome => `../../config/fases/${nome}`);
-        }
-    } catch (e) { console.error("Erro ao atualizar lista de fases na transição:", e); }
+    // Lista de fases já está em window.niveis (sem depender de config/fases/index.json)
+
 
     // 2. Sincroniza o nivelAtual com o arquivo que acabamos de completar
     // Isso evita que o jogo se perca se a lista for reordenada
@@ -796,18 +788,60 @@ async function iniciarJogo() {
     window.config.muzzleFlashWidth = window.config.muzzleFlashWidth ?? 32;
     window.config.muzzleFlashHeight = window.config.muzzleFlashHeight ?? 32;
     // This is a valid debug log, keeping it.
-    // Carrega a lista de fases dinamicamente do manifesto
-    try {
-        const respManifesto = await fetch('../../config/fases/index.json', { cache: 'no-store' });
-        const manifesto = await respManifesto.json();
-        const listaRaw = manifesto.fases || manifesto;
 
-        // Filtra o arquivo de treino para que ele não faça parte da progressão normal (campanha)
-        const listaCampanha = listaRaw.filter(nome => !String(nome).toLowerCase().endsWith('treino.json'));
-        window.niveis = listaCampanha.map(nome => `../../config/fases/${nome}`);
-    } catch (e) { console.error("Erro ao carregar lista de fases:", e); }
+    // Monta window.niveis sem depender de index.json.
+    // Obs: listar diretório via fetch(basePath) pode falhar dependendo do servidor/CORS.
+    // Por isso, usamos fallback por convenção (fase\d+.json na pasta nivel_1).
+    window.niveis = [];
+    try {
+        const basePathRoot = '../../config/fases/';
+        const folders = ['nivel_1/', 'nivel_2/'];
+        const levelsPerFolder = 50; // Aumentado para suportar até 50 fases por pasta
+        
+        const candidatos = ['treino.json'];
+        // Gera lista de candidatos para busca automática em todas as pastas conhecidas
+        for (const folder of folders) {
+            for (let i = 1; i <= levelsPerFolder; i++) {
+                candidatos.push(`${folder}fase${i}.json`);
+            }
+        }
+
+        const validar = async (rel) => {
+            try {
+                const resp = await fetch(`${basePathRoot}${rel}`, { cache: 'no-store' });
+                return resp.ok;
+            } catch (_) {
+                return false;
+            }
+        };
+
+        const validados = [];
+        for (const rel of candidatos) {
+            if (await validar(rel)) validados.push(rel);
+        }
+
+        // Mantém ordenação numérica pelo nome faseX.json
+        validados.sort((a, b) => {
+            // Treino sempre no topo
+            if (a === 'treino.json') return -1;
+            if (b === 'treino.json') return 1;
+            // Ordenação natural (alfabética e numérica) para respeitar as pastas e números das fases
+            return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+        });
+        
+        window.niveis = validados.map((rel) => `${basePathRoot}${rel}`);
+    } catch (e) {
+        window.niveis = [];
+        console.error('Erro ao montar lista de fases:', e);
+    }
+
+    // Segurança: se por qualquer motivo a lista vier vazia, impede travamento.
+    if (!Array.isArray(window.niveis) || window.niveis.length === 0) {
+        window.niveis = ['../../config/fases/nivel_1/fase1.json'];
+    }
 
     window.nivelAtual = obterIndiceFaseInicial(config.faseInicial);
+
 
     // Carrega as definições de itens para o jogo usar os sprites dos JSONs
     if (typeof window.carregarItemDefinitions === 'function') await window.carregarItemDefinitions();
