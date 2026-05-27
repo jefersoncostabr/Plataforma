@@ -1263,6 +1263,13 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         if ((inimigo.tempoChute || 0) <= 0 && (inimigo.cooldownChute || 0) <= 0) {
                             inimigo.tempoChute = window.GAME_CONSTANTS.TIPOS_INIMIGO[13].tempoChuteMax || 18;
                             inimigo.cooldownChute = window.GAME_CONSTANTS.TIPOS_INIMIGO[13].tempoChuteCooldown || 32;
+                            inimigo.jaAtacouNesteChute = false;
+
+                            // Faz o humano caminhar para frente durante todo o soco
+                            inimigo.framesImpulsoRestante = inimigo.tempoChute;
+                            inimigo.velocidadeDash = velAtiva * 0.8; // 80% da velocidade normal para parecer um passo firme
+                            inimigo.direcao = (inimigo.x < xAlvo) ? 'd' : 'e';
+
                             // Troca sprite para soco
                             if (inimigo.elemento && inimigo.spriteChute) {
                                 inimigo.elemento.src = inimigo.spriteChute;
@@ -1925,38 +1932,27 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     // Lógica para INICIAR o chute
                     const podeChutar = inimigo.tipo !== window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID;
                     
-                    // Ajuste de agressividade: humano acerta mais quando está mais perto.
-                    // Aumenta a janela de ataque e melhora a chance de fechar distância.
-                    const distanciaAtaqueHumano = (inimigo.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID)
-                        ? Math.max(18, (Number(config.distanciaAtaqueInimigo ?? 32) || 32) * 0.85)
-                        : (config.distanciaAtaqueInimigo ?? 32);
+                    const distAtaqueEfetiva = config.distanciaAtaqueInimigo ?? 32;
 
-
-                    if (podeChutar && !inimigo.estaAgachado && distanciaAtual <= distanciaAtaqueHumano && inimigo.cooldownChute === 0) {
-                        // humano anda para frente durante o soco para aumentar chance de acerto
-                        if (inimigo.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID) {
-                            inimigo.andarAoChutar = true;
-                            // Ajuste: reduz o risco de parar antes da box do ataque
-                            inimigo.__humanAttackMoveBoost = true;
-                        }
-
-
+                    if (podeChutar && !inimigo.estaAgachado && distanciaAtual <= distAtaqueEfetiva && inimigo.cooldownChute === 0) {
                         inimigo.tempoChute = config.tempoChute;
                         inimigo.cooldownChute = config.cooldownChute;
-
                         window.AudioManager?.playSFX('chute', 0.3);
                         inimigo.jaAtacouNesteChute = false;
 
-                        // humano deve andar para frente enquanto chuta (aumenta chance de acerto)
-                        inimigo.andarAoChutar = true;
+                        // Define se o NPC caminha (passo contínuo) ou dá um dash (impulso rápido)
+                        inimigo.andarAoChutar = inimigo.andarAoChutar || Math.random() < 0.25;
+                        inimigo.direcao = (inimigo.x < xAlvo) ? 'd' : 'e';
 
-
-                        // Dash do inimigo (Suave e com bônus de bota)
-                        const duracaoDash = 10;
-                        const multiplicadorChute = botaAtiva ? 2 : 1;
-                        
-                        inimigo.framesImpulsoRestante = duracaoDash;
-                        inimigo.velocidadeDash = (config.impulsoChute * multiplicadorChute) / duracaoDash;
+                        if (inimigo.andarAoChutar) {
+                            inimigo.framesImpulsoRestante = inimigo.tempoChute;
+                            inimigo.velocidadeDash = velAtiva * 0.7; // Velocidade de caminhada no ataque
+                        } else {
+                            const duracaoDash = 10;
+                            const multiplicadorChute = botaAtiva ? 2 : 1;
+                            inimigo.framesImpulsoRestante = duracaoDash;
+                            inimigo.velocidadeDash = (config.impulsoChute * multiplicadorChute) / duracaoDash;
+                        }
                     }
 
                     // Lógica para INICIAR o disparo
