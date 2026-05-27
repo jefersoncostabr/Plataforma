@@ -447,6 +447,28 @@ window.onload = async () => {
         });
     }
 
+    // Injeta o novo NPC Humano nas configurações do editor para aparecer na paleta
+    if (window.EditorConfig) {
+        window.EditorConfig.ENEMY_DEFS = window.EditorConfig.ENEMY_DEFS || [];
+        if (!window.EditorConfig.ENEMY_DEFS.find(d => d.type === 'humano')) {
+            // Definição do NPC humano para o editor:
+            // sprite: imagem usada quando o NPC está parado
+            // spriteAndando: imagem usada quando o NPC está andando
+            const humanoDef = {
+                type: 'humano',
+                label: 'Inimigo: Humano',
+                stateKey: 'humano',
+                sprite: '../../assets/personagem/humano/humano.png', // <-- Caminho correto para sprite parado
+                spriteAndando: '../../assets/personagem/humano/humano_andando.png', // <-- Caminho correto para sprite andando
+                kind: 'multiple'
+            };
+            console.log('[EDITOR] Definindo NPC humano:', humanoDef);
+            window.EditorConfig.ENEMY_DEFS.push(humanoDef);
+            if (!window.EditorConfig.COORD_ARRAY_KEYS?.includes('humano')) {
+                window.EditorConfig.COORD_ARRAY_KEYS?.push('humano');
+            }
+        }
+    }
     await carregarItemDefinitions();
 
     renderizadorEditor = window.criarRenderizadorEditor({
@@ -848,7 +870,10 @@ function adicionarElemento(coord) {
                 return c !== coord;
             });
 
-            if (definition.type !== 'inimigo_bb') {
+            if (definition.kind === 'multiple') {
+                // Adiciona como objeto { coord } para suportar metadados e compatibilidade
+                faseData[definition.stateKey].push({ coord });
+            } else {
                 faseData[definition.stateKey].push(coord);
             }
 

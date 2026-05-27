@@ -11,6 +11,26 @@
 function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteChute, spriteNoAr) {
     const config = window.config || {}; // Usa as configurações globais
 
+    // Define o novo tipo de NPC Humano se as constantes existirem
+    if (window.GAME_CONSTANTS) {
+        window.GAME_CONSTANTS.INIMIGO_HUMANO_ID = 13;
+        window.GAME_CONSTANTS.TIPOS_INIMIGO[13] = {
+            id: 13,
+            nome: 'Humano',
+            vidaMax: 1,
+            velocidade: 1.2, // Um pouco mais rápido por ser agressivo
+            // spriteParado: imagem usada quando o NPC está parado
+            // spriteAndando: imagem usada quando o NPC está andando
+            spriteParado: '../../assets/personagem/humano/humano.png', // <-- Caminho correto para sprite parado
+            spriteAndando: '../../assets/personagem/humano/humano_andando.png', // <-- Caminho correto para sprite andando
+            spriteChute: '../../assets/personagem/humano/humano_soco.png', // <-- Caminho correto para sprite de soco
+            podeAtacar: true, // Libera IA de ataque
+            tempoChuteMax: 18, // Duração do soco (frames)
+            tempoChuteCooldown: 32, // Cooldown entre ataques
+            chaveJSON: 'humano'
+        };
+    }
+
     function iniciarPiscaMudancaFormaBoss(inimigo) {
         if (!inimigo) return;
 
@@ -183,6 +203,13 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 inimigo.elemento.src = window.obterSpriteItem('feno', config, 'equipado');
             } else {
                 inimigo.elemento.src = spriteParado;
+            }
+            if (inimigo.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID) {
+                console.log('[JOGO] NPC humano criado:', {
+                    tipo: inimigo.tipo,
+                    spriteParadoUsado: spriteParado,
+                    elementoSrc: inimigo.elemento.src
+                });
             }
             inimigo.spriteBase = inimigo.elemento.src;
             inimigo.elemento.style.filter = 'none';
@@ -633,9 +660,11 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             piscaLeve(inimigo.elemento);
         }
 
-        const limiteVida = typeof window.obterLimiteVidaInimigo === 'function'
-            ? window.obterLimiteVidaInimigo(config)
-            : Number(config.inimigoVidaMax ?? 3);
+        // Prioriza a vida máxima definida no tipo do NPC, senão usa a global
+        const limiteVida = inimigo.vidaMax ?? (
+            typeof window.obterLimiteVidaInimigo === 'function'
+                ? window.obterLimiteVidaInimigo(config)
+                : Number(config.inimigoVidaMax ?? 3));
         return inimigo.vida >= limiteVida;
     }
 
@@ -1148,8 +1177,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 const estaChutando = inimigo.tempoChute > 0;
                 const botaAtiva = !!(inimigo.temBota && !inimigo.botaVermelha && !inimigo.itensGuardadosNoCinto);
 
-                // Unificação da velocidade: aplica bônus quando a bota está ativa no inimigo
-                let velAtiva = velAtivaBase;
+                // Unificação da velocidade: prioriza a velocidade do tipo de inimigo (Humano = 1.2)
+                let velAtiva = inimigo.velocidade ?? velAtivaBase;
                 if (botaAtiva) {
                     velAtiva += Number(config.bonusVelocidadeBota ?? 2);
                 }
@@ -1225,8 +1254,34 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 }
                 // End of one-time initialization block
 
-                // Atualiza timers de chute
-                if (inimigo.tempoChute > 0) inimigo.tempoChute--;
+                // --- IA de ataque para NPC humano ---
+                if (inimigo.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID && inimigo.podeAtacar) {
+                    // Distância para atacar
+                    const distanciaAtaque = 32;
+                    // Só ataca se estiver próximo do alvo e no chão
+                    if (Math.abs(xAlvo - inimigo.x) <= distanciaAtaque && Math.abs(yAlvo - inimigo.y) <= 24 && inimigo.noChao && !inimigo.estaMorrendo && !inimigo.transicaoFormaBossAtiva) {
+                        if ((inimigo.tempoChute || 0) <= 0 && (inimigo.cooldownChute || 0) <= 0) {
+                            inimigo.tempoChute = window.GAME_CONSTANTS.TIPOS_INIMIGO[13].tempoChuteMax || 18;
+                            inimigo.cooldownChute = window.GAME_CONSTANTS.TIPOS_INIMIGO[13].tempoChuteCooldown || 32;
+                            // Troca sprite para soco
+                            if (inimigo.elemento && inimigo.spriteChute) {
+                                inimigo.elemento.src = inimigo.spriteChute;
+                            }
+                            // Toca som de soco se disponível
+                            if (window.AudioManager?.playSFX) {
+                                window.AudioManager.playSFX('soco', 0.4);
+                            }
+                        }
+                    }
+                }
+
+                // Processa animação de soco
+                if (inimigo.tempoChute > 0) {
+                    inimigo.tempoChute--;
+                    if (inimigo.tempoChute === 0 && inimigo.spriteParado && inimigo.elemento) {
+                        inimigo.elemento.src = inimigo.spriteParado;
+                    }
+                }
                 if (inimigo.cooldownChute > 0) inimigo.cooldownChute--;
                 if (inimigo.cooldownTiro > 0) inimigo.cooldownTiro--;
                 if (inimigo.puloTimer > 0) inimigo.puloTimer--; // Decrementa o timer de pulo
@@ -1868,14 +1923,33 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                 if (!iaBloqueadaPorStun && inimigo.perseguindo && !inimigo.afastando && !inimigo.estaColetando) {
                     // Lógica para INICIAR o chute
-                    if (!inimigo.estaAgachado && distanciaAtual <= config.distanciaAtaqueInimigo && inimigo.cooldownChute === 0) {
+                    const podeChutar = inimigo.tipo !== window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID;
+                    
+                    // Ajuste de agressividade: humano acerta mais quando está mais perto.
+                    // Aumenta a janela de ataque e melhora a chance de fechar distância.
+                    const distanciaAtaqueHumano = (inimigo.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID)
+                        ? Math.max(18, (Number(config.distanciaAtaqueInimigo ?? 32) || 32) * 0.85)
+                        : (config.distanciaAtaqueInimigo ?? 32);
+
+
+                    if (podeChutar && !inimigo.estaAgachado && distanciaAtual <= distanciaAtaqueHumano && inimigo.cooldownChute === 0) {
+                        // humano anda para frente durante o soco para aumentar chance de acerto
+                        if (inimigo.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID) {
+                            inimigo.andarAoChutar = true;
+                            // Ajuste: reduz o risco de parar antes da box do ataque
+                            inimigo.__humanAttackMoveBoost = true;
+                        }
+
+
                         inimigo.tempoChute = config.tempoChute;
                         inimigo.cooldownChute = config.cooldownChute;
+
                         window.AudioManager?.playSFX('chute', 0.3);
                         inimigo.jaAtacouNesteChute = false;
 
-                        // 1 em 4 tentativas (25%) ele anda para frente enquanto chuta
-                        inimigo.andarAoChutar = Math.random() < 0.25;
+                        // humano deve andar para frente enquanto chuta (aumenta chance de acerto)
+                        inimigo.andarAoChutar = true;
+
 
                         // Dash do inimigo (Suave e com bônus de bota)
                         const duracaoDash = 10;
@@ -2130,33 +2204,55 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     const spriteParadoBase = config.spriteParadoInimigo || spriteParado;
                     const spriteAndandoBase = config.spriteAndandoInimigo || spriteAndando;
                     const usarSpriteAgachado = inimigo.estaAgachado;
+                    const isHumano = inimigo?.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID;
+                    
+                    // Correção definitiva: forçar humano a usar sempre sprites em assets/personagem/humano/*.
+                    // (O console mostrou elementoSrcDepois trocando para Personagem_parado.png.)
+                    const HUMANO_SPRITE_PARADO = '../../assets/personagem/humano/humano.png';
+                    const HUMANO_SPRITE_ANDANDO = '../../assets/personagem/humano/humano_andando.png';
+                    const HUMANO_SPRITE_NO_AR = config.spriteNoArInimigoHumano || '../../assets/personagem/humano/humano_pulando.png';
+
+                    const spriteParadoBaseCorrigido = isHumano ? HUMANO_SPRITE_PARADO : spriteParadoBase;
+                    const spriteAndandoBaseCorrigido = isHumano ? HUMANO_SPRITE_ANDANDO : spriteAndandoBase;
+                    const spriteNoArUsadoCorrigido = isHumano ? HUMANO_SPRITE_NO_AR : (config.spriteNoArInimigo || spriteNoAr);
+
+
+
+
+
 
                     const spriteParadoUsado = usarSpriteAgachado
                         ? inimigo.spriteParadoAgachado 
-                        : spriteParadoBase;
+                        : spriteParadoBaseCorrigido;
                     const spriteAndandoUsado = usarSpriteAgachado
                         ? inimigo.spriteAndandoAgachado
-                        : spriteAndandoBase;
-                    const spriteNoArUsado = config.spriteNoArInimigo || spriteNoAr;
+                        : spriteAndandoBaseCorrigido;
+                    const spriteNoArUsado = spriteNoArUsadoCorrigido;
+
 
                     if (typeof atualizarAnimacao === 'function') {
                         atualizarAnimacao(
-                            controleAnimacao, 
-                            inimigo.elemento, 
+                            controleAnimacao,
+                            inimigo.elemento,
                             spriteParadoUsado,
                             spriteAndandoUsado
                             ,
                             spriteNoArUsado // Passa o sprite de "no ar"
                         );
+
+
                         // Salva o estado da animação no objeto do inimigo para o próximo frame
                         inimigo.contadorAnimacao = controleAnimacao.contadorAnimacao;
                         inimigo.frameAtual = controleAnimacao.frameAtual;
                     }
 
                     if (estaChutando) {
-                        inimigo.elemento.src = config.spriteChuteInimigo || spriteChute;
+                        const isHumano = inimigo?.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID;
+                        const spriteSoco = '../../assets/personagem/humano/humano_soco.png';
+                        inimigo.elemento.src = isHumano ? spriteSoco : (config.spriteChuteInimigo || spriteChute);
 
                         if (inimigo.framesImpulsoRestante > 0) {
+
                             const direcaoDash = (inimigo.direcao === 'd' ? 1 : -1);
                             inimigo.x += inimigo.velocidadeDash * direcaoDash;
                             inimigo.framesImpulsoRestante--;
@@ -2168,8 +2264,15 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 if (!iaBloqueadaPorStun && inimigo.perseguindo && inimigo.tempoChute > 0 && !inimigo.jaAtacouNesteChute && window.playerControle && !window.playerControle.estaoAberto && !window.playerControle.garraPuxando) {
                     const ataqueOffsetX = config.INIMIGO_ATAQUE_OFFSET_X ?? config.ATAQUE_OFFSET_X;
                     const ataqueOffsetY = config.INIMIGO_ATAQUE_OFFSET_Y ?? config.ATAQUE_OFFSET_Y;
-                    const ataqueLargura = config.INIMIGO_ATAQUE_LARGURA ?? config.ATAQUE_LARGURA;
-                    const ataqueAltura = config.INIMIGO_ATAQUE_ALTURA ?? config.ATAQUE_ALTURA;
+                    let ataqueLargura = config.INIMIGO_ATAQUE_LARGURA ?? config.ATAQUE_LARGURA;
+                    let ataqueAltura = config.INIMIGO_ATAQUE_ALTURA ?? config.ATAQUE_ALTURA;
+
+                    // Ajuste de hitbox: humano soca com colisão um pouco maior para acertar mais.
+                    if (inimigo?.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID) {
+                        ataqueLargura = (Number(ataqueLargura ?? 32) || 32) * 1.15;
+                        ataqueAltura = (Number(ataqueAltura ?? 24) || 24) * 1.15;
+                    }
+
 
                     let ataqueX = (inimigo.direcao === 'd') 
                         ? inimigo.x + ataqueOffsetX 

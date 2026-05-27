@@ -204,6 +204,21 @@ window.onload = async () => {
 
     const createEmptyFaseData = window.EditorConfig?.createEmptyFaseData || (() => ({}));
 
+    // Injeta o novo NPC Humano nas configurações do editor para aparecer na paleta
+    if (window.EditorConfig) {
+        window.EditorConfig.ENEMY_DEFS = window.EditorConfig.ENEMY_DEFS || [];
+        if (!window.EditorConfig.ENEMY_DEFS.find(d => d.type === 'humano')) {
+            window.EditorConfig.ENEMY_DEFS.push({
+                type: 'humano',
+                label: 'Inimigo: Humano',
+                stateKey: 'inimigos_humanos',
+                sprite: '../../assets/personagem/humano_parado.png',
+                kind: 'multiple'
+            });
+            window.EditorConfig.COORD_ARRAY_KEYS?.push('inimigos_humanos');
+        }
+    }
+
     await carregarItemDefinitions();
 
     renderizadorEditor = window.criarRenderizadorEditor({
@@ -535,8 +550,13 @@ function adicionarElemento(coord) {
                 return c !== coord;
             });
 
-            if (definition.type === 'inimigo_bb') {
-                faseData[definition.stateKey].push({ coord, skills: ['Dash', 'SuperSalto'] });
+            if (definition.kind === 'multiple') {
+                // Adiciona inimigos múltiplos (incluindo humano) como objeto { coord }
+                if (definition.type === 'inimigo_bb') {
+                    faseData[definition.stateKey].push({ coord, skills: ['Dash', 'SuperSalto'] });
+                } else {
+                    faseData[definition.stateKey].push({ coord });
+                }
             } else {
                 faseData[definition.stateKey].push(coord);
             }

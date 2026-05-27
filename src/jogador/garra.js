@@ -609,9 +609,11 @@
                         inimigoAtingido.foiAtingidoNesteChute = true;
                         inimigoAtingido.vida = (inimigoAtingido.vida || 0) + 1;
 
-                        const limiteVidaInimigo = typeof window.obterLimiteVidaInimigo === 'function'
-                            ? window.obterLimiteVidaInimigo(config)
-                            : 3;
+                        // Garante que o dano da garra respeite o limite do NPC
+                        const limiteVidaInimigo = inimigoAtingido.vidaMax ?? (
+                            typeof window.obterLimiteVidaInimigo === 'function'
+                                ? window.obterLimiteVidaInimigo(config)
+                                : 3);
 
                         if (inimigoAtingido.vida < limiteVidaInimigo) animarDanoAlvo(inimigoAtingido);
 
@@ -637,8 +639,15 @@
                         if (foiColetado) {
                             controle.garraItemCarregado.elemento.remove();
                         } else {
-                            controle.garraItemCarregado.velocidadeY = 0;
-                            window.itensColetaveis.push(controle.garraItemCarregado);
+                            // Fallback especial para restauração via garra: se o inventário recusou (mochila cheia), 
+                            // mas o jogador está ferido, força o consumo imediato.
+                            if (controle.garraItemCarregado.tipo === 'restauracao' && typeof window.aplicarRestauracaoPadrao === 'function') {
+                                window.aplicarRestauracaoPadrao(controle, config);
+                                controle.garraItemCarregado.elemento.remove();
+                            } else {
+                                controle.garraItemCarregado.velocidadeY = 0;
+                                window.itensColetaveis.push(controle.garraItemCarregado);
+                            }
                         }
                     }
                     controle.garraItemCarregado = null;

@@ -874,10 +874,14 @@ async function iniciarJogo() {
         '../../assets/personagem/carregando/carregando5.png',
         '../../assets/personagem/carregando/carregando6.png'
     );
+    // Corrigido: sprites do humano para NPC inimigo
+    const spriteParadoHumano = '../../assets/personagem/humano/humano.png';
+    const spriteAndandoHumano = '../../assets/personagem/humano/humano_andando.png';
+    console.log('[JOGO] Sprites do NPC humano:', { spriteParadoHumano, spriteAndandoHumano });
     await iniciarIAInimigos(
-        1, 
-        '../../assets/personagem/Personagem_parado.png', 
-        '../../assets/personagem/Personagem_andando.png', 
+        1,
+        spriteParadoHumano, // sprite parado humano
+        spriteAndandoHumano, // sprite andando humano
         '../../assets/personagem/personagem_chute2.png',
         '../../assets/personagem/personagem_no_ar.png'
     );

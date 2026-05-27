@@ -70,7 +70,13 @@
     }
 
     function getDefinitionByType(type) {
-        return ALL_DEFS.find(def => def.type === type) || null;
+        // Busca em tempo real nos arrays expostos para suportar injeções dinâmicas (como o NPC Humano)
+        const liveAllDefs = [
+            ...(window.EditorConfig?.PLATFORM_DEFS || PLATFORM_DEFS),
+            ...(window.EditorConfig?.ENEMY_DEFS || ENEMY_DEFS),
+            ...(window.EditorConfig?.SYSTEM_DEFS || SYSTEM_DEFS)
+        ];
+        return liveAllDefs.find(def => def.type === type) || null;
     }
 
     window.EditorConfig = {
