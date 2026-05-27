@@ -17,8 +17,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         window.GAME_CONSTANTS.TIPOS_INIMIGO[13] = {
             id: 13,
             nome: 'Humano',
-            vidaMax: 1,
-            velocidade: 1.2, // Um pouco mais rápido por ser agressivo
+            vidaMax: 1, 
+            velocidade: 0.8, // Mais lento que o inimigo comum (velocidade padrão 1)
             // spriteParado: imagem usada quando o NPC está parado
             // spriteAndando: imagem usada quando o NPC está andando
             spriteParado: '../../assets/personagem/humano/humano.png', // <-- Caminho correto para sprite parado
@@ -26,7 +26,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             spriteChute: '../../assets/personagem/humano/humano_soco.png', // <-- Caminho correto para sprite de soco
             podeAtacar: true, // Libera IA de ataque
             tempoChuteMax: 18, // Duração do soco (frames)
-            tempoChuteCooldown: 32, // Cooldown entre ataques
+            tempoChuteCooldown: 160, // Frequência menor: espera mais tempo (1.5s) entre ataques
             chaveJSON: 'humano'
         };
     }
@@ -1258,8 +1258,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 if (inimigo.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID && inimigo.podeAtacar) {
                     // Distância para atacar
                     const distanciaAtaque = 32;
-                    // Só ataca se estiver próximo do alvo e no chão
-                    if (Math.abs(xAlvo - inimigo.x) <= distanciaAtaque && Math.abs(yAlvo - inimigo.y) <= 24 && inimigo.noChao && !inimigo.estaMorrendo && !inimigo.transicaoFormaBossAtiva) {
+                    // Ataca se estiver próximo do alvo (agora permite ataque no ar)
+                    if (Math.abs(xAlvo - inimigo.x) <= distanciaAtaque && Math.abs(yAlvo - inimigo.y) <= 30 && !inimigo.estaMorrendo && !inimigo.transicaoFormaBossAtiva) {
                         if ((inimigo.tempoChute || 0) <= 0 && (inimigo.cooldownChute || 0) <= 0) {
                             inimigo.tempoChute = window.GAME_CONSTANTS.TIPOS_INIMIGO[13].tempoChuteMax || 18;
                             inimigo.cooldownChute = window.GAME_CONSTANTS.TIPOS_INIMIGO[13].tempoChuteCooldown || 32;
@@ -1933,8 +1933,10 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     const podeChutar = inimigo.tipo !== window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID;
                     
                     const distAtaqueEfetiva = config.distanciaAtaqueInimigo ?? 32;
+                    // Permite ataque corpo a corpo se estiver perto no X e no Y (mesmo no ar)
+                    const pertoVerticalmente = Math.abs(yAlvo - inimigo.y) <= 30;
 
-                    if (podeChutar && !inimigo.estaAgachado && distanciaAtual <= distAtaqueEfetiva && inimigo.cooldownChute === 0) {
+                    if (podeChutar && !inimigo.estaAgachado && distanciaAtual <= distAtaqueEfetiva && pertoVerticalmente && inimigo.cooldownChute === 0) {
                         inimigo.tempoChute = config.tempoChute;
                         inimigo.cooldownChute = config.cooldownChute;
                         window.AudioManager?.playSFX('chute', 0.3);
