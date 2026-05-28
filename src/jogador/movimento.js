@@ -258,7 +258,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         velocidadeTotalAtual: 0,
         teclas: {},
         ePressionado: false, // Trava para toggle de um clique no 'E'
-        acoesDiscretas: {}
+        acoesDiscretas: {},
+        jumpButtonHeldFrames: 0, // Nova propriedade para o short hop
+        isShortHopping: false // Nova propriedade para controlar se o short hop já foi aplicado
     };
 
     /**
@@ -1688,6 +1690,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 controle.jumpBufferFramesRestantes = 0;
                 controle.timerPuloDuplo = config.janelaPuloDuplo ?? 12; // Janela de tempo mais rigorosa: 10 frames (aprox. 0.16s)
                 
+                controle.jumpButtonHeldFrames = 0; // Reset para um novo pulo
+                controle.isShortHopping = false; // Reset para um novo pulo
                 // Se estiver saltitando, garante que o cooldown do pulo não dispare novamente no mesmo toque
                 if (saltitarAtivo) {
                     const cdSaltitar = Number(config.cooldownSaltitarFrames ?? 6);
@@ -1707,6 +1711,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             controle.superPuloFramesRestantes = 10;
 
             controle.pulosRealizados = 2; // Consome o segundo salto até tocar o chão novamente
+            controle.jumpButtonHeldFrames = 0; // Reset para um novo pulo
+            controle.isShortHopping = false; // Reset para um novo pulo
             controle.doubleJumpUsedInAir = true; // Marca que o pulo duplo foi usado no ar
         }
 
@@ -1716,6 +1722,29 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 window.criarSombraDash(elemento);
             }
             controle.superPuloFramesRestantes--;
+        }
+
+        // Lógica de Short Hop: se o botão de pulo for solto cedo, reduz a velocidade do pulo
+        if (!teclaPuloAtiva && controle.velocidadeY > 0 && !controle.isShortHopping && (controle.jumpButtonHeldFrames || 0) > 0) {
+            const shortHopMaxFrames = Number(config.shortHopMaxFrames ?? 10); // Padrão: 10 frames
+            const shortHopReductionFactor = Number(config.shortHopReductionFactor ?? 0.5); // Padrão: 50% de redução
+
+            if (controle.jumpButtonHeldFrames <= shortHopMaxFrames) {
+                controle.velocidadeY *= shortHopReductionFactor;
+                controle.isShortHopping = true;
+            }
+        }
+
+        // Conta os frames em que o botão de pulo está pressionado
+        if (teclaPuloAtiva) {
+            controle.jumpButtonHeldFrames = (controle.jumpButtonHeldFrames || 0) + 1;
+        } else {
+            controle.jumpButtonHeldFrames = 0; // Reseta quando o botão é solto
+        }
+
+        // Reseta a flag de short hop ao tocar o chão
+        if (controle.noChao) {
+            controle.isShortHopping = false;
         }
 
         // Gravidade e Física Vertical (Sempre ativa, exceto se jetpack ativo)

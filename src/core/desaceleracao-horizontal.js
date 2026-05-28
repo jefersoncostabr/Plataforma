@@ -18,8 +18,7 @@ window.aplicarDesaceleracaoHorizontal = function(controle, config) {
         const AIR_CONTROL_FACTOR = Number(config?.airControlFactor ?? 0.8); // Reduz para 70% ao soltar no ar (mantém mais inércia)
     const limiteVelocidadeMinima = Number(config?.limiteVelocidadeMinimaHorizontal ?? 0.1);
 
-    // Debug dos coeficientes
-    console.log('[DEBUG] GROUND_FRICTION:', GROUND_FRICTION, 'AIR_DRAG:', AIR_DRAG, 'AIR_CONTROL_FACTOR:', AIR_CONTROL_FACTOR, 'noChao:', controle.noChao, 'velocidadeHorizontalAtual:', controle.velocidadeHorizontalAtual);
+    // Debug: Mostra só ao inverter direção ou aplicar air control
 
     if (controle.velocidadeHorizontalAtual === undefined) {
         controle.velocidadeHorizontalAtual = 0;
@@ -30,7 +29,7 @@ window.aplicarDesaceleracaoHorizontal = function(controle, config) {
         if (Math.abs(controle.velocidadeHorizontalAtual) > limiteVelocidadeMinima) {
             // Se o jogador mudou de direção, para imediatamente
             if (controle.inputInverterDirecao) {
-                console.log('[DEBUG] Inverter direção no chão!');
+                console.log('[DEBUG] Inverter direção no chão! vel:', controle.velocidadeHorizontalAtual, 'GROUND_FRICTION:', GROUND_FRICTION);
                 controle.velocidadeHorizontalAtual = -controle.velocidadeHorizontalAtual;
                 controle.inputInverterDirecao = false;
             } else {
@@ -41,7 +40,7 @@ window.aplicarDesaceleracaoHorizontal = function(controle, config) {
                 }
             }
             controle.x += controle.velocidadeHorizontalAtual;
-            console.log('[DEBUG] Chão: velocidadeHorizontalAtual após fricção:', controle.velocidadeHorizontalAtual);
+            // console.log('[DEBUG] Chão: velocidadeHorizontalAtual após fricção:', controle.velocidadeHorizontalAtual);
         } else {
             controle.velocidadeHorizontalAtual = 0;
         }
@@ -50,7 +49,7 @@ window.aplicarDesaceleracaoHorizontal = function(controle, config) {
         if (controle.inputSoltouNoAr && !controle._airControlAplicado) {
             controle.velocidadeHorizontalAtual *= AIR_CONTROL_FACTOR;
             controle._airControlAplicado = true;
-            console.log('[DEBUG] Air control aplicado! Nova velocidadeHorizontalAtual:', controle.velocidadeHorizontalAtual);
+            console.log('[DEBUG] Air control aplicado! vel:', controle.velocidadeHorizontalAtual, 'AIR_CONTROL_FACTOR:', AIR_CONTROL_FACTOR);
         }
         if (Math.abs(controle.velocidadeHorizontalAtual) > limiteVelocidadeMinima) {
             if (controle.velocidadeHorizontalAtual > 0) {
@@ -59,7 +58,7 @@ window.aplicarDesaceleracaoHorizontal = function(controle, config) {
                 controle.velocidadeHorizontalAtual = Math.min(0, controle.velocidadeHorizontalAtual + AIR_DRAG);
             }
             controle.x += controle.velocidadeHorizontalAtual;
-            console.log('[DEBUG] Ar: velocidadeHorizontalAtual após drag:', controle.velocidadeHorizontalAtual);
+            // console.log('[DEBUG] Ar: velocidadeHorizontalAtual após drag:', controle.velocidadeHorizontalAtual);
         } else {
             controle.velocidadeHorizontalAtual = 0;
         }
