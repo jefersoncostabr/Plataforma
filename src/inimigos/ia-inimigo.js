@@ -823,8 +823,13 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 dashEsquivaDirecao: 0,
                 velocidadeDashEsquiva: 0,
                 estaAgachado: false,
-                spriteParadoAgachado: window.obterSpriteItem('agachado', config, 'equipado'),
-                spriteAndandoAgachado: window.obterSpriteItem('agachado2', config, 'equipado'),
+                // Não sobrescrever sprites de agachado do humano
+                spriteParadoAgachado: (tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID)
+                    ? window.GAME_CONSTANTS.TIPOS_INIMIGO[tipo].spriteParadoAgachado
+                    : window.obterSpriteItem('agachado', config, 'equipado'),
+                spriteAndandoAgachado: (tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID)
+                    ? window.GAME_CONSTANTS.TIPOS_INIMIGO[tipo].spriteAndandoAgachado
+                    : window.obterSpriteItem('agachado2', config, 'equipado'),
                 // temCabecaBB removido, agora partes estão em inimigo.bbPartes (comentário legado)
             };
 
@@ -1226,9 +1231,11 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     inimigo.stunned = false; // Inicializa estado de stun
                     inimigo.stunTimer = 0;  // Inicializa timer de stun
                     
-                    // Inicializa sprites de agachado (garante consistência para todos os inimigos)
-                    inimigo.spriteParadoAgachado = window.obterSpriteItem('agachado', config, 'equipado');
-                    inimigo.spriteAndandoAgachado = window.obterSpriteItem('agachado2', config, 'equipado');
+                    // Inicializa sprites de agachado (NÃO sobrescreve para humano)
+                    if (inimigo.tipo !== window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID) {
+                        inimigo.spriteParadoAgachado = window.obterSpriteItem('agachado', config, 'equipado');
+                        inimigo.spriteAndandoAgachado = window.obterSpriteItem('agachado2', config, 'equipado');
+                    }
                     
                     // Preenche inventário inicial baseado no tipo
                     if (inimigo.temArma) inimigo.inventario.push(inimigo.heldWeaponType === 'doze' ? 'doze' : 'revolver');
@@ -2216,24 +2223,12 @@ window.AudioManager.playSFX('chute', 0.4);
                     const spriteAndandoBaseCorrigido = isHumano ? HUMANO_SPRITE_ANDANDO : spriteAndandoBase;
                 const spriteNoArUsadoCorrigido = isHumano ? HUMANO_SPRITE_NO_AR : (config.spriteNoArInimigo || spriteNoAr);
 
-                    // Importante: o sprite de agachado/andando precisa vir do par (agachado/agachado_andando)
-                    // e NÃO pode cair no spriteParado/spriteAndando por causa de falta de parâmetro no atualizarAnimacao.
-                    // (Humano agachado parado: HUMANO agachado | Humano agachado andando: HUMANO agachado_andando)
-
-
-                    // Garante sprites corretos para humano agachado
-                    let spriteParadoUsado, spriteAndandoUsado;
-                    if (isHumano && usarSpriteAgachado) {
-                        spriteParadoUsado = '../../assets/personagem/humano/humano_agachado.png';
-                        spriteAndandoUsado = '../../assets/personagem/humano/humano_agachado_andando.png';
-                    } else {
-                        spriteParadoUsado = usarSpriteAgachado
-                            ? inimigo.spriteParadoAgachado
-                            : spriteParadoBaseCorrigido;
-                        spriteAndandoUsado = usarSpriteAgachado
-                            ? inimigo.spriteAndandoAgachado
-                            : spriteAndandoBaseCorrigido;
-                    }
+                    let spriteParadoUsado = usarSpriteAgachado
+                        ? inimigo.spriteParadoAgachado
+                        : spriteParadoBaseCorrigido;
+                    let spriteAndandoUsado = usarSpriteAgachado
+                        ? inimigo.spriteAndandoAgachado
+                        : spriteAndandoBaseCorrigido;
 
                     const spriteNoArUsado = spriteNoArUsadoCorrigido;
 
