@@ -1287,29 +1287,40 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         }
 
         // Movimentação Horizontal (Input do Jogador)
+
         let inputHorizontalAtivo = false;
+        let inverterDirecao = false;
+        // Detecta inversão de direção
         if (acaoAtiva('esquerda')) {
+            if (controle.velocidadeHorizontalAtual > 0 && controle.noChao) inverterDirecao = true;
             controle.velocidadeHorizontalAtual = -velAtiva;
             if (!controle.chutando) controle.direcao = 'e';
             controle.movendoHorizontal = true;
             inputHorizontalAtivo = true;
         }
         if (acaoAtiva('direita')) {
+            if (controle.velocidadeHorizontalAtual < 0 && controle.noChao) inverterDirecao = true;
             controle.velocidadeHorizontalAtual = velAtiva;
             if (!controle.chutando) controle.direcao = 'd';
             controle.movendoHorizontal = true;
             inputHorizontalAtivo = true;
         }
+        // Sinaliza inversão para a função de desaceleração
+        controle.inputInverterDirecao = inverterDirecao;
+
 
         // Aplica a velocidade horizontal atual (se não houver dash ou knockback)
         // Dash e Knockback têm prioridade e movem o personagem diretamente
         if (!inputHorizontalAtivo && (controle.dashFramesRestantes || 0) === 0 && (controle.framesKnockbackRestante || 0) === 0) {
-            // Se não há input ativo, aplica desaceleração
+            // Se não há input ativo, aplica desaceleração diferenciada
+            // Sinaliza se soltou no ar para aplicar "air control"
+            controle.inputSoltouNoAr = !controle.noChao;
             window.aplicarDesaceleracaoHorizontal(controle, config);
-            // Atualiza movendoHorizontal com base na velocidade residual
             controle.movendoHorizontal = Math.abs(controle.velocidadeHorizontalAtual) > (config.limiteVelocidadeMinimaHorizontal ?? 0.1);
         } else if (inputHorizontalAtivo) {
-            // Se há input ativo, aplica a velocidade calculada
+            // Reset flag de air control ao pressionar input
+            controle.inputSoltouNoAr = false;
+            controle._airControlAplicado = false;
             controle.x += controle.velocidadeHorizontalAtual;
         }
         
