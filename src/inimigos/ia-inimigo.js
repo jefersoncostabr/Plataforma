@@ -19,11 +19,13 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             nome: 'Humano',
             vidaMax: 1, 
             velocidade: 0.8, // Mais lento que o inimigo comum (velocidade padrão 1)
-            // spriteParado: imagem usada quando o NPC está parado
-            // spriteAndando: imagem usada quando o NPC está andando
-            spriteParado: '../../assets/personagem/humano/humano.png', // <-- Caminho correto para sprite parado
-            spriteAndando: '../../assets/personagem/humano/humano_andando.png', // <-- Caminho correto para sprite andando
-            spriteChute: '../../assets/personagem/humano/humano_soco.png', // <-- Caminho correto para sprite de soco
+            // Sprites principais
+            spriteParado: '../../assets/personagem/humano/humano.png',
+            spriteAndando: '../../assets/personagem/humano/humano_andando.png',
+            spriteChute: '../../assets/personagem/humano/humano_soco.png',
+            // Sprites para agachado
+            spriteParadoAgachado: '../../assets/personagem/humano/humano_agachado.png',
+            spriteAndandoAgachado: '../../assets/personagem/humano/humano_agachado_andando.png',
             podeAtacar: true, // Libera IA de ataque
             tempoChuteMax: 18, // Duração do soco (frames)
             tempoChuteCooldown: 160, // Frequência menor: 160 é o certo
@@ -1276,7 +1278,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                             }
                             // Toca som de soco se disponível
                             if (window.AudioManager?.playSFX) {
-                                window.AudioManager.playSFX('soco', 0.4);
+window.AudioManager.playSFX('chute', 0.4);
                             }
                         }
                     }
@@ -2212,19 +2214,27 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                     const spriteParadoBaseCorrigido = isHumano ? HUMANO_SPRITE_PARADO : spriteParadoBase;
                     const spriteAndandoBaseCorrigido = isHumano ? HUMANO_SPRITE_ANDANDO : spriteAndandoBase;
-                    const spriteNoArUsadoCorrigido = isHumano ? HUMANO_SPRITE_NO_AR : (config.spriteNoArInimigo || spriteNoAr);
+                const spriteNoArUsadoCorrigido = isHumano ? HUMANO_SPRITE_NO_AR : (config.spriteNoArInimigo || spriteNoAr);
+
+                    // Importante: o sprite de agachado/andando precisa vir do par (agachado/agachado_andando)
+                    // e NÃO pode cair no spriteParado/spriteAndando por causa de falta de parâmetro no atualizarAnimacao.
+                    // (Humano agachado parado: HUMANO agachado | Humano agachado andando: HUMANO agachado_andando)
 
 
+                    // Garante sprites corretos para humano agachado
+                    let spriteParadoUsado, spriteAndandoUsado;
+                    if (isHumano && usarSpriteAgachado) {
+                        spriteParadoUsado = '../../assets/personagem/humano/humano_agachado.png';
+                        spriteAndandoUsado = '../../assets/personagem/humano/humano_agachado_andando.png';
+                    } else {
+                        spriteParadoUsado = usarSpriteAgachado
+                            ? inimigo.spriteParadoAgachado
+                            : spriteParadoBaseCorrigido;
+                        spriteAndandoUsado = usarSpriteAgachado
+                            ? inimigo.spriteAndandoAgachado
+                            : spriteAndandoBaseCorrigido;
+                    }
 
-
-
-
-                    const spriteParadoUsado = usarSpriteAgachado
-                        ? inimigo.spriteParadoAgachado 
-                        : spriteParadoBaseCorrigido;
-                    const spriteAndandoUsado = usarSpriteAgachado
-                        ? inimigo.spriteAndandoAgachado
-                        : spriteAndandoBaseCorrigido;
                     const spriteNoArUsado = spriteNoArUsadoCorrigido;
 
 
