@@ -43,6 +43,7 @@ window.SKILLS = Object.freeze({
     PRECISAO: 'Precisão',
     SUPERDASH: 'SuperDash',
     ADESTRAMENTO: 'Adestramento',
+    SALTITAR: 'Saltitar',
     GARRA: 'Garra',
     GARRA2: 'Garra 2'
 });

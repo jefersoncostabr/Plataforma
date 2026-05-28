@@ -1625,6 +1625,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         // Decrementa o cooldown do pulo duplo
         if (controle.cooldownPuloDuplo > 0) controle.cooldownPuloDuplo--;
 
+        // Decrementa cooldown da skill Saltitar (salto automático em sequência)
+        if (controle.cooldownSaltitar > 0) controle.cooldownSaltitar--;
+
         // Decrementa o cooldown pós Super Descida
         if (controle.cooldownPosSuperDescida > 0) controle.cooldownPosSuperDescida--;
         if (controle.pesoTemporarioSuperDescida > 0) controle.pesoTemporarioSuperDescida--;
@@ -1653,6 +1656,11 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         const podePuloInicial = controle.noChao || controle.coyoteFramesRestantes > 0;
         const deveConsumirPuloInicial = puloAcabouDeSerPressionado || controle.jumpBufferFramesRestantes > 0;
 
+        // Skill Saltitar: enquanto segura pulo, cria sequência automática SOMENTE ao tocar o chão
+        // (não usa coyote/buffer para iniciar no ar)
+        const saltitarAtivo = !!controle.saltitarHabilitado && acaoAtiva('pulo');
+        const podeSaltitar = saltitarAtivo && controle.noChao && (controle.cooldownPulo === 0 || controle.cooldownPulo == null);
+
         if (podePuloInicial) {
             // Se o pulo duplo foi usado no ar, inicia o cooldown agora que o jogador tocou o chão
             if (controle.doubleJumpUsedInAir) {
@@ -1660,7 +1668,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 controle.doubleJumpUsedInAir = false; // Reseta a flag
             }
 
-            if (deveConsumirPuloInicial && controle.cooldownPulo === 0) { // Adicionado cooldownPulo para evitar pulo imediato
+            if (controle.cooldownPulo === 0 && (deveConsumirPuloInicial || podeSaltitar)) { // Adicionado cooldownPulo para evitar pulo imediato
                 window.AudioManager?.playSFX('pulo', 0.5);
                 controle.pulosRealizados = 1;
                 controle.velocidadeY = forcaPuloFinal; // CORREÇÃO: Aplica a força do pulo no chão
@@ -1668,6 +1676,12 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 controle.coyoteFramesRestantes = 0;
                 controle.jumpBufferFramesRestantes = 0;
                 controle.timerPuloDuplo = config.janelaPuloDuplo ?? 12; // Janela de tempo mais rigorosa: 10 frames (aprox. 0.16s)
+                
+                // Se estiver saltitando, garante que o cooldown do pulo não dispare novamente no mesmo toque
+                if (saltitarAtivo) {
+                    const cdSaltitar = Number(config.cooldownSaltitarFrames ?? 6);
+                    controle.cooldownPulo = Math.max(0, cdSaltitar);
+                }
             } else {
                 controle.pulosRealizados = 0;
                 // O cooldown do pulo duplo não é resetado aqui, ele deve contar até o fim.

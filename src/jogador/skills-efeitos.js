@@ -90,6 +90,12 @@ window.aplicarEfeitosSkills = () => {
                 controle.temGarraPuxo = true;
                 break;
 
+            case skills.SALTITAR:
+                // Enquanto estiver segurando pulo, começa saltos automáticos em sequência (apenas ao tocar o chão)
+                controle.saltitarHabilitado = true;
+                controle.cooldownSaltitar = 0;
+                break;
+
             case skills.GARRA2:
                 // Habilita a funcionalidade de carga da Garra 2
                 controle.temGarra2 = true;

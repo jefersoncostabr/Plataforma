@@ -803,14 +803,8 @@ async function iniciarJogo() {
         const folders = ['nivel_1/', 'nivel_2/'];
         const levelsPerFolder = 50; // Aumentado para suportar até 50 fases por pasta
         
-        const candidatos = [];
-        // Gera lista de candidatos para busca automática em todas as pastas conhecidas
-        for (const folder of folders) {
-            for (let i = 1; i <= levelsPerFolder; i++) {
-                candidatos.push(`${folder}fase${i}.json`);
-            }
-        }
-
+        // Descoberta incremental com parada cedo (evita spam de 404)
+        // Estratégia: para cada pasta, testamos fase1..N, e paramos quando houver muitos 404 em sequência.
         const validar = async (rel) => {
             try {
                 const resp = await fetch(`${basePathRoot}${rel}`, { cache: 'no-store' });
@@ -821,17 +815,31 @@ async function iniciarJogo() {
         };
 
         const validados = [];
-        for (const rel of candidatos) {
-            if (await validar(rel)) validados.push(rel);
+        const MAX_CONSEC_404 = 4; // limite menor para reduzir 404 spam
+
+
+        for (const folder of folders) {
+            let consec404 = 0;
+            for (let i = 1; i <= levelsPerFolder; i++) {
+                const rel = `${folder}fase${i}.json`;
+                // Se já detectamos que não existe mais sequência nessa pasta, encerramos
+                if (consec404 >= MAX_CONSEC_404) break;
+
+                const ok = await validar(rel);
+                if (ok) {
+                    validados.push(rel);
+                    consec404 = 0;
+                } else {
+                    consec404++;
+                }
+            }
         }
 
-        // Mantém ordenação numérica pelo nome faseX.json
-        validados.sort((a, b) => {
-            // Ordenação natural (alfabética e numérica) para respeitar as pastas e números das fases
-            return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
-        });
-        
+        // Mantém ordenação numérica pelo nome faseX.json e pasta
+        validados.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+
         window.niveis = validados.map((rel) => `${basePathRoot}${rel}`);
+
     } catch (e) {
         window.niveis = [];
         console.error('Erro ao montar lista de fases:', e);
@@ -915,12 +923,7 @@ async function iniciarJogo() {
     const spriteAndandoHumano = '../../assets/personagem/humano/humano_andando.png';
     const spriteParadoAgachadoHumano = '../../assets/personagem/humano/humano_agachado.png';
     const spriteAndandoAgachadoHumano = '../../assets/personagem/humano/humano_agachado_andando.png';
-    console.log('[JOGO] Sprites do NPC humano:', {
-        spriteParadoHumano,
-        spriteAndandoHumano,
-        spriteParadoAgachadoHumano,
-        spriteAndandoAgachadoHumano
-    });
+    // console.log('[JOGO] Sprites do NPC humano:', { spriteParadoHumano, spriteAndandoHumano, spriteParadoAgachadoHumano, spriteAndandoAgachadoHumano });
     await iniciarIAInimigos(
         1,
         spriteParadoHumano, // sprite parado humano
