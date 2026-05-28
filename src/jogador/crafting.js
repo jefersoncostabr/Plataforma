@@ -505,11 +505,7 @@
         // });
 
         if (skillSaverDisponivel) {
-            const salvouSkills = window.salvarProgressoSkills();
-            console.log('[CRAFT RENASCIMENTO] Salvamento de skills disparado após clique.', {
-                salvouSkills,
-                modoRenascimento: craft.modoRenascimento
-            });
+            window.salvarProgressoSkills();
         }
 
         let mensagem;

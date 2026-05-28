@@ -48,6 +48,29 @@ function resetarJogadorParaZeroMantendoSkills(opcoes = {}) {
     if (!controle) return;
 
     const preservarEstadoSalvo = !!opcoes?.preservarEstadoSalvo;
+    const temBaseNoChao = !!opcoes?.temBaseNestaFase;
+
+    // CAPTURA DE RESGATE: Busca a base portátil para implantação automática no spawn.
+    // Regra: Só resgatamos se NÃO houver uma base instalada no cenário (Caso 2).
+    if (!temBaseNoChao) {
+        let baseParaResgatar = null;
+        if (controle.cintoSlot === 'base_portatil' || controle.cintoSlot?.tipo === 'base_portatil') {
+            baseParaResgatar = controle.cintoSlot;
+            controle.cintoSlot = null; // Remove do slot para evitar duplicidade
+        } else if (Array.isArray(controle.coleteSlots)) {
+            const idx = controle.coleteSlots.findIndex(s => s === 'base_portatil' || s?.tipo === 'base_portatil');
+            if (idx !== -1) {
+                baseParaResgatar = controle.coleteSlots[idx];
+                controle.coleteSlots[idx] = null; // Remove do slot
+            }
+        }
+
+        if (baseParaResgatar) {
+            window.__basePendenteAutoSpawn = JSON.parse(JSON.stringify(baseParaResgatar));
+            // Sincroniza o inventário para salvar a remoção da base do bolso
+            if (typeof window.salvarInventarioDoControle === 'function') window.salvarInventarioDoControle(controle);
+        }
+    }
 
     controle.temEscudo = false;
     controle.escudoVermelho = false;
@@ -214,7 +237,6 @@ async function carregarFase(nomeArquivo) {
     const temCheckpoint = typeof window.carregarCheckpointEquipamentoSalvo === 'function' && !!window.carregarCheckpointEquipamentoSalvo();
     
     const vindoDeTransicao = !!window.__transicaoFaseAtiva;
-
     // Regra de Ouro: No reinício (morte ou carregamento), limpamos o jogador para não "vazar" 
     // itens coletados após o save. Apenas transições vitoriosas preservam o estado volátil.
     if (!vindoDeTransicao) {
@@ -222,7 +244,8 @@ async function carregarFase(nomeArquivo) {
         
         if (typeof resetarJogadorParaZeroMantendoSkills === 'function') {
             resetarJogadorParaZeroMantendoSkills({ 
-                preservarEstadoSalvo: !deveLimparTotal 
+                preservarEstadoSalvo: !deveLimparTotal,
+                temBaseNestaFase: !!temBaseNestaFase
             });
         }
     }
@@ -448,6 +471,22 @@ async function carregarFase(nomeArquivo) {
         window.playerControle.x = pos.x;
         window.playerControle.y = pos.y;
         window.playerControle.velocidadeY = 0;
+
+        // Auto-implantação da base resgatada no ponto de respawn (Caso 2)
+        if (window.__basePendenteAutoSpawn) {
+            // Limpa qualquer registro de base antigo no armazenamento para evitar que a trava de segurança bloqueie a instalação
+            if (typeof window.limparCraftPersistido === 'function') {
+                window.limparCraftPersistido();
+            }
+
+            if (typeof window.instalarBasePortatilDoSlot === 'function') {
+                window.instalarBasePortatilDoSlot(window.__basePendenteAutoSpawn);
+            }
+            /* else {
+                console.error('[AUTO-SPAWN] ❌ Erro: window.instalarBasePortatilDoSlot não está acessível.');
+            } */
+            window.__basePendenteAutoSpawn = null;
+        }
         
         // Reseta estado de entrada e timers
         window.playerControle.teclas = {};
@@ -623,6 +662,12 @@ window.proximoNivel = async function() {
     } else {
         alert("FIM DE JOGO! Você completou todos os níveis.");
         if (typeof window.reiniciarJogo === 'function') {
+            // Suporte para Novo Jogo+: Busca a base no inventário antes de reiniciar a campanha
+            const slotsNG = [window.playerControle?.cintoSlot, ...(window.playerControle?.coleteSlots || [])];
+            const baseNoBolsoNG = slotsNG.find(s => s === 'base_portatil' || s?.tipo === 'base_portatil');
+            
+            if (baseNoBolsoNG) window.__basePendenteAutoSpawn = JSON.parse(JSON.stringify(baseNoBolsoNG));
+
             window.nivelAtual = 0;
             // Ao reiniciar, garantir todos os equipamentos
             if (window.playerControle) {
@@ -665,6 +710,7 @@ window.proximoNivel = async function() {
 window.reiniciarJogo = async function(porMorte = true) {
     limparAnimacaoDanoJogador();
     const eraModoTreino = window.isTraining;
+    window.__transicaoFaseAtiva = false; // Garante que a transição não trave o próximo reset por morte
 
     // A limpeza agora é gerenciada seletivamente dentro de carregarFase para suportar checkpoints e bases. // Removido console.log de debug
 
@@ -674,8 +720,8 @@ window.reiniciarJogo = async function(porMorte = true) {
 
     const renascimentoBase = obterConfigRenascimentoBaseAtiva();
     const modo = renascimentoBase?.modoRenascimento;
-    const usarSpawnpointDaBase = modo === 'spawnpoint' || modo === 'ambos';
     const usarMemoriaDaBase = !!(porMorte && (modo === 'memoria' || modo === 'ambos'));
+    const usarSpawnpointDaBase = modo === 'spawnpoint' || modo === 'ambos';
     const skillsMemorizadas = usarMemoriaDaBase ? [...(window.playerSkills || [])] : [];
 
     // Cancela spawns de inimigos aleatórios
