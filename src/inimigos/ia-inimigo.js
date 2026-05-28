@@ -1265,8 +1265,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
                 // --- IA de ataque para NPC humano ---
                 if (inimigo.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID && inimigo.podeAtacar) {
-                    // Distância para atacar
-                    const distanciaAtaque = 32;
+                    // Distância para atacar (reduzida para exigir aproximação maior)
+                    const distanciaAtaque = 28;
                     // Ataca se estiver próximo do alvo (agora permite ataque no ar)
                     if (Math.abs(xAlvo - inimigo.x) <= distanciaAtaque && Math.abs(yAlvo - inimigo.y) <= 30 && !inimigo.estaMorrendo && !inimigo.transicaoFormaBossAtiva) {
                         if ((inimigo.tempoChute || 0) <= 0 && (inimigo.cooldownChute || 0) <= 0) {
@@ -1614,7 +1614,8 @@ window.AudioManager.playSFX('chute', 0.4);
                 const distanciaY = Math.abs(alvoPerseguicaoY - inimigo.y);
                 const distanciaMinima = config.inimigoDistanciaMinimaAtaque || 20;
 
-                if (!iaBloqueadaPorStun && inimigo.perseguindo && distanciaX <= distanciaMinima && distanciaY <= distanciaMinima && !inimigo.afastando && inimigo.tempoAfastamento === 0 && inimigo.cooldownAfastamento === 0) {
+                // Exceção: não afasta se estiver atacando (tempoChute > 0)
+                if (!iaBloqueadaPorStun && inimigo.perseguindo && distanciaX <= distanciaMinima && distanciaY <= distanciaMinima && !inimigo.afastando && inimigo.tempoAfastamento === 0 && inimigo.cooldownAfastamento === 0 && !(inimigo.tempoChute > 0)) {
                     // Inimigo está muito próximo do jogador - inicia afastamento
                     inimigo.afastando = true;
                     inimigo.tempoAfastamento = config.inimigoTempoAfastamento || 30; // Removido console.log de debug
@@ -2270,10 +2271,10 @@ window.AudioManager.playSFX('chute', 0.4);
                     let ataqueLargura = config.INIMIGO_ATAQUE_LARGURA ?? config.ATAQUE_LARGURA;
                     let ataqueAltura = config.INIMIGO_ATAQUE_ALTURA ?? config.ATAQUE_ALTURA;
 
-                    // Ajuste de hitbox: humano soca com colisão um pouco maior para acertar mais.
+                    // Ajuste de hitbox: humano agora tem hitbox levemente menor para evitar acerto injusto na diagonal.
                     if (inimigo?.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID) {
-                        ataqueLargura = (Number(ataqueLargura ?? 32) || 32) * 1.15;
-                        ataqueAltura = (Number(ataqueAltura ?? 24) || 24) * 1.15;
+                        ataqueLargura = (Number(ataqueLargura ?? 32) || 32) * 1;
+                        ataqueAltura = (Number(ataqueAltura ?? 24) || 24) * 1;
                     }
 
 
