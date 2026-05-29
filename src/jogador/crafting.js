@@ -401,28 +401,30 @@
         }
 
         function podeInstalarBasePortatil() {
-            const craftPersistido = obterCraftPersistido();
-            if ((window.craftsAtivos || []).length > 0 || craftPersistido) {
-                return false;
-            }
-
             const posicao = obterPosicaoCraftNoGrid();
+            const areaValida = areaValidaParaNovoCraft(posicao);
+            
+            console.log('[CRAFT] podeInstalarBasePortatil: Área válida?', areaValida);
+            return areaValida;
             return areaValidaParaNovoCraft(posicao);
         }
 
         function instalarBasePortatilDoSlot(dados = {}) {
             const craftPersistido = obterCraftPersistido();
-            if ((window.craftsAtivos || []).length > 0 || craftPersistido) {
-                return false;
-            }
+            const faseAtual = obterNomeFaseAtual();
+            console.log('[CRAFT] instalarBasePortatilDoSlot:', { craftPersistido, faseAtual, craftsAtivos: window.craftsAtivos });
 
             const posicao = obterPosicaoCraftNoGrid();
             if (!areaValidaParaNovoCraft(posicao)) {
+                console.log('[CRAFT] Área inválida para novo craft', posicao);
                 if (typeof flashElement === 'function') {
                     flashElement(elemento, 120, 4);
                 }
                 return false;
             }
+
+            // MECÂNICA NOVA: Elimina qualquer base existente antes de instalar a nova
+            removerTodosCrafts(true);
 
             const craft = {
                 id: `craft-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -437,6 +439,7 @@
             };
 
             window.craftsAtivos.push(craft);
+            console.log('[CRAFT] Nova base criada:', craft);
             atualizarVisualCraft(craft);
             salvarCraftPersistido(craft);
             limparPreviewCraft();
@@ -669,29 +672,12 @@
             const fonte = obterFonteItemParaCraft();
             const tipo = fonte?.tipo || null;
             const posicao = obterPosicaoCraftNoGrid();
-            const faseAtual = obterNomeFaseAtual();
-            const craftPersistido = obterCraftPersistido();
             const tipoPreview = tipo === TIPO_ITEM_BASE_PORTATIL
                 ? String(fonte?.dados?.craftTipoBase || 'item')
                 : tipo;
 
             if (!podeConsumirItemParaCraft(fonte)) return false;
             if (!areaValidaParaNovoCraft(posicao)) {
-                if (typeof flashElement === 'function') {
-                    flashElement(elemento, 120, 4);
-                }
-                return false;
-            }
-
-            if (craftPersistido && craftPersistido.fase === faseAtual) {
-                restaurarCraftPersistenteDaFaseAtual();
-                if (typeof flashElement === 'function') {
-                    flashElement(elemento, 120, 4);
-                }
-                return false;
-            }
-
-            if (existeBasePersistidaEmOutraFase()) {
                 if (typeof flashElement === 'function') {
                     flashElement(elemento, 120, 4);
                 }
@@ -728,6 +714,10 @@
                 return false;
             }
 
+            // 1. Captura a posição antes da limpeza, pois removerTodosCrafts anula o preview
+            const posX = controle.craftPreviewPosicao.x;
+            const posY = controle.craftPreviewPosicao.y;
+
             const fonteConsumida = controle.craftPreviewOrigem || obterFonteItemParaCraft();
             const tipoConsumido = fonteConsumida?.tipo || controle.craftPreviewTipo;
             const ehBasePortatil = tipoConsumido === TIPO_ITEM_BASE_PORTATIL;
@@ -742,10 +732,13 @@
                 return false;
             }
 
+            // MECÂNICA NOVA: Elimina base antiga antes de confirmar a nova (Nível 1)
+            removerTodosCrafts(true);
+
             const craft = {
                 id: `craft-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-                x: controle.craftPreviewPosicao.x,
-                y: controle.craftPreviewPosicao.y,
+                x: posX,
+                y: posY,
                 largura: 32,
                 altura: 32,
                 nivel: nivelInicial,
@@ -757,7 +750,6 @@
             window.craftsAtivos.push(craft);
             atualizarVisualCraft(craft);
             salvarCraftPersistido(craft);
-            limparPreviewCraft();
             return true;
         }
 

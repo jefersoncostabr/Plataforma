@@ -29,7 +29,6 @@ window.aplicarDesaceleracaoHorizontal = function(controle, config) {
         if (Math.abs(controle.velocidadeHorizontalAtual) > limiteVelocidadeMinima) {
             // Se o jogador mudou de direção, para imediatamente
             if (controle.inputInverterDirecao) {
-                console.log('[DEBUG] Inverter direção no chão! vel:', controle.velocidadeHorizontalAtual, 'GROUND_FRICTION:', GROUND_FRICTION);
                 controle.velocidadeHorizontalAtual = -controle.velocidadeHorizontalAtual;
                 controle.inputInverterDirecao = false;
             } else {
@@ -49,7 +48,6 @@ window.aplicarDesaceleracaoHorizontal = function(controle, config) {
         if (controle.inputSoltouNoAr && !controle._airControlAplicado) {
             controle.velocidadeHorizontalAtual *= AIR_CONTROL_FACTOR;
             controle._airControlAplicado = true;
-            console.log('[DEBUG] Air control aplicado! vel:', controle.velocidadeHorizontalAtual, 'AIR_CONTROL_FACTOR:', AIR_CONTROL_FACTOR);
         }
         if (Math.abs(controle.velocidadeHorizontalAtual) > limiteVelocidadeMinima) {
             if (controle.velocidadeHorizontalAtual > 0) {

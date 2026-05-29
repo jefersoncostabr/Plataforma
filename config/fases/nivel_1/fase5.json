@@ -19,7 +19,15 @@
             "ac1",
             "ac40"
         ],
-        "doze": "j3"
+        "doze": "j3",
+        "revolver": [
+            "b21",
+            "b24"
+        ],
+        "escudo": [
+            "b11",
+            "b31"
+        ]
     },
     "inimigoAleatorio": [1, 0],
     "plataformasNeve": [
@@ -65,11 +73,11 @@
     "plataformasEstacaSup": [
         "b16"
     ],
-    "inimigo_revolver": ["b21", "b24"],
-    "inimigo_escudo": ["b13", "b32"],
     "inimigo_feno": ["v20", "v26"],
     "humano": [
-        "b22", "b23",
+        "b13", "b22", "b23", "b32",
+        "g25",
+        "l21",
         "q21",
         "r22", "r24",
         "v24"

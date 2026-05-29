@@ -12,7 +12,8 @@
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
-        "cinto": "l1"
+        "cinto": "l1",
+        "jetpack": "b1"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
@@ -30,7 +31,6 @@
         "d7", "d37",
         "j16"
     ],
-    "inimigo_comum": ["b29"],
     "plataformasTerraSuperior": [
         "b12",
         "h13",
@@ -40,6 +40,7 @@
         "i13"
     ],
     "humano": [
-        "e11", "e17"
+        "e11", "e17",
+        "h30"
     ]
 }

@@ -1154,6 +1154,19 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         // --- LÓGICA DE COMBINAÇÕES DE ENTRADA ---
         const segurandoBaixo = acaoAtiva('baixo');
 
+        // Debug: loga quando as teclas para construir base são pressionadas
+        if (segurandoBaixo && (controle.teclas['e'] || controle.teclas['E'])) {
+            console.log('[CRAFT][DEBUG] Teclas BAIXO + E pressionadas para iniciar base', {
+                segurandoBaixo,
+                teclaE: controle.teclas['e'] || controle.teclas['E'],
+                estaAgachado: controle.estaAgachado,
+                noChao: controle.noChao,
+                inventario: controle.inventario,
+                cintoSlot: controle.cintoSlot,
+                coleteSlots: controle.coleteSlots
+            });
+        }
+
         // Combinação: Dropar Item
         if (segurandoBaixo && acaoAtiva('pulo') && controle.noChao) {
             consumirAcao('pulo'); 

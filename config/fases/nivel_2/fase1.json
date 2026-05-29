@@ -1,0 +1,61 @@
+{
+    "proporcao": "1x2",
+    "posicaoInicialJogador": "b2",
+    "objetivo": "e40",
+    "posicaoAlavanca": "",
+    "posicaoRoboDesativado": "",
+    "posicaoRoboAberto": "",
+    "posicaoMusgoRoboAberto": "",
+    "posicaoMusgoRoboDesativado": "",
+    "posicaoGaiola": "",
+    "posicaoCachorro": "",
+    "posicaoGaiolaGato": "",
+    "posicaoGato": "",
+    "itens": {
+        "restauracao": "b10",
+        "municao_plus": [
+            "b9",
+            "n1"
+        ],
+        "colete": "k28",
+        "escudo": "g37",
+        "bota": "f38",
+        "cinto": "j22"
+    },
+    "inimigoAleatorio": [3, 0],
+    "plataformas": [
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
+        "b7", "b8", "b12",
+        "c8", "c12",
+        "d8", "d12", "d40",
+        "e8", "e12", "e38", "e39",
+        "f8", "f12", "f19", "f20", "f21", "f27", "f28", "f29", "f37",
+        "g3", "g8", "g12", "g35", "g36",
+        "h2", "h8", "h12", "h34",
+        "i8", "i13", "i15", "i16", "i17", "i18", "i19", "i20", "i21", "i22", "i23", "i24", "i25", "i26", "i27", "i28", "i29", "i30", "i31", "i32", "i33",
+        "j8", "j12",
+        "k8", "k12",
+        "l8", "l12",
+        "m8", "m9", "m11", "m12"
+    ],
+    "plataformasEstacaSup": [
+        "b11"
+    ],
+    "plataformasEstacaBaixo": [
+        "g2",
+        "l9", "l11"
+    ],
+    "plataformasTerraInferior2": [
+        "c14", "c15", "c16", "c17", "c18", "c22", "c23", "c24", "c25", "c26", "c30", "c31", "c32", "c33", "c34"
+    ],
+    "plataformasTerraSuperior": [
+        "m1", "m4"
+    ],
+    "inimigo_comum": ["d16", "d24", "d32"],
+    "humano": [
+        "i37",
+        "k22",
+        "l29",
+        "n12"
+    ]
+}

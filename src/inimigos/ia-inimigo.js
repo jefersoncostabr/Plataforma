@@ -686,6 +686,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
     function obterTipoBaseDaEtapaBoss(etapa) {
         const baseNpc = String(etapa?.baseNpc || '').trim().toLowerCase();
+        if (baseNpc === 'humano') return Number(window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID ?? 13);
         return Number(window.GAME_CONSTANTS?.INIMIGO_COMUM_ID ?? 0);
     }
 

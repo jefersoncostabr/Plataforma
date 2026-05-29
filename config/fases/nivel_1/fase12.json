@@ -12,7 +12,15 @@
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
-        "restauracao": "i40"
+        "restauracao": [
+            "i40",
+            "k8"
+        ],
+        "doze": "b38",
+        "bota": "b37",
+        "garra": "b36",
+        "jetpack": "b35",
+        "escudo": "b34"
     },
     "inimigoAleatorio": [3, 0],
     "plataformas": [
@@ -23,9 +31,12 @@
     "plataformasTerraSuperior": [
         "h34", "h35", "h36", "h37", "h39", "h40"
     ],
-    "inimigo_completo": ["b21"],
     "humano": [
-        "i36",
-        "k1"
+        "b39",
+        "f14",
+        "i15", "i36",
+        "k1", "k2",
+        "l17",
+        "o19"
     ]
 }

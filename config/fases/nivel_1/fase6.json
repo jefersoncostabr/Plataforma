@@ -14,9 +14,12 @@
     "itens": {
         "revolver": "b21",
         "restauracao": "b9",
-        "escudo": "c23",
-        "cinto": "m36",
-        "municao_plus": "n1"
+        "escudo": [
+            "b7",
+            "c23"
+        ],
+        "municao_plus": "n1",
+        "cinto": "m23"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
@@ -46,10 +49,9 @@
         "j40",
         "k35"
     ],
-    "inimigo_comum": ["b30", "n33"],
-    "inimigo_escudo": ["b7"],
-    "inimigo_cinto": ["m23"],
     "humano": [
-        "b18", "b26", "b28"
+        "b8", "b18", "b26", "b28",
+        "m24",
+        "n33"
     ]
 }

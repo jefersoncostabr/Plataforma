@@ -12,7 +12,10 @@
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
-        "escudo": "l12",
+        "escudo": [
+            "h13",
+            "l12"
+        ],
         "bota": [
             "h19",
             "l16"
@@ -38,13 +41,11 @@
         "l2",
         "m2"
     ],
-    "inimigo_comum": ["h5", "l14"],
-    "inimigo_escudo": ["h13"],
-    "inimigo_revolver": ["h20"],
     "humano": [
         "b18",
         "e8",
+        "h5", "h14", "h20",
         "i3",
-        "l18"
+        "l14", "l18"
     ]
 }

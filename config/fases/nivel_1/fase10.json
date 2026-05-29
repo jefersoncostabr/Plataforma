@@ -17,7 +17,10 @@
             "x6"
         ],
         "restauracao": "m15",
-        "jetpack": "ab18",
+        "jetpack": [
+            "b14",
+            "ab18"
+        ],
         "colete": "ab13",
         "doze": "ab1"
     },
@@ -31,8 +34,6 @@
         "aa1", "aa2",
         "ab10", "ab11"
     ],
-    "inimigo_comum": ["b16", "b20", "z14"],
-    "inimigo_jetpack": ["b14", "x5"],
     "plataformasEstacaBaixo": [
         "f4",
         "k9",
@@ -42,6 +43,8 @@
         "aa10"
     ],
     "humano": [
-        "b9", "b12", "b18"
+        "b9", "b12", "b16", "b18", "b20",
+        "z14",
+        "aa5"
     ]
 }

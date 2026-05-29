@@ -16,7 +16,11 @@
             "g14",
             "n40"
         ],
-        "municao_plus": "g1"
+        "municao_plus": "g1",
+        "revolver": [
+            "b36",
+            "g18"
+        ]
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
@@ -32,7 +36,6 @@
         "l35",
         "m36", "m37", "m39", "m40"
     ],
-    "inimigo_revolver": ["b37", "g18"],
     "inimigo_feno": ["b11", "b23"],
     "plataformasTerraSuperior": [
         "b33"
@@ -52,7 +55,8 @@
         "e7", "e8"
     ],
     "humano": [
-        "b18", "b32",
-        "g27"
+        "b18", "b32", "b37",
+        "g27",
+        "h18"
     ]
 }

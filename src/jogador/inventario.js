@@ -805,9 +805,11 @@
             }
 
             if (tipo === 'base_portatil') {
+                console.log('[INVENTARIO] Tentando instalar base portátil', { extras, controle });
                 const instalouBase = typeof window.instalarBasePortatilDoSlot === 'function'
                     ? window.instalarBasePortatilDoSlot(extras || {})
                     : false;
+                console.log('[INVENTARIO] Resultado instalarBasePortatilDoSlot:', instalouBase);
                 if (!instalouBase) return false;
                 salvarInventario();
                 atualizarMochilaUI();
