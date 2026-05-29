@@ -18,6 +18,7 @@ window.aplicarEfeitosSkills = () => {
     controle.janelaDuploToqueDash = 250;
     controle.temGarraPuxo = false;
     controle.temGarra2 = false;
+    controle.slideHabilitado = false; // Nova flag para a skill Slide
 
     const itensGuardadosNoCinto = !!controle.itensGuardadosNoCinto;
     const totalEquipamentosSemBota = [
@@ -34,7 +35,7 @@ window.aplicarEfeitosSkills = () => {
 
     // Percorre todas as habilidades que o jogador já possui
     window.playerSkills.forEach((skillNome) => {
-        switch (skillNome) {
+        switch (String(skillNome)) {
             case skills.VIDA:
                 // Habilidade Vida: aumenta a resistência máxima em +1
                 controle.maxVida += 1;
@@ -83,6 +84,11 @@ window.aplicarEfeitosSkills = () => {
 
             case skills.ADESTRAMENTO:
                 // Habilita o controle manual do cão aliado (Lógica processada no movimento.js)
+                break;
+
+            case skills.SLIDE:
+                // Habilitação Lógica: Ativa a permissão para o jogador usar o Slide no objeto de controle
+                controle.slideHabilitado = true;
                 break;
 
             case skills.GARRA:

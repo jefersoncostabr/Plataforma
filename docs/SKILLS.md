@@ -53,6 +53,11 @@ Veja abaixo o que cada skill faz na prática:
 ### SuperDash
 - **O que faz:** Desbloqueia o SuperDash, uma versão ainda mais poderosa do Dash.
 
+### Slide
+- **O que faz:** Permite deslizar ao pressionar "Baixo" durante um Dash ou ao cair. 
+- **Requisito:** Estar com mãos vazias (equipamentos guardados).
+- **Vantagem:** Passar por frestas de 16px sem perder o momentum.
+
 ### Garra
 - **O que faz:** Permite usar a tração avançada da garra (puxar objetos ou alcançar lugares).
 
@@ -138,6 +143,3 @@ Essas skills existem no enum em `src/skills/skills.js`, mas **não aparecem com 
 - **Tipo:** ativa (habilita funcionalidade)
 - **Efeito:** habilita a “Garra 2”:
   - `controle.temGarra2 = true`
-
-
-

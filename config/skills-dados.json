@@ -9,6 +9,7 @@
         "Atirador": null,
         "Adestramento": null,
         "Saltitar": "Adestramento",
+        "Slide": "Adestramento",
         "kickboxing": "Atirador",
         "Dash": "Atirador",
         "Dropar": "Vida",

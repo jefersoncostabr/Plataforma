@@ -178,6 +178,11 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         velocidadeDashSkill: 0,
         cooldownDash: 0,
         ultimoToqueDash: { e: 0, d: 0 },
+        slideFramesRestantes: 0,
+        slideDuracaoAtiva: 0,
+        velocidadeSlide: 0,
+        slideBufferFalling: false,
+        slideHabilitado: false, // Nova flag para a skill Slide
         pesado: false,
         pesadoPorEquipamento: false,
         pesoTemporarioSuperDescida: 0,
@@ -513,6 +518,32 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             flashElement(elemento, 120, 4);
         }
         return false;
+    }
+
+    // Mecânica de Slide: Gerencia o estado de deslizamento, velocidade e duração
+    function iniciarSlide() {
+        if (!controle.slideHabilitado) {
+            return;
+        }
+        if (!podeAgacharSemBloqueio() || controle.estaMorrendo || controle.stunned) return;
+        
+        // Se já estiver em slide, não reinicia para evitar spam, exceto se vier de um dash fresco
+        if (controle.slideFramesRestantes > 0 && !controle.dashFramesRestantes) return;
+
+        const duracaoSlide = Math.max(1, Number(config.slideDuracao ?? 22)); // Aumentado de 15 para 22 para percorrer maior distância
+        const velocidadeSlideBase = Math.max(0, Number(config.velocidadeSlide ?? 6)); // Aumentado de 5 para 6 para maior momentum inicial
+        
+        controle.slideFramesRestantes = duracaoSlide;
+        controle.slideDuracaoAtiva = duracaoSlide;
+        controle.velocidadeSlide = velocidadeSlideBase; // Pixels por frame
+        controle.estaAgachado = true;
+        controle.dashFramesRestantes = 0; // Cancela o dash para o slide assumir
+        
+        window.AudioManager?.playSFX('dash', 0.3); // Som de deslize (reaproveitando dash)
+        
+        if (typeof window.criarSombraDash === 'function') {
+            window.criarSombraDash(elemento);
+        }
     }
 
     const sistemaVisuaisEquipamentos = window.criarSistemaVisuaisEquipamentos({
@@ -1173,6 +1204,11 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             droparItemJogador();
         }
 
+        // Trigger de Slide por Queda (Buffer)
+        if (!controle.noChao && segurandoBaixo && controle.velocidadeY < 0) {
+            controle.slideBufferFalling = true;
+        }
+
         // Debug/Teste: dispara manualmente o VFX de impacto no centro do jogador.
 
 
@@ -1233,6 +1269,12 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             ? (config.agachadoHitboxAltura ?? 16)
             : controle.alturaEmPe;
         
+        // Se estiver em Slide, garante que a altura seja a de agachado
+        if (controle.slideFramesRestantes > 0) {
+            controle.altura = config.agachadoHitboxAltura ?? 16;
+            controle.estaAgachado = true;
+        }
+
         // Sincroniza o estado de chute com o timer
         atualizarEstadoChuteCorpoACorpo();
 
@@ -1340,6 +1382,12 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         }
         
         if ((controle.dashFramesRestantes || 0) > 0) {
+            // Gatilho de Slide: Transição imediata se pressionar "Baixo" durante um Dash ativo
+            if (segurandoBaixo && podeAgacharSemBloqueio()) {
+                iniciarSlide();
+                return;
+            }
+
             const direcaoDashSkill = controle.dashDirecao === 'd' ? 1 : -1;
             controle.x += (controle.velocidadeDashSkill || 0) * direcaoDashSkill;
 
@@ -1380,6 +1428,24 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             controle.movendoHorizontal = true;
             controle.dashFramesRestantes--;
             controle.velocidadeHorizontalAtual = 0; // Zera a velocidade horizontal para o dash ter controle total
+        }
+
+        // Movimentação de Slide
+        if (controle.slideFramesRestantes > 0) {
+            const direcaoSlide = controle.direcao === 'd' ? 1 : -1;
+            const duracaoRef = controle.slideDuracaoAtiva || 22; // Sincronizado com a nova duração padrão
+            const velS = controle.velocidadeSlide * (controle.slideFramesRestantes / duracaoRef); // Desaceleração suave
+            
+            controle.x += velS * direcaoSlide;
+            controle.slideFramesRestantes--;
+            controle.movendoHorizontal = true;
+            controle.velocidadeHorizontalAtual = 0;
+
+            if (typeof window.criarSombraDash === 'function' && controle.slideFramesRestantes % 3 === 0) {
+                window.criarSombraDash(elemento);
+            }
+            
+            if (controle.slideFramesRestantes <= 0) tentarLevantarJogador();
         }
 
         // Sistema de combate corpo a corpo
@@ -1904,6 +1970,12 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 if (velocidadeAntesImpacto < (config.minVelocidadePousoSom ?? -6)) {
                     window.AudioManager?.playSFX('pouso', 0.3);
                 }
+
+                // Gatilho de Slide: Ativa automaticamente ao tocar o chão se o jogador caiu segurando "Baixo" (Slide Buffer)
+                if (controle.slideBufferFalling) {
+                    iniciarSlide();
+                    controle.slideBufferFalling = false;
+                }
             }
             controle.velocidadeY = 0;
         }
@@ -1958,6 +2030,11 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 spriteCarregando5,
                 spriteCarregando6
             );
+        }
+
+        // Sobrescreve o sprite se estiver em Slide
+        if (controle.slideFramesRestantes > 0) {
+            elemento.src = 'assets/personagem/per_slide.png';
         }
 
         // Sobrescreve o sprite se estiver chutando

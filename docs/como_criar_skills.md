@@ -7,9 +7,10 @@ Este documento explica como configurar o arquivo de habilidades, que controla o 
 1.  Estrutura de Atributos (`playerStats`)
 2.  Definição de Habilidades (`skills`)
     *   Campos por Skill
-3.  Lógica de Posicionamento Automático
-4.  Exemplo Prático
-5.  Vinculando Efeitos
+3.  Registro no Enum JavaScript (`src/skills/skills.js`)
+4.  Lógica de Posicionamento Automático
+5.  Exemplo Prático
+6.  Vinculando Efeitos e Depuração
 
 ---
 
@@ -41,7 +42,7 @@ Você não precisa definir coordenadas X e Y. O motor de jogo calcula a posiçã
 
 ---
 
-```json
+```skills-dadosjson
 {
     "playerStats": {
         "xp": 0,
@@ -67,3 +68,11 @@ Para que uma skill tenha um efeito real no jogo, você deve adicionar a verifica
 *   Dropar: habilita o comando de drop de item.
 
 ---
+
+## Observação importante (debug de skill que não aparece no menu)
+
+O **menu de skills** é montado a partir do conteúdo de `config/skills-dados.json` (objeto `skills`).
+
+Se você criar/implementar um efeito no código (ex: em `src/jogador/skills-efeitos.js` ou no gameplay), mas a skill **não aparecer no menu**, a causa mais comum é: **a skill não existe como nó em `skills` no JSON**.
+
+Exemplo real: a skill **Slide** tem lógica no gameplay (`src/jogador/movimento.js`), porém **não aparecia no menu** porque não estava cadastrada em `config/skills-dados.json`.

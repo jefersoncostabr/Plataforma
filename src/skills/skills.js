@@ -38,6 +38,7 @@ window.SKILLS = Object.freeze({
     AIRDROP: 'Airdrop',
     VENDER: 'Vender',
     SALTO: 'Salto',
+    SLIDE: 'Slide', // Registro da Skill: Deve ser idêntico à chave definida no skills-dados.json
     RESGATE: 'Resgate',
     KNOCKOUT: 'Knockout',
     PRECISAO: 'Precisão',
