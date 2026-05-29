@@ -101,6 +101,15 @@
             return;
         }
 
+        // Se o pet foi desativado (enviado para a base), removemos ele da fase e paramos o ciclo de vida
+        const naBase = pet.tipo === 'cao' ? window.caoNaBase : window.gatoNaBase;
+        if (naBase) {
+            if (pet.elemento) pet.elemento.remove();
+            if (pet.tipo === 'cao' && window.caoEntidade === pet) window.caoEntidade = null;
+            if (pet.tipo === 'gato' && window.gatoEntidade === pet) window.gatoEntidade = null;
+            return;
+        }
+
         const player = window.playerControle;
         const alvoSeguimento = (window.controlandoBB && window.bbEntidade) ? window.bbEntidade : player;
         
