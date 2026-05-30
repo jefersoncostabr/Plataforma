@@ -811,7 +811,7 @@ function handleMenuInput(e) {
         if (menuSelectedIndex === -1) {
             menuSelectedIndex = 0;
         }
-        
+
         try {
             ativarItemMenuPrincipal(currentItems[menuSelectedIndex]);
         } catch (error) {
@@ -862,7 +862,7 @@ function handleControlsInput(e) {
     if (controlsSelectedIndex === -1) {
         controlsSelectedIndex = 0;
     }
-    
+
     const selected = entries[controlsSelectedIndex];
     if (!selected) return;
 
@@ -887,30 +887,27 @@ function handleControlsInput(e) {
 
 /**
  * Obtém o contêiner alvo para renderizar a interface do menu.
+ * Sempre usa o body para evitar herdar transformações de escala do jogo-container.
  */
 function obterConteinerDestino() {
-    let targetLayer = document.getElementById('layer-ui');
-    if (!targetLayer) targetLayer = document.getElementById('jogo-container');
-    if (!targetLayer) {
-        console.error('Menu: Não foi possível encontrar o contêiner para renderizar a interface.');
-    }
-    return targetLayer;
+    return document.body;
 }
 
 /**
  * Cria e estiliza o elemento de overlay (fundo) do menu.
+ * Usa position:fixed para se posicionar relativo à viewport, independente de qualquer
+ * transform:scale() aplicado ao jogo-container.
  */
 function criarElementoOverlay() {
-    const camX = Math.round(window.cameraX || 0);
-    const camY = Math.round(window.cameraY || 0);
-
     const overlay = document.createElement('div');
     overlay.id = 'pause-menu-overlay';
-    overlay.style = `
-        position: absolute;
-        left: ${camX}px; top: ${camY}px;
-        width: 640px; height: 480px;
-        background: var(--cor-fundo-overlay); z-index: 10000;
+
+    overlay.style.cssText = `
+        position: fixed;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 820px; height: 580px;
+        background: var(--cor-fundo-overlay); z-index: 99999;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         color: white; font-family: 'Segoe UI', Tahoma, sans-serif;
         border-radius: 4px;
@@ -975,12 +972,24 @@ function renderMenuUI() {
         };
         overlay.appendChild(closeButton);
     }
-    
+
     overlay.appendChild(title);
     preencherConteudoPorModo(overlay);
 
     targetLayer.appendChild(overlay);
     updateMenuVisuals();
+}
+
+function obterIconePorLabel(label) {
+    const l = String(label || '').trim().toUpperCase();
+    if (l === 'INICIAR') return 'assets/icones/play.png';
+    if (l === 'RETORNAR') return 'assets/icones/voltar.png';
+    if (l === 'CONTROLES') return 'assets/icones/controle.png';
+    if (l === 'REINICIAR') return 'assets/icones/voltar_jogo.png';
+    if (l === 'SKILLS') return 'assets/icones/skill.png';
+    if (l === 'TREINO') return 'assets/icones/treinar.png';
+    if (l === 'SAIR') return 'assets/icones/lixo.png';
+    return null;
 }
 
 function renderMainMenuContent(overlay) {
@@ -997,21 +1006,44 @@ function renderMainMenuContent(overlay) {
     optionsContainer.id = 'menu-options-container';
     optionsContainer.style.display = 'flex';
     optionsContainer.style.flexDirection = 'column';
-    optionsContainer.style.gap = '15px';
-    optionsContainer.style.width = '220px';
+    optionsContainer.style.alignItems = 'center';
+    optionsContainer.style.gap = '12px';
+    optionsContainer.style.width = '120px';
 
     const currentOptions = getMainMenuOptions();
 
     // Função auxiliar para criar os botões e evitar repetição de código
-    const criarBotaoMenu = (opt, index) => {
+    const criarBotaoMenu = (opt) => {
         const btn = document.createElement('div');
         btn.className = 'menu-option menu-option--main menu-nav-item';
         btn.dataset.menuMode = 'main';
         btn.dataset.navType = 'action';
-        btn.innerText = opt.label;
+        btn.title = opt.label; // Tooltip e legenda
+
+        const iconePath = obterIconePorLabel(opt.label);
+        if (iconePath) {
+            const img = document.createElement('img');
+            img.src = iconePath;
+            img.alt = opt.label;
+            img.style.width = '32px';
+            img.style.height = '32px';
+            img.style.imageRendering = 'pixelated';
+            img.style.objectFit = 'contain';
+            btn.appendChild(img);
+
+            btn.style.width = '56px';
+            btn.style.height = '56px';
+            btn.style.padding = '0';
+            btn.style.display = 'flex';
+            btn.style.alignItems = 'center';
+            btn.style.justifyContent = 'center';
+            btn.style.borderRadius = '10px';
+        } else {
+            btn.innerText = opt.label;
+        }
 
         btn.onmouseenter = () => {
-            menuSelectedIndex = index;
+            menuSelectedIndex = getMainMenuNavItems().indexOf(btn);
             updateMenuVisuals();
         };
 
@@ -1027,9 +1059,25 @@ function renderMainMenuContent(overlay) {
         return btn;
     };
 
-    currentOptions.forEach((opt, index) => {
-        optionsContainer.appendChild(criarBotaoMenu(opt, index));
+    currentOptions.forEach((opt) => {
+        optionsContainer.appendChild(criarBotaoMenu(opt));
     });
+
+    // Legenda abaixo dos ícones para indicar o item selecionado
+    const labelInfo = document.createElement('div');
+    labelInfo.id = 'menu-selected-label';
+    labelInfo.style = `
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        color: #79ffb6;
+        text-align: center;
+        margin-top: 8px;
+        min-height: 18px;
+        text-transform: uppercase;
+        text-shadow: 0 0 8px rgba(121,255,182,0.4);
+    `;
+    optionsContainer.appendChild(labelInfo);
 
     // Coluna da direita para agrupar o Painel de Resumo, a dificuldade e o controle de volume
     const rightColumn = document.createElement('div');
@@ -1179,12 +1227,28 @@ function updateMenuVisuals() {
     }
 
     const items = getMainMenuNavItems();
+    let selectedLabelText = '';
 
     items.forEach((item, index) => {
         const isSelected = index === menuSelectedIndex;
         item.classList.toggle('selected', isSelected && item.classList.contains('menu-option'));
         item.classList.toggle('menu-nav-selected', isSelected && !item.classList.contains('menu-option'));
+
+        if (isSelected) {
+            if (item.title) {
+                selectedLabelText = item.title;
+            } else if (item.dataset.navType === 'volume') {
+                selectedLabelText = 'VOLUME';
+            } else if (item.dataset.navType === 'close') {
+                selectedLabelText = 'VOLTAR';
+            }
+        }
     });
+
+    const labelInfo = document.getElementById('menu-selected-label');
+    if (labelInfo) {
+        labelInfo.innerText = selectedLabelText || 'SELECIONE';
+    }
 }
 
 function removeMenuUI() {
