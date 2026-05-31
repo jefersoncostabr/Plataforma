@@ -65,17 +65,7 @@
         }
         // Overlay escuro centralizado
         overlayEl = document.createElement('div');
-        overlayEl.className = 'menu-overlay';
-        overlayEl.style.position = 'fixed';
-        overlayEl.style.top = 0;
-        overlayEl.style.left = 0;
-        overlayEl.style.width = '100vw';
-        overlayEl.style.height = '100vh';
-        overlayEl.style.background = 'rgba(0,0,0,0.85)';
-        overlayEl.style.display = 'flex';
-        overlayEl.style.alignItems = 'center';
-        overlayEl.style.justifyContent = 'center';
-        overlayEl.style.zIndex = 999999;
+        overlayEl.className = 'cheat-menu-overlay';
         overlayEl.tabIndex = -1;
         overlayEl.addEventListener('mousedown', (e) => {
             if (e.target === overlayEl) window.toggleCheatMenu();
@@ -83,23 +73,12 @@
 
         // Container dos botões (padrão menu principal)
         const box = document.createElement('div');
-        box.style.background = 'var(--cor-fundo-overlay, #222)';
-        box.style.padding = '2em 2.5em';
-        box.style.position = 'relative';
-        box.style.borderRadius = '16px';
-        box.style.boxShadow = '0 0 32px #000b';
-        box.style.display = 'flex';
-        box.style.flexDirection = 'column';
-        box.style.alignItems = 'stretch';
-        box.style.gap = '1em';
-        box.style.minWidth = '320px';
+        box.className = 'cheat-menu-box';
 
         // Título
         const title = document.createElement('h2');
         title.textContent = 'CHEAT MENU';
-        title.style.textAlign = 'center';
-        title.style.marginBottom = '0.5em';
-        title.style.letterSpacing = '6px';
+        title.className = 'cheat-menu-title';
         box.appendChild(title);
 
         // Botões (agora <button>, padrão menu principal)
@@ -108,12 +87,11 @@
         for (const opt of options) {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'menu-option menu-option--main menu-nav-item img-button retro-grid';
+            btn.className = 'cheat-menu-select-btn menu-nav-item';
             btn.dataset.menuMode = 'cheat';
             btn.dataset.navType = 'action';
             btn.title = opt.label;
             btn.innerText = opt.label;
-            btn.style.color = 'white';
             btn.onmouseenter = () => selectBtn(btn);
             btn.onmouseleave = () => selectBtn(null);
             btn.onfocus = () => selectBtn(btn);
@@ -144,17 +122,10 @@
         // Botão fechar igual ao menu principal: X, só classes, sem sobrescrita de estilo
         const closeBtn = document.createElement('button');
         closeBtn.type = 'button';
-        closeBtn.className = 'menu-close-button menu-nav-item';
-        // Garante que o botão fique acima do overlay e seja clicável
-        closeBtn.style.position = 'absolute';
-        closeBtn.style.top = '12px';
-        closeBtn.style.right = '12px';
-        closeBtn.style.zIndex = '1000001';
-        closeBtn.style.pointerEvents = 'auto';
+        closeBtn.className = 'cheat-menu-close-btn menu-nav-item';
         closeBtn.textContent = 'X';
         closeBtn.setAttribute('aria-label', 'Fechar menu');
         closeBtn.title = 'Fechar';
-        // Não faz navegação customizada, só click e enter/space igual menu principal
         closeBtn.onclick = (e) => {
             console.log('[CHEAT-MENU] Botão X clicado');
             e.stopPropagation();
@@ -170,26 +141,14 @@
         box.appendChild(closeBtn);
         // Garante que overlay não bloqueie pointer-events do botão X
         overlayEl.style.pointerEvents = 'auto';
-        box.style.zIndex = 1000000;
 
         // Seleção visual (hover/focus)
         function selectBtn(btn) {
             for (const b of cheatMenuBtns) {
                 if (b === btn) {
                     b.classList.add('selected');
-                    // Cores de alto contraste: Texto preto em fundo Neon Cyan vibrante
-                    b.style.backgroundColor = '#00ffff';
-                    b.style.color = '#000';
-                    b.style.boxShadow = '0 0 20px rgba(0, 255, 255, 0.6)';
-                    b.style.transform = 'scale(1.02)';
-                    b.style.fontWeight = 'bold';
                 } else {
                     b.classList.remove('selected');
-                    b.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
-                    b.style.color = '#00ffff';
-                    b.style.boxShadow = 'none';
-                    b.style.transform = 'scale(1)';
-                    b.style.fontWeight = 'normal';
                 }
             }
         }
