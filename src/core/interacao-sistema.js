@@ -300,7 +300,6 @@
 
             const badge = document.createElement('div');
             badge.className = 'pet-badge img-button retro-grid';
-            console.log('[Interacao] Aplicando Retro Grid ao ícone do Pet:', pet.id);
             badge.setAttribute('tabindex', '0');
             badge.setAttribute('role', 'button');
             badge.style.cssText = `
@@ -429,7 +428,6 @@
         atualizarResumoEquipamentoSalvo(overlay);
 
         // Adiciona o indicador visual do aliado se disponível
-        console.log('[Interacao] Abrindo menu:', id, 'Injetando efeitos retro-grid...');
         injetarIconeCaoNoMenu(overlay, contexto);
 
         if (id === 'menu_crafting') {
@@ -804,7 +802,6 @@
             
             btnCrafting.appendChild(scrapImg);
             btnCrafting.className = 'img-button retro-grid';
-            console.log('[Interacao] Botão dinâmico de Crafting criado com Retro Grid');
             btnCrafting.setAttribute('data-interaction-action', 'abrir-crafting');
             botaoRecolher.before(btnCrafting);
             

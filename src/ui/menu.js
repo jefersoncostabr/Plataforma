@@ -1024,6 +1024,10 @@ function renderMainMenuContent(overlay) {
     optionsContainer.id = 'menu-options-container';
     optionsContainer.className = 'menu-options-container';
 
+    // Container interno para organizar os botões em grade
+    const buttonsGrid = document.createElement('div');
+    buttonsGrid.className = 'menu-buttons-grid';
+
     const currentOptions = getMainMenuOptions();
 
     // Função auxiliar para criar os botões e evitar repetição de código
@@ -1062,8 +1066,10 @@ function renderMainMenuContent(overlay) {
     };
 
     currentOptions.forEach((opt) => {
-        optionsContainer.appendChild(criarBotaoMenu(opt));
+        buttonsGrid.appendChild(criarBotaoMenu(opt));
     });
+
+    optionsContainer.appendChild(buttonsGrid);
 
     // Estilos da legenda do item selecionado
     // Legenda abaixo dos ícones para indicar o item selecionado

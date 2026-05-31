@@ -375,9 +375,11 @@ function atualizarVisualSelecaoSkills() {
     Object.keys(skillButtonsMap).forEach(id => {
         const btn = skillButtonsMap[id];
         const isSelected = (id === selectedSkillId);
-        btn.style.boxShadow = isSelected ? "0 0 15px #fff, inset 0 0 10px #fff" : "none";
-        btn.style.transform = isSelected ? "translateX(-50%) scale(1.15)" : "translateX(-50%) scale(1.0)";
-        btn.style.zIndex = isSelected ? "10" : "1";
+        if (isSelected) {
+            btn.classList.add('selected');
+        } else {
+            btn.classList.remove('selected');
+        }
     });
 }
 
@@ -395,7 +397,6 @@ function abrirMenuSkillsUI() {
     const viewport = document.getElementById('jogo-container') || document.getElementById('game-stage')?.parentElement;
     if (!viewport) return;
 
-    // Obtém as coordenadas e o tamanho real do viewport (tela visível)
     const rect = viewport.getBoundingClientRect();
     const target = document.body;
 
@@ -405,16 +406,11 @@ function abrirMenuSkillsUI() {
 
     const overlay = document.createElement('div');
     overlay.id = 'skill-tree-overlay';
-    overlay.style = `
-        position: fixed; 
-        top: ${rect.top}px; left: ${rect.left}px; 
-        width: ${rect.width}px; height: ${rect.height}px;
-        background: var(--cor-fundo-overlay); z-index: 9999;
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        pointer-events: all; box-sizing: border-box; overflow: hidden;
-        border-radius: 4px;
-    `;
+    overlay.className = 'skill-tree-overlay';
+    overlay.style.top = `${rect.top}px`;
+    overlay.style.left = `${rect.left}px`;
+    overlay.style.width = `${rect.width}px`;
+    overlay.style.height = `${rect.height}px`;
 
     const closeButton = document.createElement('button');
     closeButton.type = 'button';
@@ -429,22 +425,14 @@ function abrirMenuSkillsUI() {
     overlay.appendChild(closeButton);
 
     const container = document.createElement('div');
-    // Ajustamos o container para caber dentro do palco caso a escala seja pequena
-    container.style = `
-        position: relative; 
-        width: 95%; max-width: 800px; 
-        height: 90%; max-height: 550px; 
-        background: #1a1a1a; border: 3px solid #444; border-radius: 12px; 
-        box-shadow: 0 0 50px rgba(0,0,0,0.8); margin: auto;
-        overflow-y: auto; overflow-x: hidden;
-    `;
-    
+    container.className = 'skill-tree-container';
+
     const header = document.createElement('div');
-    header.style = "text-align: center; padding: 20px 0; border-bottom: 1px solid #333; margin-bottom: 20px; background: #222; border-radius: 9px 9px 0 0; width: 100%; box-sizing: border-box;";
+    header.className = 'skill-tree-header';
     header.innerHTML = `
-        <h2 style="margin: 0 0 10px 0; letter-spacing: 2px; text-transform: uppercase;">Habilidades</h2>
-        <p style="margin: 5px 0; font-size: 18px;">XP: <span style="color: #ffd700;">${window.playerXP}</span> | Pontos: <span style="color: #00ff00;">${window.skillPoints}</span></p>
-        <small style="color: #888; text-transform: uppercase; font-size: 10px;">WASD: Navegar • ENTER/ESPAÇO: Comprar • ESC: Menu</small>
+        <h2>Habilidades</h2>
+        <p>XP: <span style="color: #ffd700;">${window.playerXP}</span> | Pontos: <span style="color: #00ff00;">${window.skillPoints}</span></p>
+        <small>WASD: Navegar • ENTER/ESPAÇO: Comprar • ESC: Menu</small>
     `;
     container.appendChild(header);
 
@@ -490,17 +478,16 @@ function abrirMenuSkillsUI() {
     const startY = 160; // Posição inicial Y ajustada para o novo cabeçalho
 
     Object.keys(window.skillsData).forEach(skillId => {
-        // Store button positions during creation
         const skill = window.skillsData[skillId];
         const btn = document.createElement('button');
         const jaPossui = window.playerSkills.includes(skillId);
         const paiPossui = skill.parent === null || window.playerSkills.includes(skill.parent);
-        
+
         // Cálculo de posição dinâmica
         const depth = getSkillDepth(skillId, window.skillsData);
         const siblings = levels[depth];
         const indexInLevel = siblings.indexOf(skillId);
-        
+
         // Distribui os botões proporcionalmente à nova largura de 800px
         const x = (containerWidth / (siblings.length + 1)) * (indexInLevel + 1);
         const y = startY + (depth * vGap);
@@ -510,33 +497,25 @@ function abrirMenuSkillsUI() {
         const disponivel = paiPossui && window.skillPoints > 0;
 
         btn.innerText = skill.nome;
-        btn.style = `
-            position: absolute; left: ${x}px; top: ${y}px;
-            width: 90px; height: 50px; transform: translateX(-50%);
-            cursor: ${disponivel && !jaPossui ? 'pointer' : 'default'};
-            border: 2px solid ${jaPossui ? '#00ff00' : (disponivel ? '#fff' : '#444')};
-            background: ${jaPossui ? '#004400' : (disponivel ? '#333' : '#111')};
-            color: ${jaPossui ? '#00ff00' : (disponivel ? '#fff' : '#666')};
-            font-weight: bold; border-radius: 5px; transition: 0.2s;
-        `;
+        btn.className = 'skill-tree-btn';
+        btn.style.position = 'absolute';
+        btn.style.left = `${x}px`;
+        btn.style.top = `${y}px`;
 
-        if (disponivel && !jaPossui) {
+        if (jaPossui) {
+            btn.classList.add('owned');
+        } else if (disponivel) {
+            btn.classList.add('available');
             btn.onclick = () => {
-
                 window.skillPoints -= 1;
                 window.playerSkills.push(skillId);
-
-                
-                // Executa a lógica da skill recém-adquirida
                 if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
                 if (typeof window.salvarProgressoSkills === 'function') window.salvarProgressoSkills();
-
-                // Atualiza a UI imediatamente
                 fecharMenuSkillsUI();
                 abrirMenuSkillsUI();
             };
-            btn.onmouseover = () => btn.style.background = '#555';
-            btn.onmouseout = () => btn.style.background = '#333';
+        } else {
+            btn.classList.add('locked');
         }
 
         skillButtonsMap[skillId] = btn;
@@ -563,15 +542,12 @@ function abrirMenuSkillsUI() {
                 const angle = Math.atan2(dy, dx) * 180 / Math.PI;
 
                 const line = document.createElement('div');
-                line.style.position = 'absolute';
-                line.style.backgroundColor = '#444'; // Darker grey line for better contrast
-                line.style.height = '2px'; // Thin line
+                line.className = 'skill-tree-line';
                 line.style.width = `${distance}px`;
                 line.style.left = `${parentCenterX}px`;
                 line.style.top = `${parentCenterY}px`;
-                line.style.transformOrigin = '0 50%'; // Rotate around the parent's center
+                line.style.transformOrigin = '0 50%';
                 line.style.transform = `rotate(${angle}deg)`;
-                line.style.zIndex = '0'; // Behind the buttons
                 container.appendChild(line);
             }
         }

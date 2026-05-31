@@ -111,13 +111,31 @@
     margin-bottom: 12px;
 }
 
-/* Container de botões principais */
+/* Layout Principal (Coluna de Botões | Coluna de Resumo) */
+.menu-main-layout {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    width: 100%;
+}
+
+/* Coluna de botões do menu principal */
+.menu-buttons-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
 .menu-options-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    width: 120px;
+    gap: 5px;
+    width: auto;
 }
 
 /* Botão principal com ícone */
