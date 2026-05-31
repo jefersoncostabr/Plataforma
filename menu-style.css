@@ -1,0 +1,558 @@
+/* ================= CHEAT MENU ================= */
+.cheat-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cheat-menu-box {
+    background: rgba(40, 40, 40, 0.98);
+    min-width: 320px;
+    padding: 32px 28px 24px 28px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.cheat-menu-title {
+    text-align: center;
+    letter-spacing: 5px;
+    font-size: 22px;
+    font-weight: 900;
+    margin-bottom: 18px;
+    color: #fff;
+}
+
+.cheat-menu-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #b71c1c;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    transition:
+        background 0.15s,
+        transform 0.1s;
+    z-index: 2;
+}
+.cheat-menu-close-btn:hover {
+    background: #d32f2f;
+    transform: scale(1.08);
+}
+
+.cheat-menu-select-btn {
+    width: 100%;
+    padding: 10px 0;
+    margin: 6px 0;
+    border: none;
+    border-radius: 7px;
+    background: rgba(0, 255, 255, 0.08);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    transition:
+        background 0.15s,
+        box-shadow 0.15s,
+        transform 0.1s;
+    outline: none;
+    box-shadow: 0 1px 4px rgba(0, 255, 255, 0.08);
+}
+.cheat-menu-select-btn:hover,
+.cheat-menu-select-btn.selected {
+    background: #00ffff;
+    color: #222;
+    box-shadow: 0 0 12px #00ffff99;
+    transform: scale(1.02);
+}
+/* Overlay do menu de pausa */
+.pause-menu-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 820px;
+    height: 580px;
+    background: var(--cor-fundo-overlay);
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    border-radius: 4px;
+}
+
+/* Título do menu */
+.menu-title {
+    margin-bottom: 30px;
+    letter-spacing: 6px;
+}
+.menu-title--controls {
+    margin-bottom: 12px;
+}
+
+/* Container de botões principais */
+.menu-options-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: 120px;
+}
+
+/* Botão principal com ícone */
+.menu-option.menu-option--main img {
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+    object-fit: contain;
+}
+.menu-option.menu-option--main {
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+}
+
+/* Legenda neon abaixo dos botões */
+#menu-selected-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #79ffb6;
+    text-align: center;
+    margin-top: 8px;
+    min-height: 18px;
+    text-transform: uppercase;
+    text-shadow: 0 0 8px rgba(121, 255, 182, 0.4);
+}
+
+/* Coluna da direita (Resumo + Dificuldade) */
+.menu-right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 188px;
+}
+
+/* Painel de resumo do slot */
+.menu-slot-summary {
+    width: 188px;
+    min-height: 148px;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Ícones de equipamentos no resumo */
+.menu-slot-summary .equipamento-icone {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    padding: 2px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Painel de ajuda dos controles */
+.menu-controls-help {
+    font-size: 16px;
+    color: #00ffff;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Painel de opções de controles */
+.menu-controls-options {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 540px;
+    max-height: 420px;
+    overflow-y: auto;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+/* Linha de comando de controle */
+.menu-controls-line {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    align-items: center;
+    width: 480px;
+    padding: 5px 14px;
+    border-radius: 6px;
+    transition: all 0.1s ease;
+}
+.menu-controls-label {
+    pointer-events: none;
+    width: 240px;
+    text-align: right;
+    display: inline-block;
+}
+.menu-controls-key {
+    font-weight: 800;
+    pointer-events: none;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 10px;
+    border-radius: 4px;
+    color: inherit;
+    width: 180px;
+    text-align: left;
+    display: inline-block;
+}
+
+/* Linha de botões de ação (Salvar/Restaurar) */
+.menu-controls-actions {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 20px;
+    padding-bottom: 10px;
+}
+.menu-controls-action-btn {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.menu-controls-action-btn img {
+    width: 36px;
+    height: 36px;
+    image-rendering: pixelated;
+}
+
+/* Seleção modo controles */
+.menu-option.menu-option--control.selected {
+    background: #00ffff;
+    color: #222;
+    transform: scale(1.05);
+}
+/* ============================================================
+   ESTILOS DO MENU (Extraidos de index-style.css)
+   ============================================================ */
+
+@keyframes menu-shine-slide {
+    0% {
+        transform: translateX(-100%) skewX(-30deg);
+    }
+    100% {
+        transform: translateX(200%) skewX(-30deg);
+    }
+}
+
+.menu-option {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    font-weight: bold;
+    cursor: pointer;
+    transition:
+        transform 0.1s,
+        background-color 0.2s,
+        box-shadow 0.2s,
+        color 0.2s;
+    border: 2px solid transparent;
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+    margin-bottom: 5px;
+    outline: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.menu-option.selected {
+    background-color: white;
+    color: black;
+    border: 2px solid #fff;
+    transform: scale(1.15);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+    z-index: 10;
+}
+
+.menu-option.selected::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transform: skewX(-30deg);
+    animation: menu-shine-slide 1.5s infinite;
+}
+
+.menu-option--main {
+    padding: 12px;
+    font-size: 18px;
+    text-align: center;
+    border-radius: 5px;
+}
+
+.menu-option--control {
+    padding: 5px 8px;
+    font-size: 13px;
+    text-align: left;
+    border-radius: 4px;
+}
+
+.menu-option--action {
+    padding: 7px 8px;
+    font-size: 13px;
+    text-align: center;
+    border-radius: 4px;
+}
+
+.menu-option--save {
+    margin-top: 8px;
+}
+
+.menu-close-button {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ff9c9c;
+    border-radius: 6px;
+    background: #b71c1c;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+    transition:
+        transform 0.1s,
+        background-color 0.15s,
+        box-shadow 0.15s;
+}
+
+.menu-close-button:hover {
+    background: #d32f2f;
+    transform: scale(1.06);
+    box-shadow: 0 0 12px rgba(255, 90, 90, 0.45);
+}
+
+.menu-close-button.menu-nav-selected {
+    background: #ef5350;
+    border-color: #fff;
+    transform: scale(1.08);
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.4);
+}
+
+.menu-close-button:active {
+    transform: scale(0.97);
+}
+
+.menu-difficulty-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 188px;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
+}
+
+.menu-difficulty-title {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #fff;
+    opacity: 0.9;
+}
+
+.menu-difficulty-options {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.menu-difficulty-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 9px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        background-color 0.15s,
+        border-color 0.15s,
+        transform 0.1s;
+}
+
+.menu-difficulty-option:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.28);
+    transform: translateY(-1px);
+}
+
+.menu-difficulty-option.menu-nav-selected {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.22);
+}
+
+.menu-difficulty-option input[type='radio'] {
+    accent-color: #ffffff;
+    width: 14px;
+    height: 14px;
+    margin: 0;
+    cursor: pointer;
+}
+
+.menu-difficulty-option span {
+    flex: 1;
+    letter-spacing: 0.3px;
+}
+
+.menu-slot-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    text-align: left;
+    padding: 5px 8px;
+}
+
+.menu-slot-option--occupied {
+    border-color: rgba(89, 219, 160, 0.6);
+    background: linear-gradient(90deg, rgba(31, 95, 67, 0.45) 0%, rgba(255, 255, 255, 0.08) 100%);
+}
+
+.menu-slot-option--in-use {
+    border-color: rgba(121, 255, 182, 0.95);
+    box-shadow:
+        inset 0 0 0 1px rgba(121, 255, 182, 0.35),
+        0 0 12px rgba(56, 181, 113, 0.28);
+}
+
+.menu-slot-option--active {
+    border-color: rgba(255, 255, 255, 0.72);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.menu-slot-option--in-use.menu-slot-option--active {
+    border-color: rgba(188, 255, 220, 1);
+    box-shadow:
+        inset 0 0 0 1px rgba(188, 255, 220, 0.55),
+        0 0 14px rgba(56, 181, 113, 0.36);
+}
+
+.menu-slot-name {
+    flex: 0 0 auto;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+}
+
+.menu-slot-badge {
+    flex: 0 0 auto;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+    color: #0f2419;
+    background: #d2d2d2;
+    border-radius: 999px;
+    padding: 1px 5px;
+}
+
+.menu-slot-option--occupied .menu-slot-badge {
+    background: #9ce4bf;
+    color: #0d3020;
+}
+
+.menu-slot-option--in-use .menu-slot-badge {
+    background: #7effb5;
+    color: #07301e;
+}
+
+.menu-slot-status {
+    flex: 1;
+    font-size: 9px;
+    opacity: 0.88;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.menu-slot-delete-btn {
+    border: 1px solid rgba(255, 120, 120, 0.65);
+    background: rgba(190, 48, 48, 0.2);
+    color: #ffd6d6;
+    border-radius: 999px;
+    padding: 1px 6px;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+}
+
+.menu-slot-delete-btn:hover {
+    background: rgba(227, 74, 74, 0.4);
+    border-color: rgba(255, 170, 170, 0.95);
+}
+
+.menu-volume-panel {
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s,
+        transform 0.1s;
+}
+
+.menu-volume-panel.menu-nav-selected {
+    border-color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 14px rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+}
