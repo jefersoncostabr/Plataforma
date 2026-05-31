@@ -85,11 +85,12 @@
         const box = document.createElement('div');
         box.style.background = 'var(--cor-fundo-overlay, #222)';
         box.style.padding = '2em 2.5em';
+        box.style.position = 'relative';
         box.style.borderRadius = '16px';
         box.style.boxShadow = '0 0 32px #000b';
         box.style.display = 'flex';
         box.style.flexDirection = 'column';
-        box.style.alignItems = 'center';
+        box.style.alignItems = 'stretch';
         box.style.gap = '1em';
         box.style.minWidth = '320px';
 
@@ -112,6 +113,7 @@
             btn.dataset.navType = 'action';
             btn.title = opt.label;
             btn.innerText = opt.label;
+            btn.style.color = 'white';
             btn.onmouseenter = () => selectBtn(btn);
             btn.onmouseleave = () => selectBtn(null);
             btn.onfocus = () => selectBtn(btn);
@@ -144,6 +146,9 @@
         closeBtn.type = 'button';
         closeBtn.className = 'menu-close-button menu-nav-item';
         // Garante que o botão fique acima do overlay e seja clicável
+        closeBtn.style.position = 'absolute';
+        closeBtn.style.top = '12px';
+        closeBtn.style.right = '12px';
         closeBtn.style.zIndex = '1000001';
         closeBtn.style.pointerEvents = 'auto';
         closeBtn.textContent = 'X';
@@ -162,7 +167,7 @@
                 closeBtn.click();
             }
         };
-        overlayEl.appendChild(closeBtn);
+        box.appendChild(closeBtn);
         // Garante que overlay não bloqueie pointer-events do botão X
         overlayEl.style.pointerEvents = 'auto';
         box.style.zIndex = 1000000;
@@ -172,8 +177,19 @@
             for (const b of cheatMenuBtns) {
                 if (b === btn) {
                     b.classList.add('selected');
+                    // Cores de alto contraste: Texto preto em fundo Neon Cyan vibrante
+                    b.style.backgroundColor = '#00ffff';
+                    b.style.color = '#000';
+                    b.style.boxShadow = '0 0 20px rgba(0, 255, 255, 0.6)';
+                    b.style.transform = 'scale(1.02)';
+                    b.style.fontWeight = 'bold';
                 } else {
                     b.classList.remove('selected');
+                    b.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+                    b.style.color = '#00ffff';
+                    b.style.boxShadow = 'none';
+                    b.style.transform = 'scale(1)';
+                    b.style.fontWeight = 'normal';
                 }
             }
         }

@@ -915,6 +915,7 @@ function criarElementoOverlay() {
     return overlay;
 }
 
+// Função para criar o título do menu
 /**
  * Cria o título do menu baseado no modo atual (Main ou Controles).
  */
@@ -923,6 +924,7 @@ function criarElementoTitulo() {
     title.innerText = menuMode === 'controls'
         ? 'CONTROLES'
         : (window.isFirstStart ? 'PRINCIPAL' : 'PAUSE');
+    // Estilos do título
     title.style.marginBottom = menuMode === 'controls' ? '12px' : '30px';
     title.style.letterSpacing = '6px';
     return title;
@@ -956,7 +958,6 @@ function renderMenuUI() {
     const closeAction = menuMode === 'controls' 
         ? acaoVoltarParaMenuInicial 
         : () => {
-            console.log('[MENU-UI] X clicado no modo principal: Retomando jogo...');
             window.togglePauseMenu();
         };
 
@@ -972,6 +973,7 @@ function renderMenuUI() {
         closeButton.setAttribute('aria-label', 'Voltar ao menu inicial');
         closeButton.title = 'Menu inicial';
         
+        // Estilos do botão de fechar
         // Garante que o botão seja clicável e fique acima de outros elementos
         closeButton.style.zIndex = '1000001';
         closeButton.style.pointerEvents = 'auto';
@@ -987,12 +989,10 @@ function renderMenuUI() {
 
         const fecharAction = (e) => {
             if (e) {
-                console.log('[MENU-UI] Evento capturado no X:', e.type);
                 e.preventDefault();
                 e.stopImmediatePropagation(); // Impede que o handleMenuInput global interfira
             }
             
-            console.log('[MENU-UI] Executando closeAction...');
             closeAction();
         };
 
@@ -1035,6 +1035,7 @@ function renderMainMenuContent(overlay) {
     layout.style.gap = '18px';
     layout.style.width = '100%';
 
+    // Estilos do container de opções (botões principais)
     const optionsContainer = document.createElement('div');
     optionsContainer.id = 'menu-options-container';
     optionsContainer.style.display = 'flex';
@@ -1058,12 +1059,14 @@ function renderMainMenuContent(overlay) {
             const img = document.createElement('img');
             img.src = iconePath;
             img.alt = opt.label;
+            // Estilos do ícone dentro do botão
             img.style.width = '32px';
             img.style.height = '32px';
             img.style.imageRendering = 'pixelated';
             img.style.objectFit = 'contain';
             btn.appendChild(img);
 
+            // Estilos do botão com ícone
             btn.style.width = '56px';
             btn.style.height = '56px';
             btn.style.padding = '0';
@@ -1096,6 +1099,7 @@ function renderMainMenuContent(overlay) {
         optionsContainer.appendChild(criarBotaoMenu(opt));
     });
 
+    // Estilos da legenda do item selecionado
     // Legenda abaixo dos ícones para indicar o item selecionado
     const labelInfo = document.createElement('div');
     labelInfo.id = 'menu-selected-label';
@@ -1112,6 +1116,7 @@ function renderMainMenuContent(overlay) {
     `;
     optionsContainer.appendChild(labelInfo);
 
+    // Estilos da coluna da direita (painéis de resumo e dificuldade)
     // Coluna da direita para agrupar o Painel de Resumo, a dificuldade e o controle de volume
     const rightColumn = document.createElement('div');
     rightColumn.style.display = 'flex';
@@ -1127,6 +1132,7 @@ function renderMainMenuContent(overlay) {
     layout.appendChild(rightColumn);
     overlay.appendChild(layout);
 
+    // Estilos do controle de volume
     // Injeta a barra de volume do AudioManager na coluna da direita (abaixo do resumo)
     if (window.AudioManager && typeof window.AudioManager.renderVolumeControl === 'function') {
         window.AudioManager.renderVolumeControl(rightColumn);
@@ -1135,6 +1141,7 @@ function renderMainMenuContent(overlay) {
         const volumeSlider = volumeWrapper?.querySelector('.volume-slider');
 
         if (volumeWrapper) {
+            // Classes e atributos para navegação do menu
             volumeWrapper.classList.add('menu-volume-panel', 'menu-nav-item');
             volumeWrapper.dataset.menuMode = 'main';
             volumeWrapper.dataset.navType = 'volume';
@@ -1156,38 +1163,80 @@ function renderMainMenuContent(overlay) {
         }
 
         if (volumeSlider) {
+            // Remove o tabIndex para não ser focado diretamente
             volumeSlider.tabIndex = -1;
         }
     }
 }
 
 function renderControlsContent(overlay) {
+    // Estilos do texto de ajuda (instruções)
     const help = document.createElement('div');
-    help.style.fontSize = '14px';
-    help.style.opacity = '0.9';
-    help.style.marginBottom = '14px';
+    help.style.fontSize = '16px';
+    help.style.color = '#00ffff';
+    help.style.fontWeight = 'bold';
+    help.style.textShadow = '0 0 8px rgba(0, 255, 255, 0.4)';
+    help.style.marginBottom = '20px';
     help.style.textAlign = 'center';
     help.innerText = controlsBindingAction
         ? 'Pressione uma tecla para redefinir. Esc cancela.'
         : 'Enter/Espaco para alterar, Esc para voltar.';
     overlay.appendChild(help);
 
+    // Estilos do container principal das opções de controle
     const optionsContainer = document.createElement('div');
     optionsContainer.id = 'menu-options-container';
     optionsContainer.style.display = 'flex';
     optionsContainer.style.flexDirection = 'column';
-    optionsContainer.style.gap = '4px';
-    optionsContainer.style.width = '340px';
-    optionsContainer.style.maxHeight = '260px';
+    optionsContainer.style.alignItems = 'center';
+    optionsContainer.style.gap = '6px';
+    optionsContainer.style.width = '540px';
+    optionsContainer.style.maxHeight = '420px';
     optionsContainer.style.overflowY = 'auto';
-    optionsContainer.style.paddingRight = '6px';
+    optionsContainer.style.padding = '15px';
+    optionsContainer.style.background = 'rgba(0, 0, 0, 0.5)';
+    optionsContainer.style.borderRadius = '10px';
+    optionsContainer.style.border = '1px solid rgba(0, 255, 255, 0.3)';
 
     CONTROLES_MENU_ITEMS.forEach((item, index) => {
         const linha = document.createElement('div');
         linha.className = 'menu-option menu-option--control';
+        // Estilos de cada linha de controle (label + tecla)
+        linha.style.display = 'flex';
+        linha.style.justifyContent = 'center';
+        linha.style.gap = '20px';
+        linha.style.alignItems = 'center';
+        linha.style.width = '480px';
+        linha.style.padding = '5px 14px';
+        linha.style.borderRadius = '6px';
+        linha.style.transition = 'all 0.1s ease';
+
         const bind = getTeclaPrincipal(item.id);
         const aguardando = controlsBindingAction === item.id ? '  <AGUARDANDO...>' : '';
-        linha.innerText = `${item.label}: ${bind}${aguardando}`;
+
+        const label = document.createElement('span');
+        label.textContent = item.label;
+        // Estilos do label da ação
+        label.style.pointerEvents = 'none';
+        label.style.width = '240px';
+        label.style.textAlign = 'right';
+        label.style.display = 'inline-block';
+
+        const keyDisplay = document.createElement('span');
+        keyDisplay.textContent = `${bind}${aguardando}`;
+        // Estilos da tecla exibida
+        keyDisplay.style.fontWeight = '800';
+        keyDisplay.style.pointerEvents = 'none';
+        keyDisplay.style.background = 'rgba(255,255,255,0.1)';
+        keyDisplay.style.padding = '2px 10px';
+        keyDisplay.style.borderRadius = '4px';
+        keyDisplay.style.color = 'inherit';
+        keyDisplay.style.width = '180px';
+        keyDisplay.style.textAlign = 'left';
+        keyDisplay.style.display = 'inline-block';
+
+        linha.appendChild(label);
+        linha.appendChild(keyDisplay);
 
         linha.onmouseenter = () => {
             controlsSelectedIndex = index;
@@ -1208,9 +1257,36 @@ function renderControlsContent(overlay) {
         optionsContainer.appendChild(linha);
     });
 
+    // Estilos do container dos botões de ação (Salvar e Restaurar)
+    // Container para os botões de ação ficarem lado a lado
+    const actionsRow = document.createElement('div');
+    actionsRow.style.display = 'flex';
+    actionsRow.style.justifyContent = 'center';
+    actionsRow.style.gap = '24px';
+    actionsRow.style.marginTop = '20px';
+    actionsRow.style.paddingBottom = '10px';
+
     const salvarBtn = document.createElement('div');
     salvarBtn.className = 'menu-option menu-option--action menu-option--save';
-    salvarBtn.innerText = 'SALVAR E VOLTAR';
+    salvarBtn.title = 'SALVAR';
+    // Estilos do botão Salvar
+    salvarBtn.style.width = '64px';
+    salvarBtn.style.height = '64px';
+    salvarBtn.style.display = 'flex';
+    salvarBtn.style.alignItems = 'center';
+    salvarBtn.style.justifyContent = 'center';
+    salvarBtn.style.borderRadius = '12px';
+    salvarBtn.style.cursor = 'pointer';
+    salvarBtn.style.transition = 'all 0.2s ease';
+
+    const saveImg = document.createElement('img');
+    saveImg.src = 'assets/icones/salvar.png';
+    // Estilos da imagem do botão Salvar
+    saveImg.style.width = '36px';
+    saveImg.style.height = '36px';
+    saveImg.style.imageRendering = 'pixelated';
+    salvarBtn.appendChild(saveImg);
+
     salvarBtn.onmouseenter = () => {
         controlsSelectedIndex = CONTROLES_MENU_ITEMS.length;
         updateMenuVisuals();
@@ -1225,11 +1301,29 @@ function renderControlsContent(overlay) {
         menuSelectedIndex = 0;
         renderMenuUI();
     };
-    optionsContainer.appendChild(salvarBtn);
+    actionsRow.appendChild(salvarBtn);
 
     const resetBtn = document.createElement('div');
     resetBtn.className = 'menu-option menu-option--action';
-    resetBtn.innerText = 'RESTAURAR PADRAO';
+    resetBtn.title = 'RESTAURAR';
+    // Estilos do botão Restaurar Padrão
+    resetBtn.style.width = '64px';
+    resetBtn.style.height = '64px';
+    resetBtn.style.display = 'flex';
+    resetBtn.style.alignItems = 'center';
+    resetBtn.style.justifyContent = 'center';
+    resetBtn.style.borderRadius = '12px';
+    resetBtn.style.cursor = 'pointer';
+    resetBtn.style.transition = 'all 0.2s ease';
+
+    const resetImg = document.createElement('img');
+    resetImg.src = 'assets/icones/voltar.png';
+    // Estilos da imagem do botão Restaurar Padrão
+    resetImg.style.width = '36px';
+    resetImg.style.height = '36px';
+    resetImg.style.imageRendering = 'pixelated';
+    resetBtn.appendChild(resetImg);
+
     resetBtn.onmouseenter = () => {
         controlsSelectedIndex = CONTROLES_MENU_ITEMS.length + 1;
         updateMenuVisuals();
@@ -1243,17 +1337,37 @@ function renderControlsContent(overlay) {
         salvarControlesNoStorage();
         renderMenuUI();
     };
-    optionsContainer.appendChild(resetBtn);
+    actionsRow.appendChild(resetBtn);
+
+    optionsContainer.appendChild(actionsRow);
 
     overlay.appendChild(optionsContainer);
 }
 
+// Função para atualizar os visuais dos itens do menu (seleção, hover, etc.)
 function updateMenuVisuals() {
     if (menuMode === 'controls') {
         const elements = document.querySelectorAll('.menu-option');
 
         elements.forEach((el, index) => {
-            el.classList.toggle('selected', index === controlsSelectedIndex);
+            const isSelected = index === controlsSelectedIndex;
+            el.classList.toggle('selected', isSelected);
+            
+            if (isSelected) {
+                // Estilos para item de controle selecionado
+                el.style.backgroundColor = '#00ffff';
+                el.style.color = '#000';
+                el.style.boxShadow = '0 0 15px rgba(0, 255, 255, 0.5)';
+                el.style.fontWeight = 'bold';
+                el.style.transform = 'scale(1.05)';
+            } else {
+                // Estilos para item de controle não selecionado
+                el.style.backgroundColor = 'transparent';
+                el.style.color = '#fff';
+                el.style.boxShadow = 'none';
+                el.style.fontWeight = 'normal';
+                el.style.transform = 'scale(1)';
+            }
         });
 
         return;
@@ -1264,6 +1378,7 @@ function updateMenuVisuals() {
 
     items.forEach((item, index) => {
         const isSelected = index === menuSelectedIndex;
+        // Alterna classes para estilos de seleção
         item.classList.toggle('selected', isSelected && item.classList.contains('menu-option'));
         item.classList.toggle('menu-nav-selected', isSelected && !item.classList.contains('menu-option'));
 

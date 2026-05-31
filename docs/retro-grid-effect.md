@@ -81,7 +81,7 @@ O CSS utiliza pseudo-elementos (`::before` e `::after`) para criar as camadas de
     box-shadow: 0 0 10px #00ffff;
     top: -10%;
     left: 0;
-    animation: scanline 1s linear infinite;
+    animation: scanline 4s linear infinite;
     z-index: 2;
     opacity: 0.8;
 }
