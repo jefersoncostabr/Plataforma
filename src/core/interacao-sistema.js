@@ -299,7 +299,8 @@
             if (!pet.resgatado) return;
 
             const badge = document.createElement('div');
-            badge.className = 'pet-badge';
+            badge.className = 'pet-badge img-button retro-grid';
+            console.log('[Interacao] Aplicando Retro Grid ao ícone do Pet:', pet.id);
             badge.setAttribute('tabindex', '0');
             badge.setAttribute('role', 'button');
             badge.style.cssText = `
@@ -428,6 +429,7 @@
         atualizarResumoEquipamentoSalvo(overlay);
 
         // Adiciona o indicador visual do aliado se disponível
+        console.log('[Interacao] Abrindo menu:', id, 'Injetando efeitos retro-grid...');
         injetarIconeCaoNoMenu(overlay, contexto);
 
         if (id === 'menu_crafting') {
@@ -548,7 +550,8 @@
                                 itensParaMostrar.forEach(item => {
                                     const itemQuadrado = document.createElement('button');
                                     itemQuadrado.type = 'button';
-                                    itemQuadrado.className = 'crafting-inv-item';
+                                    itemQuadrado.className = 'crafting-inv-item img-button retro-grid';
+                                    console.log('[Interacao] Aplicando Retro Grid ao item do inventário no Crafting');
                                     itemQuadrado.style.cssText = `width: 42px; height: 42px; background: #222; border: 1px solid #444; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative; padding: 0; outline: none;`;
 
                                     if (item.isXP) {
@@ -800,6 +803,8 @@
             scrapImg.style.cssText = 'width: 24px; height: 24px; image-rendering: pixelated; pointer-events: none; vertical-align: middle;';
             
             btnCrafting.appendChild(scrapImg);
+            btnCrafting.className = 'img-button retro-grid';
+            console.log('[Interacao] Botão dinâmico de Crafting criado com Retro Grid');
             btnCrafting.setAttribute('data-interaction-action', 'abrir-crafting');
             botaoRecolher.before(btnCrafting);
             

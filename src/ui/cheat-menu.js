@@ -107,7 +107,7 @@
         for (const opt of options) {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'menu-option menu-option--main menu-nav-item';
+            btn.className = 'menu-option menu-option--main menu-nav-item img-button retro-grid';
             btn.dataset.menuMode = 'cheat';
             btn.dataset.navType = 'action';
             btn.title = opt.label;
@@ -139,29 +139,32 @@
             cheatMenuBtns.push(btn);
             box.appendChild(btn);
         }
-        // Botão fechar estilo menu principal (X vermelho no canto)
+        // Botão fechar igual ao menu principal: X, só classes, sem sobrescrita de estilo
         const closeBtn = document.createElement('button');
         closeBtn.type = 'button';
         closeBtn.className = 'menu-close-button menu-nav-item';
-        closeBtn.textContent = '×';
+        // Garante que o botão fique acima do overlay e seja clicável
+        closeBtn.style.zIndex = '1000001';
+        closeBtn.style.pointerEvents = 'auto';
+        closeBtn.textContent = 'X';
         closeBtn.setAttribute('aria-label', 'Fechar menu');
         closeBtn.title = 'Fechar';
-        closeBtn.style.position = 'absolute';
-        closeBtn.style.top = '14px';
-        closeBtn.style.right = '14px';
-        closeBtn.onmouseenter = () => selectBtn(closeBtn);
-        closeBtn.onmouseleave = () => selectBtn(null);
-        closeBtn.onfocus = () => selectBtn(closeBtn);
-        closeBtn.onblur = () => selectBtn(null);
-        closeBtn.onkeydown = (e) => {
-            if (e.key === 'Enter' || e.key === ' ') closeBtn.click();
+        // Não faz navegação customizada, só click e enter/space igual menu principal
+        closeBtn.onclick = (e) => {
+            console.log('[CHEAT-MENU] Botão X clicado');
+            e.stopPropagation();
+            window.toggleCheatMenu();
         };
-        closeBtn.onclick = () => window.toggleCheatMenu();
-        cheatMenuBtns.push(closeBtn);
-        box.appendChild(closeBtn);
-
-        // Ajusta o container para position:relative para o botão X
-        box.style.position = 'relative';
+        closeBtn.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                console.log('[CHEAT-MENU] Botão X ativado por teclado:', e.key);
+                e.preventDefault();
+                closeBtn.click();
+            }
+        };
+        overlayEl.appendChild(closeBtn);
+        // Garante que overlay não bloqueie pointer-events do botão X
+        overlayEl.style.pointerEvents = 'auto';
         box.style.zIndex = 1000000;
 
         // Seleção visual (hover/focus)

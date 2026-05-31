@@ -421,3 +421,71 @@ body {
     box-shadow: 0 0 14px rgba(255, 255, 255, 0.25);
     transform: translateY(-1px);
 }
+
+/* ============================================================
+   Efeito Retro Grid & Scanline (Importado de docs/retro-grid-effect.md)
+   ============================================================ */
+
+.img-button {
+    background: #333;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.retro-grid {
+    background: #0a0a0a !important; /* Fundo escuro profundo */
+    border-color: rgba(0, 255, 255, 0.9) !important;
+    overflow: hidden; /* Mantém o grid e a linha dentro do botão */
+    position: relative;
+    box-shadow:
+        0 0 6px rgba(0, 255, 255, 0.55),
+        0 0 18px rgba(0, 255, 255, 0.35),
+        0 0 40px rgba(255, 0, 255, 0.22);
+}
+
+.retro-grid:hover {
+    border-color: rgba(0, 255, 255, 1) !important;
+    box-shadow:
+        0 0 10px rgba(0, 255, 255, 0.7),
+        0 0 25px rgba(0, 255, 255, 0.45),
+        0 0 50px rgba(255, 0, 255, 0.3) !important;
+}
+
+/* Camada da Grade (Grid) */
+.retro-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(0, 255, 255, 0.15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.15) 1px, transparent 1px);
+    background-size: 8px 8px;
+    z-index: 1;
+}
+
+/* Camada da Linha de Scanner (Scanline) */
+.retro-grid::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    background: rgba(0, 255, 255, 0.6);
+    box-shadow: 0 0 10px #00ffff;
+    top: -10%;
+    left: 0;
+    animation: scanline 1s linear infinite;
+    z-index: 2;
+    opacity: 0.8;
+}
+
+@keyframes scanline {
+    0% { top: -10%; }
+    100% { top: 110%; }
+}

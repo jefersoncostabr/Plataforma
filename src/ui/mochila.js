@@ -316,6 +316,8 @@
 
     function criarCelulaPadrao() {
         const slot = document.createElement('div');
+        slot.classList.add('img-button', 'retro-grid');
+        console.log('[Mochila] Criando slot com efeito Retro Grid');
         const baseStyle = `
             min-height: 96px;
             background: linear-gradient(180deg, #2a2a2a 0%, #1c1c1c 100%);
@@ -387,7 +389,8 @@
         
         const closeBtn = document.createElement('button');
         closeBtn.textContent = '✕';
-        closeBtn.style = `
+        closeBtn.className = ''; // Removido efeito retro do fechar
+        closeBtn.style.cssText = `
             position: absolute;
             top: 10px;
             right: 15px;
