@@ -943,13 +943,26 @@ function renderMenuUI() {
     removeMenuUI();
 
     const targetLayer = obterConteinerDestino();
-    if (!targetLayer) return;
+    if (!targetLayer) {
+        console.error('[MENU-UI] Falha ao renderizar: Conteiner de destino não encontrado.');
+        return;
+    }
 
     const overlay = criarElementoOverlay();
-    const closeAction = menuMode === 'main' ? acaoVoltarParaMenuInicial : null;
+    
+    // CORREÇÃO DA LÓGICA: 
+    // Se estamos nos controles, X volta pro principal. 
+    // Se estamos no principal, X fecha o menu (resume o jogo).
+    const closeAction = menuMode === 'controls' 
+        ? acaoVoltarParaMenuInicial 
+        : () => {
+            console.log('[MENU-UI] X clicado no modo principal: Retomando jogo...');
+            window.togglePauseMenu();
+        };
+
     const title = criarElementoTitulo();
 
-    if (closeAction) {
+    if (typeof closeAction === 'function') {
         const closeButton = document.createElement('button');
         closeButton.type = 'button';
         closeButton.className = 'menu-close-button menu-nav-item';
@@ -958,6 +971,11 @@ function renderMenuUI() {
         closeButton.textContent = 'X';
         closeButton.setAttribute('aria-label', 'Voltar ao menu inicial');
         closeButton.title = 'Menu inicial';
+        
+        // Garante que o botão seja clicável e fique acima de outros elementos
+        closeButton.style.zIndex = '1000001';
+        closeButton.style.pointerEvents = 'auto';
+
         closeButton.onmouseenter = () => {
             menuSelectedIndex = getMainMenuNavItems().indexOf(closeButton);
             updateMenuVisuals();
@@ -966,10 +984,25 @@ function renderMenuUI() {
             menuSelectedIndex = -1;
             updateMenuVisuals();
         };
-        closeButton.onclick = (e) => {
-            e.stopPropagation();
+
+        const fecharAction = (e) => {
+            if (e) {
+                console.log('[MENU-UI] Evento capturado no X:', e.type);
+                e.preventDefault();
+                e.stopImmediatePropagation(); // Impede que o handleMenuInput global interfira
+            }
+            
+            console.log('[MENU-UI] Executando closeAction...');
             closeAction();
         };
+
+        closeButton.onclick = fecharAction;
+        // O handleMenuInput já cuida do Enter se o botão estiver selecionado, 
+        // mas adicionamos aqui para caso o foco manual esteja no elemento.
+        closeButton.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') fecharAction(e);
+        };
+
         overlay.appendChild(closeButton);
     }
 
