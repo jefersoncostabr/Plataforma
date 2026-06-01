@@ -1,6 +1,13 @@
 /* ================= BASE/INTERAÇÃO/Crafting ================= */
 
 /* Badges de Pets (Cão/Gato) */
+.interaction-pets {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
 .pet-badge {
     width: 40px;
     height: 40px;
@@ -15,6 +22,16 @@
     outline: none;
     border: 2px solid #ffd700;
     background: linear-gradient(45deg, #ffd700, #ffa500);
+}
+.interaction-pets .pet-badge {
+    margin-left: 0;
+}
+.pet-badge.is-hidden {
+    display: none;
+}
+.pet-badge.active {
+    background: linear-gradient(45deg, #ffd700, #ffa500);
+    border-color: #ffd700;
 }
 .pet-badge.inactive {
     background: rgba(0, 255, 0, 0.1);
@@ -82,11 +99,64 @@
     padding: 0;
     outline: none;
 }
+.crafting-inv-item.is-disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
 .crafting-inv-item .xp-label {
     font-weight: 900;
     color: #8e24aa;
     font-size: 14px;
     pointer-events: none;
+}
+.crafting-item-icon {
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+.crafting-slot-xp-label {
+    font-weight: 900;
+    color: #8e24aa;
+    font-size: 11px;
+    pointer-events: none;
+}
+
+.crafting-result-slot {
+    position: relative;
+    cursor: default;
+}
+.crafting-result-slot.is-craftable {
+    cursor: pointer;
+}
+.crafting-result-icon {
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+}
+.crafting-result-plus {
+    position: absolute;
+    top: -2px;
+    left: 2px;
+    color: #0088ff;
+    font-weight: 900;
+    font-size: 16px;
+    text-shadow: 0 0 2px #000;
+    pointer-events: none;
+}
+
+.interaction-empty-inventory-msg {
+    color: #666;
+    text-align: center;
+    width: 100%;
+    font-size: 11px;
+}
+
+.crafting-drop-item-sprite {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
 }
 .crafting-inv-item .plus-label {
     position: absolute;

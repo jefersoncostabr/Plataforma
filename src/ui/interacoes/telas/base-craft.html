@@ -9,10 +9,18 @@
             <h2 data-interaction-title>Base de Campanha</h2>
             <p data-interaction-subtitle>Base ativa detectada no cenário</p>
         </div>
-        <button type="button" class="menu-close-button" data-interaction-close label="Fechar menu de base"></button>
+        <div class="interaction-pets" data-interaction-pets>
+            <button type="button" class="pet-badge img-button retro-grid is-hidden" data-pet-toggle="cao" aria-label="Cão" title="CÃO">
+                <img src="../../assets/personagem/cao_coletavel.png" alt="Cão">
+            </button>
+            <button type="button" class="pet-badge img-button retro-grid is-hidden" data-pet-toggle="gato" aria-label="Gato" title="GATO">
+                <img src="../../assets/personagem/gato_coletavel.png" alt="Gato">
+            </button>
+        </div>
+        <button type="button" class="menu-close-button menu-nav-item" data-interaction-close aria-label="Fechar menu de base"></button>
     </div>
-    
-    // Interação principal da base, com opções de salvar equipamento, escolher modos e outras ações relacionadas à base.
+
+    <!-- Interação principal da base, com opções de salvar equipamento, escolher modos e outras ações relacionadas à base. -->
     <div class="interaction-body">
         <div class="base-panel">
             <div class="base-mode-section" data-interaction-modes>
@@ -38,9 +46,10 @@
             </div>
 
             <div class="base-actions">
+                <button type="button" class="btn-crafting img-button retro-grid" data-interaction-action="abrir-crafting" title="Menu de Crafting" aria-label="Abrir menu de crafting">
+                    <img src="../../assets/personagem/scrap_coletavel.png" alt="Abrir crafting">
+                </button>
                 <button type="button" class="btn-secondary" data-interaction-action="recolher-base">Recolher</button>
-                <!-- <button type="button" class="btn-secondary" data-interaction-close>Fechar</button> -->
-                
             </div>
         </div>
     </div>

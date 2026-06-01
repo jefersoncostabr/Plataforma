@@ -281,9 +281,8 @@
      * Injeta o ícone do cão resgatado na linha superior (header) do menu da base.
      */
     function injetarIconeCaoNoMenu(container, contexto = {}) {
-        const header = container.querySelector('.interaction-header');
-        const closeBtn = header?.querySelector('[data-interaction-close]');
-        if (!header || !closeBtn) return;
+        const petContainer = container.querySelector('[data-interaction-pets]');
+        if (!petContainer) return;
 
         const petsDisponiveis = [
             { id: 'cao', resgatado: window.isCaoResgatado, naBase: 'caoNaBase', key: 'plataformaCaoNaBase', sprite: 'cao_coletavel.png', spawn: window.iniciarCao, entidade: 'caoEntidade' },
@@ -291,26 +290,32 @@
         ];
 
         petsDisponiveis.forEach(pet => {
-            if (!pet.resgatado) return;
+            const badge = petContainer.querySelector(`[data-pet-toggle="${pet.id}"]`);
+            if (!badge) return;
 
-            const badge = document.createElement('div');
-            badge.className = 'pet-badge img-button retro-grid';
-            if (pet.id === 'cao') badge.classList.add('pet-badge--first');
-            badge.setAttribute('tabindex', '0');
-            badge.setAttribute('role', 'button');
+            const img = badge.querySelector('img');
+            if (img) {
+                img.src = `../../assets/personagem/${pet.sprite}`;
+            }
 
-            const img = document.createElement('img');
-            img.src = `../../assets/personagem/${pet.sprite}`;
+            if (!pet.resgatado) {
+                badge.classList.add('is-hidden');
+                badge.classList.remove('active', 'inactive');
+                badge.disabled = true;
+                badge.onclick = null;
+                return;
+            }
+
+            badge.disabled = false;
+            badge.classList.remove('is-hidden');
             
             // Aplica filtro e fundo inicial baseado no estado salvo
             const atualizarFiltro = () => {
-                badge.classList.toggle('inactive', !!window[pet.naBase]);
-                badge.title = window[pet.naBase] ? `${pet.id.toUpperCase()} na Base` : `${pet.id.toUpperCase()} Ativo`;
-
-                // TODO: remover permanentemente apos validar em jogo (mantido por seguranca de rollback rapido).
-                // img.style.filter = window[pet.naBase] ? 'brightness(0.15) grayscale(1)' : 'none';
-                // badge.style.background = window[pet.naBase] ? 'rgba(0, 255, 0, 0.1)' : 'linear-gradient(45deg, #FFD700, #FFA500)';
-                // badge.style.borderColor = window[pet.naBase] ? 'rgba(0, 255, 0, 0.2)' : '#FFD700';
+                const ativo = !window[pet.naBase];
+                badge.classList.toggle('active', ativo);
+                badge.classList.toggle('inactive', !ativo);
+                badge.setAttribute('aria-pressed', ativo ? 'true' : 'false');
+                badge.title = ativo ? `${pet.id.toUpperCase()} Ativo` : `${pet.id.toUpperCase()} na Base`;
             };
             atualizarFiltro();
 
@@ -325,9 +330,6 @@
                     pet.spawn({ x: contexto.x, y: contexto.y }, window.config);
                 }
             };
-
-            badge.appendChild(img);
-            header.insertBefore(badge, closeBtn);
         });
     }
 
@@ -472,6 +474,7 @@
                             const s2 = slot2.dataset;
 
                             const receita = RECEITAS.find(r => r.check(s1, s2));
+                            rSlot.classList.add('crafting-result-slot');
 
                             if (receita) {
                                 const itemBase = s1.itemTipo === 'scrap' ? s2 : (s1.isXP === "true" ? s2 : s1);
@@ -482,22 +485,22 @@
                                 
                                 const img = document.createElement('img');
                                 img.src = sprite;
-                                img.style.cssText = 'width: 32px; height: 32px; image-rendering: pixelated;';
+                                img.className = 'crafting-result-icon';
                                 rSlot.appendChild(img);
 
                                 if (receita.id === 'upgrade_plus') {
                                     const plus = document.createElement('span');
+                                    plus.className = 'crafting-result-plus';
                                     plus.textContent = '+';
-                                    plus.style.cssText = 'position: absolute; top: -2px; left: 2px; color: #0088ff; font-weight: 900; font-size: 16px; text-shadow: 0 0 2px #000; pointer-events: none;';
                                     rSlot.appendChild(plus);
                                 }
-                                
-                                rSlot.style.cursor = 'pointer';
+
+                                rSlot.classList.add('is-craftable');
                                 rSlot.dataset.podeCraftar = "true";
                                 rSlot.dataset.tipoResultado = tipoResultado;
                             } else {
                                 rSlot.innerHTML = '?';
-                                rSlot.style.cursor = 'default';
+                                rSlot.classList.remove('is-craftable');
                                 delete rSlot.dataset.podeCraftar;
                                 delete rSlot.dataset.tipoResultado;
                             }
@@ -534,33 +537,34 @@
                             });
 
                             if (itensParaMostrar.length === 0) {
-                                inventarioContainer.innerHTML = '<p style="color: #666; text-align: center; width: 100%; font-size: 11px;">Sua mochila está vazia.</p>';
+                                const vazio = document.createElement('p');
+                                vazio.className = 'interaction-empty-inventory-msg';
+                                vazio.textContent = 'Sua mochila está vazia.';
+                                inventarioContainer.appendChild(vazio);
                             } else {
                                 itensParaMostrar.forEach(item => {
                                     const itemQuadrado = document.createElement('button');
                                     itemQuadrado.type = 'button';
                                     itemQuadrado.className = 'crafting-inv-item img-button retro-grid';
                                     console.log('[Interacao] Aplicando Retro Grid ao item do inventário no Crafting');
-                                    itemQuadrado.style.cssText = `width: 42px; height: 42px; background: #222; border: 1px solid #444; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative; padding: 0; outline: none;`;
 
                                     if (item.isXP) {
                                         const xpLabel = document.createElement('div');
+                                        xpLabel.className = 'xp-label';
                                         xpLabel.textContent = 'XP';
-                                        xpLabel.style.cssText = 'font-weight: 900; color: #8e24aa; font-size: 14px; pointer-events: none;';
                                         itemQuadrado.appendChild(xpLabel);
                                     } else {
                                         const img = document.createElement('img');
+                                        img.className = 'crafting-item-icon';
                                         img.src = item.spriteColetavel || item.spriteEquipado || (typeof window.obterSpriteItem === 'function' ? window.obterSpriteItem(item.tipo, window.config) : '');
-                                        img.style.width = '32px'; img.style.height = '32px'; img.style.imageRendering = 'pixelated';
-                                        img.style.pointerEvents = 'none';
                                         itemQuadrado.appendChild(img);
                                     }
                                     
                                     // Adiciona o sinal azul de "+" se for item melhorado
                                     if (item.tipo && item.tipo.endsWith('_plus')) {
                                         const plusLabel = document.createElement('span');
+                                        plusLabel.className = 'plus-label';
                                         plusLabel.textContent = '+';
-                                        plusLabel.style.cssText = 'position: absolute; top: -1px; left: 2px; color: #0088ff; font-weight: 900; font-size: 14px; text-shadow: 0 0 2px #000; pointer-events: none;';
                                         itemQuadrado.appendChild(plusLabel);
                                     }
 
@@ -568,7 +572,7 @@
                                     const ehEmpilhavel = ['scrap'].includes(item.tipo) || item.isXP || (item.tipo && item.tipo.endsWith('_plus'));
                                     if (ehEmpilhavel && item.quantidade > 0) {
                                         badgeEl = document.createElement('span');
-                                        badgeEl.style.cssText = `position: absolute; top: 2px; right: 2px; background: ${item.isXP ? '#8e24aa' : '#00ff00'}; color: ${item.isXP ? '#fff' : '#000'}; font-size: 10px; font-weight: bold; padding: 0 4px; border-radius: 4px; pointer-events: none; line-height: 1.2;`;
+                                        badgeEl.className = item.isXP ? 'badge xp' : 'badge';
                                         badgeEl.textContent = item.quantidade;
                                         itemQuadrado.appendChild(badgeEl);
                                     }
@@ -591,12 +595,10 @@
                                 itemData.quantidade--;
                                 if (badgeEl) badgeEl.textContent = itemData.quantidade;
                                 if (itemData.quantidade <= 0) {
-                                    btnOrigem.style.opacity = '0.3';
-                                    btnOrigem.style.pointerEvents = 'none';
+                                    btnOrigem.classList.add('is-disabled');
                                 }
                             } else {
-                                btnOrigem.style.opacity = '0.3';
-                                btnOrigem.style.pointerEvents = 'none';
+                                btnOrigem.classList.add('is-disabled');
                             }
                             alvo._itemRef = itemData; // Guarda referência para o item sendo usado
 
@@ -608,12 +610,12 @@
                             if (itemData.isXP) {
                                 // Representação visual do XP no slot de crafting
                                 const xpLabel = document.createElement('div');
+                                xpLabel.className = 'crafting-slot-xp-label';
                                 xpLabel.textContent = '1 XP';
-                                xpLabel.style.cssText = 'font-weight: 900; color: #8e24aa; font-size: 11px; pointer-events: none;';
                                 alvo.appendChild(xpLabel);
                             } else {
                                 const imgClone = btnOrigem.querySelector('img').cloneNode();
-                                imgClone.style.width = '32px'; imgClone.style.height = '32px';
+                                imgClone.className = 'crafting-item-icon';
                                 alvo.appendChild(imgClone);
                             }
 
@@ -624,18 +626,15 @@
                                 if (ehEmpilhavel) {
                                     itemData.quantidade++;
                                     if (badgeEl) badgeEl.textContent = itemData.quantidade;
-                                    btnOrigem.style.opacity = '1';
-                                    btnOrigem.style.pointerEvents = 'all';
+                                    btnOrigem.classList.remove('is-disabled');
                                 } else {
-                                    btnOrigem.style.opacity = '1';
-                                    btnOrigem.style.pointerEvents = 'all';
+                                    btnOrigem.classList.remove('is-disabled');
                                 }
                                 alvo.innerHTML = '?';
                                 delete alvo.dataset.ocupado;
                                 delete alvo.dataset.itemTipo;
                                 delete alvo.dataset.isXP;
-                                btnOrigem.style.opacity = '1';
-                                btnOrigem.style.pointerEvents = 'all';
+                                btnOrigem.classList.remove('is-disabled');
                                 alvo.onclick = null;
                                 atualizarResultadoCrafting();
                             };
@@ -698,8 +697,8 @@
                                     // Dropa no chão se o inventário estiver cheio
                                     if (window.playerControle && typeof window.obterSpriteItem === 'function') {
                                         const imgItem = document.createElement('img');
+                                        imgItem.className = 'crafting-drop-item-sprite';
                                         imgItem.src = window.obterSpriteItem(tipoResultado.replace('_plus', ''), window.config);
-                                        imgItem.style.cssText = 'position: absolute; width: 32px; height: 32px; image-rendering: pixelated;';
                                         if (window.LAYERS?.ITENS) window.adicionarAoLayer(imgItem, window.LAYERS.ITENS);
                                         
                                         window.itensColetaveis.push({
@@ -781,21 +780,8 @@
 
         const botaoRecolher = overlay.querySelector('[data-interaction-action="recolher-base"]');
 
-        // Insere o botão 'Crafting' dinamicamente antes do botão 'Recolher' no menu da base
-        if (id === 'craft_base' && botaoRecolher && !overlay.querySelector('[data-interaction-action="abrir-crafting"]')) {
-            const btnCrafting = document.createElement('button');
-            btnCrafting.type = 'button';
-            btnCrafting.title = "Menu de Crafting";
-
-            const scrapImg = document.createElement('img');
-            scrapImg.src = '../../assets/personagem/scrap_coletavel.png';
-            scrapImg.style.cssText = 'width: 24px; height: 24px; image-rendering: pixelated; pointer-events: none; vertical-align: middle;';
-            
-            btnCrafting.appendChild(scrapImg);
-            btnCrafting.className = 'img-button retro-grid';
-            btnCrafting.setAttribute('data-interaction-action', 'abrir-crafting');
-            botaoRecolher.before(btnCrafting);
-            
+        const btnCrafting = overlay.querySelector('[data-interaction-action="abrir-crafting"]');
+        if (id === 'craft_base' && btnCrafting) {
             btnCrafting.addEventListener('click', () => abrirTelaInteracao('menu_crafting', contexto));
         }
 
