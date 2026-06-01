@@ -412,20 +412,20 @@ function abrirMenuSkillsUI() {
     overlay.style.width = `${rect.width}px`;
     overlay.style.height = `${rect.height}px`;
 
+    const container = document.createElement('div');
+    container.className = 'skill-tree-container';
+
+    // Botão de fechar (X) - movido para dentro do container e usando a classe padrão de menus
     const closeButton = document.createElement('button');
     closeButton.type = 'button';
-    closeButton.className = 'menu-close-button';
-    closeButton.textContent = 'X';
+    closeButton.className = 'menu-close-button menu-nav-item';
     closeButton.setAttribute('aria-label', 'Fechar menu de skills');
     closeButton.title = 'Fechar';
     closeButton.onclick = (e) => {
         e.stopPropagation();
         window.toggleSkillMenu();
     };
-    overlay.appendChild(closeButton);
-
-    const container = document.createElement('div');
-    container.className = 'skill-tree-container';
+    container.appendChild(closeButton);
 
     const header = document.createElement('div');
     header.className = 'skill-tree-header';

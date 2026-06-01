@@ -1,0 +1,156 @@
+/* ================= BASE/INTERAÇÃO/Crafting ================= */
+
+/* Badges de Pets (Cão/Gato) */
+.pet-badge {
+    width: 40px;
+    height: 40px;
+    overflow: hidden;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    outline: none;
+    border: 2px solid #ffd700;
+    background: linear-gradient(45deg, #ffd700, #ffa500);
+}
+.pet-badge.inactive {
+    background: rgba(0, 255, 0, 0.1);
+    border-color: rgba(0, 255, 0, 0.2);
+}
+.pet-badge:focus {
+    box-shadow:
+        0 0 0 2px #fff,
+        0 0 8px rgba(255, 255, 255, 0.5);
+}
+.pet-badge img {
+    width: 64px;
+    height: 64px;
+    image-rendering: pixelated;
+    object-fit: contain;
+    flex-shrink: 0;
+    transition: filter 0.3s;
+}
+.pet-badge.inactive img {
+    filter: brightness(0.15) grayscale(1);
+}
+
+/* Feedback de Mensagens */
+.interaction-feedback {
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 5px;
+    margin-top: 10px;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    background: #181c22;
+    color: #fff;
+    border: 1px solid #222;
+    transition:
+        background 0.2s,
+        color 0.2s;
+}
+.interaction-feedback.error {
+    background: #3a0c0c;
+    color: #ff4444;
+    border-color: #a00;
+}
+.interaction-feedback.success {
+    background: #0c1c3a;
+    color: #44aaff;
+    border-color: #08f;
+}
+
+/* Itens do Inventário no Crafting */
+.crafting-inv-item {
+    width: 42px;
+    height: 42px;
+    background: #222;
+    border: 1px solid #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    cursor: pointer;
+    transition:
+        border-color 0.2s,
+        background 0.2s;
+    position: relative;
+    padding: 0;
+    outline: none;
+}
+.crafting-inv-item .xp-label {
+    font-weight: 900;
+    color: #8e24aa;
+    font-size: 14px;
+    pointer-events: none;
+}
+.crafting-inv-item .plus-label {
+    position: absolute;
+    top: -1px;
+    left: 2px;
+    color: #0088ff;
+    font-weight: 900;
+    font-size: 14px;
+    text-shadow: 0 0 2px #000;
+    pointer-events: none;
+}
+.crafting-inv-item .badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #00ff00;
+    color: #000;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 0 4px;
+    border-radius: 4px;
+    pointer-events: none;
+    line-height: 1.2;
+}
+.crafting-inv-item .badge.xp {
+    background: #8e24aa;
+    color: #fff;
+}
+
+/* Botão de abrir crafting */
+.btn-crafting {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #222;
+    border: 2px solid #ffd700;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-right: 8px;
+    transition:
+        border-color 0.2s,
+        background 0.2s;
+}
+.btn-crafting img {
+    width: 24px;
+    height: 24px;
+    image-rendering: pixelated;
+    pointer-events: none;
+    vertical-align: middle;
+}
+
+/* Esconde barras de rolagem dos modais */
+.interaction-modal,
+.interaction-body,
+[data-interaction-saved-equip],
+.player-inventory-for-crafting {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+.interaction-modal::-webkit-scrollbar,
+.interaction-body::-webkit-scrollbar,
+[data-interaction-saved-equip]::-webkit-scrollbar,
+.player-inventory-for-crafting::-webkit-scrollbar {
+    display: none !important;
+}

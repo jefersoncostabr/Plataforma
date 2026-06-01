@@ -122,21 +122,12 @@
         // Botão fechar igual ao menu principal: X, só classes, sem sobrescrita de estilo
         const closeBtn = document.createElement('button');
         closeBtn.type = 'button';
-        closeBtn.className = 'cheat-menu-close-btn menu-nav-item';
-        closeBtn.textContent = 'X';
+        closeBtn.className = 'menu-close-button menu-nav-item';
         closeBtn.setAttribute('aria-label', 'Fechar menu');
         closeBtn.title = 'Fechar';
         closeBtn.onclick = (e) => {
-            console.log('[CHEAT-MENU] Botão X clicado');
             e.stopPropagation();
             window.toggleCheatMenu();
-        };
-        closeBtn.onkeydown = (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                console.log('[CHEAT-MENU] Botão X ativado por teclado:', e.key);
-                e.preventDefault();
-                closeBtn.click();
-            }
         };
         box.appendChild(closeBtn);
         // Garante que overlay não bloqueie pointer-events do botão X

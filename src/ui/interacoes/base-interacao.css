@@ -134,12 +134,16 @@
 }
 
 .base-mode-section {
-    display: grid;
+    display: none;
     gap: 8px;
     padding: 12px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 10px;
+}
+
+.base-mode-section.is-visible {
+    display: grid;
 }
 
 .base-mode-section strong {
@@ -175,7 +179,8 @@
 
 .base-toggle-btn:focus-visible,
 .base-actions button:focus-visible,
-.interaction-close:focus-visible {
+.interaction-close:focus-visible,
+.menu-close-button:focus-visible {
     outline: 2px solid #ffe58c;
     outline-offset: 2px;
     box-shadow: 0 0 0 3px rgba(255, 229, 140, 0.2);
@@ -203,6 +208,22 @@
     border-left: 4px solid #7cc9ff;
     background: rgba(124, 201, 255, 0.12);
     border-radius: 8px;
+    color: #dff5ff;
+    transition:
+        border-left-color 0.2s,
+        background 0.2s,
+        color 0.2s;
+}
+
+.base-tip.error {
+    border-left-color: #ff8f8f;
+    background: rgba(255, 120, 120, 0.14);
+    color: #ffdede;
+}
+
+.base-tip.success {
+    border-left-color: #7cc9ff;
+    background: rgba(124, 201, 255, 0.12);
     color: #dff5ff;
 }
 
@@ -264,6 +285,38 @@
     width: 20px;
     height: 20px;
     image-rendering: pixelated;
+}
+
+.base-saved-plus {
+    position: absolute;
+    top: -1px;
+    left: 2px;
+    color: #0088ff;
+    font-weight: 900;
+    font-size: 14px;
+    text-shadow: 0 0 2px #000;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.base-saved-badge {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    background: #00ff00;
+    color: #000;
+    font-size: 9px;
+    font-weight: bold;
+    padding: 0 4px;
+    border-radius: 3px;
+    pointer-events: none;
+    line-height: 1.2;
+    z-index: 3;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+.pet-badge--first {
+    margin-left: auto;
 }
 
 .base-saved-count {

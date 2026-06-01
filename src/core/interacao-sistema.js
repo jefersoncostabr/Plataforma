@@ -224,7 +224,6 @@
             resumo.itens.forEach((item) => {
                 const icone = document.createElement('span');
                 icone.className = 'base-saved-icon';
-                icone.style.position = 'relative'; // Garante que as badges fiquem presas ao ícone
                 icone.title = item.rotulo || item.tipo;
                 icone.setAttribute('aria-label', item.rotulo || item.tipo);
 
@@ -236,12 +235,8 @@
                 // Adiciona o sinal azul de "+" se for item melhorado (plus)
                 if (item.tipo && item.tipo.endsWith('_plus')) {
                     const plusLabel = document.createElement('span');
+                    plusLabel.className = 'base-saved-plus';
                     plusLabel.textContent = '+';
-                    plusLabel.style.cssText = `
-                        position: absolute; top: -1px; left: 2px; 
-                        color: #0088ff; font-weight: 900; font-size: 14px; 
-                        text-shadow: 0 0 2px #000; pointer-events: none; z-index: 3;
-                    `;
                     icone.appendChild(plusLabel);
                 }
 
@@ -249,13 +244,7 @@
                 const ehEmpilhavel = ['scrap'].includes(item.tipo) || (item.tipo && item.tipo.endsWith('_plus'));
                 if (item.quantidade > 1 && ehEmpilhavel) {
                     const badge = document.createElement('span');
-                    badge.style.cssText = `
-                        position: absolute; top: 1px; right: 1px;
-                        background: #00ff00; color: #000; font-size: 9px;
-                        font-weight: bold; padding: 0 4px; border-radius: 3px;
-                        pointer-events: none; line-height: 1.2; z-index: 3;
-                        box-shadow: 0 0 2px rgba(0,0,0,0.5);
-                    `;
+                    badge.className = 'base-saved-badge';
                     badge.textContent = String(item.quantidade);
                     icone.appendChild(badge);
                 }
@@ -278,8 +267,14 @@
         const feedback = overlayAtual?.querySelector('[data-interaction-feedback]');
         if (!feedback) return;
         feedback.textContent = mensagem;
-        feedback.style.borderLeftColor = erro ? '#ff8f8f' : '#7cc9ff';
-        feedback.style.background = erro ? 'rgba(255, 120, 120, 0.14)' : 'rgba(124, 201, 255, 0.12)';
+        feedback.classList.remove('error', 'success');
+        if (mensagem) {
+            feedback.classList.add(erro ? 'error' : 'success');
+        }
+
+        // TODO: remover permanentemente apos validar em jogo (mantido por seguranca de rollback rapido).
+        // feedback.style.borderLeftColor = erro ? '#ff8f8f' : '#7cc9ff';
+        // feedback.style.background = erro ? 'rgba(255, 120, 120, 0.14)' : 'rgba(124, 201, 255, 0.12)';
     }
 
     /**
@@ -287,7 +282,7 @@
      */
     function injetarIconeCaoNoMenu(container, contexto = {}) {
         const header = container.querySelector('.interaction-header');
-        const closeBtn = header?.querySelector('.interaction-close');
+        const closeBtn = header?.querySelector('[data-interaction-close]');
         if (!header || !closeBtn) return;
 
         const petsDisponiveis = [
@@ -300,35 +295,24 @@
 
             const badge = document.createElement('div');
             badge.className = 'pet-badge img-button retro-grid';
+            if (pet.id === 'cao') badge.classList.add('pet-badge--first');
             badge.setAttribute('tabindex', '0');
             badge.setAttribute('role', 'button');
-            badge.style.cssText = `
-                width: 40px; height: 40px; overflow: hidden;
-                border-radius: 6px;
-                display: flex; align-items: center; justify-content: center;
-                margin-left: 8px; cursor: pointer; transition: all 0.3s ease; outline: none;
-            `;
-            if (pet.id === 'cao') badge.style.marginLeft = 'auto'; // O primeiro pet empurra
 
             const img = document.createElement('img');
             img.src = `../../assets/personagem/${pet.sprite}`;
-            img.style.cssText = 'width: 64px; height: 64px; image-rendering: pixelated; object-fit: contain; flex-shrink: 0; transition: filter 0.3s;';
             
             // Aplica filtro e fundo inicial baseado no estado salvo
             const atualizarFiltro = () => {
-                img.style.filter = window[pet.naBase] ? 'brightness(0.15) grayscale(1)' : 'none';
+                badge.classList.toggle('inactive', !!window[pet.naBase]);
                 badge.title = window[pet.naBase] ? `${pet.id.toUpperCase()} na Base` : `${pet.id.toUpperCase()} Ativo`;
-                badge.style.background = window[pet.naBase] ? 'rgba(0, 255, 0, 0.1)' : 'linear-gradient(45deg, #FFD700, #FFA500)'; // Fundo dourado para ativo
-                badge.style.borderColor = window[pet.naBase] ? 'rgba(0, 255, 0, 0.2)' : '#FFD700'; // Borda dourada para ativo
+
+                // TODO: remover permanentemente apos validar em jogo (mantido por seguranca de rollback rapido).
+                // img.style.filter = window[pet.naBase] ? 'brightness(0.15) grayscale(1)' : 'none';
+                // badge.style.background = window[pet.naBase] ? 'rgba(0, 255, 0, 0.1)' : 'linear-gradient(45deg, #FFD700, #FFA500)';
+                // badge.style.borderColor = window[pet.naBase] ? 'rgba(0, 255, 0, 0.2)' : '#FFD700';
             };
             atualizarFiltro();
-
-            badge.addEventListener('focus', () => {
-                badge.style.boxShadow = '0 0 0 2px #fff, 0 0 8px rgba(255,255,255,0.5)';
-            });
-            badge.addEventListener('blur', () => {
-                badge.style.boxShadow = 'none';
-            });
 
             badge.onclick = () => {
                 window[pet.naBase] = !window[pet.naBase];
@@ -383,16 +367,10 @@
 
         const overlay = document.createElement('div');
         overlay.className = 'interaction-overlay';
-        overlay.innerHTML = `
-            <style>
-                .interaction-modal, .interaction-body, [data-interaction-saved-equip], .player-inventory-for-crafting {
-                    -ms-overflow-style: none !important;
-                    scrollbar-width: none !important;
-                }
-                .interaction-modal::-webkit-scrollbar, .interaction-body::-webkit-scrollbar, [data-interaction-saved-equip]::-webkit-scrollbar, .player-inventory-for-crafting::-webkit-scrollbar {
-                    display: none !important;
-                }
-            </style>
+        // TODO: remover este template inline quando todas as interacoes usarem HTML completo externo.
+        overlay.innerHTML = id === 'craft_base'
+            ? corpoHtml
+            : `
             <div class="interaction-modal" role="dialog" aria-modal="true" aria-label="${definicao.titulo || 'Interação'}">
                 <div class="interaction-header">
                     <img data-interaction-sprite alt="Interação">
@@ -404,7 +382,7 @@
                         <h2>${definicao.titulo || 'Interação'}</h2>
                         <p>Base ativa detectada no cenário</p>
                     </div>
-                    <button type="button" class="interaction-close" data-interaction-close>X</button>
+                    <button type="button" class="menu-close-button menu-nav-item" data-interaction-close aria-label="Fechar menu"></button>
                 </div>
                 <div class="interaction-body">${corpoHtml}</div>
             </div>
@@ -417,11 +395,24 @@
             sprite.src = contexto.sprite || definicao.sprite || '';
         }
 
+        const titulo = overlay.querySelector('[data-interaction-title]');
+        if (titulo) {
+            titulo.textContent = definicao.titulo || 'Interação';
+        }
+
+        const modal = overlay.querySelector('.interaction-modal');
+        if (modal) {
+            modal.setAttribute('aria-label', definicao.titulo || 'Interação');
+        }
+
         preencherCampos(overlay, contexto);
 
         const secaoModos = overlay.querySelector('[data-interaction-modes]');
         if (secaoModos) {
-            secaoModos.style.display = Number(contexto?.nivel || 0) >= 2 ? 'grid' : 'none';
+            secaoModos.classList.toggle('is-visible', Number(contexto?.nivel || 0) >= 2);
+
+            // TODO: remover permanentemente apos validar em jogo (mantido por seguranca de rollback rapido).
+            // secaoModos.style.display = Number(contexto?.nivel || 0) >= 2 ? 'grid' : 'none';
         }
         atualizarEstadoBotoesModo(overlay, contexto?.modoRenascimento || null);
         atualizarDisponibilidadeBotoesModo(overlay, Number(contexto?.nivel || 0));

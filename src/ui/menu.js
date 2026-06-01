@@ -957,14 +957,8 @@ function renderMenuUI() {
         closeButton.className = 'menu-close-button menu-nav-item';
         closeButton.dataset.menuMode = 'main';
         closeButton.dataset.navType = 'close';
-        closeButton.textContent = 'X';
         closeButton.setAttribute('aria-label', 'Voltar ao menu inicial');
         closeButton.title = 'Menu inicial';
-        
-        // Estilos do botão de fechar
-        // Garante que o botão seja clicável e fique acima de outros elementos
-        closeButton.style.zIndex = '1000001';
-        closeButton.style.pointerEvents = 'auto';
 
         closeButton.onmouseenter = () => {
             menuSelectedIndex = getMainMenuNavItems().indexOf(closeButton);
@@ -1069,13 +1063,13 @@ function renderMainMenuContent(overlay) {
         buttonsGrid.appendChild(criarBotaoMenu(opt));
     });
 
-    optionsContainer.appendChild(buttonsGrid);
 
     // Estilos da legenda do item selecionado
     // Legenda abaixo dos ícones para indicar o item selecionado
     const labelInfo = document.createElement('div');
     labelInfo.id = 'menu-selected-label';
-    optionsContainer.appendChild(labelInfo);
+    buttonsGrid.appendChild(labelInfo);
+    optionsContainer.appendChild(buttonsGrid);
 
     // Estilos da coluna da direita (painéis de resumo e dificuldade)
     // Coluna da direita para agrupar o Painel de Resumo, a dificuldade e o controle de volume
@@ -1128,6 +1122,7 @@ function renderMainMenuContent(overlay) {
 }
 
 function renderControlsContent(overlay) {
+    console.log('[DEBUG-MENU] Iniciando renderização do conteúdo de controles...');
     // Estilos do texto de ajuda (instruções)
     const help = document.createElement('div');
     help.className = 'menu-controls-help';
@@ -1141,14 +1136,18 @@ function renderControlsContent(overlay) {
     optionsContainer.id = 'menu-options-container';
     optionsContainer.className = 'menu-controls-options';
 
+    if (!CONTROLES_MENU_ITEMS || CONTROLES_MENU_ITEMS.length === 0) {
+        console.error('[DEBUG-MENU] Erro: Array CONTROLES_MENU_ITEMS está vazio ou indefinido!');
+    }
+
     CONTROLES_MENU_ITEMS.forEach((item, index) => {
         const linha = document.createElement('div');
-        linha.className = 'menu-option menu-option--control';
-        // Estilos de cada linha de controle (label + tecla)
-        linha.classList.add('menu-controls-line');
+        // Aplica classes de estilo: Base, Modificador de Tipo e Layout de Linha
+        linha.className = 'menu-option menu-option--control menu-controls-line';
 
         const bind = getTeclaPrincipal(item.id);
         const aguardando = controlsBindingAction === item.id ? '  <AGUARDANDO...>' : '';
+        console.log(`[DEBUG-MENU] Processando item ${index}: ${item.label} [${bind}]`);
 
         const label = document.createElement('span');
         label.textContent = item.label;
@@ -1174,6 +1173,7 @@ function renderControlsContent(overlay) {
         };
 
         linha.onclick = () => {
+            console.log(`[DEBUG-MENU] Item de controle clicado: ${item.id}`);
             controlsSelectedIndex = index;
             controlsBindingAction = item.id;
             renderMenuUI();
@@ -1188,14 +1188,13 @@ function renderControlsContent(overlay) {
     actionsRow.className = 'menu-controls-actions';
 
     const salvarBtn = document.createElement('div');
-    salvarBtn.className = 'menu-option menu-option--action menu-option--save';
+    // Estilos do botão de ação Salvar (Ícone)
+    salvarBtn.className = 'menu-option menu-option--action menu-option--save menu-controls-action-btn';
     salvarBtn.title = 'SALVAR';
-    // Estilos do botão Salvar
-    salvarBtn.classList.add('menu-controls-action-btn');
 
     const saveImg = document.createElement('img');
     saveImg.src = 'assets/icones/salvar.png';
-    // Estilos da imagem do botão Salvar
+    // Estilos da imagem dentro do botão de ação
     saveImg.className = '';
     salvarBtn.appendChild(saveImg);
 
@@ -1216,14 +1215,13 @@ function renderControlsContent(overlay) {
     actionsRow.appendChild(salvarBtn);
 
     const resetBtn = document.createElement('div');
-    resetBtn.className = 'menu-option menu-option--action';
+    // Estilos do botão de ação Restaurar (Ícone)
+    resetBtn.className = 'menu-option menu-option--action menu-controls-action-btn';
     resetBtn.title = 'RESTAURAR';
-    // Estilos do botão Restaurar Padrão
-    resetBtn.classList.add('menu-controls-action-btn');
 
     const resetImg = document.createElement('img');
     resetImg.src = 'assets/icones/voltar.png';
-    // Estilos da imagem do botão Restaurar Padrão
+    // Estilos da imagem dentro do botão restaurar
     resetImg.className = '';
     resetBtn.appendChild(resetImg);
 
@@ -1245,27 +1243,30 @@ function renderControlsContent(overlay) {
     optionsContainer.appendChild(actionsRow);
 
     overlay.appendChild(optionsContainer);
+    console.log('[DEBUG-MENU] Renderização de controles finalizada com sucesso.');
 }
 
 // Função para atualizar os visuais dos itens do menu (seleção, hover, etc.)
 function updateMenuVisuals() {
     if (menuMode === 'controls') {
         const elements = document.querySelectorAll('.menu-option');
+        console.log(`[DEBUG-MENU] Atualizando visuais. Itens encontrados: ${elements.length}. Selecionado: ${controlsSelectedIndex}`);
 
         elements.forEach((el, index) => {
             const isSelected = index === controlsSelectedIndex;
             el.classList.toggle('selected', isSelected);
             
             if (isSelected) {
-                // Estilos para item de controle selecionado
+                // Estilos dinâmicos para item de controle selecionado (Sobrescrita de Destaque)
                 el.style.backgroundColor = '#00ffff';
                 el.style.color = '#000';
                 el.style.boxShadow = '0 0 15px rgba(0, 255, 255, 0.5)';
                 el.style.fontWeight = 'bold';
                 el.style.transform = 'scale(1.05)';
             } else {
-                // Estilos para item de controle não selecionado
-                el.style.backgroundColor = 'transparent';
+                // Estilos dinâmicos para itens não selecionados (Reseta para o padrão do CSS)
+                // Usamos string vazia para permitir que o background-color definido no menu-style.css prevaleça
+                el.style.backgroundColor = '';
                 el.style.color = '#fff';
                 el.style.boxShadow = 'none';
                 el.style.fontWeight = 'normal';

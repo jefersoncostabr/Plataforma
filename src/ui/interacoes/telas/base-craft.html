@@ -1,29 +1,47 @@
-<div class="base-panel">
-    <div class="base-mode-section" data-interaction-modes style="display: none;">
-        <strong>Modos da base</strong>
-        <div class="base-mode-buttons">
-            <button type="button" class="base-toggle-btn" data-interaction-action="toggle-spawnpoint" data-interaction-mode="spawnpoint" data-min-level="3">Spawnpoint</button>
-            <button type="button" class="base-toggle-btn" data-interaction-action="toggle-memoria" data-interaction-mode="memoria" data-min-level="2">Memória</button>
+<div class="interaction-modal" role="dialog" aria-modal="true" aria-label="Base de Campanha">
+    <div class="interaction-header">
+        <img data-interaction-sprite alt="Interação">
+        <div class="interaction-level-badge" aria-label="Nível da base">
+            <span>NV</span>
+            <strong data-interaction-field="nivel">-</strong>
         </div>
-        <small>Memória libera no nível 2. Spawnpoint libera no nível 3. Ativar um modo desativa o outro.</small>
-    </div>
-
-    <div class="base-tip" data-interaction-feedback>
-        Você pode salvar um checkpoint permanente do equipamento nesta base. Em qualquer reinício, o personagem volta com esse loadout salvo. As skills também permanecem registradas.
-    </div>
-
-
-    <div class="base-saved-section">
-        <div class="base-saved-toolbar">
-            <button type="button" class="btn-primary" data-interaction-action="salvar-equipamento" data-primary-action>Equipamento</button>
-            <!-- <button type="button" class="btn-danger" data-interaction-action="apagar-equipamento" style="margin-left:8px;">Apagar Itens</button> -->
-            <div class="base-saved-list" data-interaction-saved-equip></div>
+        <div class="interaction-header-copy">
+            <h2 data-interaction-title>Base de Campanha</h2>
+            <p data-interaction-subtitle>Base ativa detectada no cenário</p>
         </div>
-        <small data-interaction-saved-meta>Nenhum equipamento salvo nesta base ainda.</small>
+        <button type="button" class="menu-close-button" data-interaction-close label="Fechar menu de base"></button>
     </div>
+    
+    // Interação principal da base, com opções de salvar equipamento, escolher modos e outras ações relacionadas à base.
+    <div class="interaction-body">
+        <div class="base-panel">
+            <div class="base-mode-section" data-interaction-modes>
+                <strong>Modos da base</strong>
+                <div class="base-mode-buttons">
+                    <button type="button" class="base-toggle-btn" data-interaction-action="toggle-spawnpoint" data-interaction-mode="spawnpoint" data-min-level="3">Spawnpoint</button>
+                    <button type="button" class="base-toggle-btn" data-interaction-action="toggle-memoria" data-interaction-mode="memoria" data-min-level="2">Memória</button>
+                </div>
+                <small>Memória libera no nível 2. Spawnpoint libera no nível 3. Ativar um modo desativa o outro.</small>
+            </div>
 
-    <div class="base-actions">
-        <button type="button" class="btn-secondary" data-interaction-action="recolher-base">Recolher</button>
-        <button type="button" class="btn-secondary" data-interaction-close>Fechar</button>
+            <div class="base-tip" data-interaction-feedback>
+                Você pode salvar um checkpoint permanente do equipamento nesta base. Em qualquer reinício, o personagem volta com esse loadout salvo. As skills também permanecem registradas.
+            </div>
+
+            <div class="base-saved-section">
+                <div class="base-saved-toolbar">
+                    <button type="button" class="btn-primary" data-interaction-action="salvar-equipamento" data-primary-action>Equipamento</button>
+                    <!-- <button type="button" class="btn-danger" data-interaction-action="apagar-equipamento" style="margin-left:8px;">Apagar Itens</button> -->
+                    <div class="base-saved-list" data-interaction-saved-equip></div>
+                </div>
+                <small data-interaction-saved-meta>Nenhum equipamento salvo nesta base ainda.</small>
+            </div>
+
+            <div class="base-actions">
+                <button type="button" class="btn-secondary" data-interaction-action="recolher-base">Recolher</button>
+                <!-- <button type="button" class="btn-secondary" data-interaction-close>Fechar</button> -->
+                
+            </div>
+        </div>
     </div>
 </div>

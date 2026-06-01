@@ -33,30 +33,6 @@
     color: #fff;
 }
 
-.cheat-menu-close-btn {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: #b71c1c;
-    color: #fff;
-    border-radius: 8px;
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-    transition:
-        background 0.15s,
-        transform 0.1s;
-    z-index: 2;
-}
-.cheat-menu-close-btn:hover {
-    background: #d32f2f;
-    transform: scale(1.08);
-}
-
 .cheat-menu-select-btn {
     width: 100%;
     padding: 10px 0;
@@ -117,7 +93,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: 40px;
+    gap: 104px; /* Espaçamento ainda maior entre colunas */
     width: 100%;
 }
 
@@ -166,6 +142,11 @@
     min-height: 18px;
     text-transform: uppercase;
     text-shadow: 0 0 8px rgba(121, 255, 182, 0.4);
+    width: 120px;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 /* Coluna da direita (Resumo + Dificuldade) */
@@ -372,7 +353,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #ff9c9c;
+    border: 2px solid #fff; /* Contorno branco padronizado solicitado */
     border-radius: 6px;
     background: #b71c1c;
     color: #fff;
@@ -381,23 +362,27 @@
     line-height: 1;
     cursor: pointer;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+    /* z-index: 1000001; Garante que fique acima de outros elementos do menu */
+    pointer-events: auto; /* Garante que o botão capture cliques mesmo sobre overlays */
     transition:
         transform 0.1s,
         background-color 0.15s,
         box-shadow 0.15s;
 }
 
-.menu-close-button:hover {
-    background: #d32f2f;
-    transform: scale(1.06);
-    box-shadow: 0 0 12px rgba(255, 90, 90, 0.45);
+/* Injeta o 'X' via CSS para padronizar todos os menus */
+.menu-close-button::before {
+    content: 'X';
 }
 
+.menu-close-button:hover,
+.menu-close-button.selected,
 .menu-close-button.menu-nav-selected {
-    background: #ef5350;
+    background: #d32f2f;
     border-color: #fff;
-    transform: scale(1.08);
-    box-shadow: 0 0 16px rgba(255, 255, 255, 0.4);
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    z-index: 10;
 }
 
 .menu-close-button:active {
