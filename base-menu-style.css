@@ -152,6 +152,124 @@
     font-size: 11px;
 }
 
+.interaction-content--crafting {
+    width: 100%;
+}
+
+.crafting-intro-text {
+    margin-bottom: 15px;
+    color: #c7d6ff;
+    text-align: center;
+    font-size: 12px;
+}
+
+.crafting-recipe-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.crafting-slot {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #b9c8f3;
+    cursor: pointer;
+    outline: none;
+    transition:
+        border-color 0.15s,
+        background-color 0.15s,
+        transform 0.1s;
+}
+
+.crafting-slot:focus,
+.crafting-slot:focus-visible {
+    border-color: #7ee081;
+    background-color: rgba(126, 224, 129, 0.12);
+    transform: translateY(-1px);
+}
+
+.crafting-slot--result {
+    background: rgba(126, 224, 129, 0.12);
+    border: 2px solid #7ee081;
+    color: #b7f0bd;
+}
+
+.crafting-operator {
+    font-size: 24px;
+    color: #ffe58c;
+    font-weight: 800;
+}
+
+.crafting-placeholder-text {
+    color: #9daecf;
+    text-align: center;
+    width: 100%;
+}
+
+.player-inventory-for-crafting {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding-top: 15px;
+}
+
+.interaction-footer--crafting {
+    margin-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 15px 10px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-voltar-base {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    color: #eef4ff;
+    padding: 8px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition:
+        transform 0.1s,
+        background-color 0.15s,
+        border-color 0.15s;
+}
+
+.btn-voltar-base:hover,
+.btn-voltar-base:focus-visible {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.46);
+    transform: translateY(-1px);
+}
+
+.interaction-feedback--crafting {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 11px;
+    min-height: 1.2em;
+    padding: 8px;
+    border-left: 3px solid transparent;
+}
+
 .crafting-drop-item-sprite {
     position: absolute;
     width: 32px;

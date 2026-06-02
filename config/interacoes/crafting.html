@@ -1,34 +1,24 @@
-<div class="interaction-content">
-    <p style="margin-bottom: 15px; color: #aaa; text-align: center;">Arraste itens para os slots para criar novos.</p>
+<div class="interaction-content interaction-content--crafting">
+    <p class="crafting-intro-text">Arraste itens para os slots para criar novos.</p>
 
-    <div class="crafting-recipe-display" style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 20px;">
-        <div class="crafting-slot" id="craft-slot-1" tabindex="0" role="button" aria-label="Slot de criação 1"
-            style="width: 48px; height: 48px; background-color: #333; border: 2px dashed #555; display: flex; justify-content: center; align-items: center; color: #888; cursor: pointer; outline: none;">?</div>
-        <span class="crafting-operator" style="font-size: 24px; color: #fff;">+</span>
-        <div class="crafting-slot" id="craft-slot-2" tabindex="0" role="button" aria-label="Slot de criação 2"
-            style="width: 48px; height: 48px; background-color: #333; border: 2px dashed #555; display: flex; justify-content: center; align-items: center; color: #888; cursor: pointer; outline: none;">?</div>
-        <span class="crafting-operator" style="font-size: 24px; color: #fff;">=</span>
-        <div class="crafting-slot result-slot" id="craft-result-slot"
-            style="width: 48px; height: 48px; background-color: #222; border: 2px solid #0f0; display: flex; justify-content: center; align-items: center; color: #0f0;">?</div>
+    <div class="crafting-recipe-display">
+        <div class="crafting-slot" id="craft-slot-1" tabindex="0" role="button" aria-label="Slot de criação 1">?</div>
+        <span class="crafting-operator">+</span>
+        <div class="crafting-slot" id="craft-slot-2" tabindex="0" role="button" aria-label="Slot de criação 2">?</div>
+        <span class="crafting-operator">=</span>
+        <div class="crafting-slot crafting-slot--result result-slot" id="craft-result-slot">?</div>
     </div>
 
-    <div class="player-inventory-for-crafting" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 0 10px; max-height: 200px; overflow-y: auto; border-top: 1px solid #333; padding-top: 15px;">
+    <div class="player-inventory-for-crafting">
         <!-- Player's inventory items will be dynamically inserted here -->
-        <p style="color: #888; text-align: center; width: 100%;">Seus itens aparecerão aqui.</p>
+        <p class="crafting-placeholder-text">Seus itens aparecerão aqui.</p>
     </div>
 
-    <style>
-        .crafting-slot:focus {
-            border-color: #0f0 !important;
-            background-color: #2a2a2a !important;
-        }
-    </style>
-
-    <div class="interaction-footer" style="margin-top: 20px; border-top: 1px solid #333; padding: 15px 10px 0; display: flex; justify-content: center;">
-        <button type="button" id="btn-voltar-base" style="background: #333; border: 1px solid #555; color: #fff; padding: 8px 25px; border-radius: 4px; cursor: pointer; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">
+    <div class="interaction-footer interaction-footer--crafting">
+        <button type="button" id="btn-voltar-base" class="btn-voltar-base">
             Voltar para Base
         </button>
     </div>
 
-    <div data-interaction-feedback class="interaction-feedback" style="margin-top: 15px; text-align: center; font-size: 11px; min-height: 1.2em; padding: 8px; border-left: 3px solid transparent;"></div>
+    <div data-interaction-feedback class="interaction-feedback interaction-feedback--crafting"></div>
 </div>
