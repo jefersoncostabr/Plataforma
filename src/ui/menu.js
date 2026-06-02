@@ -6,7 +6,10 @@ window.isMenuOpen = false;
 let menuSelectedIndex = -1;
 let menuMode = 'main'; // main | controls
 let controlsSelectedIndex = -1;
+let settingsSelectedIndex = -1;
 let controlsBindingAction = null;
+let controlsMenuHtmlContent = ''; // Para armazenar o conteúdo HTML carregado
+let settingsMenuHtmlContent = ''; // Para armazenar o conteúdo HTML carregado
 let menuSelectedSlotId = null;
 const menuDraftDifficultyBySlot = {};
 
@@ -583,6 +586,14 @@ const getActiveMenuOptions = () => {
         }
     };
 
+    const configuracoesOption = {
+        label: 'CONFIGURAÇÕES', action: () => {
+            menuMode = 'settings';
+            settingsSelectedIndex = 0;
+            renderMenuUI();
+        }
+    };
+
     const reiniciarOption = {
         label: 'REINICIAR', action: () => {
             window.isFirstStart = false;
@@ -604,6 +615,7 @@ const getActiveMenuOptions = () => {
                 window.toggleSkillMenu();
             }
         },
+        configuracoesOption,
         controlesOption,
         {
             label: 'TREINO', action: () => {
@@ -657,6 +669,7 @@ const getActiveMenuOptions = () => {
                     }
                 }
             },
+            configuracoesOption,
             controlesOption,
             reiniciarOption
         ];
@@ -789,12 +802,18 @@ window.togglePauseMenu = () => {
 function handleMenuInput(e) {
     if (!window.isMenuOpen) return;
 
+    const key = e.key.toLowerCase();
+
     if (menuMode === 'controls') {
         handleControlsInput(e);
         return;
     }
 
-    const key = e.key.toLowerCase();
+    if (menuMode === 'settings') {
+        handleSettingsInput(e);
+        return;
+    }
+
     const currentItems = getMainMenuNavItems();
     if (!currentItems || currentItems.length === 0) return;
 
@@ -885,6 +904,78 @@ function handleControlsInput(e) {
     renderMenuUI();
 }
 
+function getSettingsNavItems() {
+    return Array.from(document.querySelectorAll('#pause-menu-overlay .menu-nav-item[data-menu-mode="settings"]'));
+}
+
+function handleSettingsInput(e) {
+    const key = e.key.toLowerCase();
+    const currentItems = getSettingsNavItems();
+    if (!currentItems || currentItems.length === 0) return;
+
+    if (key === 'escape') {
+        menuMode = 'main';
+        renderMenuUI();
+        return;
+    }
+
+    if (key === 'arrowup' || key === 'w') {
+        settingsSelectedIndex = (settingsSelectedIndex <= 0) ? currentItems.length - 1 : settingsSelectedIndex - 1;
+        updateMenuVisuals();
+    } else if (key === 'arrowdown' || key === 's') {
+        settingsSelectedIndex = (settingsSelectedIndex === -1 || settingsSelectedIndex >= currentItems.length - 1) ? 0 : settingsSelectedIndex + 1;
+        updateMenuVisuals();
+    } else if (key === 'arrowleft' || key === 'a' || key === 'arrowright' || key === 'd') {
+        const item = currentItems[settingsSelectedIndex];
+        if (item && item.dataset.navType === 'volume') {
+            const direcao = (key === 'arrowleft' || key === 'a') ? -1 : 1;
+            ajustarVolumeMenu(direcao * MENU_VOLUME_STEP);
+            updateMenuVisuals();
+        }
+    } else if (key === 'enter' || key === ' ') {
+        e.preventDefault();
+        const item = currentItems[settingsSelectedIndex];
+        if (item) {
+            if (item.dataset.navType === 'close') {
+                menuMode = 'main';
+                renderMenuUI();
+            } else {
+                item.click();
+            }
+        }
+    }
+}
+
+/**
+ * Carrega o conteúdo HTML para o menu de configurações.
+ */
+async function loadSettingsMenuHtml() {
+    if (settingsMenuHtmlContent) return; // Carrega apenas uma vez
+    try {
+        const response = await fetch('src/ui/settings-menu.html');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        settingsMenuHtmlContent = await response.text();
+    } catch (e) {
+        console.error("Falha ao carregar settings-menu.html:", e);
+        settingsMenuHtmlContent = `<div class="menu-settings-container">Erro ao carregar configurações.</div>`; // Conteúdo de fallback
+    }
+}
+
+/**
+ * Carrega o conteúdo HTML para o menu de controles.
+ */
+async function loadControlsMenuHtml() {
+    if (controlsMenuHtmlContent) return; // Carrega apenas uma vez
+    try {
+        const response = await fetch('src/ui/controls-menu.html');
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        controlsMenuHtmlContent = await response.text();
+    } catch (e) {
+        console.error("Falha ao carregar controls-menu.html:", e);
+        controlsMenuHtmlContent = `<div class="menu-controls-container">Erro ao carregar controles.</div>`;
+    }
+}
+
 /**
  * Obtém o contêiner alvo para renderizar a interface do menu.
  * Sempre usa o body para evitar herdar transformações de escala do jogo-container.
@@ -911,9 +1002,15 @@ function criarElementoOverlay() {
  */
 function criarElementoTitulo() {
     const title = document.createElement('h1');
-    title.innerText = menuMode === 'controls'
-        ? 'CONTROLES'
-        : (window.isFirstStart ? 'PRINCIPAL' : 'PAUSE');
+    let texto = '';
+    if (menuMode === 'controls') {
+        texto = 'CONTROLES';
+    } else if (menuMode === 'settings') {
+        texto = 'CONFIGURAÇÕES';
+    } else {
+        texto = window.isFirstStart ? 'PRINCIPAL' : 'PAUSE';
+    }
+    title.innerText = texto;
     title.className = menuMode === 'controls' ? 'menu-title menu-title--controls' : 'menu-title';
     return title;
 }
@@ -921,15 +1018,17 @@ function criarElementoTitulo() {
 /**
  * Decide qual conteúdo renderizar dentro do overlay baseado no modo do menu.
  */
-function preencherConteudoPorModo(overlay) {
+async function preencherConteudoPorModo(overlay) {
     if (menuMode === 'controls') {
-        renderControlsContent(overlay);
+        await renderControlsContent(overlay);
+    } else if (menuMode === 'settings') {
+        await renderSettingsContent(overlay);
     } else {
         renderMainMenuContent(overlay);
     }
 }
 
-function renderMenuUI() {
+async function renderMenuUI() {
     removeMenuUI();
 
     const targetLayer = obterConteinerDestino();
@@ -941,13 +1040,18 @@ function renderMenuUI() {
     const overlay = criarElementoOverlay();
     
     // CORREÇÃO DA LÓGICA: 
-    // Se estamos nos controles, X volta pro principal. 
+    // Se estamos nos controles ou configurações, X volta pro principal. 
     // Se estamos no principal, X fecha o menu (resume o jogo).
-    const closeAction = menuMode === 'controls' 
+    const closeAction = (menuMode === 'controls' || menuMode === 'settings')
         ? acaoVoltarParaMenuInicial 
         : () => {
             window.togglePauseMenu();
         };
+
+    // Adiciona o overlay ao body ANTES de preencher o conteúdo.
+    // Isso garante que funções como getSettingsNavItems() encontrem os elementos no DOM
+    // durante a vinculação de eventos (onmouseenter) dentro das funções de renderização.
+    targetLayer.appendChild(overlay);
 
     const title = criarElementoTitulo();
 
@@ -955,7 +1059,7 @@ function renderMenuUI() {
         const closeButton = document.createElement('button');
         closeButton.type = 'button';
         closeButton.className = 'menu-close-button menu-nav-item';
-        closeButton.dataset.menuMode = 'main';
+        closeButton.dataset.menuMode = menuMode;
         closeButton.dataset.navType = 'close';
         closeButton.setAttribute('aria-label', 'Voltar ao menu inicial');
         closeButton.title = 'Menu inicial';
@@ -989,9 +1093,7 @@ function renderMenuUI() {
     }
 
     overlay.appendChild(title);
-    preencherConteudoPorModo(overlay);
-
-    targetLayer.appendChild(overlay);
+    await preencherConteudoPorModo(overlay);
     updateMenuVisuals();
 }
 
@@ -1002,6 +1104,7 @@ function obterIconePorLabel(label) {
     if (l === 'CONTROLES') return 'assets/icones/controle.png';
     if (l === 'REINICIAR') return 'assets/icones/voltar_jogo.png';
     if (l === 'SKILLS') return 'assets/icones/skill.png';
+    if (l === 'CONFIGURAÇÕES') return 'assets/icones/config.png';
     if (l === 'TREINO') return 'assets/icones/treinar.png';
     if (l === 'SAIR') return 'assets/icones/lixo.png';
     return null;
@@ -1083,197 +1186,186 @@ function renderMainMenuContent(overlay) {
     layout.appendChild(optionsContainer);
     layout.appendChild(rightColumn);
     overlay.appendChild(layout);
-
-    // Estilos do controle de volume
-    // Injeta a barra de volume do AudioManager na coluna da direita (abaixo do resumo)
-    if (window.AudioManager && typeof window.AudioManager.renderVolumeControl === 'function') {
-        window.AudioManager.renderVolumeControl(rightColumn);
-
-        const volumeWrapper = rightColumn.querySelector('.volume-control-wrapper');
-        const volumeSlider = volumeWrapper?.querySelector('.volume-slider');
-
-        if (volumeWrapper) {
-            // Classes e atributos para navegação do menu
-            volumeWrapper.classList.add('menu-volume-panel', 'menu-nav-item');
-            volumeWrapper.dataset.menuMode = 'main';
-            volumeWrapper.dataset.navType = 'volume';
-
-            volumeWrapper.onmouseenter = () => {
-                menuSelectedIndex = getMainMenuNavItems().indexOf(volumeWrapper);
-                updateMenuVisuals();
-            };
-
-            volumeWrapper.onmouseleave = () => {
-                menuSelectedIndex = -1;
-                updateMenuVisuals();
-            };
-
-            volumeWrapper.onclick = () => {
-                menuSelectedIndex = getMainMenuNavItems().indexOf(volumeWrapper);
-                updateMenuVisuals();
-            };
-        }
-
-        if (volumeSlider) {
-            // Remove o tabIndex para não ser focado diretamente
-            volumeSlider.tabIndex = -1;
-        }
-    }
 }
 
-function renderControlsContent(overlay) {
-    console.log('[DEBUG-MENU] Iniciando renderização do conteúdo de controles...');
-    // Estilos do texto de ajuda (instruções)
-    const help = document.createElement('div');
-    help.className = 'menu-controls-help';
-    help.innerText = controlsBindingAction
-        ? 'Pressione uma tecla para redefinir. Esc cancela.'
-        : 'Enter/Espaco para alterar, Esc para voltar.';
-    overlay.appendChild(help);
+async function renderSettingsContent(overlay) {
+    await loadSettingsMenuHtml(); // Garante que o HTML seja carregado antes de renderizar
 
-    // Estilos do container principal das opções de controle
-    const optionsContainer = document.createElement('div');
-    optionsContainer.id = 'menu-options-container';
-    optionsContainer.className = 'menu-controls-options';
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = settingsMenuHtmlContent;
+    const settingsContainer = tempDiv.firstElementChild; // Pega o container principal do HTML carregado
 
-    if (!CONTROLES_MENU_ITEMS || CONTROLES_MENU_ITEMS.length === 0) {
-        console.error('[DEBUG-MENU] Erro: Array CONTROLES_MENU_ITEMS está vazio ou indefinido!');
+    if (!settingsContainer) {
+        console.error("Container do menu de configurações não encontrado no HTML carregado.");
+        return;
+    }
+    settingsContainer.classList.add('menu-panel-base'); // Adiciona os estilos comuns de painel
+
+    // --- SEÇÃO DE VOLUME ---
+    const volumePlaceholder = settingsContainer.querySelector('#volume-control-placeholder');
+    if (volumePlaceholder && window.AudioManager && typeof window.AudioManager.renderVolumeControl === 'function') {
+        // Renderiza o controle de volume no placeholder
+        window.AudioManager.renderVolumeControl(volumePlaceholder);
+        const volumeWrapper = volumePlaceholder.querySelector('.volume-control-wrapper');
+        if (volumeWrapper) { // Garante que o wrapper foi criado pelo AudioManager
+            volumeWrapper.classList.add('menu-nav-item'); // Adiciona nav-item para navegação
+            volumeWrapper.dataset.menuMode = 'settings';
+            volumeWrapper.dataset.navType = 'volume';
+            volumeWrapper.onmouseenter = () => {
+                settingsSelectedIndex = getSettingsNavItems().indexOf(volumeWrapper);
+                updateMenuVisuals();
+            };
+        }
     }
 
-    CONTROLES_MENU_ITEMS.forEach((item, index) => {
-        const linha = document.createElement('div');
-        // Aplica classes de estilo: Base, Modificador de Tipo e Layout de Linha
-        linha.className = 'menu-option menu-option--control menu-controls-line';
+    // --- SEÇÃO DE TAMANHO DA TELA - Event Listeners ---
+    const screenButtons = settingsContainer.querySelectorAll('[data-nav-type="screen"]');
+    screenButtons.forEach(btn => {
 
-        const bind = getTeclaPrincipal(item.id);
-        const aguardando = controlsBindingAction === item.id ? '  <AGUARDANDO...>' : '';
-        console.log(`[DEBUG-MENU] Processando item ${index}: ${item.label} [${bind}]`);
-
-        const label = document.createElement('span');
-        label.textContent = item.label;
-        // Estilos do label da ação
-        label.className = 'menu-controls-label';
-
-        const keyDisplay = document.createElement('span');
-        keyDisplay.textContent = `${bind}${aguardando}`;
-        // Estilos da tecla exibida
-        keyDisplay.className = 'menu-controls-key';
-
-        linha.appendChild(label);
-        linha.appendChild(keyDisplay);
-
-        linha.onmouseenter = () => {
-            controlsSelectedIndex = index;
+        btn.onmouseenter = () => {
+            settingsSelectedIndex = getSettingsNavItems().indexOf(btn);
             updateMenuVisuals();
         };
-
-        linha.onmouseleave = () => {
-            controlsSelectedIndex = -1;
-            updateMenuVisuals();
+        
+        btn.onclick = () => {
+            console.log(`Alterar tela para: ${btn.dataset.screenMode}`);
         };
-
-        linha.onclick = () => {
-            console.log(`[DEBUG-MENU] Item de controle clicado: ${item.id}`);
-            controlsSelectedIndex = index;
-            controlsBindingAction = item.id;
-            renderMenuUI();
-        };
-
-        optionsContainer.appendChild(linha);
     });
 
-    // Estilos do container dos botões de ação (Salvar e Restaurar)
-    // Container para os botões de ação ficarem lado a lado
-    const actionsRow = document.createElement('div');
-    actionsRow.className = 'menu-controls-actions';
+    overlay.appendChild(settingsContainer);
+}
 
-    const salvarBtn = document.createElement('div');
-    // Estilos do botão de ação Salvar (Ícone)
-    salvarBtn.className = 'menu-option menu-option--action menu-option--save menu-controls-action-btn';
-    salvarBtn.title = 'SALVAR';
+async function renderControlsContent(overlay) {
+    await loadControlsMenuHtml();
 
-    const saveImg = document.createElement('img');
-    saveImg.src = 'assets/icones/salvar.png';
-    // Estilos da imagem dentro do botão de ação
-    saveImg.className = '';
-    salvarBtn.appendChild(saveImg);
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = controlsMenuHtmlContent;
+    
+    // Busca os elementos no fragmento carregado (podem ser irmãos na raiz do arquivo)
+    const container = tempDiv.querySelector('.menu-controls-container');
+    const template = tempDiv.querySelector('#control-row-template');
 
-    salvarBtn.onmouseenter = () => {
-        controlsSelectedIndex = CONTROLES_MENU_ITEMS.length;
-        updateMenuVisuals();
-    };
-    salvarBtn.onmouseleave = () => {
-        controlsSelectedIndex = -1;
-        updateMenuVisuals();
-    };
-    salvarBtn.onclick = () => {
-        salvarControlesNoStorage();
-        menuMode = 'main';
-        menuSelectedIndex = 0;
-        renderMenuUI();
-    };
-    actionsRow.appendChild(salvarBtn);
+    if (!container) {
+        console.error("Container do menu de controles não encontrado no HTML carregado.");
+        return;
+    }
 
-    const resetBtn = document.createElement('div');
-    // Estilos do botão de ação Restaurar (Ícone)
-    resetBtn.className = 'menu-option menu-option--action menu-controls-action-btn';
-    resetBtn.title = 'RESTAURAR';
+    // Preenche o texto de ajuda
+    const help = container.querySelector('#controls-help');
+    if (help) {
+        help.innerText = controlsBindingAction
+        ? 'Pressione uma tecla para redefinir. Esc cancela.'
+        : 'Enter/Espaco para alterar, Esc para voltar.';
+    }
 
-    const resetImg = document.createElement('img');
-    resetImg.src = 'assets/icones/voltar.png';
-    // Estilos da imagem dentro do botão restaurar
-    resetImg.className = '';
-    resetBtn.appendChild(resetImg);
+    const listContainer = container.querySelector('#controls-list-container');
+    if (listContainer && Array.isArray(CONTROLES_MENU_ITEMS) && CONTROLES_MENU_ITEMS.length > 0) {
+        listContainer.innerHTML = ''; // Limpa antes de preencher
 
-    resetBtn.onmouseenter = () => {
-        controlsSelectedIndex = CONTROLES_MENU_ITEMS.length + 1;
-        updateMenuVisuals();
-    };
-    resetBtn.onmouseleave = () => {
-        controlsSelectedIndex = -1;
-        updateMenuVisuals();
-    };
-    resetBtn.onclick = () => {
-        window.controlesConfig = normalizarControles(CONTROLES_PADRAO);
-        salvarControlesNoStorage();
-        renderMenuUI();
-    };
-    actionsRow.appendChild(resetBtn);
+        CONTROLES_MENU_ITEMS.forEach((item, index) => {
+            let linha;
 
-    optionsContainer.appendChild(actionsRow);
+            if (template?.content?.firstElementChild) {
+                linha = template.content.firstElementChild.cloneNode(true);
+            } else {
+                linha = document.createElement('div');
+                linha.className = 'menu-option menu-option--control menu-controls-line';
+                linha.innerHTML = '<span class="menu-controls-label"></span><span class="menu-controls-key"></span>';
+            }
 
-    overlay.appendChild(optionsContainer);
-    console.log('[DEBUG-MENU] Renderização de controles finalizada com sucesso.');
+            const bind = getTeclaPrincipal(item.id);
+            const aguardando = controlsBindingAction === item.id ? '  <AGUARDANDO...>' : '';
+
+            const label = linha.querySelector('.menu-controls-label');
+            const keyDisplay = linha.querySelector('.menu-controls-key');
+
+            if (!label || !keyDisplay) return;
+
+            label.textContent = item.label;
+            keyDisplay.textContent = `${bind}${aguardando}`;
+
+            linha.onmouseenter = () => {
+                controlsSelectedIndex = index;
+                updateMenuVisuals();
+            };
+
+            linha.onclick = () => {
+                controlsSelectedIndex = index;
+                controlsBindingAction = item.id;
+                renderMenuUI();
+            };
+
+            listContainer.appendChild(linha);
+        });
+    } else {
+        console.error('Falha ao montar lista de controles:', {
+            hasList: !!listContainer,
+            hasTemplate: !!template,
+            hasItems: !!CONTROLES_MENU_ITEMS
+        });
+    }
+
+    // Configura botões de ação (Salvar/Restaurar) presentes no HTML
+    const salvarBtn = container.querySelector('#btn-save-controls');
+    if (salvarBtn) {
+        salvarBtn.onmouseenter = () => {
+            controlsSelectedIndex = CONTROLES_MENU_ITEMS.length;
+            updateMenuVisuals();
+        };
+        salvarBtn.onclick = () => {
+            salvarControlesNoStorage();
+            menuMode = 'main';
+            menuSelectedIndex = 0;
+            renderMenuUI();
+        };
+    }
+
+    const resetBtn = container.querySelector('#btn-reset-controls');
+    if (resetBtn) {
+        resetBtn.onmouseenter = () => {
+            controlsSelectedIndex = CONTROLES_MENU_ITEMS.length + 1;
+            updateMenuVisuals();
+        };
+        resetBtn.onclick = () => {
+            window.controlesConfig = normalizarControles(CONTROLES_PADRAO);
+            salvarControlesNoStorage();
+            renderMenuUI();
+        };
+    }
+
+    overlay.appendChild(container);
 }
 
 // Função para atualizar os visuais dos itens do menu (seleção, hover, etc.)
 function updateMenuVisuals() {
     if (menuMode === 'controls') {
-        const elements = document.querySelectorAll('.menu-option');
-        console.log(`[DEBUG-MENU] Atualizando visuais. Itens encontrados: ${elements.length}. Selecionado: ${controlsSelectedIndex}`);
+        const elements = document.querySelectorAll('.menu-controls-container .menu-option');
 
         elements.forEach((el, index) => {
             const isSelected = index === controlsSelectedIndex;
             el.classList.toggle('selected', isSelected);
-            
-            if (isSelected) {
-                // Estilos dinâmicos para item de controle selecionado (Sobrescrita de Destaque)
-                el.style.backgroundColor = '#00ffff';
-                el.style.color = '#000';
-                el.style.boxShadow = '0 0 15px rgba(0, 255, 255, 0.5)';
-                el.style.fontWeight = 'bold';
-                el.style.transform = 'scale(1.05)';
-            } else {
-                // Estilos dinâmicos para itens não selecionados (Reseta para o padrão do CSS)
-                // Usamos string vazia para permitir que o background-color definido no menu-style.css prevaleça
-                el.style.backgroundColor = '';
-                el.style.color = '#fff';
-                el.style.boxShadow = 'none';
-                el.style.fontWeight = 'normal';
-                el.style.transform = 'scale(1)';
-            }
         });
 
+        return;
+    }
+
+    if (menuMode === 'settings') {
+        const items = getSettingsNavItems();
+        items.forEach((item, index) => {
+            const isSelected = index === settingsSelectedIndex;
+            
+            if (item.classList.contains('menu-option')) {
+                item.classList.toggle('selected', isSelected);
+            } else {
+                item.classList.toggle('menu-nav-selected', isSelected);
+            }
+
+            if (isSelected) {
+                item.style.transform = 'scale(1.05)';
+            } else {
+                item.style.transform = 'scale(1)';
+            }
+        });
         return;
     }
 

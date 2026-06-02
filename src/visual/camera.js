@@ -57,13 +57,13 @@ window.detectarTamanhoCâmera = function() {
  * Simples centralização do jogador
  */
 const cameraPequena = function(alvoX, alvoY, mundoW, mundoH) {
-    const FASE_BASE_W = 640;
-    const FASE_BASE_H = 480;
+    const viewW_Config = window.VIEWPORT?.width || 640;
+    const viewH_Config = window.VIEWPORT?.height || 480;
     const zoom = window.cameraZoomFactor || 1;
 
     // O viewport lógico diminui proporcionalmente ao zoom
-    const viewW = FASE_BASE_W / zoom;
-    const viewH = FASE_BASE_H / zoom;
+    const viewW = viewW_Config / zoom;
+    const viewH = viewH_Config / zoom;
 
     // Centraliza o alvo no novo viewport lógico
     const targetX = alvoX - (viewW / 2);
@@ -123,13 +123,13 @@ const clamparCamera = function(pos, tamanhoMundo, tamanhoViewport) {
  * Segue o jogador com suavidade em viewport lógico fixo (640x480)
  */
 const cameraGrande = function(alvoX, alvoY, mundoW, mundoH) {
-    const BASE_W = 640;
-    const BASE_H = 480;
+    const viewW_Config = window.VIEWPORT?.width || 640;
+    const viewH_Config = window.VIEWPORT?.height || 480;
     const zoom = window.cameraZoomFactor || 1;
 
     // Viewport lógico (o quanto do mundo cabe na tela visual de 640x480)
-    const viewW = BASE_W / zoom;
-    const viewH = BASE_H / zoom;
+    const viewW = viewW_Config / zoom;
+    const viewH = viewH_Config / zoom;
     
     // Calcula offset de direção (espaço extra à frente)
     const dirX = window.ultimaDirecaoX || 0;

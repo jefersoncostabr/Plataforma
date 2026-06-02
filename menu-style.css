@@ -170,7 +170,6 @@
     flex-direction: column;
     gap: 8px;
 }
-
 /* Ícones de equipamentos no resumo */
 .menu-slot-summary .equipamento-icone {
     width: 22px;
@@ -205,6 +204,10 @@
     background: rgba(0, 0, 0, 0.5);
     border-radius: 10px;
     border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+.menu-controls-list-container {
+    width: 100%;
 }
 
 /* Linha de comando de controle */
@@ -263,8 +266,18 @@
 /* Seleção modo controles */
 .menu-option.menu-option--control.selected {
     background: #00ffff;
-    color: #222;
+    color: #000;
+    font-weight: bold;
     transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+}
+
+.menu-option.menu-option--action.menu-controls-action-btn.selected {
+    background: #00ffff;
+    color: #000;
+    font-weight: bold;
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
 }
 /* ============================================================
    ESTILOS DO MENU (Extraidos de index-style.css)
