@@ -1,7 +1,7 @@
 {
-    "proporcao": "2x1",
+    "proporcao": "2x2",
     "posicaoInicialJogador": "b2",
-    "objetivo": "ab20",
+    "objetivo": "ab23",
     "posicaoAlavanca": "",
     "posicaoRoboDesativado": "",
     "posicaoRoboAberto": "",
@@ -16,7 +16,7 @@
             "t15",
             "x6"
         ],
-        "restauracao": "m15",
+        "restauracao": "m38",
         "jetpack": [
             "b14",
             "ab18"
@@ -26,12 +26,21 @@
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20",
+        "a1", "a2", "a3", "a4", "a5", "a6", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
+        "c40",
+        "f38",
         "g4", "g5",
-        "l9", "l10", "l15",
+        "i40",
+        "l9", "l10", "l15", "l38",
+        "o40",
+        "r38",
         "s14", "s15",
+        "u40",
         "w5", "w6",
-        "aa1", "aa2",
+        "x28", "x29", "x30", "x31", "x32", "x33", "x34", "x35", "x36", "x37", "x39",
+        "y27", "y38",
+        "z27", "z38",
+        "aa1", "aa2", "aa27", "aa38",
         "ab10", "ab11"
     ],
     "plataformasEstacaBaixo": [
@@ -44,6 +53,7 @@
     ],
     "humano": [
         "b9", "b12", "b16", "b18", "b20",
+        "y28", "y29", "y30", "y31", "y32", "y33", "y34", "y35", "y36", "y37",
         "z14",
         "aa5"
     ]

@@ -12,8 +12,7 @@
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
-        "cinto": "l1",
-        "jetpack": "b1"
+        "cinto": "l1"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
@@ -25,7 +24,7 @@
         "g15", "g16", "g17", "g18", "g19", "g28", "g29", "g30", "g31", "g40",
         "j14",
         "k1",
-        "m2", "m4", "m6", "m8", "m10", "m12"
+        "m2", "m6", "m8", "m10", "m12"
     ],
     "plataformasTerraInferior2": [
         "d7", "d37",

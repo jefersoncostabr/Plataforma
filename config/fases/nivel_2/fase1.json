@@ -51,7 +51,7 @@
     "plataformasTerraSuperior": [
         "m1", "m4"
     ],
-    "inimigo_comum": ["d16", "d24", "d32"],
+    "inimigo_comum": ["d24", "d32"],
     "humano": [
         "i37",
         "k22",

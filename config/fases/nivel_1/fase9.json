@@ -1,5 +1,5 @@
 {
-    "proporcao": "1x1",
+    "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
     "objetivo": "f19",
     "posicaoAlavanca": "",
@@ -32,15 +32,17 @@
             "n7"
         ],
         "bota": "n16",
-        "doze": "n19"
+        "doze": "n40",
+        "cinto": "n22",
+        "garra": "n31"
     },
     "inimigoAleatorio": [1, 0],
     "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a10", "a11", "a13", "a14", "a16", "a17", "a18", "a19", "a20",
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a10", "a11", "a13", "a14", "a16", "a17", "a18", "a19", "a20", "a21", "a25", "a26", "a27", "a28", "a29", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
         "b8",
         "f5",
         "g10", "g11", "g13", "g14",
-        "m1", "m4", "m7", "m10", "m13", "m16", "m19"
+        "m1", "m4", "m7", "m10", "m13", "m16", "m19", "m22", "m25", "m31", "m37", "m40"
     ],
     "plataformasEstacaSup": [
         "a9", "a15"
@@ -49,16 +51,23 @@
         "h9", "h15"
     ],
     "plataformasEstacaBaixo": [
-        "l4", "l10", "l13", "l19"
+        "l4", "l10", "l13", "l19", "l31", "l40"
     ],
     "plataformasTerraInferior": [
         "c15"
     ],
     "plataformasTerraSuperior": [
+        "e23", "e31",
         "f12"
     ],
     "humano": [
         "b7", "b10", "b13", "b19", "b20",
         "h10", "h11", "h12", "h13", "h14"
+    ],
+    "plataformasEstacaDir": [
+        "m32"
+    ],
+    "plataformasEstacaEsq": [
+        "m30"
     ]
 }

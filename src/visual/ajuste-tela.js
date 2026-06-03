@@ -39,14 +39,28 @@
     const savedWidth = Number.parseInt(lerStorage(SCREEN_WIDTH_STORAGE_KEY), 10);
     const savedHeight = Number.parseInt(lerStorage(SCREEN_HEIGHT_STORAGE_KEY), 10);
 
+    let viewportNormal = { width: BASE_W, height: BASE_H };
+
     if (Number.isFinite(savedWidth) && Number.isFinite(savedHeight) && savedWidth > 0 && savedHeight > 0) {
-        window.VIEWPORT = { 
+        viewportNormal = {
+            width: savedWidth,
+            height: savedHeight,
+        };
+        window.VIEWPORT = {
             width: savedWidth,
             height: savedHeight,
         };
         console.info(`[Tela] Resolução carregada da memória: ${savedWidth}x${savedHeight}`);
     } else {
-        window.VIEWPORT = window.VIEWPORT || { width: BASE_W, height: BASE_H };
+        const viewportInicial = window.VIEWPORT || { width: BASE_W, height: BASE_H };
+        viewportNormal = {
+            width: viewportInicial.width,
+            height: viewportInicial.height,
+        };
+        window.VIEWPORT = {
+            width: viewportInicial.width,
+            height: viewportInicial.height,
+        };
         console.info(`[Tela] Usando resolução padrão: ${window.VIEWPORT.width}x${window.VIEWPORT.height}`);
     }
 
@@ -69,8 +83,8 @@
 
     function calcularViewportPorModo() {
         if (modoTelaAtual === SCREEN_MODES.NORMAL) {
-            // Retorna o que está no VIEWPORT (que pode ter vindo do localStorage)
-            return { width: window.VIEWPORT.width, height: window.VIEWPORT.height };
+            // No modo normal, usa sempre a resolução base escolhida pelo jogador.
+            return { width: viewportNormal.width, height: viewportNormal.height };
         }
 
         const { largura, altura } = obterDimensoesJanela();
@@ -281,6 +295,8 @@
         const alturaNum = Number.parseInt(altura, 10);
         if (!Number.isFinite(larguraNum) || !Number.isFinite(alturaNum) || larguraNum <= 0 || alturaNum <= 0) return;
 
+        viewportNormal.width = larguraNum;
+        viewportNormal.height = alturaNum;
         window.VIEWPORT.width = larguraNum;
         window.VIEWPORT.height = alturaNum;
         
