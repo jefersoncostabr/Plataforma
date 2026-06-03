@@ -6,6 +6,9 @@
     const BASE_W = window.GAME_CONSTANTS?.VIEWPORT?.WIDTH || 640;
     const BASE_H = window.GAME_CONSTANTS?.VIEWPORT?.HEIGHT || 480;
     const SCREEN_MODE_STORAGE_KEY = 'game.screenMode';
+    const SCREEN_WIDTH_STORAGE_KEY = 'game.screenWidth';
+    const SCREEN_HEIGHT_STORAGE_KEY = 'game.screenHeight';
+    const SCREEN_SCALE_STORAGE_KEY = 'game.screenScale';
 
     const SCREEN_MODES = {
         NORMAL: 'normal',
@@ -15,8 +18,37 @@
 
     window.SCREEN_MODES = window.SCREEN_MODES || SCREEN_MODES;
 
-    // Define valores padrão se não existirem no VIEWPORT global
-    window.VIEWPORT = window.VIEWPORT || { width: BASE_W, height: BASE_H };
+    function lerStorage(chave) {
+        try {
+            return localStorage.getItem(chave);
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function salvarStorage(chave, valor) {
+        try {
+            localStorage.setItem(chave, String(valor));
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    // Carrega dimensões salvas ou usa o padrão
+    const savedWidth = Number.parseInt(lerStorage(SCREEN_WIDTH_STORAGE_KEY), 10);
+    const savedHeight = Number.parseInt(lerStorage(SCREEN_HEIGHT_STORAGE_KEY), 10);
+
+    if (Number.isFinite(savedWidth) && Number.isFinite(savedHeight) && savedWidth > 0 && savedHeight > 0) {
+        window.VIEWPORT = { 
+            width: savedWidth,
+            height: savedHeight,
+        };
+        console.info(`[Tela] Resolução carregada da memória: ${savedWidth}x${savedHeight}`);
+    } else {
+        window.VIEWPORT = window.VIEWPORT || { width: BASE_W, height: BASE_H };
+        console.info(`[Tela] Usando resolução padrão: ${window.VIEWPORT.width}x${window.VIEWPORT.height}`);
+    }
 
     let modoTelaSelecionado = SCREEN_MODES.NORMAL;
     let modoTelaAtual = SCREEN_MODES.NORMAL;
@@ -37,7 +69,8 @@
 
     function calcularViewportPorModo() {
         if (modoTelaAtual === SCREEN_MODES.NORMAL) {
-            return { width: BASE_W, height: BASE_H };
+            // Retorna o que está no VIEWPORT (que pode ter vindo do localStorage)
+            return { width: window.VIEWPORT.width, height: window.VIEWPORT.height };
         }
 
         const { largura, altura } = obterDimensoesJanela();
@@ -71,6 +104,13 @@
 
     function calcularEscalaPorModo(baseW, baseH) {
         if (modoTelaAtual === SCREEN_MODES.NORMAL) {
+            // Tenta carregar escala personalizada salva pelo jogador
+            const escalaSalva = Number(lerStorage(SCREEN_SCALE_STORAGE_KEY));
+            if (Number.isFinite(escalaSalva) && escalaSalva > 0) {
+                console.debug(`[Tela] Aplicando escala da memória: ${escalaSalva}x`);
+                return escalaSalva;
+            }
+
             const escalaConfigurada = Number(window.config?.escalaPalco);
             if (escalaConfigurada && escalaConfigurada > 0) {
                 return escalaConfigurada;
@@ -85,19 +125,11 @@
     }
 
     function salvarModoTela(modo) {
-        try {
-            localStorage.setItem(SCREEN_MODE_STORAGE_KEY, modo);
-        } catch (_) {
-            // Ignora falhas de storage para não quebrar a execução do jogo
-        }
+        salvarStorage(SCREEN_MODE_STORAGE_KEY, modo);
     }
 
     function carregarModoTelaPersistido() {
-        try {
-            return normalizarModoTela(localStorage.getItem(SCREEN_MODE_STORAGE_KEY));
-        } catch (_) {
-            return SCREEN_MODES.NORMAL;
-        }
+        return normalizarModoTela(lerStorage(SCREEN_MODE_STORAGE_KEY));
     }
 
     function emitirEventoModoTela(modo) {
@@ -182,6 +214,13 @@
         // O segredo da centralização: traduzir metade da própria largura/altura para trás
         container.style.transform = `translate(-50%, -50%) scale(${escala})`;
 
+        // Sincroniza o palco interno (stage) para o tamanho lógico
+        const stage = document.getElementById('game-stage');
+        if (stage) {
+            stage.style.width = baseW + 'px';
+            stage.style.height = baseH + 'px';
+        }
+
         // 4. Correção de Renderização específica para Firefox (Nitidez de Pixel Art)
         if (navigator.userAgent.toLowerCase().includes('firefox')) {
             container.style.imageRendering = '-moz-crisp-edges';
@@ -193,6 +232,8 @@
 
         window.escalaAtual = escala;
         window.autoScaleMultiplier = escala;
+
+        console.debug(`[Tela] Renderizado: ${baseW}x${baseH} @ ${escala}x (Modo: ${modoTelaAtual})`);
 
         if (typeof window.resetarCamera === 'function') {
             window.resetarCamera();
@@ -209,6 +250,7 @@
     };
 
     window.aplicarModoTela = async function(modo) {
+        console.log(`[Tela] Solicitando alteração de modo: ${modo}`);
         const modoSolicitado = normalizarModoTela(modo);
         const elementoFullscreen = obterElementoFullscreen();
         modoTelaSelecionado = modoSolicitado;
@@ -235,18 +277,34 @@
      * Ex: window.alterarTamanhoTela(1280, 720);
      */
     window.alterarTamanhoTela = function(largura, altura) {
-        window.VIEWPORT.width = largura;
-        window.VIEWPORT.height = altura;
+        const larguraNum = Number.parseInt(largura, 10);
+        const alturaNum = Number.parseInt(altura, 10);
+        if (!Number.isFinite(larguraNum) || !Number.isFinite(alturaNum) || larguraNum <= 0 || alturaNum <= 0) return;
+
+        window.VIEWPORT.width = larguraNum;
+        window.VIEWPORT.height = alturaNum;
         
-        // Sincroniza o palco interno (stage) para o novo tamanho
-        const stage = document.getElementById('game-stage');
-        if (stage) {
-            stage.style.width = largura + 'px';
-            stage.style.height = altura + 'px';
-        }
+        salvarStorage(SCREEN_WIDTH_STORAGE_KEY, larguraNum);
+        salvarStorage(SCREEN_HEIGHT_STORAGE_KEY, alturaNum);
+        console.info(`[Tela] Nova resolução salva: ${larguraNum}x${alturaNum}`);
 
         window.aplicarEscalaJogo();
-        console.info(`[Resolução] Nova área visível: ${largura}x${altura}`);
+        console.info(`[Resolução] Nova área visível: ${larguraNum}x${alturaNum}`);
+    };
+
+    /**
+     * Altera o fator de escala (zoom) do jogo e o salva na memória.
+     * @param {number} novaEscala - Ex: 1.5, 2, 3
+     */
+    window.alterarEscala = function(novaEscala) {
+        const escalaNum = parseFloat(novaEscala);
+        if (isNaN(escalaNum) || escalaNum <= 0) return;
+
+        salvarStorage(SCREEN_SCALE_STORAGE_KEY, escalaNum);
+        if (window.config) window.config.escalaPalco = escalaNum;
+        
+        window.aplicarEscalaJogo();
+        console.info(`[Escala] Novo fator de zoom salvo: ${escalaNum}`);
     };
 
     const modoInicial = carregarModoTelaPersistido();

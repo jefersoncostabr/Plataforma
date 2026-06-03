@@ -919,25 +919,44 @@ async function iniciarJogo() {
 
     const baseWidth = 640;
     const baseHeight = 480;
-    
-    // REVERTIDO: Prioriza o valor exato do JSON (ex: 1.5) em vez do cálculo automático com arredondamento para baixo.
-    window.escalaAtual = Number(config.escalaPalco) || 1;
+    const viewportInicial = window.VIEWPORT || { width: baseWidth, height: baseHeight };
 
-    // Configura viewport base fixa e aplica escala visual no container
+    let escalaPersistida = NaN;
+    try {
+        escalaPersistida = Number(localStorage.getItem('game.screenScale'));
+    } catch (_) {
+        // Mantém fallback para config quando storage não estiver disponível.
+    }
+
+    // Prioriza a escala persistida do jogador quando disponível.
+    const escalaInicial = Number.isFinite(escalaPersistida) && escalaPersistida > 0
+        ? escalaPersistida
+        : (Number(config.escalaPalco) || 1);
+
+    window.escalaAtual = escalaInicial;
+    if (window.config && Number.isFinite(escalaInicial) && escalaInicial > 0) {
+        window.config.escalaPalco = escalaInicial;
+    }
+
     const container = document.getElementById('jogo-container');
     if (container) {
-        container.style.width = baseWidth + 'px';
-        container.style.height = baseHeight + 'px';
         container.style.overflow = 'hidden';
-        container.style.position = 'relative';
-        container.style.display = 'block';
-        container.style.margin = '0 auto';
-        container.style.top = '0';
-        container.style.left = '0';
-        container.style.transform = `scale(${window.escalaAtual})`;
-        container.style.transformOrigin = 'center center';
-        
-        window.autoScaleMultiplier = window.escalaAtual;
+
+        if (typeof window.aplicarEscalaJogo === 'function') {
+            window.aplicarEscalaJogo();
+        } else {
+            // Fallback para casos raros em que ajuste-tela.js ainda não foi carregado.
+            container.style.width = viewportInicial.width + 'px';
+            container.style.height = viewportInicial.height + 'px';
+            container.style.position = 'relative';
+            container.style.display = 'block';
+            container.style.margin = '0 auto';
+            container.style.top = '0';
+            container.style.left = '0';
+            container.style.transform = `scale(${window.escalaAtual})`;
+            container.style.transformOrigin = 'center center';
+            window.autoScaleMultiplier = window.escalaAtual;
+        }
     }
 
     // Função pública para recálculo manual; resize fica centralizado em ajuste-tela.js
