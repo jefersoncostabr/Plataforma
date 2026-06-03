@@ -118,6 +118,12 @@ const clamparCamera = function(pos, tamanhoMundo, tamanhoViewport) {
     return 0;
 };
 
+    const calcularOffsetCentralizacao = function(tamanhoMundo, tamanhoViewport) {
+        if (tamanhoMundo >= tamanhoViewport) {
+            return 0;
+        }
+        return (tamanhoViewport - tamanhoMundo) / 2;
+    };
 /**
  * 📱 CÂMERA PRINCIPAL PARA TELA GRANDE
  * Segue o jogador com suavidade em viewport lógico fixo (640x480)
@@ -164,11 +170,13 @@ const cameraGrande = function(alvoX, alvoY, mundoW, mundoH) {
 
         let x = Math.round(window.cameraX);
         let y = Math.round(window.cameraY);
+        const offsetX = calcularOffsetCentralizacao(mundoW, viewW);
+        const offsetY = calcularOffsetCentralizacao(mundoH, viewH);
         // Aplica tremor vertical se ativo
         if (window.cameraTremorAtivo) {
             y += (Math.random() * window.cameraTremorIntensidade) - (window.cameraTremorIntensidade / 2);
         }
-        stage.style.transform = `scale(${window.cameraZoomFactor}) translate(${-x}px, ${-y}px)`;
+        stage.style.transform = `scale(${window.cameraZoomFactor}) translate(${Math.round(offsetX - x)}px, ${Math.round(offsetY - y)}px)`;
     }
 };
 

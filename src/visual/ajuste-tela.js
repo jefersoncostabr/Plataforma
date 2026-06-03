@@ -18,6 +18,7 @@
     // Define valores padrão se não existirem no VIEWPORT global
     window.VIEWPORT = window.VIEWPORT || { width: BASE_W, height: BASE_H };
 
+    let modoTelaSelecionado = SCREEN_MODES.NORMAL;
     let modoTelaAtual = SCREEN_MODES.NORMAL;
 
     function normalizarModoTela(modo) {
@@ -32,6 +33,25 @@
         const largura = Math.max(1, Math.floor(visualViewport?.width || window.innerWidth || BASE_W));
         const altura = Math.max(1, Math.floor(visualViewport?.height || window.innerHeight || BASE_H));
         return { largura, altura };
+    }
+
+    function calcularViewportPorModo() {
+        if (modoTelaAtual === SCREEN_MODES.NORMAL) {
+            return { width: BASE_W, height: BASE_H };
+        }
+
+        const { largura, altura } = obterDimensoesJanela();
+        const aspectoTela = largura / altura;
+        const aspectoBase = BASE_W / BASE_H;
+
+        if (!Number.isFinite(aspectoTela) || aspectoTela <= aspectoBase) {
+            return { width: BASE_W, height: BASE_H };
+        }
+
+        return {
+            width: Math.max(BASE_W, Math.round(BASE_H * aspectoTela)),
+            height: BASE_H,
+        };
     }
 
     function calcularEscalaAutomatica(baseW, baseH) {
@@ -115,17 +135,22 @@
     function sincronizarEstadoFullscreen() {
         if (document.fullscreenElement) {
             // Garante recálculo depois da entrada em fullscreen.
-            if (modoTelaAtual === SCREEN_MODES.FULLSCREEN) {
+            if (modoTelaSelecionado === SCREEN_MODES.FULLSCREEN) {
+                modoTelaAtual = SCREEN_MODES.FULLSCREEN;
                 window.aplicarEscalaJogo();
                 emitirEventoModoTela(modoTelaAtual);
             }
             return;
         }
 
-        if (modoTelaAtual !== SCREEN_MODES.FULLSCREEN) return;
+        if (modoTelaSelecionado === SCREEN_MODES.FULLSCREEN) {
+            // Saiu do fullscreen (ex.: ESC do navegador), mas preserva preferência.
+            // Usa stretch como modo efetivo fora do fullscreen para evitar voltar ao normal.
+            modoTelaAtual = SCREEN_MODES.STRETCH;
+        } else {
+            modoTelaAtual = modoTelaSelecionado;
+        }
 
-        modoTelaAtual = SCREEN_MODES.NORMAL;
-        salvarModoTela(modoTelaAtual);
         window.aplicarEscalaJogo();
         emitirEventoModoTela(modoTelaAtual);
     }
@@ -133,6 +158,10 @@
     window.aplicarEscalaJogo = function() {
         const container = document.getElementById('jogo-container');
         if (!container || !window.config) return;
+
+        const viewport = calcularViewportPorModo();
+        window.VIEWPORT.width = viewport.width;
+        window.VIEWPORT.height = viewport.height;
 
         const baseW = window.VIEWPORT.width;
         const baseH = window.VIEWPORT.height;
@@ -175,9 +204,14 @@
         return modoTelaAtual;
     };
 
+    window.obterModoTelaSelecionado = function() {
+        return modoTelaSelecionado;
+    };
+
     window.aplicarModoTela = async function(modo) {
         const modoSolicitado = normalizarModoTela(modo);
         const elementoFullscreen = obterElementoFullscreen();
+        modoTelaSelecionado = modoSolicitado;
         let modoFinal = modoSolicitado;
 
         if (modoSolicitado === SCREEN_MODES.FULLSCREEN) {
@@ -190,7 +224,7 @@
         }
 
         modoTelaAtual = modoFinal;
-        salvarModoTela(modoTelaAtual);
+        salvarModoTela(modoTelaSelecionado);
         window.aplicarEscalaJogo();
         emitirEventoModoTela(modoTelaAtual);
         return modoTelaAtual;
@@ -216,6 +250,7 @@
     };
 
     const modoInicial = carregarModoTelaPersistido();
+    modoTelaSelecionado = modoInicial;
     modoTelaAtual = modoInicial === SCREEN_MODES.FULLSCREEN ? SCREEN_MODES.STRETCH : modoInicial;
 
     // Listener de redimensionamento com debounce simples

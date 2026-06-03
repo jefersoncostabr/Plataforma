@@ -503,10 +503,12 @@ async function carregarFase(nomeArquivo) {
         // Snap instantâneo da câmera para o spawn do jogador (sem lerp).
         const centroSnapX = window.playerControle.x + ((window.playerControle.largura || 20) / 2);
         const centroSnapY = window.playerControle.y + ((window.playerControle.altura || 30) / 2);
-        const snapTargetX = centroSnapX - 320;
-        const snapTargetY = window.mundoAltura - centroSnapY - 240;
-        window.cameraX = Math.max(0, Math.min(snapTargetX, window.mundoLargura - 640));
-        window.cameraY = Math.max(0, Math.min(snapTargetY, window.mundoAltura - 480));
+        const viewportWidth = window.VIEWPORT?.width || 640;
+        const viewportHeight = window.VIEWPORT?.height || 480;
+        const snapTargetX = centroSnapX - (viewportWidth / 2);
+        const snapTargetY = window.mundoAltura - centroSnapY - (viewportHeight / 2);
+        window.cameraX = Math.max(0, Math.min(snapTargetX, window.mundoLargura - viewportWidth));
+        window.cameraY = Math.max(0, Math.min(snapTargetY, window.mundoAltura - viewportHeight));
         if (typeof window.atualizarCamera === 'function') {
             window.atualizarCamera(centroSnapX, centroSnapY, window.mundoLargura, window.mundoAltura);
         }

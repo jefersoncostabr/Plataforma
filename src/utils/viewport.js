@@ -25,9 +25,11 @@ window.ViewportUtils = {
      * @returns {object} {width, height} do viewport efetivo
      */
     calcularViewportEfetivo(escala) {
+        const viewWidth = window.VIEWPORT?.width || 640;
+        const viewHeight = window.VIEWPORT?.height || 480;
         return {
-            width: 640 / escala,
-            height: 480 / escala,
+            width: viewWidth / escala,
+            height: viewHeight / escala,
         };
     },
 
@@ -38,7 +40,9 @@ window.ViewportUtils = {
      * @returns {boolean} true se cabe toda
      */
     faseCabeTodaNaViewport(mundoW, mundoH) {
-        return mundoW <= 640 && mundoH <= 480;
+        const viewWidth = window.VIEWPORT?.width || 640;
+        const viewHeight = window.VIEWPORT?.height || 480;
+        return mundoW <= viewWidth && mundoH <= viewHeight;
     },
 
     /**
