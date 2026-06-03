@@ -84,6 +84,13 @@
         }
     }
 
+    function obterElementoFullscreen() {
+        // Em alguns navegadores, aplicar fullscreen no próprio container do jogo
+        // pode sobrescrever estilos de transform e impedir a ampliação visual.
+        // Usamos a raiz do documento para fullscreen e mantemos o scale no container.
+        return document.documentElement || document.body || document.getElementById('jogo-container');
+    }
+
     async function sairFullscreen() {
         if (!document.fullscreenElement || !document.exitFullscreen) return;
         try {
@@ -93,8 +100,16 @@
         }
     }
 
-    function sincronizarSaidaFullscreen() {
-        if (document.fullscreenElement) return;
+    function sincronizarEstadoFullscreen() {
+        if (document.fullscreenElement) {
+            // Garante recálculo depois da entrada em fullscreen.
+            if (modoTelaAtual === SCREEN_MODES.FULLSCREEN) {
+                window.aplicarEscalaJogo();
+                emitirEventoModoTela(modoTelaAtual);
+            }
+            return;
+        }
+
         if (modoTelaAtual !== SCREEN_MODES.FULLSCREEN) return;
 
         modoTelaAtual = SCREEN_MODES.NORMAL;
@@ -150,11 +165,11 @@
 
     window.aplicarModoTela = async function(modo) {
         const modoSolicitado = normalizarModoTela(modo);
-        const container = document.getElementById('jogo-container') || document.documentElement;
+        const elementoFullscreen = obterElementoFullscreen();
         let modoFinal = modoSolicitado;
 
         if (modoSolicitado === SCREEN_MODES.FULLSCREEN) {
-            const entrouFullscreen = await entrarFullscreen(container);
+            const entrouFullscreen = await entrarFullscreen(elementoFullscreen);
             if (!entrouFullscreen) {
                 modoFinal = SCREEN_MODES.STRETCH;
             }
@@ -197,5 +212,5 @@
         window.timerRedimensionamento = setTimeout(window.aplicarEscalaJogo, 100);
     });
 
-    document.addEventListener('fullscreenchange', sincronizarSaidaFullscreen);
+    document.addEventListener('fullscreenchange', sincronizarEstadoFullscreen);
 })();
