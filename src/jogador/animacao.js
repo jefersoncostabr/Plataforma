@@ -1,8 +1,15 @@
+console.log('[IDLE/FILE] animacao.js carregado');
+
+
 /**
  * Atualiza o frame de animação baseado no estado de movimento.
+
  * Deve ser chamada dentro do loop principal (requestAnimationFrame).
  */
+
+
 function definirSpriteSeValido(elemento, sprite, fallbackSprite) {
+
     const spriteValido = typeof sprite === 'string' && sprite.trim() !== ''
         ? sprite
         : (typeof fallbackSprite === 'string' && fallbackSprite.trim() !== '' ? fallbackSprite : null);
@@ -13,7 +20,57 @@ function definirSpriteSeValido(elemento, sprite, fallbackSprite) {
 }
 
 function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spriteNoAr, spriteAgachado, spriteAgachadoAndando, spriteCarregando1, spriteCarregando2, spriteCarregando3, spriteCarregando4, spriteCarregando5, spriteCarregando6) {
+
+    // Logs temporários para diagnosticar quando o idle/respiração não roda.
+const __debugIdle = false;
+
+    // Permite inspeção via DevTools mesmo sem setar a flag corretamente (fallback seguro)
+    // Quando DEBUG_IDLE_PLAYER não está setado, mas ainda assim você quer logs, use: window.__DEBUG_IDLE_FORCE = true;
+    const __debugIdleForce = false;
+
+
+
+    // Mesmo em modo debug, não há garantia que o animador rode.
+    // Este log inicial ajuda a confirmar que a função está sendo executada.
+    if ((__debugIdle || __debugIdleForce) && !controle._idle2sDbgInitLogged) {
+
+        controle._idle2sDbgInitLogged = true;
+        console.log('[IDLE/DBG] iniciar', {
+            tipo: controle?.tipo,
+            temArma: !!controle?.temArma,
+            itensGuardadosNoCinto: !!controle?.itensGuardadosNoCinto
+        });
+    }
+
+    const __agoraMs = (typeof performance !== 'undefined' && typeof performance.now === 'function')
+        ? performance.now()
+        : Date.now();
+    if (__debugIdle) {
+        // Evita spam: loga só a cada ~30 frames.
+        controle._idle2sDbgCounter = (controle._idle2sDbgCounter || 0) + 1;
+        if (controle._idle2sDbgCounter % 30 === 0) {
+            console.log('[IDLE/DBG]', {
+                noChao: !!controle.noChao,
+                movendoHorizontal: !!controle.movendoHorizontal,
+                estaAgachado: !!controle.estaAgachado,
+                carregando: !!controle.carregando,
+                estaoAberto: !!controle.estaoAberto,
+                abrindo: !!controle.abrindo,
+                tempoAbertura: Number(controle.tempoAbertura || 0),
+                chutando: !!controle.chutando,
+                tempoChute: Number(controle.tempoChute || 0),
+                tipo: controle.tipo,
+                itensGuardadosNoCinto: !!controle.itensGuardadosNoCinto,
+                temArma: !!controle.temArma,
+                _idle2sAtivo: !!controle._idle2sAtivo,
+                _idle2sTimerMs: Number(controle._idle2sTimerMs || 0)
+            });
+        }
+        controle._idle2sUltimoMs = controle._idle2sUltimoMs ?? __agoraMs;
+    }
+
     const desativarRespiracaoOciosaPet = controle?.tipo === 'cao' || controle?.tipo === 'gato';
+
     const agoraMs = (typeof performance !== 'undefined' && typeof performance.now === 'function')
         ? performance.now()
         : Date.now();
@@ -24,6 +81,11 @@ function atualizarAnimacao(controle, elemento, spriteParado, spriteAndando, spri
     if (controle.contadorAnimacao === undefined) {
         controle.contadorAnimacao = 0;
         controle.frameAtual = 0;
+    }
+
+    // Garante estado numérico válido do timer de idle para evitar NaN em runtime.
+    if (!Number.isFinite(controle._idle2sTimerMs)) {
+        controle._idle2sTimerMs = 0;
     }
 
     // Função auxiliar para resetar os timers de ociosidade quando o jogador agir
