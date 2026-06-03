@@ -938,17 +938,12 @@ async function iniciarJogo() {
         window.autoScaleMultiplier = window.escalaAtual;
     }
 
-    // Função para recalcular escala ao redimensionar a tela
-    let resizeTimeout = null;
+    // Função pública para recálculo manual; resize fica centralizado em ajuste-tela.js
     window.recalcularTamanhoJogo = function() {
-        // Se existir o sistema de ajuste centralizado, utiliza-o para manter a consistência
         if (typeof window.aplicarEscalaJogo === 'function') {
             window.aplicarEscalaJogo();
         }
     };
-    
-    // Listener para redimensionamento da tela
-    window.addEventListener('resize', window.recalcularTamanhoJogo);
 
     // Inicializa sistemas de movimento, IA e renderização
     await iniciarMovimentacao(

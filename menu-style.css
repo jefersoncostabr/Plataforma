@@ -332,6 +332,22 @@
     animation: menu-shine-slide 1.5s infinite;
 }
 
+.menu-option.menu-screen-active {
+    border: 2px solid rgba(0, 255, 255, 0.9);
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.35);
+    background-color: rgba(0, 255, 255, 0.08);
+}
+
+.menu-screen-status {
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    color: rgba(220, 255, 255, 0.95);
+    text-align: center;
+    text-transform: uppercase;
+}
+
 .menu-option--main {
     padding: 12px;
     font-size: 18px;

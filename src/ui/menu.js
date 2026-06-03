@@ -908,6 +908,41 @@ function getSettingsNavItems() {
     return Array.from(document.querySelectorAll('#pause-menu-overlay .menu-nav-item[data-menu-mode="settings"]'));
 }
 
+function obterModoTelaAtualMenu() {
+    if (typeof window.obterModoTelaAtual === 'function') {
+        return window.obterModoTelaAtual();
+    }
+    return 'normal';
+}
+
+function formatarRotuloModoTela(modo) {
+    const valor = String(modo || 'normal').toLowerCase();
+    if (valor === 'stretch') return '100% VIEWPORT';
+    if (valor === 'fullscreen') return 'FULLSCREEN';
+    return 'NORMAL';
+}
+
+function sincronizarEstadoBotoesTela(raiz = document) {
+    const modoAtual = obterModoTelaAtualMenu();
+    const botoes = raiz.querySelectorAll('[data-nav-type="screen"]');
+    botoes.forEach((botao) => {
+        const ativo = botao.dataset.screenMode === modoAtual;
+        botao.classList.toggle('menu-screen-active', ativo);
+        botao.setAttribute('aria-pressed', ativo ? 'true' : 'false');
+    });
+
+    const status = raiz.querySelector('#screen-mode-status');
+    if (status) {
+        status.textContent = `MODO ATUAL: ${formatarRotuloModoTela(modoAtual)}`;
+    }
+}
+
+window.addEventListener('screen-mode-change', () => {
+    if (window.isMenuOpen && menuMode === 'settings') {
+        sincronizarEstadoBotoesTela(document);
+    }
+});
+
 function handleSettingsInput(e) {
     const key = e.key.toLowerCase();
     const currentItems = getSettingsNavItems();
@@ -952,7 +987,7 @@ function handleSettingsInput(e) {
 async function loadSettingsMenuHtml() {
     if (settingsMenuHtmlContent) return; // Carrega apenas uma vez
     try {
-        const response = await fetch('src/ui/settings-menu.html');
+        const response = await fetch('src/ui/settings-menu.html?v=20260602-screen-mode-status');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         settingsMenuHtmlContent = await response.text();
     } catch (e) {
@@ -1227,10 +1262,18 @@ async function renderSettingsContent(overlay) {
             updateMenuVisuals();
         };
         
-        btn.onclick = () => {
-            console.log(`Alterar tela para: ${btn.dataset.screenMode}`);
+        btn.onclick = async () => {
+            const modo = btn.dataset.screenMode;
+            if (typeof window.aplicarModoTela === 'function') {
+                await window.aplicarModoTela(modo);
+            } else if (typeof window.aplicarEscalaJogo === 'function') {
+                window.aplicarEscalaJogo();
+            }
+            sincronizarEstadoBotoesTela(settingsContainer);
         };
     });
+
+    sincronizarEstadoBotoesTela(settingsContainer);
 
     overlay.appendChild(settingsContainer);
 }
@@ -1350,6 +1393,7 @@ function updateMenuVisuals() {
     }
 
     if (menuMode === 'settings') {
+        sincronizarEstadoBotoesTela(document);
         const items = getSettingsNavItems();
         items.forEach((item, index) => {
             const isSelected = index === settingsSelectedIndex;
