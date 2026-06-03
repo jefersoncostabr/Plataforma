@@ -41,12 +41,24 @@
         return Math.max(1, Math.min(sX, sY));
     }
 
+    function calcularEscalaAteLimite(baseW, baseH) {
+        const { largura, altura } = obterDimensoesJanela();
+        const sX = largura / baseW;
+        const sY = altura / baseH;
+        const escala = Math.max(1, Math.min(sX, sY));
+        return Number(escala.toFixed(4));
+    }
+
     function calcularEscalaPorModo(baseW, baseH) {
         if (modoTelaAtual === SCREEN_MODES.NORMAL) {
             const escalaConfigurada = Number(window.config?.escalaPalco);
             if (escalaConfigurada && escalaConfigurada > 0) {
                 return escalaConfigurada;
             }
+        }
+
+        if (modoTelaAtual === SCREEN_MODES.FULLSCREEN) {
+            return calcularEscalaAteLimite(baseW, baseH);
         }
 
         return calcularEscalaAutomatica(baseW, baseH);
