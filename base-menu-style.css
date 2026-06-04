@@ -1,5 +1,19 @@
 /* ================= BASE/INTERAÇÃO/Crafting ================= */
 
+.interaction-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--cor-fundo-overlay, rgba(0, 0, 0, 0.85));
+    z-index: 99998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: all;
+}
+
 /* Badges de Pets (Cão/Gato) */
 .interaction-pets {
     display: flex;

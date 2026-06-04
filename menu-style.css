@@ -62,11 +62,10 @@
 /* Overlay do menu de pausa */
 .pause-menu-overlay {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 820px;
-    height: 580px;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     background: var(--cor-fundo-overlay);
     z-index: 99999;
     display: flex;
@@ -75,7 +74,7 @@
     justify-content: center;
     color: white;
     font-family: 'Segoe UI', Tahoma, sans-serif;
-    border-radius: 4px;
+    border-radius: 0;
 }
 
 /* Título do menu */
