@@ -99,11 +99,18 @@
 
 /* Coluna de botões do menu principal */
 .menu-buttons-grid {
-    display: flex;
-    flex-direction: column;
+    /* Layout controlado via CSS. Mantém coluna única por padrão. */
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 12px;
-    align-items: center;
+    justify-items: center;
     margin-bottom: 5px;
+}
+
+/* Quando houver mais de 3 opções, vira 2 colunas */
+.menu-buttons-grid--split {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
 }
 
 .menu-options-container {

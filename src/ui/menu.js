@@ -1167,19 +1167,10 @@ function renderMainMenuContent(overlay) {
     const currentOptions = getMainMenuOptions();
     console.log('[Menu] Analisando layout. Total de opções:', currentOptions.length);
 
-    // Isso faz com que os ícones se organizem em duas colunas verticais para não ultrapassar a altura da tela.
+    // Split visual em 2 colunas: a lógica de layout fica no CSS.
+    // JS só habilita a classe quando há mais de 3 opções.
     if (currentOptions.length > 3) {
-        console.log('[Menu] Detectadas > 3 opções. Aplicando grade de 2 colunas.');
         buttonsGrid.classList.add('menu-buttons-grid--split');
-
-        // Força o layout de grade via JavaScript para garantir a quebra em colunas mesmo se o CSS falhar
-        buttonsGrid.style.display = 'grid';
-        buttonsGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-        buttonsGrid.style.gap = '10px';
-        buttonsGrid.style.justifyItems = 'center';
-        console.log('[Menu] Estilos de display:grid injetados com sucesso no buttonsGrid.');
-    } else {
-        console.log('[Menu] Poucas opções. Mantendo coluna única.');
     }
 
     // Função auxiliar para criar os botões e evitar repetição de código
