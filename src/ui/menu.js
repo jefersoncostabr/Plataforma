@@ -164,24 +164,24 @@ const CONTROLES_PADRAO = {
 };
 
 const CONTROLES_MENU_ITEMS = [
-    { id: 'esquerda', label: 'Mover Esquerda' },
-    { id: 'direita', label: 'Mover Direita' },
-    { id: 'cima', label: 'Mover Cima' },
-    { id: 'baixo', label: 'Mover Baixo' },
+    { id: 'esquerda', label: 'Esquerda' },
+    { id: 'direita', label: 'Direita' },
+    { id: 'cima', label: 'Cima' },
+    { id: 'baixo', label: 'Baixo' },
     { id: 'pulo', label: 'Pular' },
     { id: 'chute', label: 'Chutar' },
-    { id: 'tiro', label: 'Atirar/Acao' },
+    { id: 'tiro', label: 'Atirar/Ação' },
     { id: 'garra', label: 'Garra' },
     { id: 'cinto', label: 'Cinto' },
-    { id: 'mochila', label: 'Slots do Cinto e Colete' },
+    { id: 'mochila', label: 'Cinto / Colete' },
     { id: 'interagir', label: 'Interagir / Craft' },
-    { id: 'abertura', label: 'Abrir/Fechar Armadura (Y)' },
-    { id: 'troca_pet', label: 'Controlar Pets (Q)' },
-    { id: 'debugProximoNivel', label: 'Debug: Próxima Fase (4)' },
-    { id: 'debugSpawnInimigo', label: 'Debug: Spawn Inimigo (6)' },
-    { id: 'debugReset', label: 'Debug: Reset Total (0)' },
-    { id: 'pause', label: 'Pausar Jogo' },
-    { id: 'debugGrade', label: 'Grade de Debug (G)' }
+    { id: 'abertura', label: 'Abrir/Fechar Robo' },
+    { id: 'troca_pet', label: 'Pets' },
+    { id: 'debugProximoNivel', label: 'Próxima Fase' },
+    { id: 'debugSpawnInimigo', label: 'Spawn Inimigo' },
+    { id: 'debugReset', label: 'Reset Total' },
+    { id: 'pause', label: 'Pausar' },
+    { id: 'debugGrade', label: 'Grade' }
 ];
 
 function normalizarControles(raw) {
@@ -931,11 +931,9 @@ function sincronizarEstadoBotoesTela(raiz = document) {
         botao.setAttribute('aria-pressed', ativo ? 'true' : 'false');
     });
 
-    const status = raiz.querySelector('#screen-mode-status');
-    if (status) {
-        status.textContent = `MODO ATUAL: ${formatarRotuloModoTela(modoAtual)}`;
-    }
+
 }
+
 
 window.addEventListener('screen-mode-change', () => {
     if (window.isMenuOpen && menuMode === 'settings') {
@@ -1086,8 +1084,7 @@ async function renderMenuUI() {
     mainLayout.className = 'menu-layout-container';
     overlay.appendChild(mainLayout);
 
-    const title = criarElementoTitulo();
-    mainLayout.appendChild(title);
+        
 
     if (typeof closeAction === 'function') {
         const closeButton = document.createElement('button');
@@ -1307,14 +1304,6 @@ async function renderControlsContent(overlay) {
         return;
     }
 
-    // Preenche o texto de ajuda
-    const help = container.querySelector('#controls-help');
-    if (help) {
-        help.innerText = controlsBindingAction
-        ? 'Pressione uma tecla para redefinir. Esc cancela.'
-        : 'Enter/Espaco para alterar, Esc para voltar.';
-    }
-
     const listContainer = container.querySelector('#controls-list-container');
     if (listContainer && Array.isArray(CONTROLES_MENU_ITEMS) && CONTROLES_MENU_ITEMS.length > 0) {
         listContainer.innerHTML = ''; // Limpa antes de preencher
@@ -1365,10 +1354,12 @@ async function renderControlsContent(overlay) {
     // Configura botões de ação (Salvar/Restaurar) presentes no HTML
     const salvarBtn = container.querySelector('#btn-save-controls');
     if (salvarBtn) {
+        // Gerencia a interação visual quando o botão de salvar é focado via teclado ou mouse
         salvarBtn.onmouseenter = () => {
             controlsSelectedIndex = CONTROLES_MENU_ITEMS.length;
             updateMenuVisuals();
         };
+        // Executa a persistência dos novos comandos no LocalStorage e retorna ao menu principal
         salvarBtn.onclick = () => {
             salvarControlesNoStorage();
             menuMode = 'main';

@@ -1,6 +1,7 @@
 /* ================= CHEAT MENU ================= */
 .cheat-menu-overlay {
     position: fixed;
+    /* Posição fixa para cobrir toda a viewport */
     top: 0;
     left: 0;
     width: 100vw;
@@ -8,19 +9,23 @@
     background: rgba(0, 0, 0, 0.85);
     z-index: 100000;
     display: flex;
+    /* Centraliza o conteúdo horizontal e verticalmente */
     align-items: center;
     justify-content: center;
 }
 
 .cheat-menu-box {
     background: rgba(40, 40, 40, 0.98);
+    /* Fundo escuro semi-transparente */
     min-width: 320px;
     padding: 32px 28px 24px 28px;
     border-radius: 16px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
     position: relative;
     display: flex;
+    /* Organiza os itens em coluna */
     flex-direction: column;
+    /* Centraliza os itens horizontalmente */
     align-items: center;
 }
 
@@ -33,6 +38,7 @@
     color: #fff;
 }
 
+/* Botões de seleção dentro do menu de cheats */
 .cheat-menu-select-btn {
     width: 100%;
     padding: 10px 0;
@@ -45,13 +51,16 @@
     font-weight: 700;
     letter-spacing: 1.5px;
     cursor: pointer;
+    /* Transições suaves para interatividade */
     transition:
         background 0.15s,
         box-shadow 0.15s,
         transform 0.1s;
+    /* Remove o contorno padrão do foco */
     outline: none;
     box-shadow: 0 1px 4px rgba(0, 255, 255, 0.08);
 }
+
 .cheat-menu-select-btn:hover,
 .cheat-menu-select-btn.selected {
     background: #00ffff;
@@ -59,9 +68,11 @@
     box-shadow: 0 0 12px #00ffff99;
     transform: scale(1.02);
 }
+
 /* Overlay do menu de pausa */
 .pause-menu-overlay {
     position: fixed;
+    /* Posição fixa para cobrir toda a viewport */
     top: 0;
     left: 0;
     width: 100vw;
@@ -70,8 +81,10 @@
     z-index: 99999;
     display: flex;
     flex-direction: column;
+    /* Centraliza o conteúdo horizontal e verticalmente */
     align-items: center;
     justify-content: center;
+    /* Estilos de texto padrão para o menu */
     color: white;
     font-family: 'Segoe UI', Tahoma, sans-serif;
     border-radius: 0;
@@ -88,10 +101,12 @@
 
 /* Layout Principal (Coluna de Botões | Coluna de Resumo) */
 .menu-main-layout {
+    /* Usa flexbox para organizar as colunas */
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
+    /* Espaçamento entre as colunas */
     gap: 104px; /* Espaçamento ainda maior entre colunas */
     width: 100%;
 }
@@ -99,6 +114,7 @@
 /* Coluna de botões do menu principal */
 .menu-buttons-grid {
     /* Layout controlado via CSS. Mantém coluna única por padrão. */
+    /* Usa grid para organizar os botões */
     display: grid;
     grid-template-columns: 1fr;
     gap: 12px;
@@ -112,8 +128,10 @@
     gap: 10px;
 }
 
+/* Container para as opções do menu */
 .menu-options-container {
     display: flex;
+    /* Organiza as opções em coluna */
     flex-direction: column;
     align-items: center;
     gap: 5px;
@@ -122,6 +140,7 @@
 
 /* Botão principal com ícone */
 .menu-option.menu-option--main img {
+    /* Estilos para os ícones dentro dos botões principais */
     width: 32px;
     height: 32px;
     image-rendering: pixelated;
@@ -129,6 +148,7 @@
 }
 .menu-option.menu-option--main {
     width: 56px;
+    /* Define um tamanho fixo para os botões principais */
     height: 56px;
     padding: 0;
     display: flex;
@@ -138,6 +158,7 @@
 }
 
 /* Legenda neon abaixo dos botões */
+/* Exibe o nome da opção selecionada com um efeito neon */
 #menu-selected-label {
     font-size: 11px;
     font-weight: 800;
@@ -157,8 +178,10 @@
 
 /* Coluna da direita (Resumo + Dificuldade) */
 .menu-right-column {
+    /* Organiza os painéis em coluna */
     display: flex;
     flex-direction: column;
+    /* Espaçamento entre os painéis */
     gap: 10px;
     width: 188px;
 }
@@ -168,14 +191,17 @@
     width: 188px;
     min-height: 148px;
     padding: 10px;
+    /* Borda e fundo semi-transparentes */
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.05);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
     display: flex;
     flex-direction: column;
+    /* Espaçamento entre os itens do resumo */
     gap: 8px;
 }
+
 /* Ícones de equipamentos no resumo */
 .menu-slot-summary .equipamento-icone {
     width: 22px;
@@ -184,6 +210,7 @@
     image-rendering: pixelated;
     padding: 2px;
     border-radius: 6px;
+    /* Fundo levemente transparente para os ícones */
     background: rgba(255, 255, 255, 0.08);
 }
 
@@ -199,85 +226,104 @@
 
 /* Painel de opções de controles */
 .menu-controls-options {
+    /* Organiza os controles em coluna */
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    width: 540px;
-    max-height: 420px;
-    overflow-y: auto;
-    padding: 15px;
+    gap: 8px; /* menos espaço vertical */
+    width: 540px; /* Reduzido para um visual mais compacto e centralizado */
+    max-height: none; /* Remove limite de altura para não precisar de scroll */
+    overflow-y: visible;
+    padding: 4px; /* menos padding */
     background: rgba(0, 0, 0, 0.5);
     border-radius: 10px;
     border: 1px solid rgba(0, 255, 255, 0.3);
 }
 
+.menu-settings-container--top-pad {
+    padding-top: 10px;
+}
+
 .menu-controls-list-container {
-    width: 100%;
+    /* Container onde ficam os controles */
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Divide em duas colunas iguais */
+    gap: 2px 10px; /* Espaçamento entre linhas e colunas reduzido */
 }
 
 /* Linha de comando de controle */
 .menu-controls-line {
     display: flex;
-    justify-content: center;
-    gap: 20px;
+    justify-content: space-between;
+    gap: 5px;
     align-items: center;
-    width: 480px;
-    padding: 5px 14px;
+    width: 100%;
     border-radius: 6px;
     transition: all 0.1s ease;
 }
+
 .menu-controls-label {
     pointer-events: none;
-    width: 240px;
-    text-align: right;
+    width: 70px;
+    text-align: center;
     display: inline-block;
+    font-size: 9px;
+    white-space: nowrap;
+    opacity: 0.85;
+    line-height: 1;
+    margin-top: 0;
+    padding-top: 0;
 }
+
 .menu-controls-key {
     font-weight: 800;
     pointer-events: none;
     background: rgba(255, 255, 255, 0.1);
-    padding: 2px 10px;
+    padding: 1px 5px;
     border-radius: 4px;
     color: inherit;
-    width: 180px;
-    text-align: left;
-    display: inline-block;
+    width: 80px;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    line-height: 1;
+    height: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    text-overflow: ellipsis;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
-/* Linha de botões de ação (Salvar/Restaurar) */
 .menu-controls-actions {
     display: flex;
     justify-content: center;
-    gap: 24px;
-    margin-top: 20px;
-    padding-bottom: 10px;
+    align-items: center;
+    gap: 14px;
+    margin-top: 6px;
+    padding-bottom: 4px;
 }
+
 .menu-controls-action-btn {
-    width: 64px;
-    height: 64px;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
+    margin-bottom: 0;
 }
+
 .menu-controls-action-btn img {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     image-rendering: pixelated;
 }
 
-/* Seleção modo controles */
-.menu-option.menu-option--control.selected {
-    background: #00ffff;
-    color: #000;
-    font-weight: bold;
-    transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-}
-
+.menu-option.menu-option--control.selected,
 .menu-option.menu-option--action.menu-controls-action-btn.selected {
     background: #00ffff;
     color: #000;
@@ -285,9 +331,6 @@
     transform: scale(1.05);
     box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
 }
-/* ============================================================
-   ESTILOS DO MENU (Extraidos de index-style.css)
-   ============================================================ */
 
 @keyframes menu-shine-slide {
     0% {
@@ -375,10 +418,6 @@
     border-radius: 4px;
 }
 
-.menu-option--save {
-    margin-top: 8px;
-}
-
 .menu-close-button {
     position: absolute;
     top: 14px;
@@ -388,7 +427,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #fff; /* Contorno branco padronizado solicitado */
+    border: 2px solid #fff;
     border-radius: 6px;
     background: #b71c1c;
     color: #fff;
@@ -397,15 +436,13 @@
     line-height: 1;
     cursor: pointer;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
-    /* z-index: 1000001; Garante que fique acima de outros elementos do menu */
-    pointer-events: auto; /* Garante que o botão capture cliques mesmo sobre overlays */
+    pointer-events: auto;
     transition:
         transform 0.1s,
         background-color 0.15s,
         box-shadow 0.15s;
 }
 
-/* Injeta o 'X' via CSS para padronizar todos os menus */
 .menu-close-button::before {
     content: 'X';
 }
