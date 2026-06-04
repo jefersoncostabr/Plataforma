@@ -228,6 +228,25 @@
         // O segredo da centralização: traduzir metade da própria largura/altura para trás
         container.style.transform = `translate(-50%, -50%) scale(${escala})`;
 
+        // Sincroniza a escala dos menus (overlays) ativos para manter proporcionalidade
+        const overlays = document.querySelectorAll('.pause-menu-overlay, .interaction-overlay, .skill-menu-overlay, .mochila-menu-overlay');
+        overlays.forEach(overlay => {
+            // Tenta encontrar o container de conteúdo principal para aplicar o redimensionamento
+            const conteudo = overlay.querySelector('.menu-layout-container') ||
+                             overlay.querySelector('.menu-main-layout') || 
+                             overlay.querySelector('.interaction-modal') ||
+                             overlay.querySelector('.menu-controls-container') ||
+                             overlay.querySelector('.menu-settings-container') ||
+                             overlay.querySelector('.skill-menu-container') ||
+                             overlay.querySelector('.mochila-container') ||
+                             overlay.querySelector('.interaction-content');
+            
+            if (conteudo) {
+                conteudo.style.transform = `scale(${escala})`;
+                conteudo.style.transformOrigin = 'center center';
+            }
+        });
+
         // Sincroniza o palco interno (stage) para o tamanho lógico
         const stage = document.getElementById('game-stage');
         if (stage) {

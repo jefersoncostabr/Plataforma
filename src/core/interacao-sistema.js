@@ -369,6 +369,7 @@
 
         const overlay = document.createElement('div');
         overlay.className = 'interaction-overlay';
+
         // TODO: remover este template inline quando todas as interacoes usarem HTML completo externo.
         overlay.innerHTML = id === 'craft_base'
             ? corpoHtml
@@ -924,6 +925,12 @@
         obterRaizUI().appendChild(overlay);
         overlayAtual = overlay;
         window.isInteractionMenuOpen = true;
+
+        // Sincroniza a escala do novo menu aberto (Base, Crafting, etc)
+        if (typeof window.aplicarEscalaJogo === 'function') {
+            window.aplicarEscalaJogo();
+        }
+
         return true;
     }
 

@@ -1021,8 +1021,7 @@ function obterConteinerDestino() {
 
 /**
  * Cria e estiliza o elemento de overlay (fundo) do menu.
- * Usa position:fixed para se posicionar relativo à viewport, independente de qualquer
- * transform:scale() aplicado ao jogo-container.
+ * Usa as classes CSS padrão para posicionamento fixo.
  */
 function criarElementoOverlay() {
     const overlay = document.createElement('div');
@@ -1074,21 +1073,21 @@ async function renderMenuUI() {
 
     const overlay = criarElementoOverlay();
     
-    // CORREÇÃO DA LÓGICA: 
-    // Se estamos nos controles ou configurações, X volta pro principal. 
-    // Se estamos no principal, X fecha o menu (resume o jogo).
     const closeAction = (menuMode === 'controls' || menuMode === 'settings')
         ? acaoVoltarParaMenuInicial 
         : () => {
             window.togglePauseMenu();
         };
 
-    // Adiciona o overlay ao body ANTES de preencher o conteúdo.
-    // Isso garante que funções como getSettingsNavItems() encontrem os elementos no DOM
-    // durante a vinculação de eventos (onmouseenter) dentro das funções de renderização.
     targetLayer.appendChild(overlay);
 
+    // Container principal para conteúdo escalável (Suporta 1x, 2x, 3x automaticamente)
+    const mainLayout = document.createElement('div');
+    mainLayout.className = 'menu-layout-container';
+    overlay.appendChild(mainLayout);
+
     const title = criarElementoTitulo();
+    mainLayout.appendChild(title);
 
     if (typeof closeAction === 'function') {
         const closeButton = document.createElement('button');
@@ -1124,11 +1123,16 @@ async function renderMenuUI() {
             if (e.key === 'Enter' || e.key === ' ') fecharAction(e);
         };
 
-        overlay.appendChild(closeButton);
+        mainLayout.appendChild(closeButton);
     }
 
-    overlay.appendChild(title);
-    await preencherConteudoPorModo(overlay);
+    await preencherConteudoPorModo(mainLayout);
+
+    // Sincroniza a escala do menu com o aumento da tela
+    if (typeof window.aplicarEscalaJogo === 'function') {
+        window.aplicarEscalaJogo();
+    }
+
     updateMenuVisuals();
 }
 
@@ -1161,6 +1165,22 @@ function renderMainMenuContent(overlay) {
     buttonsGrid.className = 'menu-buttons-grid';
 
     const currentOptions = getMainMenuOptions();
+    console.log('[Menu] Analisando layout. Total de opções:', currentOptions.length);
+
+    // Isso faz com que os ícones se organizem em duas colunas verticais para não ultrapassar a altura da tela.
+    if (currentOptions.length > 3) {
+        console.log('[Menu] Detectadas > 3 opções. Aplicando grade de 2 colunas.');
+        buttonsGrid.classList.add('menu-buttons-grid--split');
+
+        // Força o layout de grade via JavaScript para garantir a quebra em colunas mesmo se o CSS falhar
+        buttonsGrid.style.display = 'grid';
+        buttonsGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        buttonsGrid.style.gap = '10px';
+        buttonsGrid.style.justifyItems = 'center';
+        console.log('[Menu] Estilos de display:grid injetados com sucesso no buttonsGrid.');
+    } else {
+        console.log('[Menu] Poucas opções. Mantendo coluna única.');
+    }
 
     // Função auxiliar para criar os botões e evitar repetição de código
     const criarBotaoMenu = (opt) => {
@@ -1201,11 +1221,14 @@ function renderMainMenuContent(overlay) {
         buttonsGrid.appendChild(criarBotaoMenu(opt));
     });
 
-
-    // Estilos da legenda do item selecionado
-    // Legenda abaixo dos ícones para indicar o item selecionado
     const labelInfo = document.createElement('div');
     labelInfo.id = 'menu-selected-label';
+    
+    // Se estiver em modo split (2 colunas), a legenda deve ocupar a largura total da grade
+    if (currentOptions.length > 3) {
+        labelInfo.style.gridColumn = '1 / -1';
+    }
+
     buttonsGrid.appendChild(labelInfo);
     optionsContainer.appendChild(buttonsGrid);
 
