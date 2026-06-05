@@ -1045,6 +1045,11 @@ function criarElementoTitulo() {
     return title;
 }
 
+function getControlsNavItems() {
+    // Retorna todos os itens navegáveis no menu de controles, incluindo o botão de fechar.
+    return Array.from(document.querySelectorAll('.menu-controls-container .menu-nav-item'));
+}
+
 /**
  * Decide qual conteúdo renderizar dentro do overlay baseado no modo do menu.
  */
@@ -1295,7 +1300,11 @@ async function renderControlsContent(overlay) {
     const closeBtn = container.querySelector('#btn-fechar-controls');
     if (closeBtn) {
         closeBtn.onmouseenter = () => {
-            // Opcional: Se quiser que o X seja navegável via teclado, precisaria ajustar o entries
+            controlsSelectedIndex = getControlsNavItems().indexOf(closeBtn);
+            updateMenuVisuals();
+        };
+        closeBtn.onmouseleave = () => {
+            controlsSelectedIndex = -1;
             updateMenuVisuals();
         };
         closeBtn.onclick = () => {
@@ -1331,7 +1340,13 @@ async function renderControlsContent(overlay) {
             keyDisplay.textContent = `${bind}${aguardando}`;
 
             linha.onmouseenter = () => {
-                controlsSelectedIndex = index;
+                const items = getControlsNavItems();
+                controlsSelectedIndex = items.indexOf(linha);
+                updateMenuVisuals();
+            };
+
+            linha.onmouseleave = () => {
+                controlsSelectedIndex = -1;
                 updateMenuVisuals();
             };
 
@@ -1356,7 +1371,12 @@ async function renderControlsContent(overlay) {
     if (salvarBtn) {
         // Gerencia a interação visual quando o botão de salvar é focado via teclado ou mouse
         salvarBtn.onmouseenter = () => {
-            controlsSelectedIndex = CONTROLES_MENU_ITEMS.length;
+            const items = getControlsNavItems();
+            controlsSelectedIndex = items.indexOf(salvarBtn);
+            updateMenuVisuals();
+        };
+        salvarBtn.onmouseleave = () => {
+            controlsSelectedIndex = -1;
             updateMenuVisuals();
         };
         // Executa a persistência dos novos comandos no LocalStorage e retorna ao menu principal
@@ -1371,7 +1391,12 @@ async function renderControlsContent(overlay) {
     const resetBtn = container.querySelector('#btn-reset-controls');
     if (resetBtn) {
         resetBtn.onmouseenter = () => {
-            controlsSelectedIndex = CONTROLES_MENU_ITEMS.length + 1;
+            const items = getControlsNavItems();
+            controlsSelectedIndex = items.indexOf(resetBtn);
+            updateMenuVisuals();
+        };
+        resetBtn.onmouseleave = () => {
+            controlsSelectedIndex = -1;
             updateMenuVisuals();
         };
         resetBtn.onclick = () => {
@@ -1387,19 +1412,11 @@ async function renderControlsContent(overlay) {
 // Função para atualizar os visuais dos itens do menu (seleção, hover, etc.)
 function updateMenuVisuals() {
     if (menuMode === 'controls') {
-        const elements = document.querySelectorAll('.menu-controls-container .menu-nav-item');
-        const closeBtn = document.getElementById('btn-fechar-controls');
+        const elements = getControlsNavItems(); // Usa a função auxiliar para obter todos os itens navegáveis
 
         elements.forEach((el, index) => {
-            const isOption = el.classList.contains('menu-option');
-            const isSelected = isOption && index === controlsSelectedIndex;
-            
-            if (isOption) {
-                el.classList.toggle('selected', isSelected);
-            } else {
-                // Para o botão de fechar (X)
-                el.classList.toggle('menu-nav-selected', el === document.activeElement);
-            }
+            const isSelected = index === controlsSelectedIndex;
+            el.classList.toggle('selected', isSelected); // Aplica a classe 'selected' a todos os itens navegáveis
         });
 
         return;

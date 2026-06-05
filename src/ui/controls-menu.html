@@ -21,10 +21,10 @@
         </div>
 
         <div class="menu-controls-actions">
-            <div id="btn-save-controls" class="menu-option menu-option--action menu-controls-action-btn img-button retro-grid" title="SALVAR">
+            <div id="btn-save-controls" class="menu-option menu-option--action menu-controls-action-btn menu-nav-item img-button retro-grid" title="SALVAR" data-menu-mode="controls">
                 <img src="assets/icones/salvar.png" alt="Salvar">
             </div>
-            <div id="btn-reset-controls" class="menu-option menu-option--action menu-controls-action-btn img-button retro-grid" title="RESTAURAR">
+            <div id="btn-reset-controls" class="menu-option menu-option--action menu-controls-action-btn menu-nav-item img-button retro-grid" title="RESTAURAR" data-menu-mode="controls">
                 <img src="assets/icones/voltar.png" alt="Restaurar">
             </div>
         </div>
@@ -33,7 +33,7 @@
 
 <!-- Template para as linhas de controle (migrado do JS) -->
 <template id="control-row-template">
-    <div class="menu-option menu-option--control menu-controls-line">
+    <div class="menu-option menu-option--control menu-controls-line menu-nav-item" data-menu-mode="controls">
         <span class="menu-controls-label"></span>
         <span class="menu-controls-key"></span>
     </div>
