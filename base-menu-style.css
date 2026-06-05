@@ -14,12 +14,24 @@
     pointer-events: all;
 }
 
+/* Cabeçalho do Modal de Interação */
+.interaction-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.2);
+    gap: 12px;
+    position: relative; /* Base para o botão fechar se for absoluto */
+}
+
 /* Badges de Pets (Cão/Gato) */
 .interaction-pets {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-left: auto;
+    margin-left: auto; /* Empurra para a direita */
+    margin-right: 45px; /* ESPAÇO RESERVADO PARA O BOTÃO FECHAR (X) */
 }
 
 .pet-badge {
@@ -355,6 +367,15 @@
 [data-interaction-saved-equip]::-webkit-scrollbar,
 .player-inventory-for-crafting::-webkit-scrollbar {
     display: none !important;
+}
+
+/* Garante que o botão fechar não flutue sobre os pets */
+.interaction-header .menu-close-button {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
 }
 
 /* ================= RESPONSIVO: menu da base/crafting caber na tela ================= */
