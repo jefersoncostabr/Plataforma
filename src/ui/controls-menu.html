@@ -1,7 +1,15 @@
 <div class="menu-controls-container">
-    <h1 class="menu-title menu-title--controls" data-menu-title>
-        CONTROLES
-    </h1>
+    <div class="menu-settings-header">
+        <h1 class="menu-title menu-title--controls" data-menu-title>CONTROLES</h1>
+        <button id="btn-fechar-controls" 
+            type="button" 
+            class="menu-close menu-nav-item" 
+            data-menu-mode="controls" 
+            data-nav-type="close" 
+            aria-label="Fechar controles" 
+            title="Fechar">
+        </button>
+    </div>
 
     <div id="controls-help" class="menu-controls-help">
         <!-- Texto de ajuda injetado via JS -->
@@ -13,10 +21,10 @@
         </div>
 
         <div class="menu-controls-actions">
-            <div id="btn-save-controls" class="menu-option menu-option--action menu-controls-action-btn" title="SALVAR">
+            <div id="btn-save-controls" class="menu-option menu-option--action menu-controls-action-btn img-button retro-grid" title="SALVAR">
                 <img src="assets/icones/salvar.png" alt="Salvar">
             </div>
-            <div id="btn-reset-controls" class="menu-option menu-option--action menu-controls-action-btn" title="RESTAURAR">
+            <div id="btn-reset-controls" class="menu-option menu-option--action menu-controls-action-btn img-button retro-grid" title="RESTAURAR">
                 <img src="assets/icones/voltar.png" alt="Restaurar">
             </div>
         </div>

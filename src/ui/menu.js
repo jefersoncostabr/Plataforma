@@ -1035,16 +1035,13 @@ function criarElementoOverlay() {
 function criarElementoTitulo() {
     const title = document.createElement('h1');
     let texto = '';
-    if (menuMode === 'controls') {
-        texto = 'CONTROLES';
-    } else if (menuMode === 'settings') {
-        // texto = 'CONFIGURAÇÕES';
-        // console.log('[DEBUG-MENU] Criando elemento H1 para o título de CONFIGURAÇÕES (criarElementoTitulo)');
-    } else {
-        texto = window.isFirstStart ? 'PRINCIPAL' : 'PAUSE';
-    }
+    
+    // Agora apenas gera título para o menu Principal ou Pause.
+    // Os submenus (Controles/Configurações) já possuem o título em seus próprios arquivos HTML.
+    texto = window.isFirstStart ? 'PRINCIPAL' : 'PAUSE';
+    
     title.innerText = texto;
-    title.className = menuMode === 'controls' ? 'menu-title menu-title--controls' : 'menu-title';
+    title.className = 'menu-title';
     return title;
 }
 
@@ -1085,8 +1082,11 @@ async function renderMenuUI() {
     mainLayout.className = 'menu-layout-container';
     overlay.appendChild(mainLayout);
 
-    // Adiciona o título dinâmico ao topo do container
-    mainLayout.appendChild(criarElementoTitulo());        
+    // Adiciona o título dinâmico apenas se estiver no menu principal/pause.
+    // Evita duplicidade nos menus que já carregam o título via HTML (Controles e Configurações).
+    if (menuMode === 'main') {
+        mainLayout.appendChild(criarElementoTitulo());        
+    }
 
    
     await preencherConteudoPorModo(mainLayout);
@@ -1221,10 +1221,16 @@ async function renderSettingsContent(overlay) {
         const volumeWrapper = volumePlaceholder.querySelector('.volume-control-wrapper');
         if (volumeWrapper) { // Garante que o wrapper foi criado pelo AudioManager
             volumeWrapper.classList.add('menu-nav-item'); // Adiciona nav-item para navegação
+            volumeWrapper.classList.add('menu-volume-panel'); // Estilo visual de painel e hover
             volumeWrapper.dataset.menuMode = 'settings';
             volumeWrapper.dataset.navType = 'volume';
             volumeWrapper.onmouseenter = () => {
                 settingsSelectedIndex = getSettingsNavItems().indexOf(volumeWrapper);
+                updateMenuVisuals();
+            };
+
+            volumeWrapper.onmouseleave = () => {
+                settingsSelectedIndex = -1;
                 updateMenuVisuals();
             };
         }
@@ -1283,6 +1289,19 @@ async function renderControlsContent(overlay) {
     if (!container) {
         console.error("Container do menu de controles não encontrado no HTML carregado.");
         return;
+    }
+
+    // --- BOTÃO FECHAR (X) ---
+    const closeBtn = container.querySelector('#btn-fechar-controls');
+    if (closeBtn) {
+        closeBtn.onmouseenter = () => {
+            // Opcional: Se quiser que o X seja navegável via teclado, precisaria ajustar o entries
+            updateMenuVisuals();
+        };
+        closeBtn.onclick = () => {
+            menuMode = 'main';
+            renderMenuUI();
+        };
     }
 
     const listContainer = container.querySelector('#controls-list-container');
@@ -1368,11 +1387,19 @@ async function renderControlsContent(overlay) {
 // Função para atualizar os visuais dos itens do menu (seleção, hover, etc.)
 function updateMenuVisuals() {
     if (menuMode === 'controls') {
-        const elements = document.querySelectorAll('.menu-controls-container .menu-option');
+        const elements = document.querySelectorAll('.menu-controls-container .menu-nav-item');
+        const closeBtn = document.getElementById('btn-fechar-controls');
 
         elements.forEach((el, index) => {
-            const isSelected = index === controlsSelectedIndex;
-            el.classList.toggle('selected', isSelected);
+            const isOption = el.classList.contains('menu-option');
+            const isSelected = isOption && index === controlsSelectedIndex;
+            
+            if (isOption) {
+                el.classList.toggle('selected', isSelected);
+            } else {
+                // Para o botão de fechar (X)
+                el.classList.toggle('menu-nav-selected', el === document.activeElement);
+            }
         });
 
         return;
