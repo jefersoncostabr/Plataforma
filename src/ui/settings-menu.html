@@ -1,7 +1,9 @@
 <div class="menu-settings-container menu-settings-container--top-pad">
-    <h1 class="menu-title" data-menu-title>
-        CONFIGURAÇÕES
-    </h1>
+    <div class="menu-settings-header">
+        <h1 class="menu-title" data-menu-title>CONFIGURAÇÕES</h1>
+        <button type="button" class="menu-close menu-nav-item" data-menu-mode="settings" data-nav-type="close" aria-label="Fechar configurações" title="Fechar" onclick="(function(){ try{ window.gameDifficulty = window.gameDifficulty; }catch(e){}; window.menuMode='main'; }())" onkeydown="if(event.key==='Enter'||event.key===' '){ event.preventDefault(); this.click(); }"></button>
+    </div>
+
     <div class="menu-settings-section">
 
 
@@ -18,6 +20,5 @@
             <button type="button" class="menu-option menu-option--action menu-nav-item" data-menu-mode="settings" data-nav-type="screen" data-screen-mode="stretch">100% VIEWPORT</button>
             <button type="button" class="menu-option menu-option--action menu-nav-item" data-menu-mode="settings" data-nav-type="screen" data-screen-mode="fullscreen">FULLSCREEN</button>
         </div>
-
     </div>
 </div>

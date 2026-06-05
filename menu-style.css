@@ -418,10 +418,8 @@
     border-radius: 4px;
 }
 
-.menu-close-button {
-    position: absolute;
-    top: 14px;
-    right: 14px;
+.menu-close-button,
+.menu-close {
     width: 34px;
     height: 34px;
     display: inline-flex;
@@ -443,7 +441,14 @@
         box-shadow 0.15s;
 }
 
-.menu-close-button::before {
+.menu-close-button {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+}
+
+.menu-close-button::before,
+.menu-close::before {
     content: 'X';
 }
 
@@ -457,8 +462,37 @@
     z-index: 10;
 }
 
-.menu-close-button:active {
+.menu-close:hover,
+.menu-close.selected,
+.menu-close.menu-nav-selected {
+    background: #d32f2f;
+    border-color: #fff;
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    z-index: 10;
+}
+
+.menu-close-button:active,
+.menu-close:active {
     transform: scale(0.97);
+}
+
+/* Header do menu de configurações (X ao lado do título) */
+.menu-settings-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+}
+
+.menu-settings-header .menu-title {
+    margin: 0;
+    line-height: 1;
+}
+
+.menu-settings-header .menu-close {
+    margin-top: 2px;
 }
 
 .menu-difficulty-panel {

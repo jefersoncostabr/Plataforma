@@ -1038,7 +1038,8 @@ function criarElementoTitulo() {
     if (menuMode === 'controls') {
         texto = 'CONTROLES';
     } else if (menuMode === 'settings') {
-        texto = 'CONFIGURAÇÕES';
+        // texto = 'CONFIGURAÇÕES';
+        // console.log('[DEBUG-MENU] Criando elemento H1 para o título de CONFIGURAÇÕES (criarElementoTitulo)');
     } else {
         texto = window.isFirstStart ? 'PRINCIPAL' : 'PAUSE';
     }
@@ -1084,45 +1085,10 @@ async function renderMenuUI() {
     mainLayout.className = 'menu-layout-container';
     overlay.appendChild(mainLayout);
 
-        
+    // Adiciona o título dinâmico ao topo do container
+    mainLayout.appendChild(criarElementoTitulo());        
 
-    if (typeof closeAction === 'function') {
-        const closeButton = document.createElement('button');
-        closeButton.type = 'button';
-        closeButton.className = 'menu-close-button menu-nav-item';
-        closeButton.dataset.menuMode = menuMode;
-        closeButton.dataset.navType = 'close';
-        closeButton.setAttribute('aria-label', 'Voltar ao menu inicial');
-        closeButton.title = 'Menu inicial';
-
-        closeButton.onmouseenter = () => {
-            menuSelectedIndex = getMainMenuNavItems().indexOf(closeButton);
-            updateMenuVisuals();
-        };
-        closeButton.onmouseleave = () => {
-            menuSelectedIndex = -1;
-            updateMenuVisuals();
-        };
-
-        const fecharAction = (e) => {
-            if (e) {
-                e.preventDefault();
-                e.stopImmediatePropagation(); // Impede que o handleMenuInput global interfira
-            }
-            
-            closeAction();
-        };
-
-        closeButton.onclick = fecharAction;
-        // O handleMenuInput já cuida do Enter se o botão estiver selecionado, 
-        // mas adicionamos aqui para caso o foco manual esteja no elemento.
-        closeButton.onkeydown = (e) => {
-            if (e.key === 'Enter' || e.key === ' ') fecharAction(e);
-        };
-
-        mainLayout.appendChild(closeButton);
-    }
-
+   
     await preencherConteudoPorModo(mainLayout);
 
     // Sincroniza a escala do menu com o aumento da tela
