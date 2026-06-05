@@ -356,3 +356,9 @@
 .player-inventory-for-crafting::-webkit-scrollbar {
     display: none !important;
 }
+
+/* ================= RESPONSIVO: menu da base/crafting caber na tela ================= */
+/*
+  Regra foi revertida (usuário pediu rollback), pois não resolveu o corte.
+  O arquivo volta ao CSS original do crafting.
+*/

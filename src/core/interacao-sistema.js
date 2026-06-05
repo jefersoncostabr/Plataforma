@@ -13,7 +13,18 @@
     }
 
     function obterRaizUI() {
-        return document.getElementById('jogo-container') || document.body || document.getElementById('layer-ui');
+        let raiz = document.getElementById('interaction-overlay-root');
+        if (raiz) return raiz;
+
+        raiz = document.createElement('div');
+        raiz.id = 'interaction-overlay-root';
+        raiz.style.position = 'fixed';
+        raiz.style.inset = '0';
+        raiz.style.pointerEvents = 'none';
+        raiz.style.zIndex = '99998';
+
+        (document.body || document.documentElement || document.getElementById('layer-ui')).appendChild(raiz);
+        return raiz;
     }
 
     async function carregarMapeamentoInteracoes(force = false) {

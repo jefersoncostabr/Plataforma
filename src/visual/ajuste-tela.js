@@ -235,6 +235,7 @@
             const conteudo = overlay.querySelector('.menu-layout-container') ||
                              overlay.querySelector('.menu-main-layout') || 
                              overlay.querySelector('.interaction-modal') ||
+                             overlay.querySelector('.base-panel') ||
                              overlay.querySelector('.menu-controls-container') ||
                              overlay.querySelector('.menu-settings-container') ||
                              overlay.querySelector('.skill-menu-container') ||
@@ -242,7 +243,8 @@
                              overlay.querySelector('.interaction-content');
             
             if (conteudo) {
-                conteudo.style.transform = `scale(${escala})`;
+                const escalaOverlay = escala;
+                conteudo.style.transform = `scale(${escalaOverlay})`;
                 conteudo.style.transformOrigin = 'center center';
             }
         });
