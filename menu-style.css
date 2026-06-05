@@ -576,15 +576,15 @@
 }
 
 .menu-slot-option--occupied {
-    border-color: rgba(89, 219, 160, 0.6);
-    background: linear-gradient(90deg, rgba(31, 95, 67, 0.45) 0%, rgba(255, 255, 255, 0.08) 100%);
+    border-color: rgba(0, 255, 255, 0.5);
+    background: linear-gradient(90deg, rgba(0, 100, 100, 0.4) 0%, rgba(255, 255, 255, 0.08) 100%);
 }
 
 .menu-slot-option--in-use {
-    border-color: rgba(121, 255, 182, 0.95);
+    border-color: rgba(0, 255, 255, 0.95);
     box-shadow:
-        inset 0 0 0 1px rgba(121, 255, 182, 0.35),
-        0 0 12px rgba(56, 181, 113, 0.28);
+        inset 0 0 0 1px rgba(0, 255, 255, 0.35),
+        0 0 12px rgba(0, 255, 255, 0.3);
 }
 
 .menu-slot-option--active {
@@ -593,10 +593,10 @@
 }
 
 .menu-slot-option--in-use.menu-slot-option--active {
-    border-color: rgba(188, 255, 220, 1);
+    border-color: rgba(0, 255, 220, 1);
     box-shadow:
-        inset 0 0 0 1px rgba(188, 255, 220, 0.55),
-        0 0 14px rgba(56, 181, 113, 0.36);
+        inset 0 0 0 1px rgba(0, 255, 255, 0.55),
+        0 0 14px rgba(0, 255, 255, 0.4);
 }
 
 .menu-slot-name {
@@ -618,13 +618,13 @@
 }
 
 .menu-slot-option--occupied .menu-slot-badge {
-    background: #9ce4bf;
-    color: #0d3020;
+    background: #00cccc;
+    color: #000;
 }
 
 .menu-slot-option--in-use .menu-slot-badge {
-    background: #7effb5;
-    color: #07301e;
+    background: #00ffff;
+    color: #000;
 }
 
 .menu-slot-status {
