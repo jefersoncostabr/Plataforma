@@ -326,7 +326,7 @@
 .menu-option.menu-option--main.selected,
 .menu-option.menu-option--control.selected,
 .menu-option.menu-option--action.menu-controls-action-btn.selected {
-    background: #00ffff;
+    background: #00ffff !important; /* Override retro-grid !important */
     color: #000;
     font-weight: bold;
     transform: scale(1.05);
@@ -678,8 +678,39 @@
     left: 0;
     width: 50%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
     transform: skewX(-30deg);
-    animation: menu-shine-slide 1.5s infinite;
+    animation: menu-shine-slide 0.3s infinite;
     pointer-events: none;
+}
+
+/* ================= ESTILOS RETRO & ANIMAÇÕES DE BOTÃO ================= */
+
+/* Efeito de Grade Cibernética (Retro Grid) */
+.retro-grid {
+    position: relative;
+    background-color: rgba(0, 40, 40, 0.4);
+    overflow: hidden;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    transition: all 0.2s ease;
+}
+
+/* Padronização de botões com Ícones */
+.img-button {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+.img-button img {
+    width: 32px; /* Tamanho fixo para ícones de menu */
+    height: 32px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    position: relative;
+    z-index: 3;
+    filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.5));
 }
