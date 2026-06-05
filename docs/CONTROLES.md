@@ -54,3 +54,4 @@
 | `8` | Jump Debug | Força pulo dos inimigos (IA) |
 | `9` | Kill All | Elimina todos os inimigos da tela |
 | `G` | Grade | Ativa/Desativa Grade de Debug |
+| `~` | Cheat Menu | Abre/fecha o menu de cheat (debug) |

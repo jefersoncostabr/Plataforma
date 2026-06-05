@@ -323,6 +323,7 @@
     image-rendering: pixelated;
 }
 
+.menu-option.menu-option--main.selected,
 .menu-option.menu-option--control.selected,
 .menu-option.menu-option--action.menu-controls-action-btn.selected {
     background: #00ffff;

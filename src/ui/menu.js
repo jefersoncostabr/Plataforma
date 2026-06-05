@@ -1139,7 +1139,7 @@ function renderMainMenuContent(overlay) {
     // Função auxiliar para criar os botões e evitar repetição de código
     const criarBotaoMenu = (opt) => {
         const btn = document.createElement('div');
-        btn.className = 'menu-option menu-option--main menu-nav-item';
+        btn.className = 'menu-option menu-option--main menu-nav-item img-button retro-grid';
         btn.dataset.menuMode = 'main';
         btn.dataset.navType = 'action';
         btn.title = opt.label; // Tooltip e legenda
@@ -1228,6 +1228,21 @@ async function renderSettingsContent(overlay) {
                 updateMenuVisuals();
             };
         }
+    }
+
+    // --- BOTÃO FECHAR (X) ---
+    // Vincula o clique e o estado visual de seleção ao botão de fechar
+    const closeBtn = settingsContainer.querySelector('#btn-fechar-config');
+    if (closeBtn) {
+        closeBtn.onmouseenter = () => {
+            settingsSelectedIndex = getSettingsNavItems().indexOf(closeBtn);
+            updateMenuVisuals();
+        };
+        
+        closeBtn.onclick = () => {
+            menuMode = 'main';
+            renderMenuUI();
+        };
     }
 
     // --- SEÇÃO DE TAMANHO DA TELA - Event Listeners ---

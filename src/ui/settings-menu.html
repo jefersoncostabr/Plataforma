@@ -1,7 +1,14 @@
 <div class="menu-settings-container menu-settings-container--top-pad">
     <div class="menu-settings-header">
         <h1 class="menu-title" data-menu-title>CONFIGURAÇÕES</h1>
-        <button type="button" class="menu-close menu-nav-item" data-menu-mode="settings" data-nav-type="close" aria-label="Fechar configurações" title="Fechar" onclick="(function(){ try{ window.gameDifficulty = window.gameDifficulty; }catch(e){}; window.menuMode='main'; }())" onkeydown="if(event.key==='Enter'||event.key===' '){ event.preventDefault(); this.click(); }"></button>
+        <button id="btn-fechar-config" 
+                type="button" 
+                class="menu-close menu-nav-item" 
+                data-menu-mode="settings" 
+                data-nav-type="close" 
+                aria-label="Fechar configurações" 
+                title="Fechar">
+        </button>
     </div>
 
     <div class="menu-settings-section">
