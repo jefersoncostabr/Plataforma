@@ -845,8 +845,10 @@ function handleControlsInput(e) {
 
     if (controlsBindingAction) {
         e.preventDefault();
-        if (key === 'escape') {
+    if (key === 'escape') {
             controlsBindingAction = null;
+            e.preventDefault();
+            e.stopPropagation();
             renderMenuUI();
             return;
         }
@@ -858,6 +860,8 @@ function handleControlsInput(e) {
     }
 
     if (key === 'escape') {
+        e.preventDefault();
+        e.stopPropagation();
         menuMode = 'main';
         menuSelectedIndex = -1;
         renderMenuUI();
@@ -947,6 +951,8 @@ function handleSettingsInput(e) {
     if (!currentItems || currentItems.length === 0) return;
 
     if (key === 'escape') {
+        e.preventDefault();
+        e.stopPropagation();
         menuMode = 'main';
         renderMenuUI();
         return;

@@ -202,6 +202,11 @@ window.resetarCamera = function() {
  * @param {number} mundoH - Altura total do mundo.
  */
 window.atualizarCamera = function(alvoX, alvoY, mundoW, mundoH) {
+    // Evita “correções bruscas” após fechar menus/interações com ESC,
+    // quando a camera ainda pode estar desalinhada com a posição do player.
+    if (window.isInteractionMenuOpen) return;
+    if (window.isMenuOpen) return;
+
     // Atualiza o timer do tremor (aproximadamente 60fps = 16.6ms por frame)
     window.atualizarTremorCamera(16.6);
 
