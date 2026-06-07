@@ -752,7 +752,9 @@ window.onload = async () => {
 
     uiEditor.configurarControlesDimensoes();
     atualizarTamanhoStage();
+    uiEditor.configurarPaletaBlocos();
     uiEditor.configurarPaletaDinamicaItens();
+
     uiEditor.configurarPaletaGaiola();
     diagnosticarPaletaInimigos();
     uiEditor.configurarStage();

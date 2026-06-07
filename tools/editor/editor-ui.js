@@ -43,6 +43,31 @@
             });
         }
 
+        function configurarPaletaBlocos() {
+            const container = palette.querySelector('#palette-blocks');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            const blocks = window.EditorConfig?.PLATFORM_DEFS || [];
+            blocks.forEach((def, idx) => {
+                const img = document.createElement('img');
+                img.className = 'palette-item' + (idx === 0 ? ' selected' : '');
+                img.dataset.type = def.type;
+                img.title = def.label || def.type;
+
+                const src = window.EditorDefinitions?.resolveSpritePath?.(def, 'menu') || def.sprite || '';
+                img.src = src;
+
+                // Compat: alguns cliques esperam stateKey/tipo; aqui usamos def.type.
+                // Em seguida, o editor.js faz getDefinitionByType(type) com type.
+                container.appendChild(img);
+            });
+
+            configurarPaleta();
+        }
+
+
         function configurarPaletaDinamicaItens() {
             const itemDefinitions = typeof getItemDefinitions === 'function' ? getItemDefinitions() : {};
 
@@ -61,14 +86,15 @@
                     const img = document.createElement('img');
                     
                     // Força o caminho correto dos sprites para garantir visibilidade na paleta
-                    // (Também corrige casos onde def.sprite usa assets/personagem mas o arquivo real está em outra pasta)
+                    // resolveSpritePath: centraliza caminhos do sprite para evitar duplicidade de ifs.
                     if (tipo === 'municao_plus') img.src = '../../assets/personagem/cx_municao.png';
                     else if (tipo === 'novelo') img.src = '../../assets/personagem/objetos/novelo.png';
                     else if (tipo === 'restauracao') img.src = '../../assets/personagem/restauracao.png';
-                    else if (tipo === 'terra_horizontal' || tipo === 'plataforma' || tipo === 'plataformaTerraHorizontal') img.src = '../../assets/bloco terra/terra_horizontal.png';
-                    else if (tipo === 'capsula') img.src = def.spriteMenu || '';
-                    else if (tipo === 'bateria') img.src = def.spriteColetavel || def.spriteMenu || '';
-                    else img.src = def.spriteColetavel || def.spriteMenu || '';
+                    else {
+                        const sprite = window.EditorDefinitions?.resolveSpritePath?.(def, 'menu');
+                        img.src = sprite || def.spriteColetavel || def.spriteMenu || '';
+                    }
+
 
 
                     img.className = 'palette-item';
@@ -519,7 +545,9 @@
 
         return {
             configurarPaleta,
+            configurarPaletaBlocos,
             configurarPaletaDinamicaItens,
+
             configurarPaletaGaiola,
             configurarFerramentasAutomaticas,
             configurarControlesDimensoes,

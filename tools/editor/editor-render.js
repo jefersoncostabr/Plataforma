@@ -176,17 +176,20 @@
                     return;
                 }
 
-                let src = '../../assets/personagem/revolver_pegavel.png';
-                if (item.tipo === 'restauracao') {
-                    src = '../../assets/personagem/restauracao.png';
-                } else if (item.tipo === 'municao_plus') {
-                    src = '../../assets/personagem/cx_municao.png';
-                } else if (item.tipo === 'novelo') {
-                    src = '../../assets/personagem/objetos/novelo.png';
-                } else if (itemDefinitions[item.tipo]) {
-                    // editor: usa spriteColetavel como padrão; fallback para spriteMenu
-                    src = itemDefinitions[item.tipo].spriteColetavel || itemDefinitions[item.tipo].spriteMenu || '';
-                }
+                    let src = '../../assets/personagem/revolver_pegavel.png';
+                    if (item.tipo === 'restauracao') {
+                        src = '../../assets/personagem/restauracao.png';
+                    } else if (item.tipo === 'municao_plus') {
+                        src = '../../assets/personagem/cx_municao.png';
+                    } else if (item.tipo === 'novelo') {
+                        src = '../../assets/personagem/objetos/novelo.png';
+                    } else if (itemDefinitions[item.tipo]) {
+                        const defItem = itemDefinitions[item.tipo];
+                        src = window.EditorDefinitions?.resolveSpritePath?.(defItem, 'stage')
+                            || defItem.spriteColetavel
+                            || defItem.spriteMenu
+                            || '';
+                    }
 
                 if (!src) {
                     console.warn(`[EditorRender] Sprite não encontrado para item=${item.tipo} pos=${item.pos}`);
