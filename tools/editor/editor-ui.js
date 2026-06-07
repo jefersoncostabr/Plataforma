@@ -61,12 +61,15 @@
                     const img = document.createElement('img');
                     
                     // Força o caminho correto dos sprites para garantir visibilidade na paleta
+                    // (Também corrige casos onde def.sprite usa assets/personagem mas o arquivo real está em outra pasta)
                     if (tipo === 'municao_plus') img.src = '../../assets/personagem/cx_municao.png';
                     else if (tipo === 'novelo') img.src = '../../assets/personagem/objetos/novelo.png';
                     else if (tipo === 'restauracao') img.src = '../../assets/personagem/restauracao.png';
+                    else if (tipo === 'terra_horizontal' || tipo === 'plataforma' || tipo === 'plataformaTerraHorizontal') img.src = '../../assets/bloco terra/terra_horizontal.png';
                     else if (tipo === 'capsula') img.src = def.spriteMenu || '';
                     else if (tipo === 'bateria') img.src = def.spriteColetavel || def.spriteMenu || '';
                     else img.src = def.spriteColetavel || def.spriteMenu || '';
+
 
                     img.className = 'palette-item';
                     img.setAttribute('data-type', 'item_' + tipo);
