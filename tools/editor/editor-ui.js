@@ -61,9 +61,12 @@
                 .filter(def => typeof def?.type === 'string' && typeof def?.sprite === 'string')
                 .map(def => ({ type: def.type, img: def.sprite }));
 
+            // Cria os botões de ciclo (que alternam sprites) dentro do menu de Blocos.
+            // Cada botão chama setItemSelecionado(tipo) ao alternar.
             function criarBotaoCiclo(list) {
 
                 const btn = document.createElement('button');
+
                 btn.type = 'button';
                 btn.className = 'palette-cycle-btn';
                 btn.style.cssText = 'display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; padding:0; cursor:pointer; border:none; background:transparent; color:#eee;';
@@ -85,6 +88,13 @@
                     const current = list[idx];
                     img.src = current.img;
                     setItemSelecionado(current.type);
+
+                    const def = defs.find(d => d.type === current.type);
+                    if (def?.label) {
+                        btn.title = `Bloco: ${def.label}`;
+                    } else {
+                        btn.title = '';
+                    }
                 };
 
                 btn.onclick = () => {
@@ -95,6 +105,7 @@
                 render();
                 return { btn, render };
             }
+
 
             container.innerHTML = '';
 
@@ -113,6 +124,7 @@
             container.appendChild(criarBotaoCiclo(cycleListMeioBloco).btn);
 
             // 4) Botão espinhos (somente blocos de espinho)
+
             // Se não existir no catálogo, fica vazio e o helper oculta o botão.
             const cycleListEspinhos = defs
                 .filter(def => typeof def?.type === 'string' && typeof def?.sprite === 'string')
@@ -120,6 +132,7 @@
                 .map(def => ({ type: def.type, img: def.sprite }));
 
             container.appendChild(criarBotaoCiclo(cycleListEspinhos).btn);
+
 
 
 
@@ -411,7 +424,29 @@
                 }
             });
 
+            // Legendas de hover na paleta de Blocos
+            // Importante: a paleta de blocos é gerada por JS e usa <button> e <img> (sem data-type),
+            // então precisamos setar o tooltip diretamente nos botões no momento em que eles são criados.
+            // (Aqui fica apenas um fallback: se algum item já tiver data-type, tenta configurar.)
+            const paintPaletaLegendasBlocos = () => {
+                const defs = window.EditorConfig?.PLATFORM_DEFS || [];
+                const containerBlocks = palette.querySelector('#palette-blocks');
+                if (!containerBlocks) return;
+
+                containerBlocks.querySelectorAll('.palette-item[data-type]').forEach((el) => {
+                    const type = el.getAttribute('data-type');
+                    const realType = type?.startsWith('block_') ? type.slice('block_'.length) : type;
+                    const def = defs.find(d => d.type === realType);
+                    const legenda = def?.label ? `Bloco: ${def.label}` : '';
+                    if (!legenda) return;
+                    el.title = legenda;
+                });
+            };
+
+            paintPaletaLegendasBlocos();
+
             stage.addEventListener('mouseleave', () => {
+
                 tooltipElement.style.display = 'none';
             });
         }
@@ -516,7 +551,7 @@
                     return [];
                 }
 
-                // Agrupar por pastas
+                    // Agrupar por pastas
                 const grupos = {};
                 arquivos.forEach(arq => {
                     const pasta = arq.includes('/') ? arq.split('/')[0] : 'Raiz';
