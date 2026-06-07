@@ -11,7 +11,9 @@
         { type: 'terraSuperior', stateKey: 'plataformasTerraSuperior', sprite: '../../assets/personagem/terra_superior.png', label: 'Terra Meio Bloco Superior', kind: 'array' },
         { type: 'terraInferior2', stateKey: 'plataformasTerraInferior2', sprite: '../../assets/personagem/terra_inferior2.png', label: 'Terra Meio Bloco Inferior 2', kind: 'array' },
         { type: 'terraSuperior2', stateKey: 'plataformasTerraSuperior2', sprite: '../../assets/personagem/terra_superior2.png', label: 'Terra Meio Bloco Superior 2', kind: 'array' },
+        { type: 'plataformaEspinhos', stateKey: 'plataformasEspinhos', sprite: '../../assets/bloco terra/terra_canto.png', label: 'Espinhos', kind: 'array' },
         { type: 'estacaSup', stateKey: 'plataformasEstacaSup', sprite: '../../assets/personagem/estacasup.png', label: 'Estaca Superior', kind: 'array' },
+
         { type: 'estacaDir', stateKey: 'plataformasEstacaDir', sprite: '../../assets/personagem/estacadir.png', label: 'Estaca Direita', kind: 'array' },
         { type: 'estacaEsq', stateKey: 'plataformasEstacaEsq', sprite: '../../assets/personagem/estacaesq.png', label: 'Estaca Esquerda', kind: 'array' },
         { type: 'estacaBaixo', stateKey: 'plataformasEstacaBaixo', sprite: '../../assets/personagem/estacasdown.png', label: 'Estaca Baixo', kind: 'array' }

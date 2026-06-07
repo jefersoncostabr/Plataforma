@@ -47,24 +47,82 @@
             const container = palette.querySelector('#palette-blocks');
             if (!container) return;
 
+            const defs = window.EditorConfig?.PLATFORM_DEFS || [];
+
+            // Dois ciclos extras (neve e espinhos), além do ciclo “geral” (terra/estacas/etc).
+            // Mantém a economia de espaço e não altera a lógica de inserção (apenas troca o type selecionado).
+            const cycleListGeral = defs
+                .filter(def => typeof def?.type === 'string' && typeof def?.sprite === 'string')
+                .filter(def => !['plataformasNeve'].includes(def.stateKey))
+                .map(def => ({ type: def.type, img: def.sprite }));
+
+            const cycleListNeve = defs
+                .filter(def => def?.stateKey === 'plataformasNeve')
+                .filter(def => typeof def?.type === 'string' && typeof def?.sprite === 'string')
+                .map(def => ({ type: def.type, img: def.sprite }));
+
+            function criarBotaoCiclo(list) {
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'palette-cycle-btn';
+                btn.style.cssText = 'display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; padding:0; cursor:pointer; border:none; background:transparent; color:#eee;';
+
+                const img = document.createElement('img');
+                img.style.width = '32px';
+                img.style.height = '32px';
+                img.style.imageRendering = 'pixelated';
+
+                btn.appendChild(img);
+
+                if (!list || list.length === 0) {
+                    btn.style.display = 'none';
+                    return { btn, render: () => {} };
+                }
+
+                let idx = 0;
+                const render = () => {
+                    const current = list[idx];
+                    img.src = current.img;
+                    setItemSelecionado(current.type);
+                };
+
+                btn.onclick = () => {
+                    idx = (idx + 1) % list.length;
+                    render();
+                };
+
+                render();
+                return { btn, render };
+            }
+
             container.innerHTML = '';
 
-            const blocks = window.EditorConfig?.PLATFORM_DEFS || [];
-            blocks.forEach((def, idx) => {
-                const img = document.createElement('img');
-                img.className = 'palette-item' + (idx === 0 ? ' selected' : '');
-                img.dataset.type = def.type;
-                img.title = def.label || def.type;
+            // 1) Botão geral
+            container.appendChild(criarBotaoCiclo(cycleListGeral).btn);
 
-                const src = window.EditorDefinitions?.resolveSpritePath?.(def, 'menu') || def.sprite || '';
-                img.src = src;
+            // 2) Botão neve
+            container.appendChild(criarBotaoCiclo(cycleListNeve).btn);
 
-                // Compat: alguns cliques esperam stateKey/tipo; aqui usamos def.type.
-                // Em seguida, o editor.js faz getDefinitionByType(type) com type.
-                container.appendChild(img);
-            });
+            // 3) Botão “meio bloco” (inferior/superior + variantes)
+            const cycleListMeioBloco = defs
+                .filter(def => typeof def?.type === 'string' && typeof def?.sprite === 'string')
+                .filter(def => ['plataformasTerraInferior','plataformasTerraSuperior','plataformasTerraInferior2','plataformasTerraSuperior2'].includes(def.stateKey))
+                .map(def => ({ type: def.type, img: def.sprite }));
 
-            configurarPaleta();
+            container.appendChild(criarBotaoCiclo(cycleListMeioBloco).btn);
+
+            // 4) Botão espinhos (somente blocos de espinho)
+            // Se não existir no catálogo, fica vazio e o helper oculta o botão.
+            const cycleListEspinhos = defs
+                .filter(def => typeof def?.type === 'string' && typeof def?.sprite === 'string')
+                .filter(def => def?.stateKey === 'plataformasEspinhos')
+                .map(def => ({ type: def.type, img: def.sprite }));
+
+            container.appendChild(criarBotaoCiclo(cycleListEspinhos).btn);
+
+
+
         }
 
 
