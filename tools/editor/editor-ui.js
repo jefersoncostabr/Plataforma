@@ -265,8 +265,10 @@
                 <label>
                     Bloco:
                     <select id="block-type-select">
-                        <option value="padrao">Padrão (Grama)</option>
+                        <option value="padrao">Padrão (Terra Horizontal)</option>
+
                         <option value="neve">Neve</option>
+
                         <option value="terraInferior">Terra Inferior</option>
                         <option value="terraSuperior">Terra Superior</option>
                     </select>

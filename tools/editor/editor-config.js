@@ -4,7 +4,8 @@
     const BOSS_MAX_STAGES = 5;
 
     const PLATFORM_DEFS = [
-        { type: 'plataforma', stateKey: 'plataformas', sprite: '../../assets/personagem/chao.png', label: 'Plataforma', kind: 'array' },
+        { type: 'plataforma', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_horizontal.png', label: 'Plataforma', kind: 'array' },
+
         { type: 'plataformaNeve', stateKey: 'plataformasNeve', sprite: '../../assets/personagem/chao_neve.png', label: 'Chão de Neve', kind: 'array' },
         { type: 'terraInferior', stateKey: 'plataformasTerraInferior', sprite: '../../assets/personagem/terra_inferior.png', label: 'Terra Meio Bloco Inferior', kind: 'array' },
         { type: 'terraSuperior', stateKey: 'plataformasTerraSuperior', sprite: '../../assets/personagem/terra_superior.png', label: 'Terra Meio Bloco Superior', kind: 'array' },

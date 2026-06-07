@@ -307,7 +307,7 @@ async function carregarFase(nomeArquivo) {
 
     // Registra plataformas para sistema de colisão
     if (typeof renderizarPlataformas === 'function') {
-        // Garante que o objeto de colisão global contenha todos os blocos sólidos (Grama + Neve)
+        // Garante que o objeto de colisão global contenha todos os blocos sólidos (Terra + Neve)
         window.plataformas = {};
         
         // Blocos padrão (colisão cheia 32x32)
@@ -390,7 +390,7 @@ async function carregarFase(nomeArquivo) {
         }
 
         // Renderiza todas as plataformas da fase
-        renderizarPlataformas(idPalco, '../../assets/personagem/chao.png', fase.plataformas || []);
+        renderizarPlataformas(idPalco, '../../assets/bloco terra/terra_horizontal.png', fase.plataformas || []);
         if (fase.plataformasNeve) {
             renderizarPlataformas(idPalco, '../../assets/personagem/chao_neve.png', fase.plataformasNeve);
         }

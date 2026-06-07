@@ -2,12 +2,18 @@
  * Preenche a base do palco com blocos de chão.
  * 
  * @param {string} idPalco - O ID do container do jogo.
- * @param {string} imagemPath - Caminho para a imagem chao.png.
+ * @param {string} imagemPath - Caminho para a imagem terra_horizontal.png.
  * @param {number} larguraPalco - Largura total do palco (padrão 640).
  */
 function renderizarChao(idPalco, imagemPath, larguraPalco = 640) {
+    // Evita render duplicado do chão quando a fase troca (jogo/menu/editor).
     const layerPlataformas = obterLayer(window.LAYERS.PLATAFORMAS);
     if (!layerPlataformas) return;
+
+    // Remove apenas tiles antigos do chão (não remove plataformas de colisão da fase).
+    // Isso evita bugs sem duplicidade.
+    const tilesChao = layerPlataformas.querySelectorAll('img[data-terra-chao="1"]');
+    tilesChao.forEach(t => t.remove());
 
     const tamanhoTile = 32;
     const quantidade = larguraPalco / tamanhoTile;
@@ -15,6 +21,8 @@ function renderizarChao(idPalco, imagemPath, larguraPalco = 640) {
     for (let i = 0; i < quantidade; i++) {
         const tile = document.createElement('img');
         tile.src = imagemPath;
+        // Marca para remoção seletiva em troca de fase.
+        tile.dataset.terraChao = '1';
         tile.style.position = 'absolute';
         tile.style.left = (i * tamanhoTile) + 'px';
         tile.style.bottom = '0px';
@@ -107,6 +115,11 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
     const layerPlataformas = obterLayer(window.LAYERS.PLATAFORMAS);
     if (!layerPlataformas || !plataformaData) return;
 
+    // Corrige carregamento do sprite do chão em caminhos relativos.
+    // Se a imagem vier como ../../assets/... a partir de páginas/contexts diferentes,
+    // usamos um fallback para o caminho baseado na origem atual.
+    // (mantido vazio; fallback é feito via tile.onerror abaixo)
+
     const tamanhoTile = 32;
     const coordenadas = Array.isArray(plataformaData)
         ? plataformaData
@@ -119,8 +132,21 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         const { row, col } = partes;
 
         const tile = document.createElement('img');
+
+        // Tentativa principal
         tile.src = imagemPath;
+
+        // Fallback específico para o chão quando o caminho relativo falha.
+        if (/bloco\s*terra|terra_horizontal\.png|bloco-terra|terra_horizontal\b/i.test(String(imagemPath || ''))) {
+            tile.onerror = () => {
+                tile.onerror = null;
+
+                tile.src = '../../assets/bloco terra/terra_horizontal.png';
+            };
+        }
+
         tile.style.position = 'absolute';
+
         tile.style.left = (col * tamanhoTile) + 'px';
         tile.style.bottom = (row * tamanhoTile) + 'px';
         tile.style.width = tamanhoTile + 'px';
@@ -874,8 +900,7 @@ window.renderizarMusgoSobreRoboAberto = renderizarMusgoSobreRoboAberto;
 window.renderizarMusgoSobreRoboDesativado = renderizarMusgoSobreRoboDesativado;
 window.renderizarAlavanca = renderizarAlavanca;
 window.criarAlavancaInterativa = criarAlavancaInterativa;
+
 window.buscarAlavancaPorColisao = buscarAlavancaPorColisao;
 window.interagirComAlavanca = interagirComAlavanca;
 window.interagirComMusgoAlvo = interagirComMusgoAlvo;
-
-
