@@ -29,7 +29,7 @@ O `type` precisa ser idêntico nos dois arquivos para funcionar.
   - `type`: id lógico do bloco
   - `label`: texto do ciclo na paleta
   - `stateKey`: normalmente `plataformas` para variações de grama
-  - `sprite`: caminho do PNG
+  - `sprite`: caminho do PNG (obrigatório para aparecer no botão de ciclo)
 2. Abra `tools/editor/editor-config.js`.
 3. Localize o array `PLATFORM_DEFS`.
 4. Adicione uma definição com o mesmo `type` do JSON e com:
@@ -51,6 +51,10 @@ Se o bloco aparece na paleta mas não é colocado no palco, normalmente faltou o
 Quando vários blocos usam o mesmo `stateKey` (ex.: `plataformas`), o editor salva cada entrada com `coord` + `type` para manter a variação correta no palco.
 
 Isso evita o bug em que todos os blocos do grupo eram renderizados com o sprite do último tipo definido.
+
+### Navegação do ciclo (paleta de blocos)
+- Clique esquerdo no botão de ciclo: avança para o próximo bloco.
+- Clique direito no botão de ciclo: volta para o bloco anterior.
 
 ### Depois de adicionar
 - O editor renderiza os blocos a partir do catálogo (`EditorConfig/EditorDefinitions`).
@@ -117,6 +121,9 @@ Exemplo de alias existente:
    - `sprite` (para blocos) em `editor-config.js`
    - `spriteColetavel/spriteMenu` (para itens) no JSON em `config/items/`
 4. Recarregue o editor.
+5. No menu de blocos, teste o ciclo:
+  - clique esquerdo avança
+  - clique direito retorna
 
 ---
 

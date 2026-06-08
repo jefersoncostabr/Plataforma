@@ -115,6 +115,15 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
     const layerPlataformas = obterLayer(window.LAYERS.PLATAFORMAS);
     if (!layerPlataformas || !plataformaData) return;
 
+    const SPRITE_POR_TIPO_PLATAFORMA = {
+        plataforma: '../../assets/bloco terra/terra_horizontal.png',
+        plataformaCantoMinimo: '../../assets/bloco terra/terra_canto_minimo.png',
+        plataformaCanto: '../../assets/bloco terra/terra_canto.png',
+        plataformaGramaPico: '../../assets/bloco terra/terra_pico.png',
+        plataformaGramaVertical: '../../assets/bloco terra/terra_vertical.png',
+        plataformaMuro: '../../assets/bloco terra/grama_muro2.png'
+    };
+
     // Corrige carregamento do sprite do chão em caminhos relativos.
     // Se a imagem vier como ../../assets/... a partir de páginas/contexts diferentes,
     // usamos um fallback para o caminho baseado na origem atual.
@@ -125,23 +134,29 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         ? plataformaData
         : Object.keys(plataformaData);
 
-    coordenadas.forEach(coord => {
+    coordenadas.forEach(entrada => {
+        const coord = typeof entrada === 'string'
+            ? entrada
+            : String(entrada?.coord || entrada?.pos || '').trim();
         const partes = parseCoordGrid(coord);
         if (!partes) return;
 
         const { row, col } = partes;
+        const tipoEntrada = (entrada && typeof entrada === 'object')
+            ? String(entrada.type || '').trim()
+            : '';
+        const spriteFinal = SPRITE_POR_TIPO_PLATAFORMA[tipoEntrada] || imagemPath;
 
         const tile = document.createElement('img');
 
         // Tentativa principal
-        tile.src = imagemPath;
+        tile.src = spriteFinal;
 
         // Fallback específico para o chão quando o caminho relativo falha.
-        if (/bloco\s*terra|terra_horizontal\.png|bloco-terra|terra_horizontal\b/i.test(String(imagemPath || ''))) {
+        if (/bloco\s*terra|terra_horizontal\.png|bloco-terra|terra_horizontal\b/i.test(String(spriteFinal || ''))) {
             tile.onerror = () => {
                 tile.onerror = null;
-
-                tile.src = '../../assets/bloco terra/terra_horizontal.png';
+                tile.src = imagemPath || '../../assets/bloco terra/terra_horizontal.png';
             };
         }
 

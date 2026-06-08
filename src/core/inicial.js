@@ -309,11 +309,18 @@ async function carregarFase(nomeArquivo) {
     if (typeof renderizarPlataformas === 'function') {
         // Garante que o objeto de colisão global contenha todos os blocos sólidos (Terra + Neve)
         window.plataformas = {};
+
+        const obterCoordEntradaPlataforma = (entrada) => {
+            if (typeof entrada === 'string') return entrada.trim().toLowerCase();
+            return String(entrada?.coord || entrada?.pos || '').trim().toLowerCase();
+        };
         
         // Blocos padrão (colisão cheia 32x32)
         const blocosPadrao = [...(fase.plataformas || []), ...(fase.plataformasNeve || [])];
-        blocosPadrao.forEach(coord => {
-            window.plataformas[coord.trim().toLowerCase()] = true;
+        blocosPadrao.forEach((entrada) => {
+            const coord = obterCoordEntradaPlataforma(entrada);
+            if (!coord) return;
+            window.plataformas[coord] = true;
         });
 
         // Meio-blocos de terra (sem dano)

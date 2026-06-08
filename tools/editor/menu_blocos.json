@@ -12,7 +12,8 @@
             { "type": "plataformaCanto", "label": "Canto", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_canto.png" },
             { "type": "plataformaGramaPico", "label": "Grama Pico", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_pico.png" },
             { "type": "plataformaGramaVertical", "label": "Grama Vertical", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_vertical.png" },
-            { "type": "plataformaMuro", "label": "Muro", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_muro.png" }
+            { "type": "plataformaMuro", "label": "Muro", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_muro.png" },
+            { "type": "plataformaMuro", "label": "Muro horizontal", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/grama_muro2.png" }
           ]
         }
       },

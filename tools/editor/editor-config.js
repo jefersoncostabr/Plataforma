@@ -9,7 +9,7 @@
         { type: 'plataformaCanto', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_canto.png', label: 'Canto', kind: 'array' },
         { type: 'plataformaGramaPico', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_pico.png', label: 'Grama Pico', kind: 'array' },
         { type: 'plataformaGramaVertical', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_vertical.png', label: 'Grama Vertical', kind: 'array' },
-        { type: 'plataformaMuro', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_muro.png', label: 'Muro', kind: 'array' },
+        { type: 'plataformaMuro', stateKey: 'plataformas', sprite: '../../assets/bloco terra/grama_muro2.png', label: 'Muro', kind: 'array' },
 
 
         { type: 'plataformaNeve', stateKey: 'plataformasNeve', sprite: '../../assets/personagem/chao_neve.png', label: 'Chão de Neve', kind: 'array' },

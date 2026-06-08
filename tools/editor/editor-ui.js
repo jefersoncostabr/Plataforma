@@ -96,10 +96,17 @@
                     btn.title = labelAtual ? `Bloco: ${labelAtual}` : menuLabel;
                 };
 
-                btn.onclick = () => {
+                btn.addEventListener('click', () => {
                     idx = (idx + 1) % list.length;
                     render();
-                };
+                });
+
+                // Clique direito volta o ciclo para o item anterior.
+                btn.addEventListener('contextmenu', (event) => {
+                    event.preventDefault();
+                    idx = (idx - 1 + list.length) % list.length;
+                    render();
+                });
 
                 render();
                 return { btn, render };
