@@ -8,6 +8,9 @@
         "cycle": {
           "items": [
             { "type": "plataforma", "label": "Grama", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_horizontal.png" },
+            { "type": "plataformaHorizontal2", "label": "Horizontal 2", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_horizontal2.png" },
+            { "type": "plataformaGramaVertical", "label": "Grama Vertical", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_vertical.png" },
+            { "type": "plataformaVertical2", "label": "Vertical 2", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_vertical2.png" },
             { "type": "plataformaCantoMinimo", "label": "Canto minimo", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_canto_minimo.png" },
             { "type": "plataformaCanto", "label": "Canto", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_canto.png" },
 	          { "type": "plataformaCanto2", "label": "Canto", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/grama_canto2.png" },
@@ -15,7 +18,8 @@
             { "type": "plataformaCanto4", "label": "Canto", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/grama_canto4.png" },
             { "type": "plataformaGramaPico", "label": "Grama Pico", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_pico.png" },
             { "type": "plataformaGramaPico2", "label": "Grama Pico2", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/grama_pico2.png" },
-            { "type": "plataformaGramaVertical", "label": "Grama Vertical", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_vertical.png" },
+            { "type": "plataformaGramaPico4", "label": "Grama Pico4", "stateKey": "plataformasGramaPico4", "sprite": "../../assets/bloco terra/terra_pico3.png" },
+            { "type": "plataformaGramaPico5", "label": "Grama Pico5", "stateKey": "plataformasGramaPico5", "sprite": "../../assets/bloco terra/terra_pico4.png" },
             { "type": "plataformaMuroTerra", "label": "Muro", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_muro.png" },
             { "type": "plataformaMuro", "label": "Muro horizontal", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/grama_muro2.png" }
           ]
@@ -38,7 +42,9 @@
             { "type": "terraInferior", "label": "Terra Inferior", "stateKey": "plataformasTerraInferior", "sprite": "../../assets/personagem/terra_inferior.png" },
             { "type": "terraSuperior", "label": "Terra Superior", "stateKey": "plataformasTerraSuperior", "sprite": "../../assets/personagem/terra_superior.png" },
             { "type": "terraInferior2", "label": "Terra Inferior 2", "stateKey": "plataformasTerraInferior2", "sprite": "../../assets/personagem/terra_inferior2.png" },
-            { "type": "terraSuperior2", "label": "Terra Superior 2", "stateKey": "plataformasTerraSuperior2", "sprite": "../../assets/personagem/terra_superior2.png" }
+            { "type": "terraSuperior2", "label": "Terra Superior 2", "stateKey": "plataformasTerraSuperior2", "sprite": "../../assets/personagem/terra_superior2.png" },
+            { "type": "terraPico", "label": "Terra Pico", "stateKey": "plataformasTerraPico", "sprite": "../../assets/meio_bloco/meiograma_pico.png" },
+            { "type": "terraPicoInvertido", "label": "Terra Pico Invertido", "stateKey": "plataformasTerraPicoInvertido", "sprite": "../../assets/meio_bloco/meiograma_pico_inv.png" }
           ]
         }
       },

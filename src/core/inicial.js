@@ -319,7 +319,9 @@ async function carregarFase(nomeArquivo) {
         const blocosPadrao = [
             ...(fase.plataformas || []),
             ...(fase.plataformasNeve || []),
-            ...(fase.plataformasEspinhos || [])
+            ...(fase.plataformasEspinhos || []),
+            ...(fase.plataformasGramaPico4 || []),
+            ...(fase.plataformasGramaPico5 || [])
         ];
         blocosPadrao.forEach((entrada) => {
             const coord = obterCoordEntradaPlataforma(entrada);
@@ -353,6 +355,20 @@ async function carregarFase(nomeArquivo) {
             fase.plataformasTerraSuperior2.forEach(coord => {
                 // Variante 2: metade superior sólida (sem dano)
                 window.plataformas[coord.trim().toLowerCase()] = { tipo: 'meio', direcao: 'superior', yOffset: 0, height: 16 };
+            });
+        }
+
+        if (fase.plataformasTerraPico) {
+            fase.plataformasTerraPico.forEach(coord => {
+                // Pico: metade superior sólida (sem dano)
+                window.plataformas[coord.trim().toLowerCase()] = { tipo: 'meio', direcao: 'superior', yOffset: 16, height: 16 };
+            });
+        }
+
+        if (fase.plataformasTerraPicoInvertido) {
+            fase.plataformasTerraPicoInvertido.forEach(coord => {
+                // Pico Invertido: metade inferior sólida (sem dano)
+                window.plataformas[coord.trim().toLowerCase()] = { tipo: 'meio', direcao: 'inferior', yOffset: 0, height: 16 };
             });
         }
 
@@ -419,6 +435,18 @@ async function carregarFase(nomeArquivo) {
         }
         if (fase.plataformasTerraSuperior2) {
             renderizarPlataformas(idPalco, '../../assets/personagem/terra_superior2.png', fase.plataformasTerraSuperior2);
+        }
+        if (fase.plataformasGramaPico4) {
+            renderizarPlataformas(idPalco, '../../assets/bloco terra/terra_pico3.png', fase.plataformasGramaPico4);
+        }
+        if (fase.plataformasGramaPico5) {
+            renderizarPlataformas(idPalco, '../../assets/bloco terra/terra_pico4.png', fase.plataformasGramaPico5);
+        }
+        if (fase.plataformasTerraPico) {
+            renderizarPlataformas(idPalco, '../../assets/meio_bloco/meiograma_pico.png', fase.plataformasTerraPico);
+        }
+        if (fase.plataformasTerraPicoInvertido) {
+            renderizarPlataformas(idPalco, '../../assets/meio_bloco/meiograma_pico_inv.png', fase.plataformasTerraPicoInvertido);
         }
         if (fase.plataformasEstacaSup) {
             renderizarPlataformas(idPalco, '../../assets/personagem/estacasup.png', fase.plataformasEstacaSup);

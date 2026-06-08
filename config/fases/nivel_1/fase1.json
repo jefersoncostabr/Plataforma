@@ -41,10 +41,6 @@
             "type": "plataformaCanto"
         },
         {
-            "coord": "c26",
-            "type": "plataformaMuroTerra"
-        },
-        {
             "coord": "c29",
             "type": "plataformaGramaPico"
         },
@@ -77,12 +73,20 @@
             "type": "plataformaCanto"
         },
         {
+            "coord": "e10",
+            "type": "plataformaGramaPico2"
+        },
+        {
             "coord": "e16",
             "type": "plataformaMuroTerra"
         },
         {
             "coord": "e26",
             "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "e39",
+            "type": "plataformaGramaPico2"
         },
         {
             "coord": "f6",
@@ -101,12 +105,8 @@
             "type": "plataformaMuroTerra"
         },
         {
-            "coord": "f28",
-            "type": "plataforma"
-        },
-        {
             "coord": "f29",
-            "type": "plataformaCanto2"
+            "type": "plataformaGramaPico2"
         },
         {
             "coord": "f39",
@@ -258,9 +258,6 @@
         "c15",
         "c16",
         "e6",
-        "e10",
-        "e38",
-        "e39",
         "f40",
         "g7",
         "g11",
@@ -294,17 +291,26 @@
         "plataformaGramaPico2",
         "plataformaCanto3"
     ],
-    "plataformasTerraSuperior": [
-        "b33",
-        "d9"
-    ],
-    "plataformasTerraSuperior2": [
-        "j8"
-    ],
     "humano": [
         "b12",
         "b40",
         "e12",
         "h13"
+    ],
+    "plataformasTerraPicoInvertido": [
+        "b33",
+        "d9",
+        "i22",
+        "j8"
+    ],
+    "plataformasTerraPico": [
+        "j22"
+    ],
+    "plataformasGramaPico5": [
+        "c26"
+    ],
+    "plataformasGramaPico4": [
+        "e38",
+        "f28"
     ]
 }

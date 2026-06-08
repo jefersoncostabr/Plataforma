@@ -5,6 +5,9 @@
 
     const PLATFORM_DEFS = [
         { type: 'plataforma', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_horizontal.png', label: 'Plataforma', kind: 'array' },
+        { type: 'plataformaHorizontal2', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_horizontal2.png', label: 'Horizontal 2', kind: 'array' },
+        { type: 'plataformaGramaVertical', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_vertical.png', label: 'Grama Vertical', kind: 'array' },
+        { type: 'plataformaVertical2', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_vertical2.png', label: 'Vertical 2', kind: 'array' },
         { type: 'plataformaCantoMinimo', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_canto_minimo.png', label: 'Canto minimo', kind: 'array' },
         { type: 'plataformaCanto', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_canto.png', label: 'Canto', kind: 'array' },
         { type: 'plataformaCanto2', stateKey: 'plataformas', sprite: '../../assets/bloco terra/grama_canto2.png', label: 'Canto', kind: 'array' },
@@ -12,7 +15,8 @@
         { type: 'plataformaCanto4', stateKey: 'plataformas', sprite: '../../assets/bloco terra/grama_canto4.png', label: 'Canto', kind: 'array' },
         { type: 'plataformaGramaPico', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_pico.png', label: 'Grama Pico', kind: 'array' },
         { type: 'plataformaGramaPico2', stateKey: 'plataformas', sprite: '../../assets/bloco terra/grama_pico2.png', label: 'Grama Pico2', kind: 'array' },
-        { type: 'plataformaGramaVertical', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_vertical.png', label: 'Grama Vertical', kind: 'array' },
+        { type: 'plataformaGramaPico4', stateKey: 'plataformasGramaPico4', sprite: '../../assets/bloco terra/terra_pico3.png', label: 'Grama Pico4', kind: 'array' },
+        { type: 'plataformaGramaPico5', stateKey: 'plataformasGramaPico5', sprite: '../../assets/bloco terra/terra_pico4.png', label: 'Grama Pico5', kind: 'array' },
         { type: 'plataformaMuroTerra', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_muro.png', label: 'Muro (Terra)', kind: 'array' },
         { type: 'plataformaMuro', stateKey: 'plataformas', sprite: '../../assets/bloco terra/grama_muro2.png', label: 'Muro horizontal', kind: 'array' },
 
@@ -22,6 +26,8 @@
         { type: 'terraSuperior', stateKey: 'plataformasTerraSuperior', sprite: '../../assets/personagem/terra_superior.png', label: 'Terra Meio Bloco Superior', kind: 'array' },
         { type: 'terraInferior2', stateKey: 'plataformasTerraInferior2', sprite: '../../assets/personagem/terra_inferior2.png', label: 'Terra Meio Bloco Inferior 2', kind: 'array' },
         { type: 'terraSuperior2', stateKey: 'plataformasTerraSuperior2', sprite: '../../assets/personagem/terra_superior2.png', label: 'Terra Meio Bloco Superior 2', kind: 'array' },
+        { type: 'terraPico', stateKey: 'plataformasTerraPico', sprite: '../../assets/meio_bloco/meiograma_pico.png', label: 'Terra Pico', kind: 'array' },
+        { type: 'terraPicoInvertido', stateKey: 'plataformasTerraPicoInvertido', sprite: '../../assets/meio_bloco/meiograma_pico_inv.png', label: 'Terra Pico Invertido', kind: 'array' },
         { type: 'plataformaEspinhos', stateKey: 'plataformasEspinhos', sprite: '../../assets/bloco terra/terra_canto.png', label: 'Espinhos', kind: 'array' },
         { type: 'estacaSup', stateKey: 'plataformasEstacaSup', sprite: '../../assets/personagem/estacasup.png', label: 'Estaca Superior', kind: 'array' },
 
@@ -89,7 +95,10 @@
             ...(window.EditorConfig?.PLATFORM_DEFS || PLATFORM_DEFS),
             ...(window.EditorConfig?.ENEMY_DEFS || ENEMY_DEFS),
             ...(window.EditorConfig?.SYSTEM_DEFS || SYSTEM_DEFS)
-        ];
+        ]; // Atualizado para buscar definições dinamicamente
+        // Adiciona as novas chaves ao COORD_ARRAY_KEYS para que o editor as reconheça
+        if (!COORD_ARRAY_KEYS.includes('plataformasGramaPico4')) COORD_ARRAY_KEYS.push('plataformasGramaPico4');
+        if (!COORD_ARRAY_KEYS.includes('plataformasGramaPico5')) COORD_ARRAY_KEYS.push('plataformasGramaPico5');
         return liveAllDefs.find(def => def.type === type) || null;
     }
 
