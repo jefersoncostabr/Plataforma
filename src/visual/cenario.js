@@ -123,7 +123,9 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         plataformaCanto3: '../../assets/bloco terra/grama_canto3.png',
         plataformaCanto4: '../../assets/bloco terra/grama_canto4.png',
         plataformaGramaPico: '../../assets/bloco terra/terra_pico.png',
+        plataformaGramaPico2: '../../assets/bloco terra/grama_pico2.png',
         plataformaGramaVertical: '../../assets/bloco terra/terra_vertical.png',
+        plataformaMuroTerra: '../../assets/bloco terra/terra_muro.png',
         plataformaMuro: '../../assets/bloco terra/grama_muro2.png'
     };
 

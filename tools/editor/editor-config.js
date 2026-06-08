@@ -11,8 +11,10 @@
         { type: 'plataformaCanto3', stateKey: 'plataformas', sprite: '../../assets/bloco terra/grama_canto3.png', label: 'Canto', kind: 'array' },
         { type: 'plataformaCanto4', stateKey: 'plataformas', sprite: '../../assets/bloco terra/grama_canto4.png', label: 'Canto', kind: 'array' },
         { type: 'plataformaGramaPico', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_pico.png', label: 'Grama Pico', kind: 'array' },
+        { type: 'plataformaGramaPico2', stateKey: 'plataformas', sprite: '../../assets/bloco terra/grama_pico2.png', label: 'Grama Pico2', kind: 'array' },
         { type: 'plataformaGramaVertical', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_vertical.png', label: 'Grama Vertical', kind: 'array' },
-        { type: 'plataformaMuro', stateKey: 'plataformas', sprite: '../../assets/bloco terra/grama_muro2.png', label: 'Muro', kind: 'array' },
+        { type: 'plataformaMuroTerra', stateKey: 'plataformas', sprite: '../../assets/bloco terra/terra_muro.png', label: 'Muro (Terra)', kind: 'array' },
+        { type: 'plataformaMuro', stateKey: 'plataformas', sprite: '../../assets/bloco terra/grama_muro2.png', label: 'Muro horizontal', kind: 'array' },
 
 
         { type: 'plataformaNeve', stateKey: 'plataformasNeve', sprite: '../../assets/personagem/chao_neve.png', label: 'Chão de Neve', kind: 'array' },
