@@ -316,7 +316,11 @@ async function carregarFase(nomeArquivo) {
         };
         
         // Blocos padrão (colisão cheia 32x32)
-        const blocosPadrao = [...(fase.plataformas || []), ...(fase.plataformasNeve || [])];
+        const blocosPadrao = [
+            ...(fase.plataformas || []),
+            ...(fase.plataformasNeve || []),
+            ...(fase.plataformasEspinhos || [])
+        ];
         blocosPadrao.forEach((entrada) => {
             const coord = obterCoordEntradaPlataforma(entrada);
             if (!coord) return;
@@ -400,6 +404,9 @@ async function carregarFase(nomeArquivo) {
         renderizarPlataformas(idPalco, '../../assets/bloco terra/terra_horizontal.png', fase.plataformas || []);
         if (fase.plataformasNeve) {
             renderizarPlataformas(idPalco, '../../assets/personagem/chao_neve.png', fase.plataformasNeve);
+        }
+        if (fase.plataformasEspinhos) {
+            renderizarPlataformas(idPalco, '../../assets/bloco terra/terra_canto.png', fase.plataformasEspinhos);
         }
         if (fase.plataformasTerraInferior) {
             renderizarPlataformas(idPalco, '../../assets/personagem/terra_inferior.png', fase.plataformasTerraInferior);

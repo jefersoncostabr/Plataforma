@@ -14,20 +14,131 @@
     "itens": {
         "cinto": "l1"
     },
-    "inimigoAleatorio": [1, 0],
+    "inimigoAleatorio": [
+        1,
+        0
+    ],
     "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
-        "b7",
-        "c7", "c12",
-        "d12", "d35",
-        "f22", "f23", "f24", "f25", "f33", "f38",
-        "g15", "g16", "g17", "g18", "g19", "g28", "g29", "g30", "g31", "g40",
+        "a1",
+        {
+            "coord": "b7",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "c7",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "c12",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "d12",
+            "type": "plataformaGramaPico"
+        },
+        {
+            "coord": "f22",
+            "type": "plataformaCanto"
+        },
+        {
+            "coord": "f25",
+            "type": "plataformaCanto2"
+        },
+        {
+            "coord": "g15",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "g16",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "g17",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "g18",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "g19",
+            "type": "plataformaGramaPico2"
+        },
+        {
+            "coord": "g28",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "g29",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "g30",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "g31",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "k1",
+            "type": "plataformaGramaPico2"
+        },
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8",
+        "a9",
+        "a10",
+        "a11",
+        "a12",
+        "a13",
+        "a14",
+        "a15",
+        "a16",
+        "a17",
+        "a18",
+        "a19",
+        "a20",
+        "a21",
+        "a22",
+        "a23",
+        "a24",
+        "a25",
+        "a26",
+        "a27",
+        "a28",
+        "a29",
+        "a30",
+        "a31",
+        "a32",
+        "a33",
+        "a34",
+        "a35",
+        "a36",
+        "a37",
+        "a38",
+        "a39",
+        "a40",
+        "d35",
+        "f23",
+        "f24",
+        "f33",
+        "f38",
+        "g40",
         "j14",
-        "k1",
-        "m2", "m6", "m8", "m10", "m12"
+        "m2",
+        "m6",
+        "m8",
+        "m10",
+        "m12"
     ],
     "plataformasTerraInferior2": [
-        "d7", "d37",
+        "d7",
+        "d37",
         "j16"
     ],
     "plataformasTerraSuperior": [
@@ -39,7 +150,8 @@
         "i13"
     ],
     "humano": [
-        "e11", "e17",
+        "e11",
+        "e17",
         "h30"
     ]
 }
