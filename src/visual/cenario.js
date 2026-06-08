@@ -119,6 +119,9 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         plataforma: '../../assets/bloco terra/terra_horizontal.png',
         plataformaCantoMinimo: '../../assets/bloco terra/terra_canto_minimo.png',
         plataformaCanto: '../../assets/bloco terra/terra_canto.png',
+        plataformaCanto2: '../../assets/bloco terra/grama_canto2.png',
+        plataformaCanto3: '../../assets/bloco terra/grama_canto3.png',
+        plataformaCanto4: '../../assets/bloco terra/grama_canto4.png',
         plataformaGramaPico: '../../assets/bloco terra/terra_pico.png',
         plataformaGramaVertical: '../../assets/bloco terra/terra_vertical.png',
         plataformaMuro: '../../assets/bloco terra/grama_muro2.png'
