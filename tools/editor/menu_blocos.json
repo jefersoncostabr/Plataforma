@@ -1,40 +1,39 @@
 {
   "version": 1,
   "paletteBlocks": {
-    "menus": [{
-
+    "menus": [
+      {
         "id": "geral",
         "label": "Grama",
         "cycle": {
           "items": [
-            { "type": "plataforma", "label": "Grama", "sprite": "../../assets/bloco terra/terra_horizontal.png" },
-            { "type": "plataformaCantoDir", "label": "Canto Direito", "sprite": "../../assets/bloco terra/terra_canto_direito.png" },
-            { "type": "plataformaCantoEsq", "label": "Canto Esquerdo", "sprite": "../../assets/bloco terra/terra_canto_esquerdo.png" },
-            { "type": "plataformaMeio", "label": "Meio Bloco", "sprite": "../../assets/bloco terra/terra_meio.png" }
-
-
-
+            { "type": "plataforma", "label": "Grama", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_horizontal.png" },
+            { "type": "plataformaCantoMinimo", "label": "Canto minimo", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_canto_minimo.png" },
+            { "type": "plataformaCanto", "label": "Canto", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_canto.png" },
+            { "type": "plataformaGramaPico", "label": "Grama Pico", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_pico.png" },
+            { "type": "plataformaGramaVertical", "label": "Grama Vertical", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_vertical.png" },
+            { "type": "plataformaMuro", "label": "Muro", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_muro.png" }
           ]
         }
-      },{
-
+      },
+      {
         "id": "neve",
         "label": "Neve",
         "cycle": {
           "items": [
-            { "type": "plataformaNeve" }
+            { "type": "plataformaNeve", "label": "Neve", "stateKey": "plataformasNeve", "sprite": "../../assets/personagem/chao_neve.png" }
           ]
         }
-      },{
-
+      },
+      {
         "id": "meio_bloco",
         "label": "Meio Bloco",
         "cycle": {
           "items": [
-            { "type": "terraInferior", "label": "Terra Inferior", "sprite": "../../assets/bloco terra/terra_inferior.png" },
-            { "type": "terraSuperior", "label": "Terra Superior", "sprite": "../../assets/bloco terra/terra_superior.png" },
-            { "type": "terraInferior2", "label": "Terra Inferior 2", "sprite": "../../assets/bloco terra/terra_inferior2.png" },
-            { "type": "terraSuperior2", "label": "Terra Superior 2", "sprite": "../../assets/bloco terra/terra_superior2.png" }
+            { "type": "terraInferior", "label": "Terra Inferior", "stateKey": "plataformasTerraInferior", "sprite": "../../assets/personagem/terra_inferior.png" },
+            { "type": "terraSuperior", "label": "Terra Superior", "stateKey": "plataformasTerraSuperior", "sprite": "../../assets/personagem/terra_superior.png" },
+            { "type": "terraInferior2", "label": "Terra Inferior 2", "stateKey": "plataformasTerraInferior2", "sprite": "../../assets/personagem/terra_inferior2.png" },
+            { "type": "terraSuperior2", "label": "Terra Superior 2", "stateKey": "plataformasTerraSuperior2", "sprite": "../../assets/personagem/terra_superior2.png" }
           ]
         }
       },
@@ -43,13 +42,14 @@
         "label": "Espinhos",
         "cycle": {
           "items": [
-            { "type": "estacaSup", "label": "Estaca Superior", "sprite": "../../assets/bloco terra/estaca_superior.png" },
-            { "type": "estacaDir", "label": "Estaca Direita", "sprite": "../../assets/bloco terra/estaca_direita.png" },
-            { "type": "estacaEsq", "label": "Estaca Esquerda", "sprite": "../../assets/bloco terra/estaca_esquerda.png" },
-            { "type": "estacaBaixo", "label": "Estaca Inferior", "sprite": "../../assets/bloco terra/estaca_inferior.png" }
+            { "type": "estacaSup", "label": "Estaca Superior", "stateKey": "plataformasEstacaSup", "sprite": "../../assets/personagem/estacasup.png" },
+            { "type": "estacaDir", "label": "Estaca Direita", "stateKey": "plataformasEstacaDir", "sprite": "../../assets/personagem/estacadir.png" },
+            { "type": "estacaEsq", "label": "Estaca Esquerda", "stateKey": "plataformasEstacaEsq", "sprite": "../../assets/personagem/estacaesq.png" },
+            { "type": "estacaBaixo", "label": "Estaca Inferior", "stateKey": "plataformasEstacaBaixo", "sprite": "../../assets/personagem/estacasdown.png" }
           ]
         }
       }
     ]
   }
 }
+

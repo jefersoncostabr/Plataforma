@@ -36,37 +36,41 @@
                 item.onclick = () => {
                     items.forEach(i => i.classList.remove('selected'));
                     item.classList.add('selected');
-                    const tipo = item.getAttribute('data-type');
+            const tipo = item.getAttribute('data-type');
                     setItemSelecionado(tipo);
                     onSelecionarItem(tipo);
                 };
             });
         }
 
-        function configurarPaletaBlocos() {
+        async function configurarPaletaBlocos() {
             const container = palette.querySelector('#palette-blocks');
             if (!container) return;
 
-            const defs = window.EditorConfig?.PLATFORM_DEFS || [];
+            container.innerHTML = '';
 
-            // Dois ciclos extras (neve e espinhos), além do ciclo “geral” (terra/estacas/etc).
-            // Mantém a economia de espaço e não altera a lógica de inserção (apenas troca o type selecionado).
-            const cycleListGeral = defs
-                .filter(def => typeof def?.type === 'string' && typeof def?.sprite === 'string')
-                .filter(def => !['plataformasNeve'].includes(def.stateKey))
-                .map(def => ({ type: def.type, img: def.sprite }));
+            let menuDef = null;
+            try {
+                if (window.EditorMenuBlocosLoader?.carregarMenuBlocosJson) {
+                    menuDef = await window.EditorMenuBlocosLoader.carregarMenuBlocosJson();
+                } else {
+                    // fallback (caso o loader não exista)
+                    const resp = await fetch('../../tools/editor/menu_blocos.json', { cache: 'no-store' });
+                    menuDef = resp.ok ? await resp.json() : null;
+                }
+            } catch (e) {
+                console.error('[EditorUI] Falha ao carregar menu_blocos.json', e);
+            }
 
-            const cycleListNeve = defs
-                .filter(def => def?.stateKey === 'plataformasNeve')
-                .filter(def => typeof def?.type === 'string' && typeof def?.sprite === 'string')
-                .map(def => ({ type: def.type, img: def.sprite }));
+            const menus = menuDef?.paletteBlocks?.menus;
+            if (!Array.isArray(menus) || menus.length === 0) {
+                console.warn('[EditorUI] menu_blocos.json não veio no formato esperado. Paleta de blocos não será montada.');
+                return;
+            }
 
-            // Cria os botões de ciclo (que alternam sprites) dentro do menu de Blocos.
-            // Cada botão chama setItemSelecionado(tipo) ao alternar.
-            function criarBotaoCiclo(list) {
-
+            // Cria os botões de ciclo com base no menu_blocos.json.
+            function criarBotaoCiclo(list, menuLabel = '') {
                 const btn = document.createElement('button');
-
                 btn.type = 'button';
                 btn.className = 'palette-cycle-btn';
                 btn.style.cssText = 'display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; padding:0; cursor:pointer; border:none; background:transparent; color:#eee;';
@@ -75,7 +79,6 @@
                 img.style.width = '32px';
                 img.style.height = '32px';
                 img.style.imageRendering = 'pixelated';
-
                 btn.appendChild(img);
 
                 if (!list || list.length === 0) {
@@ -89,12 +92,8 @@
                     img.src = current.img;
                     setItemSelecionado(current.type);
 
-                    const def = defs.find(d => d.type === current.type);
-                    if (def?.label) {
-                        btn.title = `Bloco: ${def.label}`;
-                    } else {
-                        btn.title = '';
-                    }
+                    const labelAtual = current.label || current.type;
+                    btn.title = labelAtual ? `Bloco: ${labelAtual}` : menuLabel;
                 };
 
                 btn.onclick = () => {
@@ -106,36 +105,21 @@
                 return { btn, render };
             }
 
+            menus.forEach(menu => {
+                const items = Array.isArray(menu?.cycle?.items) ? menu.cycle.items : [];
+                const list = items
+                    .map(it => {
+                        const type = it?.type;
+                        if (!type) return null;
+                        const img = it?.sprite;
+                        if (!img) return null;
+                        return { type, img, label: it?.label };
+                    })
+                    .filter(Boolean);
 
-            container.innerHTML = '';
-
-            // 1) Botão geral
-            container.appendChild(criarBotaoCiclo(cycleListGeral).btn);
-
-            // 2) Botão neve
-            container.appendChild(criarBotaoCiclo(cycleListNeve).btn);
-
-            // 3) Botão “meio bloco” (inferior/superior + variantes)
-            const cycleListMeioBloco = defs
-                .filter(def => typeof def?.type === 'string' && typeof def?.sprite === 'string')
-                .filter(def => ['plataformasTerraInferior','plataformasTerraSuperior','plataformasTerraInferior2','plataformasTerraSuperior2'].includes(def.stateKey))
-                .map(def => ({ type: def.type, img: def.sprite }));
-
-            container.appendChild(criarBotaoCiclo(cycleListMeioBloco).btn);
-
-            // 4) Botão espinhos (somente blocos de espinho)
-
-            // Se não existir no catálogo, fica vazio e o helper oculta o botão.
-            const cycleListEspinhos = defs
-                .filter(def => typeof def?.type === 'string' && typeof def?.sprite === 'string')
-                .filter(def => def?.stateKey === 'plataformasEspinhos')
-                .map(def => ({ type: def.type, img: def.sprite }));
-
-            container.appendChild(criarBotaoCiclo(cycleListEspinhos).btn);
-
-
-
-
+                const created = criarBotaoCiclo(list, menu?.label || 'Blocos');
+                container.appendChild(created.btn);
+            });
         }
 
 

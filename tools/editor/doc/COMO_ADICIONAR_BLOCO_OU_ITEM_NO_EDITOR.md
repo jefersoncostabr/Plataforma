@@ -7,10 +7,11 @@ Este guia explica como fazer o editor reconhecer e exibir **novos blocos (plataf
 ## 1) Novo **Bloco** (Plataforma / Terra / Estacas)
 
 ### Onde configurar
-Os blocos do palco e da paleta esquerda vêm de:
-- **`tools/editor/editor-config.js`** → `PLATFORM_DEFS`
+Os blocos usam duas fontes, cada uma com um papel:
+- **`tools/editor/menu_blocos.json`** → monta a paleta de blocos (menu de escolha)
+- **`tools/editor/editor-config.js`** → `PLATFORM_DEFS` (inserção no palco e render)
 
-Cada entrada define um “tipo” que o editor grava no `faseData`.
+O `type` precisa ser idêntico nos dois arquivos para funcionar.
 
 ### Exemplo (dentro de `PLATFORM_DEFS`)
 ```js
@@ -24,15 +25,32 @@ Cada entrada define um “tipo” que o editor grava no `faseData`.
 ```
 
 ### Passo a passo
-1. Abra `tools/editor/editor-config.js`.
-2. Localize o array `PLATFORM_DEFS`.
-3. Adicione uma nova definição com:
+1. Abra `tools/editor/menu_blocos.json` e adicione o bloco no menu desejado com:
+  - `type`: id lógico do bloco
+  - `label`: texto do ciclo na paleta
+  - `stateKey`: normalmente `plataformas` para variações de grama
+  - `sprite`: caminho do PNG
+2. Abra `tools/editor/editor-config.js`.
+3. Localize o array `PLATFORM_DEFS`.
+4. Adicione uma definição com o mesmo `type` do JSON e com:
    - `type`: id lógico do bloco (usado para identificar na paleta)
    - `stateKey`: chave onde o editor salva no `faseData` (ex.: `plataformas` ou `plataformasNeve`)
    - `sprite`: caminho do PNG
    - `label`: texto mostrado na paleta
    - `kind`: `array` (porque blocos usam lista de coords)
-4. Garanta que o arquivo exista em `assets/...` com o caminho exato.
+5. Garanta que o arquivo exista em `assets/...` com o caminho exato.
+
+### Exemplo real (variações de grama)
+- `plataformaCantoMinimo`, `plataformaCanto`, `plataformaGramaPico`, `plataformaGramaVertical`:
+  - entram no menu em `menu_blocos.json`
+  - entram no `PLATFORM_DEFS` com o mesmo `type`
+
+Se o bloco aparece na paleta mas não é colocado no palco, normalmente faltou o `type` no `PLATFORM_DEFS` ou há typo no nome do `type`.
+
+### Observação importante (stateKey compartilhado)
+Quando vários blocos usam o mesmo `stateKey` (ex.: `plataformas`), o editor salva cada entrada com `coord` + `type` para manter a variação correta no palco.
+
+Isso evita o bug em que todos os blocos do grupo eram renderizados com o sprite do último tipo definido.
 
 ### Depois de adicionar
 - O editor renderiza os blocos a partir do catálogo (`EditorConfig/EditorDefinitions`).

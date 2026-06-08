@@ -122,6 +122,14 @@
             const ENEMY_DEFS = window.EditorConfig?.ENEMY_DEFS || [];
             const SYSTEM_DEFS = window.EditorConfig?.SYSTEM_DEFS || [];
 
+            const defaultTypeByStateKey = new Map();
+            PLATFORM_DEFS.forEach((def) => {
+                if (!def?.stateKey || !def?.type) return;
+                if (!defaultTypeByStateKey.has(def.stateKey)) {
+                    defaultTypeByStateKey.set(def.stateKey, def.type);
+                }
+            });
+
             const elementos = stage.querySelectorAll('img');
             elementos.forEach(el => el.remove());
             const marcadoresChefe = stage.querySelectorAll('.editor-boss-marker');
@@ -133,6 +141,17 @@
                         ? entrada
                         : String(entrada?.coord || entrada?.pos || '').trim();
                     if (!coord) return;
+
+                    // Quando múltiplos tipos compartilham stateKey, usamos o type salvo na entrada.
+                    if (entrada && typeof entrada === 'object' && entrada.type && entrada.type !== def.type) {
+                        return;
+                    }
+
+                    // Compatibilidade com fases antigas (entrada string sem type explícito).
+                    if (typeof entrada === 'string') {
+                        const defaultType = defaultTypeByStateKey.get(def.stateKey);
+                        if (defaultType && def.type !== defaultType) return;
+                    }
 
                     // (Removido inimigo_bb do render)
 

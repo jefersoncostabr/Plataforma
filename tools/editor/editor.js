@@ -841,10 +841,61 @@ function configurarGrade() {
 }
 
 
+let menuBlocosCache = null;
+
+function obterMenuBlocosCache(){
+    if (menuBlocosCache) return menuBlocosCache;
+    menuBlocosCache = window.__EDITOR_MENU_BLOCOS_CACHE__ || null;
+    if (!menuBlocosCache) {
+        menuBlocosCache = {
+            loaded: false,
+            menusByType: {},
+        };
+    }
+    return menuBlocosCache;
+}
+
+async function carregarMenuBlocosIndex(){
+    const cache = obterMenuBlocosCache();
+    if (cache.loaded) return cache;
+
+    // Carrega via loader (já existe no editor)
+    let menuDef = null;
+    try {
+        if (window.EditorMenuBlocosLoader?.carregarMenuBlocosJson) {
+            menuDef = await window.EditorMenuBlocosLoader.carregarMenuBlocosJson();
+        } else {
+            const resp = await fetch('../../tools/editor/menu_blocos.json', { cache: 'no-store' });
+            menuDef = resp.ok ? await resp.json() : null;
+        }
+    } catch (e) {
+        console.error('[Editor] Falha ao carregar menu_blocos.json', e);
+        menuDef = null;
+    }
+
+    const itemsByType = {};
+    const menus = menuDef?.paletteBlocks?.menus;
+    if (Array.isArray(menus)) {
+        menus.forEach(menu => {
+            const items = Array.isArray(menu?.cycle?.items) ? menu.cycle.items : [];
+            items.forEach(it => {
+                if (!it?.type) return;
+                itemsByType[it.type] = it;
+            });
+        });
+    }
+
+    cache.menusByType = itemsByType;
+    cache.loaded = true;
+    window.__EDITOR_MENU_BLOCOS_CACHE__ = cache;
+    return cache;
+}
+
 function adicionarElemento(coord) {
     if (window.__EDITOR_DEBUG_LEVEL__ === 'full') {
         console.log(`[Editor] adicionarElemento: tipo=${itemSelecionado}, coord=${coord}`);
     }
+
 
     const chefeExistenteNoClique = obterChefePorCoord(coord);
     if (chefeExistenteNoClique && itemSelecionado !== 'chefe') {
@@ -942,6 +993,10 @@ function adicionarElemento(coord) {
         } else {
             if (!Array.isArray(faseData[definition.stateKey])) faseData[definition.stateKey] = [];
 
+            const defsMesmoStateKey = (window.EditorConfig?.PLATFORM_DEFS || [])
+                .filter((def) => def?.stateKey === definition.stateKey);
+            const stateKeyCompartilhado = defsMesmoStateKey.length > 1;
+
             // Remove existente na mesma coordenada (string ou objeto)
             faseData[definition.stateKey] = (faseData[definition.stateKey] || []).filter((entrada) => {
                 const c = typeof entrada === 'string'
@@ -952,9 +1007,14 @@ function adicionarElemento(coord) {
 
             if (definition.kind === 'multiple') {
                 // Adiciona como objeto { coord } para suportar metadados e compatibilidade
-                faseData[definition.stateKey].push({ coord });
+                faseData[definition.stateKey].push({ coord, type: itemSelecionado });
             } else {
-                faseData[definition.stateKey].push(coord);
+                // Para stateKeys compartilhados (ex.: plataformas), guardamos também o type.
+                if (stateKeyCompartilhado) {
+                    faseData[definition.stateKey].push({ coord, type: itemSelecionado });
+                } else {
+                    faseData[definition.stateKey].push(coord);
+                }
             }
 
             faseData[definition.stateKey] = (faseData[definition.stateKey] || []).sort((a, b) => {
