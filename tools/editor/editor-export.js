@@ -68,61 +68,7 @@
                 itens: exportarItensData(faseData.itens)
             });
 
-            let jsonStr = JSON.stringify(dadosExportacao, null, 4);
-
-            const enemyKeys = COORD_ARRAY_KEYS.filter((key) => key.startsWith('inimigo_'));
-            const condensedKeys = [...enemyKeys, 'inimigoAleatorio'];
-            const condensedPattern = new RegExp(`"(${condensedKeys.join('|')})":\\s*\\[\\s*([\\s\\S]*?)\\s*\\]`, 'g');
-
-            jsonStr = jsonStr.replace(condensedPattern, (match, key, content) => {
-                // Preserva arrays de inimigos quando há entradas em objeto (ex: { coord, skills }).
-                if (String(key).startsWith('inimigo_') && String(content).includes('{')) {
-                    return match;
-                }
-                const condensed = content.split('\n')
-                    .map(linha => linha.trim().replace(/,$/, ''))
-                    .filter(linha => linha !== '')
-                    .join(', ');
-                return `"${key}": [${condensed}]`;
-            });
-
-            const formatarListaCoordenadas = (match, key, content) => {
-                // Para inimigos, mantém o formato original para não perder metadados (skills, direção, etc.).
-                if (key.startsWith('inimigo_')) {
-                    return match;
-                }
-
-                const items = Array.from(content.matchAll(/"[^"]+"/g), (resultado) => resultado[0]);
-                if (items.length === 0) return `"${key}": []`;
-
-                const rows = [];
-                let currentLine = [];
-                let lastLetter = '';
-
-                items.forEach((item) => {
-                    const val = item.trim();
-                    const letterMatch = val.match(/"([a-z]+)\d+"/);
-                    const letter = letterMatch ? letterMatch[1] : '';
-
-                    if (lastLetter && letter !== lastLetter) {
-                        rows.push('        ' + currentLine.join(', '));
-                        currentLine = [];
-                    }
-
-                    currentLine.push(val);
-                    lastLetter = letter;
-                });
-
-                if (currentLine.length > 0) rows.push('        ' + currentLine.join(', '));
-                return `"${key}": [\n${rows.join(',\n')}\n    ]`;
-            };
-
-            COORD_ARRAY_KEYS.forEach((key) => {
-                const regex = new RegExp(`"${key}":\\s*\\[\\s*([\\s\\S]*?)\\s*\\]`, 'g');
-                jsonStr = jsonStr.replace(regex, (match, content) => formatarListaCoordenadas(match, key, content));
-            });
-
-            return jsonStr;
+            return JSON.stringify(dadosExportacao, null, 4);
         }
 
         function preencherOutput(jsonStr) {
