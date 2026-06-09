@@ -124,9 +124,25 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         plataformaCanto4: '../../assets/bloco terra/grama_canto4.png',
         plataformaGramaPico: '../../assets/bloco terra/terra_pico.png',
         plataformaGramaPico2: '../../assets/bloco terra/grama_pico2.png',
+        plataformaHorizontal2: '../../assets/bloco terra/terra_horizontal2.png',
         plataformaGramaVertical: '../../assets/bloco terra/terra_vertical.png',
+        plataformaVertical2: '../../assets/bloco terra/terra_vertical2.png',
         plataformaMuroTerra: '../../assets/bloco terra/terra_muro.png',
-        plataformaMuro: '../../assets/bloco terra/grama_muro2.png'
+        plataformaMuro: '../../assets/bloco terra/grama_muro2.png',
+        plataformaCantoCanto: '../../assets/bloco_canto/grama_canto_canto.png',
+        plataformaCantoCanto2: '../../assets/bloco_canto/grama_canto_canto2.png',
+        plataformaCantoCanto3: '../../assets/bloco_canto/grama_canto_canto3.png',
+        plataformaCantoCanto4: '../../assets/bloco_canto/grama_canto_canto4.png',
+        plataformaCantinhoDuplo: '../../assets/bloco_canto/grama_cantinhoDuplo.png',
+        plataformaCantinhoDuplo2: '../../assets/bloco_canto/grama_cantinhoDuplo2.png',
+        plataformaCantinhoDuplo3: '../../assets/bloco_canto/grama_cantinhoDuplo3.png',
+        plataformaCantinhoDuplo4: '../../assets/bloco_canto/grama_cantinhoDuplo4.png',
+        plataformaCantinhoTriplo: '../../assets/bloco_canto/grama_cantinhoTriplo.png',
+        plataformaCantinhoTriplo2: '../../assets/bloco_canto/grama_cantinhoTriplo2.png',
+        plataformaCantinhoTriplo3: '../../assets/bloco_canto/grama_cantinhoTriplo3.png',
+        plataformaCantinhoTriplo4: '../../assets/bloco_canto/grama_cantinhoTriplo4.png',
+        plataformaCantinhoQuaduplo: '../../assets/bloco_canto/grama_cantinhoQuaduplo.png'
+
     };
 
     // Corrige carregamento do sprite do chão em caminhos relativos.

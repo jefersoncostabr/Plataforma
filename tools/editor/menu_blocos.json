@@ -12,14 +12,6 @@
             { "type": "plataformaGramaVertical", "label": "Grama Vertical", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_vertical.png" },
             { "type": "plataformaVertical2", "label": "Vertical 2", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_vertical2.png" },
             { "type": "plataformaCantoMinimo", "label": "Canto minimo", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_canto_minimo.png" },
-            { "type": "plataformaCanto", "label": "Canto", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_canto.png" },
-	          { "type": "plataformaCanto2", "label": "Canto", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/grama_canto2.png" },
-            { "type": "plataformaCanto3", "label": "Canto", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/grama_canto3.png" },
-            { "type": "plataformaCanto4", "label": "Canto", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/grama_canto4.png" },
-            { "type": "plataformaGramaPico", "label": "Grama Pico", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_pico.png" },
-            { "type": "plataformaGramaPico2", "label": "Grama Pico2", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/grama_pico2.png" },
-            { "type": "plataformaGramaPico4", "label": "Grama Pico4", "stateKey": "plataformasGramaPico4", "sprite": "../../assets/bloco terra/terra_pico3.png" },
-            { "type": "plataformaGramaPico5", "label": "Grama Pico5", "stateKey": "plataformasGramaPico5", "sprite": "../../assets/bloco terra/terra_pico4.png" },
             { "type": "plataformaMuroTerra", "label": "Muro", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_muro.png" },
             { "type": "plataformaMuro", "label": "Muro horizontal", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/grama_muro2.png" }
           ]
@@ -57,6 +49,36 @@
             { "type": "estacaDir", "label": "Estaca Direita", "stateKey": "plataformasEstacaDir", "sprite": "../../assets/personagem/estacadir.png" },
             { "type": "estacaEsq", "label": "Estaca Esquerda", "stateKey": "plataformasEstacaEsq", "sprite": "../../assets/personagem/estacaesq.png" },
             { "type": "estacaBaixo", "label": "Estaca Inferior", "stateKey": "plataformasEstacaBaixo", "sprite": "../../assets/personagem/estacasdown.png" }
+          ]
+        }
+      },
+      {
+        "id": "cantos_extras",
+        "label": "Cantos Extras",
+        "cycle": {
+          "items": [
+            { "type": "plataformaCanto", "label": "Canto", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_canto.png" },
+	          { "type": "plataformaCanto2", "label": "Canto", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/grama_canto2.png" },
+            { "type": "plataformaCanto3", "label": "Canto", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/grama_canto3.png" },
+            { "type": "plataformaCanto4", "label": "Canto", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/grama_canto4.png" },
+            { "type": "plataformaGramaPico", "label": "Grama Pico", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_pico.png" },
+            { "type": "plataformaGramaPico2", "label": "Grama Pico2", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/grama_pico2.png" },
+            { "type": "plataformaGramaPico4", "label": "Grama Pico4", "stateKey": "plataformasGramaPico4", "sprite": "../../assets/bloco terra/terra_pico3.png" },
+            { "type": "plataformaGramaPico5", "label": "Grama Pico5", "stateKey": "plataformasGramaPico5", "sprite": "../../assets/bloco terra/terra_pico4.png" },
+            { "type": "plataformaCantoCanto", "label": "Canto Canto", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_canto_canto.png" },
+            { "type": "plataformaCantoCanto2", "label": "Canto 2", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_canto_canto2.png" },
+            { "type": "plataformaCantoCanto3", "label": "Canto 3", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_canto_canto3.png" },
+            { "type": "plataformaCantoCanto4", "label": "Canto 4", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_canto_canto4.png" },
+            { "type": "plataformaCantinhoDuplo", "label": "Cantinho Duplo", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_cantinhoDuplo.png" },
+            { "type": "plataformaCantinhoDuplo2", "label": "Cantinho 2", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_cantinhoDuplo2.png" },
+            { "type": "plataformaCantinhoDuplo3", "label": "Cantinho 3", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_cantinhoDuplo3.png" },
+            { "type": "plataformaCantinhoDuplo4", "label": "Cantinho 4", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_cantinhoDuplo4.png" },
+            { "type": "plataformaCantinhoTriplo", "label": "Triplo 1", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_cantinhoTriplo.png" },
+            { "type": "plataformaCantinhoTriplo2", "label": "Triplo 2", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_cantinhoTriplo2.png" },
+            { "type": "plataformaCantinhoTriplo3", "label": "Triplo 3", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_cantinhoTriplo3.png" },
+            { "type": "plataformaCantinhoTriplo4", "label": "Triplo 4", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_cantinhoTriplo4.png" },
+            { "type": "plataformaCantinhoQuauplo", "label": "Quauplo", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_cantinhoQuaduplo.png" }
+
           ]
         }
       }
