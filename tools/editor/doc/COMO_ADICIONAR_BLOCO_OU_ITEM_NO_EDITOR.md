@@ -2,6 +2,14 @@
 
 Guia rapido, direto ao ponto.
 
+## Resumo ultra simplista
+
+   tools/editor/menu_blocos.json => Menu
+
+   tools/editor/editor-config.js => Palco
+
+   src/visual/cenario.js => Jogo
+
 ## TL;DR
 
 Para bloco aparecer e funcionar no palco: voce precisa atualizar 3 lugares.
