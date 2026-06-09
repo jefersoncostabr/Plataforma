@@ -194,6 +194,91 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
     //console.log('Plataformas carregadas:', window.plataformas);
 }
 
+function resolverSpriteFundoFrente(idSprite = '') {
+    const bruto = String(idSprite || '').trim();
+    if (!bruto) return '';
+
+    const normalizado = bruto.replace(/\\/g, '/').replace(/fundo_irregular_verticall\.png$/i, 'fundo_irregular_vertical.png');
+    if (/^(https?:|data:|blob:)/i.test(normalizado)) return normalizado;
+    if (normalizado.startsWith('/assets/')) return normalizado.slice(1);
+    if (normalizado.startsWith('./assets/')) return normalizado.slice(2);
+    if (normalizado.startsWith('assets/')) return normalizado;
+    if (normalizado.startsWith('../../assets/')) return normalizado.replace('../../', '');
+    if (normalizado.includes('/')) return normalizado;
+    return `assets/fundo/${normalizado}`;
+}
+
+function normalizarEntradaFundoFrente(entrada) {
+    if (!entrada || typeof entrada !== 'object') return null;
+
+    const x = Number(entrada.x);
+    const y = Number(entrada.y);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+
+    const item = {
+        idSprite: String(entrada.idSprite || entrada.sprite || entrada.src || '').trim(),
+        x,
+        y
+    };
+
+    const escala = Number(entrada.escala);
+    if (Number.isFinite(escala) && escala > 0) item.escala = escala;
+
+    const zIndex = Number(entrada.zIndex);
+    if (Number.isFinite(zIndex)) item.zIndex = Math.round(zIndex);
+
+    const largura = Number(entrada.largura);
+    if (Number.isFinite(largura) && largura > 0) item.largura = largura;
+
+    const altura = Number(entrada.altura);
+    if (Number.isFinite(altura) && altura > 0) item.altura = altura;
+
+    return item;
+}
+
+function renderizarFundoFrente(idPalco, fundoFrente = []) {
+    const layerDecoracoes = obterLayer(window.LAYERS.DECORACOES);
+    if (!layerDecoracoes) return;
+
+    const antigos = layerDecoracoes.querySelectorAll('img[data-fundo-frente="1"]');
+    antigos.forEach((el) => el.remove());
+
+    if (!Array.isArray(fundoFrente) || fundoFrente.length === 0) return;
+
+    const tamanhoTile = 32;
+    fundoFrente
+        .map(normalizarEntradaFundoFrente)
+        .filter(Boolean)
+        .forEach((item) => {
+            const src = resolverSpriteFundoFrente(item.idSprite);
+            if (!src) return;
+
+            const escala = Number(item.escala || 1);
+            const largura = Number(item.largura || (tamanhoTile * escala));
+            const altura = Number(item.altura || (tamanhoTile * escala));
+
+            const img = document.createElement('img');
+            img.src = src;
+            img.dataset.fundoFrente = '1';
+            img.style.position = 'absolute';
+            img.style.left = `${Math.round(item.x)}px`;
+            img.style.bottom = `${Math.round(item.y)}px`;
+            img.style.width = `${Math.round(largura)}px`;
+            img.style.height = `${Math.round(altura)}px`;
+            img.style.imageRendering = 'pixelated';
+            img.style.pointerEvents = 'none';
+            if (Number.isFinite(item.zIndex)) {
+                img.style.zIndex = String(item.zIndex);
+            }
+
+            img.onerror = () => {
+                console.warn(`[Cenario] Sprite de fundoFrente nao encontrado: ${src}`);
+            };
+
+            adicionarAoLayer(img, window.LAYERS.DECORACOES);
+        });
+}
+
 /**
  * Converte uma coordenada de grade (ex: "b2") para pixels (x, y).
  * 

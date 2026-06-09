@@ -49,6 +49,7 @@ const HOST = process.env.EDITOR_SAVE_HOST || '127.0.0.1';
 const ROOT_DIR = path.resolve(__dirname, '..', '..');
 const PHASES_DIR = path.join(ROOT_DIR, 'config', 'fases');
 const EDITOR_DIR = path.join(ROOT_DIR, 'tools', 'editor');
+const FUNDO_ASSETS_DIR = path.join(ROOT_DIR, 'assets', 'fundo');
 
 function setCorsHeaders(res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -218,6 +219,105 @@ async function handleStatic(req, res, pathname) {
     }
 }
 
+function ehArquivoImagem(nomeArquivo = '') {
+    return /\.(png|jpg|jpeg|webp|gif|svg)$/i.test(String(nomeArquivo || ''));
+}
+
+async function listarArquivosRecursivo(dirAbsoluto, raizRelativa = '') {
+    const itens = await fs.promises.readdir(dirAbsoluto, { withFileTypes: true });
+    const resultados = [];
+
+    for (const item of itens) {
+        const absoluto = path.join(dirAbsoluto, item.name);
+        const relativo = raizRelativa ? `${raizRelativa}/${item.name}` : item.name;
+
+        if (item.isDirectory()) {
+            const filhos = await listarArquivosRecursivo(absoluto, relativo);
+            resultados.push(...filhos);
+            continue;
+        }
+
+        if (item.isFile() && ehArquivoImagem(item.name)) {
+            resultados.push(relativo.replace(/\\/g, '/'));
+        }
+    }
+
+    return resultados;
+}
+
+async function handleListarSpritesFundo(req, res) {
+    try {
+        const info = await fs.promises.stat(FUNDO_ASSETS_DIR);
+        if (!info.isDirectory()) {
+            return sendJson(res, 404, { ok: false, error: 'Diretorio assets/fundo nao encontrado.' });
+        }
+
+        const arquivos = await listarArquivosRecursivo(FUNDO_ASSETS_DIR);
+        const canonizarSpriteFundo = (arquivoRelativo = '') => {
+            return String(arquivoRelativo || '').replace(/fundo_irregular_verticall\.png$/i, 'fundo_irregular_vertical.png');
+        };
+
+        const sprites = [...new Set(arquivos.map(canonizarSpriteFundo))]
+            .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+            .map((arquivoRelativo) => ({
+                id: arquivoRelativo,
+                path: `assets/fundo/${arquivoRelativo}`
+            }));
+
+        return sendJson(res, 200, {
+            ok: true,
+            total: sprites.length,
+            sprites
+        });
+    } catch (error) {
+        console.error(`[Server] ERRO ao listar sprites de fundo: ${error.message}`);
+        return sendJson(res, 500, { ok: false, error: error.message });
+    }
+}
+
+async function listarArquivosJsonFaseRecursivo(dirAbsoluto, raizRelativa = '') {
+    const itens = await fs.promises.readdir(dirAbsoluto, { withFileTypes: true });
+    const resultados = [];
+
+    for (const item of itens) {
+        const absoluto = path.join(dirAbsoluto, item.name);
+        const relativo = raizRelativa ? `${raizRelativa}/${item.name}` : item.name;
+
+        if (item.isDirectory()) {
+            const filhos = await listarArquivosJsonFaseRecursivo(absoluto, relativo);
+            resultados.push(...filhos);
+            continue;
+        }
+
+        if (item.isFile() && /\.json$/i.test(item.name)) {
+            resultados.push(relativo.replace(/\\/g, '/'));
+        }
+    }
+
+    return resultados;
+}
+
+async function handleListarFases(req, res) {
+    try {
+        const info = await fs.promises.stat(PHASES_DIR);
+        if (!info.isDirectory()) {
+            return sendJson(res, 404, { ok: false, error: 'Diretorio de fases nao encontrado.' });
+        }
+
+        const fases = (await listarArquivosJsonFaseRecursivo(PHASES_DIR))
+            .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+        return sendJson(res, 200, {
+            ok: true,
+            total: fases.length,
+            fases
+        });
+    } catch (error) {
+        console.error(`[Server] ERRO ao listar fases: ${error.message}`);
+        return sendJson(res, 500, { ok: false, error: error.message });
+    }
+}
+
 const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
 
@@ -234,6 +334,14 @@ const server = http.createServer(async (req, res) => {
             port: PORT,
             root: ROOT_DIR
         });
+    }
+
+    if (req.method === 'GET' && url.pathname === '/editor-fundo-sprites') {
+        return handleListarSpritesFundo(req, res);
+    }
+
+    if (req.method === 'GET' && url.pathname === '/editor-phase-list') {
+        return handleListarFases(req, res);
     }
 
 

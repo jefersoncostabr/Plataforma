@@ -207,6 +207,84 @@
         return exported;
     }
 
+    function canonizarIdSpriteFundo(idSprite = '') {
+        return String(idSprite || '').trim().replace(/\\/g, '/').replace(/fundo_irregular_verticall\.png$/i, 'fundo_irregular_vertical.png');
+    }
+
+    function normalizeFundoFrenteData(fundoFrente = []) {
+        if (!Array.isArray(fundoFrente)) return [];
+
+        const normalizados = [];
+
+        fundoFrente.forEach((entrada) => {
+            if (!entrada) return;
+
+            let idSprite = '';
+            let x = Number.NaN;
+            let y = Number.NaN;
+
+            if (typeof entrada === 'string') {
+                const coord = entrada.trim();
+                const partes = coordToParts(coord);
+                if (!partes) return;
+
+                x = partes.col * TILE_SIZE;
+                y = partes.row * TILE_SIZE;
+            } else if (typeof entrada === 'object') {
+                idSprite = canonizarIdSpriteFundo(entrada.idSprite || entrada.sprite || entrada.src || '');
+
+                if (Number.isFinite(Number(entrada.x)) && Number.isFinite(Number(entrada.y))) {
+                    x = Number(entrada.x);
+                    y = Number(entrada.y);
+                } else {
+                    const coord = String(entrada.coord || entrada.pos || '').trim();
+                    const partes = coordToParts(coord);
+                    if (!partes) return;
+                    x = partes.col * TILE_SIZE;
+                    y = partes.row * TILE_SIZE;
+                }
+            }
+
+            if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+
+            const item = {
+                idSprite,
+                x: Math.round(x),
+                y: Math.round(y)
+            };
+
+            const escala = Number(entrada?.escala);
+            if (Number.isFinite(escala) && escala > 0) {
+                item.escala = escala;
+            }
+
+            const zIndex = Number(entrada?.zIndex);
+            if (Number.isFinite(zIndex)) {
+                item.zIndex = Math.round(zIndex);
+            }
+
+            const largura = Number(entrada?.largura);
+            if (Number.isFinite(largura) && largura > 0) {
+                item.largura = largura;
+            }
+
+            const altura = Number(entrada?.altura);
+            if (Number.isFinite(altura) && altura > 0) {
+                item.altura = altura;
+            }
+
+            normalizados.push(item);
+        });
+
+        const vistos = new Set();
+        return normalizados.filter((item) => {
+            const chave = [item.idSprite, item.x, item.y, item.escala ?? '', item.zIndex ?? '', item.largura ?? '', item.altura ?? ''].join('|');
+            if (vistos.has(chave)) return false;
+            vistos.add(chave);
+            return true;
+        });
+    }
+
     function limparCamposVazios(data) {
         if (Array.isArray(data)) {
             return data
@@ -249,6 +327,9 @@
 
         merged.itens = normalizeItensData(merged.itens);
         if (Object.keys(merged.itens).length === 0) delete merged.itens;
+
+        merged.fundoFrente = normalizeFundoFrenteData(merged.fundoFrente);
+        if (!Array.isArray(merged.fundoFrente) || merged.fundoFrente.length === 0) delete merged.fundoFrente;
 
         const bossMaxStages = Math.max(1, Number(window.EditorConfig?.BOSS_MAX_STAGES ?? 5));
         const equipamentosValidos = new Set(['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete', 'doze', 'bateria']);
@@ -305,6 +386,8 @@
         normalizeItensData,
         iterarItensData,
         exportarItensData,
+        canonizarIdSpriteFundo,
+        normalizeFundoFrenteData,
         limparCamposVazios,
         normalizeFaseData
     };

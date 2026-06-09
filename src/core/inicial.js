@@ -461,6 +461,11 @@ async function carregarFase(nomeArquivo) {
             renderizarPlataformas(idPalco, '../../assets/personagem/estacasdown.png', fase.plataformasEstacaBaixo);
         }
     }
+
+    // Fundo de frente da fase (nao participa de fisica/colisao).
+    if (typeof renderizarFundoFrente === 'function') {
+        renderizarFundoFrente(idPalco, fase.fundoFrente || []);
+    }
     
     // Renderiza objetivo da fase
     if (typeof renderizarObjetivo === 'function') {

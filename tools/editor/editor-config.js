@@ -85,6 +85,7 @@
             proporcao: DEFAULT_PROPORTION,
             posicaoInicialJogador: 'b2',
             objetivo: 'f19',
+            fundoFrente: [],
             posicaoAlavanca: '',
             posicaoRoboDesativado: '',
             posicaoRoboAberto: '',

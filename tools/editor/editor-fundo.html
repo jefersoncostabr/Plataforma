@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma - Editor de Fundo</title>
+    <link rel="stylesheet" href="editor.css">
+    <link rel="stylesheet" href="editor-fundo.css">
+</head>
+<body>
+    <div id="editor-container">
+        <div id="palette">
+            <div class="category">
+                <h4>Fases</h4>
+                <button id="btn-refresh-phases" style="background:#0d6efd;">Atualizar Lista</button>
+                <select id="phase-select" style="width:100%; margin-top:8px;"></select>
+                <button id="btn-load-phase" style="background:#198754; margin-top:8px;">Carregar Fase</button>
+            </div>
+
+            <div class="category">
+                <h4>Ferramentas</h4>
+                <button id="btn-remove-selected" style="background:#7a2424;">Remover Selecionado</button>
+                <button id="btn-save-phase" style="background:#198754;">Salvar Fundo</button>
+                <div id="save-status" class="info" style="margin-top:10px; color:#9ec5fe;">
+                    <p><strong>Status</strong>: selecione e carregue uma fase.</p>
+                </div>
+            </div>
+
+            <div class="category">
+                <h4>Sprites de Fundo</h4>
+                <div id="fundo-sprite-list" class="fundo-sprite-list">
+                    <div class="phase-list-empty">Carregando sprites...</div>
+                </div>
+            </div>
+
+            <div class="info">
+                <p><strong>Escopo restrito</strong>: só edita fundoFrente.</p>
+                <p>Blocos físicos e entidades ficam em leitura.</p>
+                <p><strong>Clique no palco</strong>: adicionar</p>
+                <p><strong>Arrastar seleção</strong>: mover</p>
+            </div>
+        </div>
+
+        <div id="stage-area">
+            <div id="modo-restrito-banner" style="padding:6px 10px; background:#2d1f00; color:#ffd86b; border-bottom:1px solid #5a4300; font-size:12px;">
+                Modo restrito: somente fundoFrente pode ser editado nesta pagina.
+            </div>
+            <div id="game-stage"></div>
+        </div>
+    </div>
+
+    <script src="editor-config.js"></script>
+    <script src="editor-utils.js"></script>
+    <script src="editor-render.js"></script>
+    <script src="editor-fundo.js"></script>
+</body>
+</html>

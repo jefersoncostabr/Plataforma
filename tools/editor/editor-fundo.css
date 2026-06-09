@@ -1,0 +1,43 @@
+.fundo-sprite-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    max-height: 360px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.fundo-sprite-btn {
+    border: 1px solid #555;
+    background: #1f1f1f;
+    border-radius: 6px;
+    padding: 4px;
+    cursor: pointer;
+}
+
+.fundo-sprite-btn img {
+    width: 100%;
+    height: 56px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+.fundo-sprite-btn.is-selected {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 1px #0d6efd inset;
+}
+
+.fundo-handle {
+    position: absolute;
+    border: 1px dashed rgba(0, 173, 239, 0.9);
+    background: rgba(0, 173, 239, 0.15);
+    pointer-events: auto;
+    cursor: move;
+    z-index: 120;
+}
+
+.fundo-handle.is-selected {
+    border-color: rgba(255, 193, 7, 0.95);
+    background: rgba(255, 193, 7, 0.2);
+}

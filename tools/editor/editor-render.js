@@ -82,6 +82,31 @@
             stage.appendChild(img);
         }
 
+        function criarIconePosicionado(x, y, src, classe = '', opcoes = {}) {
+            const img = document.createElement('img');
+            img.src = src;
+            img.onerror = () => {
+                console.error(`[EditorRender] Erro ao carregar imagem: ${src}`);
+            };
+
+            if (classe) {
+                const classes = String(classe).trim().split(/\s+/).filter(Boolean);
+                if (classes.length) img.classList.add(...classes);
+            }
+
+            const escala = Number(opcoes.escala ?? 1);
+            const largura = Number(opcoes.largura ?? (TILE_SIZE * escala));
+            const altura = Number(opcoes.altura ?? (TILE_SIZE * escala));
+            const offsetX = Number(opcoes.offsetX ?? 0);
+            const offsetY = Number(opcoes.offsetY ?? 0);
+            img.style = `position:absolute; left:${Math.round(Number(x) + offsetX)}px; bottom:${Math.round(Number(y) + offsetY)}px; width:${Math.round(largura)}px; height:${Math.round(altura)}px; image-rendering:pixelated; pointer-events:none;`;
+            if (opcoes.zIndex !== undefined) {
+                img.style.zIndex = String(opcoes.zIndex);
+            }
+
+            stage.appendChild(img);
+        }
+
         function criarIconeCapsulaComposto(coord, defCapsula = {}, item = {}) {
             const spriteComposto = defCapsula.spriteComposto || {};
             const srcInferior = spriteComposto.inferior || '../../assets/personagem/capsula/capsula_inferior.png';
@@ -134,6 +159,31 @@
             elementos.forEach(el => el.remove());
             const marcadoresChefe = stage.querySelectorAll('.editor-boss-marker');
             marcadoresChefe.forEach(el => el.remove());
+
+            const fundoFrente = Array.isArray(faseData.fundoFrente) ? faseData.fundoFrente : [];
+            fundoFrente.forEach((entrada) => {
+                if (!entrada || typeof entrada !== 'object') return;
+
+                const x = Number(entrada.x);
+                const y = Number(entrada.y);
+                if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+
+                const sprite = (window.EditorUtils?.canonizarIdSpriteFundo || ((valor) => String(valor || '').trim().replace(/\\/g, '/')))(entrada.idSprite || entrada.sprite || entrada.src || '');
+                if (!sprite) return;
+
+                const src = sprite.startsWith('assets/')
+                    ? `../../${sprite}`
+                    : sprite.startsWith('../../assets/')
+                        ? sprite
+                        : `../../assets/fundo/${sprite.replace(/^\/+/, '')}`;
+
+                criarIconePosicionado(x, y, src, '', {
+                    escala: Number(entrada.escala || 1),
+                    zIndex: Number.isFinite(Number(entrada.zIndex)) ? Number(entrada.zIndex) : 12,
+                    largura: entrada.largura,
+                    altura: entrada.altura
+                });
+            });
 
             [...PLATFORM_DEFS, ...ENEMY_DEFS].forEach((def) => {
                 (faseData[def.stateKey] || []).forEach((entrada) => {
@@ -243,6 +293,7 @@
         return {
             configurarGrade,
             criarIcone,
+            criarIconePosicionado,
             atualizarVisual
         };
     }
