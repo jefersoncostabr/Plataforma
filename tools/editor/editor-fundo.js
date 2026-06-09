@@ -316,8 +316,8 @@
         atualizarVisualCompleto();
     }
 
-    function removerSelecionado() {
-        const index = Number(state.fundoSelecionadoIndex);
+    function removerSelecionado(indexForcado = null) {
+        const index = Number.isInteger(indexForcado) ? Number(indexForcado) : Number(state.fundoSelecionadoIndex);
         const lista = Array.isArray(state.faseData.fundoFrente) ? state.faseData.fundoFrente : [];
         if (!Number.isInteger(index) || index < 0 || index >= lista.length) {
             setStatus('nenhum item de fundo selecionado.', 'warning');
@@ -388,6 +388,14 @@
         btnSavePhase?.addEventListener('click', salvarFase);
 
         stage.addEventListener('click', adicionarFundoNoClique);
+        stage.addEventListener('contextmenu', (event) => {
+            const handle = event.target?.closest?.('.fundo-handle');
+            if (!handle) return;
+
+            event.preventDefault();
+            const index = Number(handle.dataset.index);
+            removerSelecionado(Number.isInteger(index) ? index : null);
+        });
 
         window.addEventListener('mousemove', (event) => {
             if (!state.drag) return;

@@ -4,26 +4,14 @@ Este guia mostra como incluir novos sprites no editor de fundo e como posicionar
 
 ## Resumo reducionista
 
-        *editor-save-server.js
-const canonizarSpriteFundo = (arquivoRelativo = '') => {
-            return String(arquivoRelativo || '').replace(/fundo_irregular_verticall\.png$/i, 'fundo_irregular_vertical.png');
-        };
+*D:\Programação\Minha home\Jogos\Plataforma\src\visual\cenario.js
+plataformaArbustoPequeno: '../../assets/fundo/arbusto_pequeno.png'
 
-        const sprites = [...new Set(arquivos.map(canonizarSpriteFundo))]
+*D:\Programação\Minha home\Jogos\Plataforma\tools\editor\editor-config.js
+{ type: 'plataformaArbustoPequeno', stateKey: 'plataformas', sprite: '../../assets/fundo/arbusto_pequeno.png', label: 'Arbusto Pequeno', kind: 'array' },
 
-*editor-utils.js
-    function canonizarIdSpriteFundo(idSprite = '') {
-        return String(idSprite || '').trim().replace(/\\/g, '/').replace(/fundo_irregular_verticall\.png$/i, 'fundo_irregular_vertical.png');
-    }
-
-*editor-render.js
-const sprite = (window.EditorUtils?.canonizarIdSpriteFundo || ((valor) => String(valor || '').trim().replace(/\\/g, '/')))(entrada.idSprite || entrada.sprite || entrada.src || '');
-         
-*editor-fundo.js
-const canonizarIdSpriteFundo = window.EditorUtils?.canonizarIdSpriteFundo || ((valor) => String(valor || '').trim().replace(/\\/g, '/'));
-
-*cenario.js
- const normalizado = bruto.replace(/\\/g, '/').replace(/fundo_irregular_verticall\.png$/i, 'fundo_irregular_vertical.png');
+*D:\Programação\Minha home\Jogos\Plataforma\tools\editor\menu_blocos.json
+{ "type": "plataformaArbustoPequeno", "label": "Arbusto", "stateKey": "plataformas", "sprite": "../../assets/fundo/arbusto_pequeno.png" }
 
 ## Objetivo
 - Editar apenas o campo `fundoFrente` da fase.

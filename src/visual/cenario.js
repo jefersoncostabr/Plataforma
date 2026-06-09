@@ -141,8 +141,11 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         plataformaCantinhoTriplo2: '../../assets/bloco_canto/grama_cantinhoTriplo2.png',
         plataformaCantinhoTriplo3: '../../assets/bloco_canto/grama_cantinhoTriplo3.png',
         plataformaCantinhoTriplo4: '../../assets/bloco_canto/grama_cantinhoTriplo4.png',
-        plataformaCantinhoQuaduplo: '../../assets/bloco_canto/grama_cantinhoQuaduplo.png'
-
+        plataformaCantinhoQuaduplo: '../../assets/bloco_canto/grama_cantinhoQuaduplo.png',
+        plataformaFundoMisto: '../../assets/fundo/fundo_misto.png',
+        plataformaFundoTerraPedra: '../../assets/fundo/fundo_terraPedra.png',
+        plataformaMeiaPedra: '../../assets/fundo/meia pedra.png',
+        plataformaArbustoPequeno: '../../assets/fundo/arbusto_pequeno.png'
     };
 
     // Corrige carregamento do sprite do chão em caminhos relativos.
@@ -199,6 +202,7 @@ function resolverSpriteFundoFrente(idSprite = '') {
     if (!bruto) return '';
 
     const normalizado = bruto.replace(/\\/g, '/').replace(/fundo_irregular_verticall\.png$/i, 'fundo_irregular_vertical.png');
+    
     if (/^(https?:|data:|blob:)/i.test(normalizado)) return normalizado;
     if (normalizado.startsWith('/assets/')) return normalizado.slice(1);
     if (normalizado.startsWith('./assets/')) return normalizado.slice(2);
@@ -237,10 +241,11 @@ function normalizarEntradaFundoFrente(entrada) {
 }
 
 function renderizarFundoFrente(idPalco, fundoFrente = []) {
-    const layerDecoracoes = obterLayer(window.LAYERS.DECORACOES);
-    if (!layerDecoracoes) return;
+    // fundoFrente vai para layer-fundo (z-index 0) para ficar atras de plataformas, inimigos e itens.
+    const layerFundo = obterLayer(window.LAYERS.FUNDO);
+    if (!layerFundo) return;
 
-    const antigos = layerDecoracoes.querySelectorAll('img[data-fundo-frente="1"]');
+    const antigos = layerFundo.querySelectorAll('img[data-fundo-frente="1"]');
     antigos.forEach((el) => el.remove());
 
     if (!Array.isArray(fundoFrente) || fundoFrente.length === 0) return;
@@ -267,15 +272,12 @@ function renderizarFundoFrente(idPalco, fundoFrente = []) {
             img.style.height = `${Math.round(altura)}px`;
             img.style.imageRendering = 'pixelated';
             img.style.pointerEvents = 'none';
-            if (Number.isFinite(item.zIndex)) {
-                img.style.zIndex = String(item.zIndex);
-            }
 
             img.onerror = () => {
                 console.warn(`[Cenario] Sprite de fundoFrente nao encontrado: ${src}`);
             };
 
-            adicionarAoLayer(img, window.LAYERS.DECORACOES);
+            adicionarAoLayer(img, window.LAYERS.FUNDO);
         });
 }
 

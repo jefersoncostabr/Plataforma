@@ -177,9 +177,10 @@
                         ? sprite
                         : `../../assets/fundo/${sprite.replace(/^\/+/, '')}`;
 
+                // Sem z-index explícito: fundo é adicionado primeiro no DOM,
+                // portanto fica atrás dos elementos renderizados depois (plataformas, inimigos, itens).
                 criarIconePosicionado(x, y, src, '', {
                     escala: Number(entrada.escala || 1),
-                    zIndex: Number.isFinite(Number(entrada.zIndex)) ? Number(entrada.zIndex) : 12,
                     largura: entrada.largura,
                     altura: entrada.altura
                 });

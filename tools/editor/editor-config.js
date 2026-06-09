@@ -32,7 +32,10 @@
         { type: 'plataformaCantinhoTriplo3', stateKey: 'plataformas', sprite: '../../assets/bloco_canto/grama_cantinhoTriplo3.png', label: 'Triplo 3', kind: 'array' },
         { type: 'plataformaCantinhoTriplo4', stateKey: 'plataformas', sprite: '../../assets/bloco_canto/grama_cantinhoTriplo4.png', label: 'Triplo 4', kind: 'array' },
         { type: 'plataformaCantinhoQuauplo', stateKey: 'plataformas', sprite: '../../assets/bloco_canto/grama_cantinhoQuaduplo.png', label: 'Quaduplo', kind: 'array' },
-
+        { type: 'plataformaFundoMisto', stateKey: 'plataformas', sprite: '../../assets/fundo/fundo_misto.png', label: 'Fundo Misto', kind: 'array' },
+        { type: 'plataformaFundoTerraPedra', stateKey: 'plataformas', sprite: '../../assets/fundo/fundo_terraPedra.png', label: 'Fundo Terra Pedra', kind: 'array' },
+        { type: 'plataformaMeiaPedra', stateKey: 'plataformas', sprite: '../../assets/fundo/meia pedra.png', label: 'Meia Pedra', kind: 'array' },
+        { type: 'plataformaArbustoPequeno', stateKey: 'plataformas', sprite: '../../assets/fundo/arbusto_pequeno.png', label: 'Arbusto Pequeno', kind: 'array' },
 
         { type: 'plataformaNeve', stateKey: 'plataformasNeve', sprite: '../../assets/personagem/chao_neve.png', label: 'Chão de Neve', kind: 'array' },
         { type: 'terraInferior', stateKey: 'plataformasTerraInferior', sprite: '../../assets/personagem/terra_inferior.png', label: 'Terra Meio Bloco Inferior', kind: 'array' },

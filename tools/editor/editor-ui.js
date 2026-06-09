@@ -445,7 +445,6 @@
         function configurarStage() {
             stage.addEventListener('mousedown', (e) => {
                 const coord = obterCoordEventoStage(e);
-
                 if (e.button === 0) adicionarElemento(coord);
                 else if (e.button === 2) removerElemento(coord);
                 atualizarVisual();
