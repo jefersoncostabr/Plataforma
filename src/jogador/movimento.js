@@ -248,6 +248,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         craftPreviewTipo: null,
         airdropUsadoNoNivel: false,
         estaAgachado: false,
+        baixoPressionado: false, // Adicionado para controlar a tecla 'baixo' ou 's'
+        interagiuComArbusto: false,
         carregando: false,
         eletricidadeTemporariaAtiva: false,
         eletricidadeTemporariaAte: 0,
@@ -1126,59 +1128,70 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         }
 
         // --- LÓGICA DE TOGGLE ARMA/ESCUDO (TECLA E) ---
+        // Verifica se o personagem está colidindo com o centro de um arbusto a cada frame
+        let colidindoNoArbusto = false;
+        if (window.arbustosFrente && Array.isArray(window.arbustosFrente)) {
+            const hbP = {
+                x: Number(controle.x || 0) + Number(controle.offsetX || 0),
+                y: Number(controle.y || 0),
+                largura: Number(controle.largura || 20),
+                altura: Number(controle.altura || 32)
+            };
+            for (const arbusto of window.arbustosFrente) {
+                const hbA = {
+                    x: arbusto.x + (arbusto.largura / 2) - 4,
+                    y: arbusto.y + (arbusto.altura / 2) - 4,
+                    largura: 8,
+                    altura: 8
+                };
+                if (typeof window.detectarColisaoHitbox === 'function' && window.detectarColisaoHitbox(hbP, hbA, 0, 0, 0)) {
+                    colidindoNoArbusto = true;
+                    break;
+                }
+            }
+        }
+
         const apertouE = !!(controle.teclas['e'] || controle.teclas['E']);
+        const apertouBaixoOuS = !!(controle.teclas['ArrowDown'] || controle.teclas['s'] || controle.teclas['S']);
+
         if (apertouE && !controle.ePressionado) {
             const interagiuComMusgo = (!window.controlandoCao && !window.controlandoGato && !window.controlandoBB)
                 ? !!window.interagirComMusgoAlvo?.(controle, controle.teclas)
                 : false;
-
             const interagiuComAlavanca = (!interagiuComMusgo && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB)
                 ? !!window.interagirComAlavanca?.(controle, controle.teclas, { exigeAgachado: true })
                 : false;
-
             const interagiuComRoboDesativado = (!interagiuComMusgo && !interagiuComAlavanca
                 && Number(controle.cooldownInteracaoRoboAposMusgo || 0) <= 0
                 && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB)
                 ? !!window.interagirComRoboDesativado?.(controle, controle.teclas)
                 : false;
             
-            // NOVA MECÂNICA: Interagir com o centro do arbusto
-            if (!interagiuComMusgo && !interagiuComAlavanca && !interagiuComRoboDesativado && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB) {
-                const hitboxPlayer = {
-                    x: Number(controle.x || 0) + Number(controle.offsetX || 0),
-                    y: Number(controle.y || 0),
-                    largura: Number(controle.largura || 20),
-                    altura: Number(controle.altura || 32)
-                };
-
-                if (window.arbustosFrente && Array.isArray(window.arbustosFrente)) {
-                    for (const arbusto of window.arbustosFrente) {
-                        // Define uma pequena hitbox no centro do arbusto (8x8 pixels)
-                        const arbustoCenterHitbox = {
-                            x: arbusto.x + (arbusto.largura / 2) - 4,
-                            y: arbusto.y + (arbusto.altura / 2) - 4,
-                            largura: 8,
-                            altura: 8
-                        };
-
-                        if (typeof window.detectarColisaoHitbox === 'function' && window.detectarColisaoHitbox(hitboxPlayer, arbustoCenterHitbox, 0, 0, 0)) {
-                            console.log('%cPersonagem colidiu com o centro do arbusto e apertou "E"!', 'color: blue;');
-                            interagiuComArbusto = true;
-                            // Consome a tecla 'E' para evitar outras interações
-                            controle.teclas['e'] = false; controle.teclas['E'] = false; controle.teclas['KeyE'] = false;
-                            break; // Interage apenas com um arbusto por vez
-                        }
-                    }
-                }
-            }
-
-            if (!interagiuComMusgo && !interagiuComAlavanca && !interagiuComRoboDesativado && !interagiuComArbusto && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB && !controle.estaAgachado && controle.temCinto) {
+            if (!interagiuComMusgo && !interagiuComAlavanca && !interagiuComRoboDesativado && !controle.interagiuComArbusto && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB && !controle.estaAgachado && controle.temCinto) {
                 if (typeof sistemaVisuaisEquipamentos.alternarEquipamentoSelecao === 'function') {
                     sistemaVisuaisEquipamentos.alternarEquipamentoSelecao();
                 }
             }
+            controle.ePressionado = apertouE;
+        } else if (!apertouE) {
+            controle.ePressionado = false;
         }
-        controle.ePressionado = apertouE;
+
+        // --- NOVA MECÂNICA: INTERAÇÃO COM ARBUSTO (BAIXO OU S) ---
+        if (apertouBaixoOuS && !controle.baixoPressionado && colidindoNoArbusto && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB) {
+            console.log('%cPersonagem colidiu com o centro do arbusto e apertou "Baixo" ou "S"!', 'color: blue;');
+            controle.interagiuComArbusto = true;
+            // Consome a tecla para evitar repetição no mesmo pressionamento
+            controle.teclas['ArrowDown'] = false; controle.teclas['s'] = false; controle.teclas['S'] = false;
+        }
+
+        // Detecta quando o jogador sai da colisão ou levanta para resetar o estado e avisar no console
+        if ((!colidindoNoArbusto || !controle.estaAgachado) && controle.interagiuComArbusto) {
+            console.log('%cPersonagem saiu da colisão ou levantou do arbusto!', 'color: red;');
+            controle.interagiuComArbusto = false;
+        }
+
+        controle.baixoPressionado = apertouBaixoOuS;
 
         if (window.controlandoCao || window.controlandoGato || window.controlandoBB) {
             processarEsperaJogador();
