@@ -153,7 +153,7 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
     const CONFIG_POR_TIPO_PLATAFORMA = {
         plataformaArbustoFrente: {
             layerId: window.LAYERS?.ITENS,
-            zIndex: 24
+            zIndex: 25
         }
     };
 
@@ -189,7 +189,14 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
             return;
         }
         const spriteFinal = SPRITE_POR_TIPO_PLATAFORMA[tipoEntrada] || imagemPath;
-        const configTipo = CONFIG_POR_TIPO_PLATAFORMA[tipoEntrada] || null;
+        
+        // Detecta se é o arbusto de frente pelo caminho do sprite se o tipo for vazio
+        // Isso garante que plataformasArbustoFrente (salvo como strings) usem a camada correta.
+        let configTipo = CONFIG_POR_TIPO_PLATAFORMA[tipoEntrada] || null;
+        if (!configTipo && spriteFinal && (spriteFinal.endsWith('objetos/arbusto.png') || spriteFinal.includes('arbusto.png'))) {
+            configTipo = CONFIG_POR_TIPO_PLATAFORMA['plataformaArbustoFrente'];
+        }
+
         const layerDestino = obterLayer(configTipo?.layerId) ? configTipo.layerId : window.LAYERS.PLATAFORMAS;
 
         const tile = document.createElement('img');
