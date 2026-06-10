@@ -142,15 +142,27 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         plataformaCantinhoTriplo3: '../../assets/bloco_canto/grama_cantinhoTriplo3.png',
         plataformaCantinhoTriplo4: '../../assets/bloco_canto/grama_cantinhoTriplo4.png',
         plataformaCantinhoQuaduplo: '../../assets/bloco_canto/grama_cantinhoQuaduplo.png',
-        plataformaFundoMisto: '../../assets/fundo/fundo_misto.png',
-        plataformaFundoTerraPedra: '../../assets/fundo/fundo_terraPedra.png',
-        plataformaMeiaPedra: '../../assets/fundo/meia pedra.png',
-        plataformaArbustoPequeno: '../../assets/fundo/arbusto_pequeno.png',
         plataformaArbustoPequenoClaro: '../../assets/fundo/arbusto_pequenoClaro.png',
         plataformaFunil: '../../assets/fundo/funil.png',
         plataformaFunil2: '../../assets/fundo/funil2.png',
-        plataformaMeiaPedraTerra: '../../assets/fundo/meia_pedraTerra.png'
+        plataformaMeiaPedraTerra: '../../assets/fundo/meia_pedraTerra.png',
+        plataformaPedraObjeto: '../../assets/personagem/objetos/pedra.png',
+        plataformaArbustoFrente: '../../assets/personagem/objetos/arbusto.png'
     };
+
+    const CONFIG_POR_TIPO_PLATAFORMA = {
+        plataformaArbustoFrente: {
+            layerId: window.LAYERS?.ITENS,
+            zIndex: 24
+        }
+    };
+
+    const TIPOS_PLATAFORMA_DESATIVADOS = new Set([
+        'plataformaFundoMisto',
+        'plataformaFundoTerraPedra',
+        'plataformaMeiaPedra',
+        'plataformaArbustoPequeno'
+    ]);
 
     // Corrige carregamento do sprite do chão em caminhos relativos.
     // Se a imagem vier como ../../assets/... a partir de páginas/contexts diferentes,
@@ -173,7 +185,12 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         const tipoEntrada = (entrada && typeof entrada === 'object')
             ? String(entrada.type || '').trim()
             : '';
+        if (tipoEntrada && TIPOS_PLATAFORMA_DESATIVADOS.has(tipoEntrada)) {
+            return;
+        }
         const spriteFinal = SPRITE_POR_TIPO_PLATAFORMA[tipoEntrada] || imagemPath;
+        const configTipo = CONFIG_POR_TIPO_PLATAFORMA[tipoEntrada] || null;
+        const layerDestino = obterLayer(configTipo?.layerId) ? configTipo.layerId : window.LAYERS.PLATAFORMAS;
 
         const tile = document.createElement('img');
 
@@ -195,7 +212,10 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         tile.style.width = tamanhoTile + 'px';
         tile.style.height = tamanhoTile + 'px';
         tile.style.imageRendering = 'pixelated';
-        adicionarAoLayer(tile, window.LAYERS.PLATAFORMAS);
+        if (configTipo?.zIndex !== undefined) {
+            tile.style.zIndex = String(configTipo.zIndex);
+        }
+        adicionarAoLayer(tile, layerDestino);
     });
 
     //console.log('Plataformas carregadas:', window.plataformas);

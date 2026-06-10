@@ -360,12 +360,6 @@
         {
             "idSprite": "borda2.png",
             "x": 896,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "borda2.png",
-            "x": 896,
             "y": 96,
             "escala": 1
         },
@@ -587,7 +581,7 @@
         },
         {
             "idSprite": "borda2.png",
-            "x": 864,
+            "x": 832,
             "y": 320,
             "escala": 1
         },
@@ -661,6 +655,18 @@
             "idSprite": "funil.png",
             "x": 1088,
             "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil2.png",
+            "x": 896,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil2.png",
+            "x": 864,
+            "y": 320,
             "escala": 1
         }
     ],
@@ -974,5 +980,11 @@
         "e38",
         "f28",
         "m30"
+    ],
+    "plataformasArbustoFrente": [
+        "l10"
+    ],
+    "plataformasPedra": [
+        "l13"
     ]
 }

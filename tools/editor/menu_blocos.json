@@ -77,11 +77,17 @@
             { "type": "plataformaCantinhoTriplo2", "label": "Triplo 2", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_cantinhoTriplo2.png" },
             { "type": "plataformaCantinhoTriplo3", "label": "Triplo 3", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_cantinhoTriplo3.png" },
             { "type": "plataformaCantinhoTriplo4", "label": "Triplo 4", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_cantinhoTriplo4.png" },
-            { "type": "plataformaCantinhoQuauplo", "label": "Quauplo", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_cantinhoQuaduplo.png" },
-            { "type": "plataformaFundoMisto", "label": "Misto", "stateKey": "plataformas", "sprite": "../../assets/fundo/fundo_misto.png" },
-            { "type": "plataformaFundoTerraPedra", "label": "Terra Pedra", "stateKey": "plataformas", "sprite": "../../assets/fundo/fundo_terraPedra.png" },
-            { "type": "plataformaMeiaPedra", "label": "Meia Pedra", "stateKey": "plataformas", "sprite": "../../assets/fundo/meia pedra.png" },
-            { "type": "plataformaArbustoPequeno", "label": "Arbusto", "stateKey": "plataformas", "sprite": "../../assets/fundo/arbusto_pequeno.png" }
+            { "type": "plataformaCantinhoQuauplo", "label": "Quauplo", "stateKey": "plataformas", "sprite": "../../assets/bloco_canto/grama_cantinhoQuaduplo.png" }
+          ]
+        }
+      },
+      {
+        "id": "objetos",
+        "label": "Objetos",
+        "cycle": {
+          "items": [
+            { "type": "plataformaPedraObjeto", "label": "Pedra", "stateKey": "plataformasPedra", "sprite": "../../assets/personagem/objetos/pedra.png" },
+            { "type": "plataformaArbustoFrente", "label": "Arbusto", "stateKey": "plataformasArbustoFrente", "sprite": "../../assets/personagem/objetos/arbusto.png" }
           ]
         }
       }

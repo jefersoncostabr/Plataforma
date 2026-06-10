@@ -206,7 +206,9 @@
 
                     // (Removido inimigo_bb do render)
 
-                    criarIcone(coord, def.sprite, def.className || '');
+                    criarIcone(coord, def.sprite, def.className || '', {
+                        zIndex: def.zIndex
+                    });
                 });
             });
 

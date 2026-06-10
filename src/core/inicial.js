@@ -321,7 +321,8 @@ async function carregarFase(nomeArquivo) {
             ...(fase.plataformasNeve || []),
             ...(fase.plataformasEspinhos || []),
             ...(fase.plataformasGramaPico4 || []),
-            ...(fase.plataformasGramaPico5 || [])
+            ...(fase.plataformasGramaPico5 || []),
+            ...(fase.plataformasPedra || []) // New: Pedra
         ];
         blocosPadrao.forEach((entrada) => {
             const coord = obterCoordEntradaPlataforma(entrada);
@@ -441,6 +442,12 @@ async function carregarFase(nomeArquivo) {
         }
         if (fase.plataformasGramaPico5) {
             renderizarPlataformas(idPalco, '../../assets/bloco terra/terra_pico4.png', fase.plataformasGramaPico5);
+        }
+        if (fase.plataformasPedra) {
+            renderizarPlataformas(idPalco, '../../assets/personagem/objetos/pedra.png', fase.plataformasPedra);
+        }
+        if (fase.plataformasArbustoFrente) {
+            renderizarPlataformas(idPalco, '../../assets/personagem/objetos/arbusto.png', fase.plataformasArbustoFrente);
         }
         if (fase.plataformasTerraPico) {
             renderizarPlataformas(idPalco, '../../assets/meio_bloco/meiograma_pico.png', fase.plataformasTerraPico);
