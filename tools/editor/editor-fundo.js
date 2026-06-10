@@ -27,6 +27,33 @@
         drag: null
     };
 
+    // Lógica para encontrar o servidor de salvamento (porta 3210)
+    const SERVER_CANDIDATES = [
+        'http://127.0.0.1:3210',
+        'http://localhost:3210'
+    ];
+    let discoveredBaseUrl = '';
+
+    async function obterBaseUrlServidor() {
+        if (discoveredBaseUrl) return discoveredBaseUrl;
+        
+        // Se já estivermos rodando na porta 3210, usamos caminhos relativos
+        if (window.location.port === '3210') {
+            return '';
+        }
+
+        for (const url of SERVER_CANDIDATES) {
+            try {
+                const resp = await fetch(`${url}/__editor-save-status`, { cache: 'no-store' });
+                if (resp.ok) {
+                    discoveredBaseUrl = url;
+                    return url;
+                }
+            } catch (e) {}
+        }
+        return '';
+    }
+
     const renderizador = window.criarRenderizadorEditor({
         stage,
         getFaseData: () => state.faseData,
@@ -160,7 +187,8 @@
 
     async function carregarSpritesFundo() {
         try {
-            const resposta = await fetch('/editor-fundo-sprites', { cache: 'no-store' });
+            const baseUrl = await obterBaseUrlServidor();
+            const resposta = await fetch(`${baseUrl}/editor-fundo-sprites`, { cache: 'no-store' });
             if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
             const payload = await resposta.json();
             state.sprites = Array.isArray(payload?.sprites)
@@ -180,7 +208,8 @@
 
     async function descobrirFasesExistentes() {
         try {
-            const resposta = await fetch('/editor-phase-list', { cache: 'no-store' });
+            const baseUrl = await obterBaseUrlServidor();
+            const resposta = await fetch(`${baseUrl}/editor-phase-list`, { cache: 'no-store' });
             if (resposta.ok) {
                 const payload = await resposta.json();
                 const fases = Array.isArray(payload?.fases) ? payload.fases : [];
@@ -350,7 +379,8 @@
 
             const conteudo = JSON.stringify(limpar(baseOriginal), null, 4);
 
-            const resposta = await fetch('/save-phase', {
+            const baseUrl = await obterBaseUrlServidor();
+            const resposta = await fetch(`${baseUrl}/save-phase`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

@@ -36,6 +36,10 @@
         { type: 'plataformaFundoTerraPedra', stateKey: 'plataformas', sprite: '../../assets/fundo/fundo_terraPedra.png', label: 'Fundo Terra Pedra', kind: 'array' },
         { type: 'plataformaMeiaPedra', stateKey: 'plataformas', sprite: '../../assets/fundo/meia pedra.png', label: 'Meia Pedra', kind: 'array' },
         { type: 'plataformaArbustoPequeno', stateKey: 'plataformas', sprite: '../../assets/fundo/arbusto_pequeno.png', label: 'Arbusto Pequeno', kind: 'array' },
+        { type: 'plataformaArbustoPequenoClaro', stateKey: 'plataformas', sprite: '../../assets/fundo/arbusto_pequenoClaro.png', label: 'Arbusto Pequeno Claro', kind: 'array' },
+        { type: 'plataformaFunil', stateKey: 'plataformas', sprite: '../../assets/fundo/funil.png', label: 'Funil', kind: 'array' },
+        { type: 'plataformaFunil2', stateKey: 'plataformas', sprite: '../../assets/fundo/funil2.png', label: 'Funil 2', kind: 'array' },
+        { type: 'plataformaMeiaPedraTerra', stateKey: 'plataformas', sprite: '../../assets/fundo/meia_pedraTerra.png', label: 'Meia Pedra Terra', kind: 'array' },
 
         { type: 'plataformaNeve', stateKey: 'plataformasNeve', sprite: '../../assets/personagem/chao_neve.png', label: 'Chão de Neve', kind: 'array' },
         { type: 'terraInferior', stateKey: 'plataformasTerraInferior', sprite: '../../assets/personagem/terra_inferior.png', label: 'Terra Meio Bloco Inferior', kind: 'array' },

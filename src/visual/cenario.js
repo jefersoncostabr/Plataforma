@@ -145,7 +145,11 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         plataformaFundoMisto: '../../assets/fundo/fundo_misto.png',
         plataformaFundoTerraPedra: '../../assets/fundo/fundo_terraPedra.png',
         plataformaMeiaPedra: '../../assets/fundo/meia pedra.png',
-        plataformaArbustoPequeno: '../../assets/fundo/arbusto_pequeno.png'
+        plataformaArbustoPequeno: '../../assets/fundo/arbusto_pequeno.png',
+        plataformaArbustoPequenoClaro: '../../assets/fundo/arbusto_pequenoClaro.png',
+        plataformaFunil: '../../assets/fundo/funil.png',
+        plataformaFunil2: '../../assets/fundo/funil2.png',
+        plataformaMeiaPedraTerra: '../../assets/fundo/meia_pedraTerra.png'
     };
 
     // Corrige carregamento do sprite do chão em caminhos relativos.
