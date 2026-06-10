@@ -1141,8 +1141,38 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB)
                 ? !!window.interagirComRoboDesativado?.(controle, controle.teclas)
                 : false;
+            
+            // NOVA MECÂNICA: Interagir com o centro do arbusto
+            if (!interagiuComMusgo && !interagiuComAlavanca && !interagiuComRoboDesativado && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB) {
+                const hitboxPlayer = {
+                    x: Number(controle.x || 0) + Number(controle.offsetX || 0),
+                    y: Number(controle.y || 0),
+                    largura: Number(controle.largura || 20),
+                    altura: Number(controle.altura || 32)
+                };
 
-            if (!interagiuComMusgo && !interagiuComAlavanca && !interagiuComRoboDesativado && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB && !controle.estaAgachado && controle.temCinto) {
+                if (window.arbustosFrente && Array.isArray(window.arbustosFrente)) {
+                    for (const arbusto of window.arbustosFrente) {
+                        // Define uma pequena hitbox no centro do arbusto (8x8 pixels)
+                        const arbustoCenterHitbox = {
+                            x: arbusto.x + (arbusto.largura / 2) - 4,
+                            y: arbusto.y + (arbusto.altura / 2) - 4,
+                            largura: 8,
+                            altura: 8
+                        };
+
+                        if (typeof window.detectarColisaoHitbox === 'function' && window.detectarColisaoHitbox(hitboxPlayer, arbustoCenterHitbox, 0, 0, 0)) {
+                            console.log('%cPersonagem colidiu com o centro do arbusto e apertou "E"!', 'color: blue;');
+                            interagiuComArbusto = true;
+                            // Consome a tecla 'E' para evitar outras interações
+                            controle.teclas['e'] = false; controle.teclas['E'] = false; controle.teclas['KeyE'] = false;
+                            break; // Interage apenas com um arbusto por vez
+                        }
+                    }
+                }
+            }
+
+            if (!interagiuComMusgo && !interagiuComAlavanca && !interagiuComRoboDesativado && !interagiuComArbusto && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB && !controle.estaAgachado && controle.temCinto) {
                 if (typeof sistemaVisuaisEquipamentos.alternarEquipamentoSelecao === 'function') {
                     sistemaVisuaisEquipamentos.alternarEquipamentoSelecao();
                 }

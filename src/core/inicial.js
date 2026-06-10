@@ -309,6 +309,7 @@ async function carregarFase(nomeArquivo) {
     if (typeof renderizarPlataformas === 'function') {
         // Garante que o objeto de colisão global contenha todos os blocos sólidos (Terra + Neve)
         window.plataformas = {};
+        window.arbustosFrente = []; // Inicializa o array global para arbustos
 
         const obterCoordEntradaPlataforma = (entrada) => {
             if (typeof entrada === 'string') return entrada.trim().toLowerCase();
@@ -448,6 +449,18 @@ async function carregarFase(nomeArquivo) {
         }
         if (fase.plataformasArbustoFrente) {
             renderizarPlataformas(idPalco, '../../assets/personagem/objetos/arbusto.png', fase.plataformasArbustoFrente);
+            // Armazena os arbustos para detecção de colisão
+            fase.plataformasArbustoFrente.forEach(entrada => {
+                const coord = obterCoordEntradaPlataforma(entrada);
+                if (!coord) return;
+                const pos = window.gridParaPixels(coord); // Converte coordenada de grade para pixels
+                window.arbustosFrente.push({
+                    x: pos.x,
+                    y: pos.y,
+                    largura: 32, // Arbusto é um tile 32x32
+                    altura: 32,
+                });
+            });
         }
         if (fase.plataformasTerraPico) {
             renderizarPlataformas(idPalco, '../../assets/meio_bloco/meiograma_pico.png', fase.plataformasTerraPico);
