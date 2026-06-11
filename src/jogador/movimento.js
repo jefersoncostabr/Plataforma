@@ -1178,7 +1178,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         }
 
         // --- NOVA MECÂNICA: INTERAÇÃO COM ARBUSTO (BAIXO OU S) ---
-        if (apertouBaixoOuS && !controle.baixoPressionado && colidindoNoArbusto && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB) {
+        if (apertouBaixoOuS && !controle.baixoPressionado && colidindoNoArbusto && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB && podeAgacharSemBloqueio()) {
             console.log('%cPersonagem colidiu com o centro do arbusto e apertou "Baixo" ou "S"!', 'color: blue;');
             controle.interagiuComArbusto = true;
             // Consome a tecla para evitar repetição no mesmo pressionamento

@@ -684,7 +684,11 @@
             "f15",
             "h40"
         ],
-        "revolver": "n36"
+        "revolver": [
+            "f5",
+            "n36"
+        ],
+        "cinto": "d4"
     },
     "inimigoAleatorio": [
         1,
