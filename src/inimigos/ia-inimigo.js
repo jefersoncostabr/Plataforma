@@ -1597,7 +1597,10 @@ window.AudioManager.playSFX('chute', 0.4);
 
                 // RESGATE BB: Se o jogador está em resgate, inimigos devem zerar perseguição
                 const emResgateBB = window.playerControle?.bloqueadoPorResgateBB === true;
-                if (emResgateBB) {
+
+                // Verifica se o jogador está escondido no arbusto
+                const jogadorEscondido = window.playerControle?.interagiuComArbusto === true;
+                if (emResgateBB || jogadorEscondido) {
                     inimigo.perseguindo = false;
                     inimigo.afastando = false;
                     inimigo.tempoAfastamento = 0;
@@ -1687,7 +1690,7 @@ window.AudioManager.playSFX('chute', 0.4);
 
                 // Ativa a perseguição se o jogador estiver perto OU se detectar um tiro vindo no radar
                 // Não ativa perseguição se o jogador está em resgate do BB
-                if (!iaBloqueadaPorStun && !inimigo.perseguindo && !emResgateBB && alvoPerseguicao && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse || (inimigo.temGarra && distanciaAtual <= (config.garraAlcanceInimigo || 160)))) {
+                if (!iaBloqueadaPorStun && !inimigo.perseguindo && !emResgateBB && !jogadorEscondido && alvoPerseguicao && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse || (inimigo.temGarra && distanciaAtual <= (config.garraAlcanceInimigo || 160)))) {
                     inimigo.perseguindo = true;
                     // console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
                 }
