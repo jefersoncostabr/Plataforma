@@ -913,7 +913,14 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             const alvoPerseguicaoX = Number(alvoPerseguicao?.x ?? playerX);
             const alvoPerseguicaoY = Number(alvoPerseguicao?.y ?? playerY);
             const alcanceTiro = Number(config.distanciaTiroInimigo ?? 300);
-            const distanciaAtivacao = config.inimigoDistanciaAtivacao || 300; // Distância para o inimigo começar a perseguir o jogador
+            // Distância base para iniciar perseguição (em pixels).
+            // Se não houver valor em config.inimigoDistanciaAtivacao, usa 300 por padrão.
+            let distanciaAtivacao = config.inimigoDistanciaAtivacao || 300;
+
+            // Ajuste: Reduz a distância de ativação em 50px se o personagem estiver agachado (stealth)
+            if (playerControle?.estaAgachado) {
+                distanciaAtivacao = Math.max(0, distanciaAtivacao - 50);
+            }
 
             const velAtivaBase = Number(config.velocidadeInimigoBase ?? velocidade);
             const gravidadeInimigoAtual = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.5) : (config.inimigoGravidade ?? 0.5);
@@ -1689,9 +1696,15 @@ window.AudioManager.playSFX('chute', 0.4);
                     && yAlvo > inimigo.y + Math.max(64, Number(config.inimigoAlturaMinSuperSalto ?? 96))
                 );
 
-                // Ativa a perseguição se o jogador estiver perto OU se detectar um tiro vindo no radar
-                // Não ativa perseguição se o jogador está em resgate do BB
-                if (!iaBloqueadaPorStun && !inimigo.perseguindo && !emResgateBB && !jogadorEscondido && alvoPerseguicao && (distanciaAtual <= distanciaAtivacao || projVindo || itemInteresse || (inimigo.temGarra && distanciaAtual <= (config.garraAlcanceInimigo || 160)))) {
+                // Ativa a perseguição se o jogador estiver perto em X e Y, OU se detectar ameaça/interesse.
+                // Não ativa perseguição se o jogador está em resgate do BB.
+                // Regra de proximidade: só ativa por distância se estiver dentro do limite nos dois eixos (X e Y).
+                const dentroDistanciaAtivacao = distanciaAtual <= distanciaAtivacao && distanciaY <= distanciaAtivacao;
+                const alcanceGarraAtivacao = Number(config.garraAlcanceInimigo || 160);
+                const dentroAlcanceGarraAtivacao = inimigo.temGarra
+                    && distanciaAtual <= alcanceGarraAtivacao
+                    && distanciaY <= alcanceGarraAtivacao;
+                if (!iaBloqueadaPorStun && !inimigo.perseguindo && !emResgateBB && !jogadorEscondido && alvoPerseguicao && (dentroDistanciaAtivacao || projVindo || itemInteresse || dentroAlcanceGarraAtivacao)) {
                     inimigo.perseguindo = true;
                     // console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
                 }
