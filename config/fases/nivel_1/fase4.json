@@ -2,6 +2,506 @@
     "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
     "objetivo": "e40",
+    "fundoFrente": [
+        {
+            "idSprite": "funil.png",
+            "x": 320,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 352,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 352,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 416,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 448,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 384,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 384,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 416,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 416,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 448,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 448,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 896,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 896,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 928,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 928,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 928,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 960,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 960,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 992,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "borda2.png",
+            "x": 1024,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "borda3.png",
+            "x": 448,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil2.png",
+            "x": 384,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil.png",
+            "x": 448,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil.png",
+            "x": 896,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil2.png",
+            "x": 864,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 96,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 672,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 768,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 992,
+            "y": 352,
+            "escala": 1
+        }
+    ],
     "posicaoAlavanca": "",
     "posicaoRoboDesativado": "",
     "posicaoRoboAberto": "",
@@ -22,21 +522,154 @@
             "g18"
         ]
     },
-    "inimigoAleatorio": [1, 0],
-    "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
-        "c11", "c32",
-        "d12", "d31",
-        "e13", "e30",
-        "f1", "f4", "f5", "f14", "f16", "f18", "f20", "f22", "f23", "f24", "f25", "f26", "f27", "f28", "f29",
-        "h26",
-        "i27", "i28",
-        "j29", "j30",
-        "k31", "k32", "k33",
-        "l35",
-        "m36", "m37", "m39", "m40"
+    "inimigoAleatorio": [
+        1,
+        0
     ],
-    "inimigo_feno": ["b11", "b23"],
+    "plataformas": [
+        "a1",
+        {
+            "coord": "c11",
+            "type": "plataformaCanto"
+        },
+        {
+            "coord": "c12",
+            "type": "plataforma"
+        },
+        {
+            "coord": "c31",
+            "type": "plataforma"
+        },
+        {
+            "coord": "c32",
+            "type": "plataformaCanto2"
+        },
+        {
+            "coord": "d12",
+            "type": "plataformaCanto"
+        },
+        {
+            "coord": "d13",
+            "type": "plataforma"
+        },
+        {
+            "coord": "d30",
+            "type": "plataforma"
+        },
+        {
+            "coord": "d31",
+            "type": "plataformaCanto2"
+        },
+        {
+            "coord": "e13",
+            "type": "plataformaCanto"
+        },
+        {
+            "coord": "e14",
+            "type": "plataforma"
+        },
+        {
+            "coord": "f29",
+            "type": "plataforma"
+        },
+        {
+            "coord": "f30",
+            "type": "plataformaCanto2"
+        },
+        {
+            "coord": "j30",
+            "type": "plataformaGramaPico2"
+        },
+        {
+            "coord": "k32",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "k33",
+            "type": "plataformaGramaPico2"
+        },
+        {
+            "coord": "l36",
+            "type": "plataformaCantoCanto4"
+        },
+        {
+            "coord": "m36",
+            "type": "plataformaCantoCanto2"
+        },
+        {
+            "coord": "m37",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "m39",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "m40",
+            "type": "plataformaMuro"
+        },
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8",
+        "a9",
+        "a10",
+        "a11",
+        "a12",
+        "a13",
+        "a14",
+        "a15",
+        "a16",
+        "a17",
+        "a18",
+        "a19",
+        "a20",
+        "a21",
+        "a22",
+        "a23",
+        "a24",
+        "a25",
+        "a26",
+        "a27",
+        "a28",
+        "a29",
+        "a30",
+        "a31",
+        "a32",
+        "a33",
+        "a34",
+        "a35",
+        "a36",
+        "a37",
+        "a38",
+        "a39",
+        "a40",
+        "e30",
+        "f1",
+        "f4",
+        "f5",
+        "f14",
+        "f16",
+        "f18",
+        "f20",
+        "f22",
+        "f23",
+        "f24",
+        "f25",
+        "f26",
+        "f27",
+        "f28",
+        "h26",
+        "i27",
+        "i28"
+    ],
+    "inimigo_feno": [
+        "b11",
+        "b23"
+    ],
     "plataformasTerraSuperior": [
         "b33"
     ],
@@ -46,17 +679,26 @@
     ],
     "plataformasTerraSuperior2": [
         "e28",
-        "l37", "l39"
+        "l37",
+        "l39"
     ],
     "plataformasEstacaSup": [
         "m38"
     ],
     "plataformasTerraInferior2": [
-        "e7", "e8"
+        "e7",
+        "e8"
     ],
     "humano": [
-        "b18", "b32", "b37",
+        "b18",
+        "b32",
+        "b37",
         "g27",
         "h18"
+    ],
+    "plataformasGramaPico4": [
+        "j29",
+        "k31",
+        "l35"
     ]
 }

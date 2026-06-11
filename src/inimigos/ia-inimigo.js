@@ -913,14 +913,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             const alvoPerseguicaoX = Number(alvoPerseguicao?.x ?? playerX);
             const alvoPerseguicaoY = Number(alvoPerseguicao?.y ?? playerY);
             const alcanceTiro = Number(config.distanciaTiroInimigo ?? 300);
-            // Distância base para iniciar perseguição (em pixels).
-            // Se não houver valor em config.inimigoDistanciaAtivacao, usa 300 por padrão.
-            let distanciaAtivacao = config.inimigoDistanciaAtivacao || 300;
-
-            // Ajuste: Reduz a distância de ativação em 50px se o personagem estiver agachado (stealth)
-            if (playerControle?.estaAgachado) {
-                distanciaAtivacao = Math.max(0, distanciaAtivacao - 50);
-            }
+            // Distância base para detecção (será processada individualmente no loop)
+            const distAtivacaoBase = Number(config.inimigoDistanciaAtivacao || 300);
 
             const velAtivaBase = Number(config.velocidadeInimigoBase ?? velocidade);
             const gravidadeInimigoAtual = config.gravidadeUniversal ? (config.forcaGravidade?.gravidade ?? 0.5) : (config.inimigoGravidade ?? 0.5);
@@ -930,6 +924,19 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             for (let i = window.inimigos.length - 1; i >= 0; i--) {
                 const inimigo = window.inimigos[i];
                 if (!inimigo) continue;
+
+                // Cálculo da distância de detecção individual para cada inimigo
+                let distanciaAtivacao = distAtivacaoBase;
+                
+                // Mecânica de Stealth: reduz distância se o jogador estiver agachado
+                if (playerControle?.estaAgachado) {
+                    distanciaAtivacao -= 50;
+                }
+                // Redução específica para o inimigo do tipo Humano
+                if (inimigo.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID) {
+                    distanciaAtivacao -= 50;
+                }
+                distanciaAtivacao = Math.max(0, distanciaAtivacao);
 
                 if (inimigo.transicaoFormaBossAtiva) {
                     inimigo.velocidadeKnockback = 0;

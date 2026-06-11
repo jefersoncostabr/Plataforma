@@ -29,57 +29,1865 @@
             "b31"
         ]
     },
-    "inimigoAleatorio": [1, 0],
+    "inimigoAleatorio": [
+        1,
+        0
+    ],
     "plataformasNeve": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8",
+        "a9",
+        "a10",
+        "a11",
+        "a12",
+        "a13",
+        "a14",
+        "a15",
+        "a16",
+        "a17",
+        "a18",
+        "a19",
+        "a20",
+        "a21",
+        "a22",
+        "a23",
+        "a24",
+        "a25",
+        "a26",
+        "a27",
+        "a28",
+        "a29",
+        "a30",
+        "a31",
+        "a32",
+        "a33",
+        "a34",
+        "a35",
+        "a36",
+        "a37",
+        "a38",
+        "a39",
+        "a40",
         "b17",
-        "c8", "c33",
-        "d9", "d32",
-        "e10", "e32",
-        "f11", "f32",
-        "g11", "g31",
-        "h12", "h31",
-        "i3", "i13", "i31",
-        "j10", "j13", "j30",
-        "k13", "k30",
-        "l14", "l30",
-        "m15", "m29",
-        "n16", "n29",
+        "c8",
+        "c33",
+        "d9",
+        "d32",
+        "e10",
+        "e32",
+        "f11",
+        "f32",
+        "g11",
+        "g31",
+        "h12",
+        "h31",
+        "i3",
+        "i13",
+        "i31",
+        "j10",
+        "j13",
+        "j30",
+        "k13",
+        "k30",
+        "l14",
+        "l30",
+        "m15",
+        "m29",
+        "n16",
+        "n29",
         "o29",
-        "p18", "p20", "p21", "p22", "p23", "p24", "p25", "p26", "p28",
-        "q18", "q28",
-        "r18", "r28",
-        "s19", "s27",
-        "t16", "t19", "t27",
-        "u20", "u21", "u22", "u23", "u24", "u25", "u26",
+        "p18",
+        "p20",
+        "p21",
+        "p22",
+        "p23",
+        "p24",
+        "p25",
+        "p26",
+        "p28",
+        "q18",
+        "q28",
+        "r18",
+        "r28",
+        "s19",
+        "s27",
+        "t16",
+        "t19",
+        "t27",
+        "u20",
+        "u21",
+        "u22",
+        "u23",
+        "u24",
+        "u25",
+        "u26",
         "v14",
         "w12",
         "x10",
         "y8",
         "z6",
-        "aa3", "aa38",
-        "ab1", "ab2", "ab39", "ab40"
+        "aa3",
+        "aa38",
+        "ab1",
+        "ab2",
+        "ab39",
+        "ab40"
     ],
     "plataformasTerraInferior": [
-        "b14", "b15", "b18",
+        "b14",
+        "b15",
+        "b18",
         "d16",
         "p17",
         "u19"
     ],
     "plataformasTerraSuperior2": [
-        "b8", "b33",
-        "q19", "q27"
+        "b8",
+        "b33",
+        "q19",
+        "q27"
     ],
     "plataformasEstacaSup": [
         "b16"
     ],
-    "inimigo_feno": ["v20", "v26"],
+    "inimigo_feno": [
+        "v20",
+        "v26"
+    ],
     "humano": [
-        "b13", "b22", "b23", "b32",
+        "b13",
+        "b22",
+        "b23",
+        "b32",
         "g25",
         "l21",
         "q21",
-        "r22", "r24",
+        "r22",
+        "r24",
         "v24"
+    ],
+    "fundoFrente": [
+        {
+            "idSprite": "funil.png",
+            "x": 256,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "borda.png",
+            "x": 256,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil.png",
+            "x": 864,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil2.png",
+            "x": 832,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "borda2.png",
+            "x": 1024,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 992,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 992,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 960,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 960,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 896,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 928,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 896,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 928,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 448,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 416,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 448,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 416,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 384,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 384,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 352,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 352,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 320,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 320,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 288,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 288,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 288,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 320,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 384,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 416,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 448,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 352,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 896,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 928,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 960,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 960,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 960,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 928,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 896,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 448,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 416,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 384,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 352,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 320,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 352,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 352,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 416,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 384,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 384,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 416,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 448,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 448,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 928,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 896,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 896,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 928,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 928,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 928,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 896,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 896,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 416,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 448,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 448,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 416,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 384,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 416,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 448,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 896,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 896,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 384,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 448,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 448,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 448,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 448,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 448,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 448,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 448,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 448,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 448,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 448,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 480,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 480,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 512,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 544,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 544,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 512,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 448,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 384,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 448,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 448,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 416,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 896,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 384,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 384,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 384,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 384,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 384,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 384,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 384,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 384,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 384,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 384,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 384,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 608,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 608,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 608,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 608,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 608,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 608,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 608,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 576,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 544,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 512,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 512,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 512,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 512,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 512,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 512,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 512,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 544,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 576,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 544,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 544,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 576,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 672,
+            "y": 576,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 576,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 544,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 544,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 576,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 576,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 544,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 640,
+            "y": 672,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 736,
+            "y": 672,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 352,
+            "y": 736,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 160,
+            "y": 800,
+            "escala": 1
+        }
     ]
 }

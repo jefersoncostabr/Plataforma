@@ -196,42 +196,6 @@
             "escala": 1
         },
         {
-            "idSprite": "fundo_irregular_horizontal.png",
-            "x": 704,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo_irregular_horizontal.png",
-            "x": 704,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo_irregular_horizontal.png",
-            "x": 736,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo_irregular_horizontal.png",
-            "x": 736,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo_irregular_horizontal.png",
-            "x": 736,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo_irregular_horizontal.png",
-            "x": 704,
-            "y": 32,
-            "escala": 1
-        },
-        {
             "idSprite": "fundo.png",
             "x": 704,
             "y": 128,
@@ -241,6 +205,174 @@
             "idSprite": "fundo.png",
             "x": 736,
             "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil.png",
+            "x": 480,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil2.png",
+            "x": 544,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo_irregular_horizontal.png",
+            "x": 512,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo_irregular_horizontal.png",
+            "x": 512,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo_irregular_horizontal.png",
+            "x": 512,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo_irregular_horizontal.png",
+            "x": 512,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "borda.png",
+            "x": 448,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil.png",
+            "x": 448,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 448,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil2.png",
+            "x": 480,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo_irregular_horizontal.png",
+            "x": 448,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo_irregular_horizontal.png",
+            "x": 448,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "meia_pedra.png",
+            "x": 992,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "meia_pedra.png",
+            "x": 544,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "meia_pedra.png",
+            "x": 160,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 128,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 608,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 896,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 896,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 288,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 1248,
+            "y": 224,
             "escala": 1
         }
     ],
@@ -420,5 +552,11 @@
     "plataformasTerraPicoInvertido": [
         "b12",
         "i16"
+    ],
+    "plataformasPedra": [
+        "b28"
+    ],
+    "plataformasArbustoFrente": [
+        "g23"
     ]
 }

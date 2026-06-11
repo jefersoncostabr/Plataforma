@@ -16,17 +16,99 @@
         "restauracao": "l4",
         "municao_plus": "b17"
     },
-    "inimigoAleatorio": [1, 0],
+    "inimigoAleatorio": [
+        1,
+        0
+    ],
     "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
+        "a1",
+        {
+            "coord": "a17",
+            "type": "plataformaCanto2"
+        },
+        {
+            "coord": "a22",
+            "type": "plataformaCanto"
+        },
+        {
+            "coord": "k28",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "k29",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "k30",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "k31",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "k32",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "k33",
+            "type": "plataformaGramaPico2"
+        },
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8",
+        "a9",
+        "a10",
+        "a11",
+        "a12",
+        "a13",
+        "a14",
+        "a15",
+        "a16",
+        "a23",
+        "a24",
+        "a25",
+        "a26",
+        "a27",
+        "a28",
+        "a29",
+        "a30",
+        "a31",
+        "a32",
+        "a33",
+        "a34",
+        "a35",
+        "a36",
+        "a37",
+        "a38",
+        "a39",
+        "a40",
         "b20",
-        "c17", "c18", "c19", "c32", "c33", "c34", "c35", "c36", "c37", "c38",
+        "c17",
+        "c18",
+        "c19",
+        "c32",
+        "c33",
+        "c34",
+        "c35",
+        "c36",
+        "c37",
+        "c38",
         "h17",
         "i13",
         "j7",
-        "k4", "k27", "k28", "k29", "k30", "k31", "k32", "k33",
-        "m9", "m12", "m15", "m18", "m21", "m24",
-        "n3", "n6"
+        "k4",
+        "m9",
+        "m12",
+        "m15",
+        "m18",
+        "m21",
+        "n3",
+        "n6"
     ],
     "plataformasTerraSuperior": [
         "b16",
@@ -34,11 +116,18 @@
         "l38"
     ],
     "plataformasTerraInferior2": [
-        "a18", "a19", "a20", "a21",
+        "a18",
+        "a19",
+        "a20",
+        "a21",
         "f35",
-        "j40", "j41", "j42"
+        "j40",
+        "j41",
+        "j42"
     ],
-    "inimigo_feno": ["b7"],
+    "inimigo_feno": [
+        "b7"
+    ],
     "plataformasEstacaBaixo": [
         "b19"
     ],
@@ -51,5 +140,204 @@
         "b31",
         "d18",
         "m29"
+    ],
+    "plataformasGramaPico4": [
+        "k27"
+    ],
+    "plataformasTerraPico": [
+        "m24"
+    ],
+    "plataformasTerraPicoInvertido": [
+        "l24"
+    ],
+    "plataformasArbustoFrente": [
+        "b11",
+        "b28",
+        "n21"
+    ],
+    "plataformasPedra": [
+        "b24"
+    ],
+    "fundoFrente": [
+        {
+            "idSprite": "meia_pedra.png",
+            "x": 928,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil.png",
+            "x": 992,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "borda2.png",
+            "x": 1184,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1024,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1088,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1120,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1152,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo_irregular_vertical.png",
+            "x": 640,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1056,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 96,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 224,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 320,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 448,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 544,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 1024,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 1120,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 864,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "meia_pedra.png",
+            "x": 736,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "meia_pedra.png",
+            "x": 896,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 160,
+            "y": 448,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 352,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 544,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 1184,
+            "y": 384,
+            "escala": 1
+        }
     ]
 }
