@@ -684,11 +684,7 @@
             "f15",
             "h40"
         ],
-        "revolver": [
-            "f5",
-            "n36"
-        ],
-        "cinto": "d4"
+        "revolver": "n36"
     },
     "inimigoAleatorio": [
         1,
@@ -986,9 +982,7 @@
         "m30"
     ],
     "plataformasArbustoFrente": [
-        "l10"
-    ],
-    "plataformasPedra": [
-        "l13"
+        "l10",
+        "l16"
     ]
 }

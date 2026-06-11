@@ -1598,8 +1598,9 @@ window.AudioManager.playSFX('chute', 0.4);
                 // RESGATE BB: Se o jogador está em resgate, inimigos devem zerar perseguição
                 const emResgateBB = window.playerControle?.bloqueadoPorResgateBB === true;
 
-                // Verifica se o jogador está escondido no arbusto
-                const jogadorEscondido = window.playerControle?.interagiuComArbusto === true;
+                // Verifica se o jogador está escondido no arbusto OU no grace period de stealth pós-arbusto
+                const jogadorEscondido = window.playerControle?.interagiuComArbusto === true
+                    || (window.playerControle?.stealthPosArbusto ?? 0) > 0;
                 if (emResgateBB || jogadorEscondido) {
                     inimigo.perseguindo = false;
                     inimigo.afastando = false;

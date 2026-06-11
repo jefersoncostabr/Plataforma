@@ -250,6 +250,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         estaAgachado: false,
         baixoPressionado: false, // Adicionado para controlar a tecla 'baixo' ou 's'
         interagiuComArbusto: false,
+        stealthPosArbusto: 0, // Timer de stealth após sair do arbusto agachado (frames)
         carregando: false,
         eletricidadeTemporariaAtiva: false,
         eletricidadeTemporariaAte: 0,
@@ -1188,7 +1189,27 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         // Detecta quando o jogador sai da colisão ou levanta para resetar o estado e avisar no console
         if ((!colidindoNoArbusto || !controle.estaAgachado) && controle.interagiuComArbusto) {
             console.log('%cPersonagem saiu da colisão ou levantou do arbusto!', 'color: red;');
+            // Se saiu do arbusto ainda agachado, concede grace period de 2s de stealth
+            if (!colidindoNoArbusto && controle.estaAgachado) {
+                const STEALTH_POS_ARBUSTO_FRAMES = 120; // ~2 segundos a 60fps
+                controle.stealthPosArbusto = STEALTH_POS_ARBUSTO_FRAMES;
+                console.log('%c[STEALTH] Grace period de 2s ativado (saiu do arbusto agachado)', 'color: green; font-weight: bold;');
+            }
             controle.interagiuComArbusto = false;
+        }
+
+        // Decrementa o timer de stealth pós-arbusto
+        if (controle.stealthPosArbusto > 0) {
+            // Cancela o grace period se o jogador levantar enquanto está ativo
+            if (!controle.estaAgachado) {
+                controle.stealthPosArbusto = 0;
+                console.log('%c[STEALTH] Grace period cancelado (jogador levantou)', 'color: orange;');
+            } else {
+                controle.stealthPosArbusto--;
+                if (controle.stealthPosArbusto === 0) {
+                    console.log('%c[STEALTH] Grace period encerrado', 'color: orange;');
+                }
+            }
         }
 
         controle.baixoPressionado = apertouBaixoOuS;
