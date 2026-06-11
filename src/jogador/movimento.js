@@ -1179,11 +1179,22 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         }
 
         // --- NOVA MECÂNICA: INTERAÇÃO COM ARBUSTO (BAIXO OU S) ---
-        if (apertouBaixoOuS && !controle.baixoPressionado && colidindoNoArbusto && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB && podeAgacharSemBloqueio()) {
+        const podeEntrarStealthNoArbusto = colidindoNoArbusto
+            && !window.controlandoCao
+            && !window.controlandoGato
+            && !window.controlandoBB;
+
+        if (apertouBaixoOuS && !controle.baixoPressionado && podeEntrarStealthNoArbusto && podeAgacharSemBloqueio()) {
             console.log('%cPersonagem colidiu com o centro do arbusto e apertou "Baixo" ou "S"!', 'color: blue;');
             controle.interagiuComArbusto = true;
             // Consome a tecla para evitar repetição no mesmo pressionamento
             controle.teclas['ArrowDown'] = false; controle.teclas['s'] = false; controle.teclas['S'] = false;
+        }
+
+        // Também entra em stealth quando já chega agachado no centro do arbusto.
+        if (!controle.interagiuComArbusto && podeEntrarStealthNoArbusto && controle.estaAgachado) {
+            console.log('%cPersonagem entrou em stealth ao chegar agachado no centro do arbusto!', 'color: blue;');
+            controle.interagiuComArbusto = true;
         }
 
         // Detecta quando o jogador sai da colisão ou levanta para resetar o estado e avisar no console
