@@ -488,15 +488,17 @@ function abrirMenuSkillsUI() {
         const siblings = levels[depth];
         const indexInLevel = siblings.indexOf(skillId);
 
+        const custo = 1 + depth;
+
         // Distribui os botões proporcionalmente à nova largura de 800px
         const x = (containerWidth / (siblings.length + 1)) * (indexInLevel + 1);
         const y = startY + (depth * vGap);
         buttonPositions[skillId] = { x: x, y: y, width: 90, height: 50 };
 
         // Disponível se o pai estiver liberado e o jogador tiver pontos
-        const disponivel = paiPossui && window.skillPoints > 0;
+        const disponivel = paiPossui && window.skillPoints >= custo;
 
-        btn.innerText = skill.nome;
+        btn.innerText = `${skill.nome}\n${custo} SP`;
         btn.className = 'skill-tree-btn';
         btn.style.position = 'absolute';
         btn.style.left = `${x}px`;
@@ -507,7 +509,7 @@ function abrirMenuSkillsUI() {
         } else if (disponivel) {
             btn.classList.add('available');
             btn.onclick = () => {
-                window.skillPoints -= 1;
+                window.skillPoints -= custo;
                 window.playerSkills.push(skillId);
                 if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
                 if (typeof window.salvarProgressoSkills === 'function') window.salvarProgressoSkills();
