@@ -53,11 +53,15 @@
             const faseData = normalizeFaseData(getFaseData());
             const randomConfig = typeof getRandomConfig === 'function'
                 ? getRandomConfig()
-                : { enabled: true, diff: 1, type: 0 };
+                : { enabled: true, diff: 1, type: 0, humanoEnabled: false, humanoDiff: 1 };
 
             faseData.inimigoAleatorio = randomConfig.enabled
                 ? [randomConfig.diff, randomConfig.type]
                 : [0, 0];
+
+            faseData.humanoAleatorio = randomConfig.humanoEnabled
+                ? [randomConfig.humanoDiff]
+                : [0];
 
             COORD_ARRAY_KEYS.forEach((key) => {
                 faseData[key] = (faseData[key] || []).sort(sortCoords);

@@ -7,6 +7,8 @@
             spawnRandomCheck,
             randomDiffSelect,
             randomTypeSelect,
+            spawnHumanoCheck,
+            humanoFreqSelect,
             getFaseData,
             setFaseData,
             atualizarTamanhoStage,
@@ -464,6 +466,50 @@
                 document.getElementById('random-config-fields').style.opacity = e.target.checked ? '1' : '0.3';
                 document.getElementById('random-config-fields').style.pointerEvents = e.target.checked ? 'auto' : 'none';
             };
+
+            // Injeta dinamicamente a UI de spawn de humanos se não existir no editor.html
+            let humanoFields = document.getElementById('humano-config-fields');
+            if (!humanoFields) {
+                const randomFields = document.getElementById('random-config-fields');
+                const parent = randomFields?.parentElement;
+                if (parent) {
+                    const container = document.createElement('div');
+                    container.style.marginTop = '10px';
+                    container.style.borderTop = '1px solid #444';
+                    container.style.paddingTop = '10px';
+                    container.innerHTML = `
+                        <label title="Habilita o surgimento de humanos aleatórios durante a fase">
+                            <input type="checkbox" id="spawn-humano"> Humano Aleatório
+                        </label>
+                        <div id="humano-config-fields" style="opacity: 0.3; transition: opacity 0.3s; pointer-events: none; margin-left: 20px; font-size: 11px;">
+                            <label>Frequência: 
+                                <select id="humano-freq">
+                                    <option value="1">Baixa (1 min)</option>
+                                    <option value="2">Média (45 seg)</option>
+                                    <option value="3">Alta (30 seg)</option>
+                                </select>
+                            </label>
+                        </div>
+                    `;
+                    parent.appendChild(container);
+                }
+            }
+
+            const humanoCheck = document.getElementById('spawn-humano');
+            if (humanoCheck) {
+                humanoCheck.onchange = (e) => {
+                    const fields = document.getElementById('humano-config-fields');
+                    if (fields) {
+                        fields.style.opacity = e.target.checked ? '1' : '0.3';
+                        fields.style.pointerEvents = e.target.checked ? 'auto' : 'none';
+                    }
+                    // Atualiza o estado da fase imediatamente
+                    const fase = getFaseData();
+                    const freq = parseInt(document.getElementById('humano-freq').value);
+                    fase.humanoAleatorio = e.target.checked ? [freq] : [0];
+                    setFaseData(fase);
+                };
+            }
         }
 
         async function configurarSeletorFases(opcoes = {}) {

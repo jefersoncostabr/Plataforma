@@ -11,6 +11,8 @@ window.controlandoCao = false; // Flag para identificar se o jogador está contr
 window.controlandoGato = false; // Flag para identificar se o jogador está controlando o gato
 window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para inimigo aleatório
 window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro inimigo
+window.intervalHumanoAleatorio = null; // Ciclo para humano aleatório
+window.timeoutPrimeiroHumanoAleatorio = null; // Delay inicial do humano
 
 function obterIndiceFaseInicial(valorFaseInicial) {
     const faseNumero = Number(valorFaseInicial);
@@ -262,11 +264,19 @@ async function carregarFase(nomeArquivo) {
         clearInterval(window.intervalInimigoAleatorio);
         window.intervalInimigoAleatorio = null;
     }
+    if (window.intervalHumanoAleatorio !== null) {
+        clearInterval(window.intervalHumanoAleatorio);
+        window.intervalHumanoAleatorio = null;
+    }
     
     // Limpa o timeout do primeiro inimigo se existir
     if (window.timeoutPrimeiroInimigoAleatorio !== null) {
         clearTimeout(window.timeoutPrimeiroInimigoAleatorio);
         window.timeoutPrimeiroInimigoAleatorio = null;
+    }
+    if (window.timeoutPrimeiroHumanoAleatorio !== null) {
+        clearTimeout(window.timeoutPrimeiroHumanoAleatorio);
+        window.timeoutPrimeiroHumanoAleatorio = null;
     }
     
     let fase;
@@ -691,6 +701,33 @@ async function carregarFase(nomeArquivo) {
             window.timeoutPrimeiroInimigoAleatorio = null;
         }, tempoEmMs);
     }
+
+    // Configura spawn de humanos aleatórios (Pode rodar junto com o anterior)
+    if (Array.isArray(fase.humanoAleatorio) && fase.humanoAleatorio.length >= 1 && fase.humanoAleatorio[0] > 0) {
+        const dificuldade = fase.humanoAleatorio[0];
+        console.log(`[Spawn] Configurando spawn de humanos: Dificuldade ${dificuldade}`);
+        
+        let tempoEmMs = 60000;
+        if (dificuldade === 1) tempoEmMs = 60000;
+        else if (dificuldade === 2) tempoEmMs = 45000;
+        else if (dificuldade === 3) tempoEmMs = 30000;
+
+        const criarHumanoRepetido = () => {
+            if (window.isPaused) return;
+            console.log(`[Spawn] Gerando Humano Aleatório (Dificuldade ${dificuldade})`);
+            if (typeof criarInimigoAleatorio === 'function') {
+                const todasAsPlataformas = [...(fase.plataformas || []), ...(fase.plataformasNeve || [])];
+                // Spawna o humano (ID 13 definido no ia-inimigo.js)
+                criarInimigoAleatorio(todasAsPlataformas, 13);
+            }
+        };
+        
+        window.timeoutPrimeiroHumanoAleatorio = setTimeout(() => {
+            criarHumanoRepetido();
+            window.intervalHumanoAleatorio = setInterval(criarHumanoRepetido, tempoEmMs);
+            window.timeoutPrimeiroHumanoAleatorio = null;
+        }, tempoEmMs);
+    }
 }
 
 // Avança para próxima fase
@@ -798,9 +835,17 @@ window.reiniciarJogo = async function(porMorte = true) {
         clearInterval(window.intervalInimigoAleatorio);
         window.intervalInimigoAleatorio = null;
     }
+    if (window.intervalHumanoAleatorio !== null) {
+        clearInterval(window.intervalHumanoAleatorio);
+        window.intervalHumanoAleatorio = null;
+    }
     if (window.timeoutPrimeiroInimigoAleatorio !== null) {
         clearTimeout(window.timeoutPrimeiroInimigoAleatorio);
         window.timeoutPrimeiroInimigoAleatorio = null;
+    }
+    if (window.timeoutPrimeiroHumanoAleatorio !== null) {
+        clearTimeout(window.timeoutPrimeiroHumanoAleatorio);
+        window.timeoutPrimeiroHumanoAleatorio = null;
     }
 
     // Reseta estado do jogador

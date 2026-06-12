@@ -202,10 +202,11 @@ function gerarPosicaoAleatoria(plataformas) {
  * @param {number} tipoEquipamento - Tipo de equipamento do inimigo (0=sem, 1=revólver, 2=escudo, 3=bota, 4=jetpack, 5=feno, 6=garra, 7=cinto, 8=colete, 9=todos)
  */
 function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
+    console.log(`[Inimigo] Chamada para criar inimigo aleatório. Tipo solicitado: ${tipoEquipamento}`);
     const posicao = gerarPosicaoAleatoria(plataformas);
     
     if (!posicao) {
-        console.warn("Não foi possível criar inimigo aleatório: nenhuma posição disponível.");
+        console.error("[Inimigo] Falha no spawn aleatório: Nenhuma posição livre encontrada acima das plataformas.");
         return;
     }
     
@@ -215,7 +216,9 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     const tamanhoTile = 32;
     // Define a imagem base: se for tipo 5 (feno), usa o sprite específico
     let imagemInimigo = window.config?.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png';
-    if (tipoEquipamento === 5) {
+    if (tipoEquipamento === 13) {
+        imagemInimigo = '../../assets/personagem/humano/humano.png';
+    } else if (tipoEquipamento === 5) {
         imagemInimigo = window.config?.spriteAlvoFeno || '../../assets/personagem/alvoFeno.png';
     }
     
@@ -284,6 +287,7 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         y: posicao.y,
         largura: window.config?.HITBOX_LARGURA || 20,
         altura: window.config?.HITBOX_ALTURA || 30,
+        alturaEmPe: window.config?.HITBOX_ALTURA || 30,
         offsetX: window.config?.HITBOX_OFFSET_X || 6,
         elemento: inimigoImg,
         velocidadeY: 0,
@@ -319,7 +323,12 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
         ,cintoAnimando: false
         ,cintoAnimTimeout: null
         ,cintoAnimClones: []
+        ,...(window.GAME_CONSTANTS?.TIPOS_INIMIGO?.[tipoInimigo] || {})
     };
+
+    // Garante integridade das propriedades base após o merge
+    novoInimigo.tipo = tipoInimigo;
+    novoInimigo.spriteBase = imagemInimigo;
     
     window.inimigos.push(novoInimigo);
     

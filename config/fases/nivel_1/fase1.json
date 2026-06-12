@@ -687,7 +687,7 @@
         "revolver": "n36"
     },
     "inimigoAleatorio": [
-        1,
+        0,
         0
     ],
     "plataformas": [
@@ -984,5 +984,8 @@
     "plataformasArbustoFrente": [
         "l10",
         "l16"
+    ],
+    "humanoAleatorio": [
+        0
     ]
 }

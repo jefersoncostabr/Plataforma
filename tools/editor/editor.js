@@ -58,6 +58,8 @@ const proportionSelect = document.getElementById('proportion-select'); // Novo e
 const spawnRandomCheck = document.getElementById('spawn-random');
 const randomDiffSelect = document.getElementById('random-diff');
 const randomTypeSelect = document.getElementById('random-type');
+const spawnHumanoCheck = document.getElementById('spawn-humano');
+const humanoFreqSelect = document.getElementById('humano-freq');
 
 let tooltipElement;
 let renderizadorEditor;
@@ -486,6 +488,8 @@ window.onload = async () => {
         spawnRandomCheck,
         randomDiffSelect,
         randomTypeSelect,
+        spawnHumanoCheck,
+        humanoFreqSelect,
         getFaseData: () => faseData,
         setFaseData: (novoEstado, opcoes = {}) => { aplicarFaseDataEditor(novoEstado, opcoes); },
         atualizarTamanhoStage,
@@ -513,13 +517,23 @@ window.onload = async () => {
             enabled: document.getElementById('spawn-random').checked,
             diff: parseInt(document.getElementById('random-diff').value),
             type: parseInt(document.getElementById('random-type').value)
-        }),
+            ,humanoEnabled: document.getElementById('spawn-humano')?.checked || false,
+            humanoDiff: parseInt(document.getElementById('humano-freq')?.value || 1)
+        }) || {},
         aplicarEstadoUI: (estado) => {
             proportionSelect.value = estado.proporcao;
             spawnRandomCheck.checked = estado.inimigoAleatorio[0] > 0;
             randomDiffSelect.value = estado.inimigoAleatorio[0] || 1;
             randomTypeSelect.value = estado.inimigoAleatorio[1] || 0;
             document.getElementById('random-config-fields').style.opacity = spawnRandomCheck.checked ? '1' : '0.3';
+            
+            if (spawnHumanoCheck) {
+                spawnHumanoCheck.checked = Array.isArray(estado.humanoAleatorio) && estado.humanoAleatorio[0] > 0;
+                if (humanoFreqSelect) humanoFreqSelect.value = estado.humanoAleatorio?.[0] || 1;
+                document.getElementById('humano-config-fields').style.opacity = spawnHumanoCheck.checked ? '1' : '0.3';
+                document.getElementById('humano-config-fields').style.pointerEvents = spawnHumanoCheck.checked ? 'auto' : 'none';
+            }
+
             console.debug('[Editor] fase aplicada', {
                 proporcao: estado.proporcao,
                 posicaoInicialJogador: estado.posicaoInicialJogador,
