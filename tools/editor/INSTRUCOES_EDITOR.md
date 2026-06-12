@@ -37,5 +37,5 @@ Caso você esteja no Linux/Mac ou prefira usar o terminal manualmente no Windows
 ## Dicas de Configuração
 
 *   **Alterar Porta:** Se a porta `3210` estiver sendo usada por outro programa, você pode editar o arquivo `.bat` e alterar o valor da variável `EDITOR_SAVE_PORT`.
-*   **Salvamento:** O editor salva os arquivos `.json` diretamente na pasta `config/fases/`. Certifique-se de que o servidor Node tem permissão de escrita nessa pasta.
+*   **Salvamento:** O editor salva os arquivos diretamente na pasta `config/fases/`. O jogo detectará novas fases automaticamente por varredura numérica (fase1, fase2...), sem necessidade de atualizar o `index.json` manualmente.
 *   **Log de Erros:** Verifique a janela do terminal se encontrar problemas ao salvar; o servidor imprimirá mensagens de erro detalhadas lá.

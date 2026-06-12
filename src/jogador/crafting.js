@@ -439,7 +439,6 @@
             };
 
             window.craftsAtivos.push(craft);
-            console.log('[CRAFT] Nova base criada:', craft);
             atualizarVisualCraft(craft);
             salvarCraftPersistido(craft);
             limparPreviewCraft();
@@ -899,7 +898,6 @@
                 renderMenuUI();
             }
 
-            console.log('Base persistida removida e localStorage relacionado limpo.');
             return true;
         }
 

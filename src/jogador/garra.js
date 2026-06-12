@@ -271,7 +271,6 @@
                 controle.municao = 5;
                 controle.temArma = true;
                 controle.heldWeaponType = 'revolver';
-                console.log(`[GARRA] Revolver coletado. Mun: ${controle.municao}`);
                 window.AudioManager?.playSFX('recarga', 0.6);
                 if (!controle.inventario.includes('revolver')) controle.inventario.push('revolver');
                 armaElemento.style.display = 'block';
@@ -279,7 +278,6 @@
                 controle.municao = 2;
                 controle.temArma = true;
                 controle.heldWeaponType = 'doze';
-                console.log(`[GARRA] Doze coletada. Mun: ${controle.municao}`);
                 window.AudioManager?.playSFX('recarga', 0.6);
                 if (!controle.inventario.includes('doze')) controle.inventario.push('doze');
                 armaElemento.style.display = 'block';

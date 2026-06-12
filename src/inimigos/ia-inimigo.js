@@ -206,13 +206,6 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             } else {
                 inimigo.elemento.src = spriteParado;
             }
-            if (inimigo.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID) {
-                console.log('[JOGO] NPC humano criado:', {
-                    tipo: inimigo.tipo,
-                    spriteParadoUsado: spriteParado,
-                    elementoSrc: inimigo.elemento.src
-                });
-            }
             inimigo.spriteBase = inimigo.elemento.src;
             inimigo.elemento.style.filter = 'none';
             inimigo.elemento.style.pointerEvents = 'none';

@@ -185,7 +185,6 @@ function gerarPosicaoAleatoria(plataformas) {
             const posicao = { x, y };
             
             if (!posicaoOcupada(posicao)) {
-                console.log(`Posição válida encontrada após varredura: (${x}px, ${y}px) acima de ${coordAleatoria}`);
                 return posicao;
             }
         }

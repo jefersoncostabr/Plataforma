@@ -283,12 +283,6 @@
                         catInimigos.appendChild(img);
                     });
 
-                    const totalEsperado = enemyDefs.length;
-                    const totalRenderizado = catInimigos.querySelectorAll('.palette-item[data-type]').length;
-                    console.debug('[EditorUI] Sincronizacao da paleta de inimigos concluida.', {
-                        esperado: totalEsperado,
-                        renderizado: totalRenderizado
-                    });
                 }
 
                 configurarPaleta(); // Re-vincula os eventos de clique para os novos itens
@@ -511,13 +505,6 @@
                     if (!carregado) {
                         throw new Error('Falha ao aplicar os dados da fase.');
                     }
-
-                    console.debug('[Editor] fase carregada do arquivo', {
-                        arquivo,
-                        proporcao: carregado.proporcao,
-                        posicaoInicialJogador: carregado.posicaoInicialJogador,
-                        objetivo: carregado.objetivo
-                    });
 
                     if (typeof persistencia.setArquivoFaseAtual === 'function') {
                         persistencia.setArquivoFaseAtual(arquivo);

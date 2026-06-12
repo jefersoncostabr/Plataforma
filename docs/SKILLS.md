@@ -76,14 +76,32 @@ Guia prático para usar as Skills do personagem: **o que fazer**, **quais botõe
 
 ---
 
-## Skills “reservadas” (sem efeito implementado no momento)
+## Outras Habilidades Operacionais
 
-Essas habilidades aparecem na árvore, mas atualmente não alteram o gameplay (sem efeito no momento):
-- **Airdrop** (depende de Dropar)
-- **Visão** (depende de Vida)
-- **Dropar** (depende de Vida)
-- **Adestramento** (depende de Vida)
-- **Vender** (depende de Dropar)
+### Airdrop
+- **Como usa:** Pressione **U** ou **Cima + Tiro** (I).
+- **Efeito:** Solicita um suprimento aéreo com itens ou buffs aleatórios.
+- **Dependência:** **Dropar**.
+
+### Visão
+- **Como usa:** Passiva (sempre ativa).
+- **Efeito:** Habilita o HUD no canto superior esquerdo mostrando Vida e durabilidade do Escudo.
+- **Dependência:** **Vida**.
+
+### Dropar
+- **Como usa:** Pressione **Baixo + Pulo** (Espaço).
+- **Efeito:** Larga o último item coletado de volta no cenário.
+- **Dependência:** **Vida**.
+
+### Adestramento
+- **Como usa:** Pressione **Q** próximo a um Pet agachado.
+- **Efeito:** Permite assumir o controle manual do Cão ou Gato aliado.
+- **Dependência:** **Vida**.
+
+### Vender
+- **Como usa:** Pressione **Baixo + Tiro** (I) enquanto segura um item.
+- **Efeito:** Converte um item do inventário em Experiência (XP).
+- **Dependência:** **Dropar**.
 
 ---
 
@@ -97,4 +115,3 @@ Essas habilidades aparecem na árvore, mas atualmente não alteram o gameplay (s
 ---
 
 **Objetivo:** use a árvore para construir um estilo (tiro, chute ou mobilidade) comprando em sequência pelas dependências.
-
