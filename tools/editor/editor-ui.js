@@ -60,18 +60,22 @@
                     const resp = await fetch('../../tools/editor/menu_blocos.json', { cache: 'no-store' });
                     menuDef = resp.ok ? await resp.json() : null;
                 }
+                console.log('[EditorUI] menu_blocos.json carregado:', menuDef);
             } catch (e) {
                 console.error('[EditorUI] Falha ao carregar menu_blocos.json', e);
             }
 
             const menus = menuDef?.paletteBlocks?.menus;
             if (!Array.isArray(menus) || menus.length === 0) {
-                console.warn('[EditorUI] menu_blocos.json não veio no formato esperado. Paleta de blocos não será montada.');
+                console.warn('[EditorUI] menu_blocos.json não veio no formato esperado. Paleta de blocos não será montada.', menuDef);
                 return;
             }
 
             // Cria os botões de ciclo com base no menu_blocos.json.
             function criarBotaoCiclo(list, menuLabel = '') {
+                if (list.length === 0) {
+                    console.warn(`[EditorUI] O menu "${menuLabel}" resultou em uma lista vazia de itens válidos.`);
+                }
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'palette-cycle-btn';
@@ -116,6 +120,7 @@
 
             menus.forEach(menu => {
                 const items = Array.isArray(menu?.cycle?.items) ? menu.cycle.items : [];
+                console.log(`[EditorUI] Montando menu ciclo [${menu.id || menu.label}]:`, items.length, 'itens');
                 const list = items
                     .map(it => {
                         const type = it?.type;

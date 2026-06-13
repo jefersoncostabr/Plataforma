@@ -148,7 +148,10 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         plataformaFunil2: '../../assets/fundo/funil2.png',
         plataformaMeiaPedraTerra: '../../assets/fundo/meia_pedraTerra.png',
         plataformaPedraObjeto: '../../assets/personagem/objetos/pedra.png',
-        plataformaArbustoFrente: '../../assets/personagem/objetos/arbusto.png'
+        plataformaArbustoFrente: '../../assets/personagem/objetos/arbusto.png',
+        plataformaMetalico: '../../assets/bloco_metalico/bloco_metalico.png',
+        passarelaMetalico: '../../assets/bloco_metalico/passarela_metalico.png',
+        passarelaNuclear: '../../assets/bloco_metalico/passarela_Nuclear.png'
     };
 
     const CONFIG_POR_TIPO_PLATAFORMA = {

@@ -88,7 +88,10 @@
           "items": [
             { "type": "plataformaPedraObjeto", "label": "Pedra", "stateKey": "plataformasPedra", "sprite": "../../assets/personagem/objetos/pedra.png" },
             { "type": "plataformaArbustoFrente", "label": "Arbusto", "stateKey": "plataformasArbustoFrente", "sprite": "../../assets/personagem/objetos/arbusto.png" },
-            { "type": "plataformaMetalFundo", "label": "Metal Fundo", "stateKey": "plataformas", "sprite": "../../assets/fundo/bloco_metalico_fundo.png" }
+            { "type": "plataformaMetalFundo", "label": "Metal Fundo", "stateKey": "plataformas", "sprite": "../../assets/fundo/bloco_metalico_fundo.png" },
+            { "type": "plataformaMetalico", "label": "Bloco Metálico", "stateKey": "plataformas", "sprite": "../../assets/bloco_metalico/bloco_metalico.png" },
+            { "type": "passarelaMetalico", "label": "Passarela Metálica", "stateKey": "plataformas", "sprite": "../../assets/bloco_metalico/passarela_metalico.png" },
+            { "type": "passarelaNuclear", "label": "Passarela Nuclear", "stateKey": "plataformas", "sprite": "../../assets/bloco_metalico/passarela_Nuclear.png" }
           ]
         }
       }
