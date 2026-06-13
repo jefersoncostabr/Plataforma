@@ -38,6 +38,7 @@
         { type: 'plataformaMeiaPedraTerra', stateKey: 'plataformas', sprite: '../../assets/fundo/meia_pedraTerra.png', label: 'Meia Pedra Terra', kind: 'array' },
         { type: 'plataformaPedraObjeto', stateKey: 'plataformasPedra', sprite: '../../assets/personagem/objetos/pedra.png', label: 'Pedra', kind: 'array' },
         { type: 'plataformaArbustoFrente', stateKey: 'plataformasArbustoFrente', sprite: '../../assets/personagem/objetos/arbusto.png', label: 'Arbusto Frente', kind: 'array', zIndex: 25 },
+        { type: 'plataformaMetalFundo', stateKey: 'plataformas', sprite: '../../assets/fundo/bloco_metalico_fundo.png', label: 'Metal Fundo', kind: 'array' },
 
         { type: 'plataformaNeve', stateKey: 'plataformasNeve', sprite: '../../assets/personagem/chao_neve.png', label: 'Chão de Neve', kind: 'array' },
         { type: 'terraInferior', stateKey: 'plataformasTerraInferior', sprite: '../../assets/personagem/terra_inferior.png', label: 'Terra Meio Bloco Inferior', kind: 'array' },

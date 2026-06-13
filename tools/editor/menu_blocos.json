@@ -87,7 +87,8 @@
         "cycle": {
           "items": [
             { "type": "plataformaPedraObjeto", "label": "Pedra", "stateKey": "plataformasPedra", "sprite": "../../assets/personagem/objetos/pedra.png" },
-            { "type": "plataformaArbustoFrente", "label": "Arbusto", "stateKey": "plataformasArbustoFrente", "sprite": "../../assets/personagem/objetos/arbusto.png" }
+            { "type": "plataformaArbustoFrente", "label": "Arbusto", "stateKey": "plataformasArbustoFrente", "sprite": "../../assets/personagem/objetos/arbusto.png" },
+            { "type": "plataformaMetalFundo", "label": "Metal Fundo", "stateKey": "plataformas", "sprite": "../../assets/fundo/bloco_metalico_fundo.png" }
           ]
         }
       }

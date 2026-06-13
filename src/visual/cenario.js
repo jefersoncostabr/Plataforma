@@ -117,6 +117,7 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
 
     const SPRITE_POR_TIPO_PLATAFORMA = {
         plataforma: '../../assets/bloco terra/terra_horizontal.png',
+        plataformaMetalFundo: '../../assets/fundo/bloco_metalico_fundo.png',
         plataformaCantoMinimo: '../../assets/bloco terra/terra_canto_minimo.png',
         plataformaCanto: '../../assets/bloco terra/terra_canto.png',
         plataformaCanto2: '../../assets/bloco terra/grama_canto2.png',
@@ -152,8 +153,12 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
 
     const CONFIG_POR_TIPO_PLATAFORMA = {
         plataformaArbustoFrente: {
-            layerId: window.LAYERS?.ITENS,
+            layerId: window.LAYERS?.ITENS || 23,
             zIndex: 25
+        },
+        plataformaMetalFundo: {
+            layerId: window.LAYERS?.FUNDO,
+            zIndex: 0
         }
     };
 

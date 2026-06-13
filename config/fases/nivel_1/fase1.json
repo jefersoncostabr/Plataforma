@@ -668,6 +668,48 @@
             "x": 864,
             "y": 320,
             "escala": 1
+        },
+        {
+            "idSprite": "bloco_metalico_fundo.png",
+            "x": 0,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "bloco_metalico_fundo.png",
+            "x": 0,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "bloco_metalico_fundo.png",
+            "x": 0,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "bloco_metalico_fundo.png",
+            "x": 0,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "bloco_metalico_fundo.png",
+            "x": 0,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "bloco_metalico_fundo.png",
+            "x": 0,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "bloco_metalico_fundo.png",
+            "x": 0,
+            "y": 224,
+            "escala": 1
         }
     ],
     "posicaoAlavanca": "",

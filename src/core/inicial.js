@@ -321,10 +321,18 @@ async function carregarFase(nomeArquivo) {
         window.plataformas = {};
         window.arbustosFrente = []; // Inicializa o array global para arbustos
 
-        const obterCoordEntradaPlataforma = (entrada) => {
+        function obterCoordEntradaPlataforma(entrada) {
             if (typeof entrada === 'string') return entrada.trim().toLowerCase();
             return String(entrada?.coord || entrada?.pos || '').trim().toLowerCase();
-        };
+        }
+
+        function registrarColisao(entrada) {
+            const coord = obterCoordEntradaPlataforma(entrada);
+            if (!coord) return;
+            // Se for bloco metálico de fundo, não registra colisão (apenas visual)
+            if (entrada?.type === 'plataformaMetalFundo' || (typeof entrada === 'object' && entrada.type === 'plataformaMetalFundo')) return;
+            window.plataformas[coord] = true;
+        }
         
         // Blocos padrão (colisão cheia 32x32)
         const blocosPadrao = [
@@ -335,11 +343,7 @@ async function carregarFase(nomeArquivo) {
             ...(fase.plataformasGramaPico5 || []),
             ...(fase.plataformasPedra || []) // New: Pedra
         ];
-        blocosPadrao.forEach((entrada) => {
-            const coord = obterCoordEntradaPlataforma(entrada);
-            if (!coord) return;
-            window.plataformas[coord] = true;
-        });
+        blocosPadrao.forEach(registrarColisao);
 
         // Meio-blocos de terra (sem dano)
         if (fase.plataformasTerraInferior) {
@@ -664,24 +668,24 @@ async function carregarFase(nomeArquivo) {
     }
 
     // Configura spawn de inimigos aleatórios
-    if (Array.isArray(fase.inimigoAleatorio) && fase.inimigoAleatorio.length === 2) {
+    if (Array.isArray(fase.inimigoAleatorio) && fase.inimigoAleatorio.length === 2 && fase.inimigoAleatorio[0] > 0) {
         const dificuldade = fase.inimigoAleatorio[0]; // 1, 2 ou 3
         const tipoEquipamento = fase.inimigoAleatorio[1]; // 0=sem, 1=revólver, 2=escudo, 3=bota, 4=jetpack, 6=garra, 7=cinto, 8=colete, 9=todos
         
+        console.log(`[Spawn] Ativando Robôs Aleatórios: Dificuldade ${dificuldade}, Equip: ${tipoEquipamento}`);
+
         // Calcula o tempo baseado na dificuldade
         let tempoEmMs = 60000; // padrão: 1 minuto
-        if (dificuldade === 1) {
-            tempoEmMs = 60000; // 1 minuto
-        } else if (dificuldade === 2) {
-            tempoEmMs = 45000; // 45 segundos
-        } else if (dificuldade === 3) {
-            tempoEmMs = 30000; // 30 segundos
-        }
+        if (dificuldade === 1) tempoEmMs = 60000;
+        else if (dificuldade === 2) tempoEmMs = 45000;
+        else if (dificuldade === 3) tempoEmMs = 30000;
 
         // Define uma função para criar o inimigo repetidamente
         const criarInimigoRepetido = () => {
-            // Verifica se o jogo está pausado antes de prosseguir com o spawn
-            if (window.isPaused) return;
+            if (window.isPaused) {
+                console.debug("[Spawn] Jogo pausado, pulando criação de robô.");
+                return;
+            }
 
             if (typeof criarInimigoAleatorio === 'function') {
                 const todasAsPlataformas = [...(fase.plataformas || []), ...(fase.plataformasNeve || [])];
@@ -700,12 +704,15 @@ async function carregarFase(nomeArquivo) {
             
             window.timeoutPrimeiroInimigoAleatorio = null;
         }, tempoEmMs);
+    } else {
+        console.log("[Spawn] Robôs Aleatórios desativados para esta fase.");
     }
 
     // Configura spawn de humanos aleatórios (Pode rodar junto com o anterior)
     if (Array.isArray(fase.humanoAleatorio) && fase.humanoAleatorio.length >= 1 && fase.humanoAleatorio[0] > 0) {
         const dificuldade = fase.humanoAleatorio[0];
         console.log(`[Spawn] Configurando spawn de humanos: Dificuldade ${dificuldade}`);
+        console.log(`[Spawn] Ativando Humanos Aleatórios: Dificuldade ${dificuldade}`);
         
         let tempoEmMs = 60000;
         if (dificuldade === 1) tempoEmMs = 60000;
@@ -714,6 +721,7 @@ async function carregarFase(nomeArquivo) {
 
         const criarHumanoRepetido = () => {
             if (window.isPaused) return;
+
             console.log(`[Spawn] Gerando Humano Aleatório (Dificuldade ${dificuldade})`);
             if (typeof criarInimigoAleatorio === 'function') {
                 const todasAsPlataformas = [...(fase.plataformas || []), ...(fase.plataformasNeve || [])];
@@ -727,6 +735,8 @@ async function carregarFase(nomeArquivo) {
             window.intervalHumanoAleatorio = setInterval(criarHumanoRepetido, tempoEmMs);
             window.timeoutPrimeiroHumanoAleatorio = null;
         }, tempoEmMs);
+    } else {
+        console.log("[Spawn] Humanos Aleatórios desativados para esta fase.");
     }
 }
 
