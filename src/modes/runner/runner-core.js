@@ -12,14 +12,18 @@
         toleranciaBorda: 2, // Pixels extras para evitar mortes injustas por precisão
         distanciaGerecao: 1200, // Quão longe à frente do player o chão é gerado
         tamanhoChunk: 640, // Quantos pixels de chão gerar por vez
-        chanceEspinho: 0.10, // 15% de chance de um tile ser espinho
         distanciaLimpeza: 500, // Distância atrás da câmera para apagar tiles
         spriteChao: '../../assets/bloco terra/terra_horizontal.png',
-        spriteEspinho: '../../assets/personagem/estacasup.png'
+        spriteEspinho: '../../assets/personagem/estacasup.png',
+        tamanhoSegmento: 50, // Quantidade de blocos antes de mudar de área (Requisito 14)
+        segmentos: ['plano', 'espinhos'], // Áreas que serão intercaladas
+        chanceEspinhoNoPerigo: 0.25 // 25% de chance de espinho na área de perigo
     };
 
     let ultimaLimpezaX = 0;
     let elementosVisuais = {}; // Mapeia chave -> Elemento DOM para limpeza
+    let indiceSegmentoAtual = 0; // Controla qual bioma está ativo
+    let blocosGeradosNoSegmento = 0; // Contador para saber quando trocar de bioma
 
     /**
      * Converte coordenadas de grid para o formato de chave do motor (ex: 0,2 -> "c1")
@@ -141,6 +145,8 @@
             window.mundoLargura = 0; // Começa do zero para o gerador preencher o início
             window.cameraX = 0;
             ultimaLimpezaX = 0;
+            indiceSegmentoAtual = 0;
+            blocosGeradosNoSegmento = 0;
 
             if (window.playerControle) {
                 const p = window.playerControle;
@@ -180,8 +186,16 @@
                 const chave = converterGridParaChave(gridX, gridY);
                 
                 if (window.plataformas) {
-                    // Sorteia se o bloco será chão normal ou espinho (Requisito 8)
-                    const ehEspinho = Math.random() < RUNNER_CONFIG.chanceEspinho;
+                    // Lógica de Segmentos Intercalados (Requisito 14)
+                    const tipoArea = RUNNER_CONFIG.segmentos[indiceSegmentoAtual];
+                    let ehEspinho = false;
+
+                    if (tipoArea === 'espinhos') {
+                        // Só tem chance de espinho se estivermos na área de perigo
+                        ehEspinho = Math.random() < RUNNER_CONFIG.chanceEspinhoNoPerigo;
+                    } else {
+                        // Área plana: ehEspinho sempre false
+                    }
 
                     if (ehEspinho) {
                         // Define colisão tipo estaca para o motor de dano reconhecer
@@ -194,6 +208,14 @@
 
                     // Cria a representação visual (IMG) para o bloco
                     elementosVisuais[chave] = criarElementoVisual(chave, gridX, gridY, ehEspinho);
+                }
+
+                // Gerencia a troca de segmentos
+                blocosGeradosNoSegmento++;
+                if (blocosGeradosNoSegmento >= RUNNER_CONFIG.tamanhoSegmento) {
+                    blocosGeradosNoSegmento = 0;
+                    indiceSegmentoAtual = (indiceSegmentoAtual + 1) % RUNNER_CONFIG.segmentos.length;
+                    console.log(`[Runner] Mudando bioma para: ${RUNNER_CONFIG.segmentos[indiceSegmentoAtual]}`);
                 }
             }
             

@@ -17,6 +17,7 @@ Modo de jogo estilo "Infinite Runner" onde o jogador avança automaticamente e o
 11. ~~**Fase Virtual**: Criar um objeto de fase limpo em memória para não depender de arquivos JSON externos durante o modo.~~ (CONCLUÍDO)
 12. ~~**Sincronização de Chaves**: Corrigir formato de coordenadas para compatibilidade com o motor de colisão.~~ (CONCLUÍDO)
 13. ~~**Renderização Dinâmica**: Criar elementos visuais (IMG) para o chão e espinhos gerados proceduralmente.~~ (CONCLUÍDO)
+14. ~~**Geração por Segmentos**: Implementar áreas configuráveis (planas e perigosas) que se intercalam a cada N blocos.~~ (CONCLUÍDO)
 
 ## 3. Implementação Técnica
 - **Pasta**: `src/modes/runner/`
@@ -37,6 +38,7 @@ Modo de jogo estilo "Infinite Runner" onde o jogador avança automaticamente e o
 6. ~~**Inicialização de Modo**: Limpar `window.plataformas`, `window.inimigos` e reposicionar o player.~~ (CONCLUÍDO)
 7. ~~**Safe Start**: Aplicar um pequeno atordoamento inicial para garantir que o chão seja processado antes do player cair.~~ (CONCLUÍDO)
 8. ~~**Sincronia Visual**: Gerar e destruir elementos DOM (IMG) acompanhando a lógica do mundo.~~ (CONCLUÍDO)
+9. ~~**Lógica de Biomas/Áreas**: Alternar entre trechos planos e trechos com obstáculos baseando-se em contadores de blocos.~~ (CONCLUÍDO)
 
 ## 6. Comandos de Console
 Para ativar o modo manualmente em qualquer fase, use:
