@@ -21,6 +21,9 @@ Modo de jogo estilo "Infinite Runner" onde o jogador avança automaticamente e o
 15. ~~**Bioma de Saltos**: Adicionar plataformas de 1 e 2 blocos de altura, com buracos e chão de segurança (altura base).~~ (CONCLUÍDO)
 16. ~~**Pilares Empilhados**: Transformar o bioma de saltos em pilares verticais empilhados em vez de plataformas flutuantes.~~ (CONCLUÍDO)
 17. ~~**Colisão de Avanço**: Corrigir falha onde o movimento automático ignorava colisões horizontais (clipping).~~ (CONCLUÍDO)
+18. ~~**Independência de Câmera**: A câmera avança em velocidade constante, mesmo se o jogador estiver bloqueado por obstáculos.~~ (CONCLUÍDO)
+19. ~~**Mecânica de Empurrão**: O jogador é "empurrado" para a borda esquerda da tela ao colidir com pilares, resultando em derrota.~~ (CONCLUÍDO)
+20. ~~**Sincronia Visual de Câmera**: Garantir que o transform do palco seja aplicado no modo Runner.~~ (CONCLUÍDO)
 
 ## 3. Implementação Técnica
 - **Pasta**: `src/modes/runner/`

@@ -28,6 +28,7 @@
     };
 
     let ultimaLimpezaX = 0;
+    let originalAtualizarCamera = null; // Backup para restaurar o motor original
     let elementosVisuais = {}; // Mapeia chave -> Elemento DOM para limpeza
     // Variáveis de estado para o gerador de biomas
     let indiceSegmentoAtual = 0; // Controla qual bioma está ativo
@@ -56,6 +57,51 @@
     function extrairGridX(chave) {
         const match = chave.match(/\d+/);
         return match ? parseInt(match[0]) - 1 : 0;
+    }
+
+    /**
+     * Hijack da função de câmera do motor principal.
+     * No modo Runner, o scroll horizontal é independente da posição do player.
+     */
+    function runnerAtualizarCamera(x, y, mundoW, mundoH) {
+        // Respeita bloqueios de menu do motor original
+        if (window.isInteractionMenuOpen || window.isMenuOpen) return;
+
+        // Mantém o timer de tremor ativo (aproximadamente 60fps)
+        if (typeof window.atualizarTremorCamera === 'function') {
+            window.atualizarTremorCamera(16.6);
+        }
+
+        const viewportWidth = window.VIEWPORT?.width || 640;
+        const viewportHeight = window.VIEWPORT?.height || 480;
+        const zoom = window.cameraZoomFactor || 1;
+
+        const viewW = viewportWidth / zoom;
+        const viewH = viewportHeight / zoom;
+
+        // Segue o player apenas verticalmente (Y)
+        const snapTargetY = mundoH - y - (viewH / 2);
+        window.cameraY = Math.max(0, Math.min(snapTargetY, mundoH - viewH));
+
+        // Aplica o deslocamento visual ao palco (game-stage)
+        const stage = document.getElementById('game-stage');
+        if (stage) {
+            stage.style.transformOrigin = "0 0";
+            
+            let camX = Math.round(window.cameraX);
+            let camY = Math.round(window.cameraY);
+
+            // Aplica tremor vertical se houver explosões ou dano (lógica do camera.js)
+            if (window.cameraTremorAtivo) {
+                camY += (Math.random() * window.cameraTremorIntensidade) - (window.cameraTremorIntensidade / 2);
+            }
+
+            // Centralização caso o mundo seja menor que o viewport (ex: no início da fase)
+            const offsetX = mundoW < viewW ? (viewW - mundoW) / 2 : 0;
+            const offsetY = mundoH < viewH ? (viewH - mundoH) / 2 : 0;
+
+            stage.style.transform = `scale(${zoom}) translate(${Math.round(offsetX - camX)}px, ${Math.round(offsetY - camY)}px)`;
+        }
     }
 
     /**
@@ -104,6 +150,9 @@
             window.faseAtualData.velocidadeRunner = velocidade;
         }
         
+        // 2.1 Avanço constante da Câmera (Requisito 18)
+        window.cameraX += velocidade;
+
         // Move o player para frente automaticamente com detecção de colisão (Fix: Requisito 17)
         if (typeof window.aplicarDeslocamentoHorizontalComColisaoPadrao === 'function') {
             window.aplicarDeslocamentoHorizontalComColisaoPadrao(player, velocidade, window.plataformas, {
@@ -116,7 +165,8 @@
         }
 
         // 3. Geração de Chão e Expansão de Mundo (Requisito 4 e 5)
-        gerenciarChaoInfinito(player.x);
+        // Agora baseado na câmera para garantir cenário mesmo se o player travar
+        gerenciarChaoInfinito(Math.max(player.x, window.cameraX));
 
         // 4. Limpeza de Memória (Requisito 7)
         limparTilesAntigos(window.cameraX);
@@ -148,6 +198,12 @@
             window.itensColetaveis = [];
             window.plataformas = {};
             window.arbustosFrente = [];
+
+            // 1.2 Hijack da Câmera (Requisito 18)
+            if (!originalAtualizarCamera && typeof window.atualizarCamera === 'function') {
+                originalAtualizarCamera = window.atualizarCamera;
+                window.atualizarCamera = runnerAtualizarCamera;
+            }
 
             // 1.1 Limpeza de elementos visuais do Runner
             Object.values(elementosVisuais).forEach(el => el.remove());
@@ -191,6 +247,13 @@
 
         } else {
             if (window.faseAtualData) window.faseAtualData.modoRunner = false;
+            
+            // Restaura o comportamento original da câmera
+            if (originalAtualizarCamera) {
+                window.atualizarCamera = originalAtualizarCamera;
+                originalAtualizarCamera = null;
+            }
+
             console.info(`[Runner] Modo Runner DESATIVADO.`);
         }
     };
@@ -198,11 +261,11 @@
     /**
      * Gera colisões de chão dinamicamente e expande o mundo.
      */
-    function gerenciarChaoInfinito(playerX) {
+    function gerenciarChaoInfinito(posicaoReferencia) {
         const limiteMundo = window.mundoLargura || 0;
         
         // Se o player estiver chegando perto do fim do mundo conhecido
-        if (playerX > (limiteMundo - RUNNER_CONFIG.distanciaGerecao)) {
+        if (posicaoReferencia > (limiteMundo - RUNNER_CONFIG.distanciaGerecao)) {
             const novoLimite = limiteMundo + RUNNER_CONFIG.tamanhoChunk;
             
             // Altura do chão definida na fase ou padrão (Y=0)
