@@ -2382,6 +2382,11 @@ window.AudioManager.playSFX('chute', 0.4);
                     const hit = typeof verificarColisaoComTiles === 'function' ? 
                         verificarColisaoComTiles(ent.x + (ent.offsetX || 0), ent.y, ent.largura, ent.altura, window.plataformas) : null;
                     if (hit) {
+                        // Tenta subir degrau automático antes de travar o NPC
+                        if (typeof window.tentarAutoDegrau === 'function' && window.tentarAutoDegrau(ent, window.plataformas, config)) {
+                            return false; // Subiu o degrau, não houve colisão efetiva
+                        }
+
                         if (ent.x > xAnt) { // Direita
                             ent.x = window.aplicarSnapColisaoPadrao(ent.x, ent.offsetX || 0, ent.largura, hit, 'direita');
                         } else if (ent.x < xAnt) { // Esquerda

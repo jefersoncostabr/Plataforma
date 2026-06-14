@@ -1,0 +1,257 @@
+/**
+ * runner-core.js
+ * Gerenciador de rolagem automática para o modo Runner.
+ * 
+ * Desenvolvido para funcionar sem alterar arquivos core do sistema.
+ */
+(function () {
+    const RUNNER_CONFIG = {
+        velocidadePadrao: 2,
+        velocidadeMaxima: 5,     // Velocidade máxima permitida (Requisito 9)
+        incrementoVelocidade: 0.0002, // Aceleração por frame (Requisito 9)
+        toleranciaBorda: 2, // Pixels extras para evitar mortes injustas por precisão
+        distanciaGerecao: 1200, // Quão longe à frente do player o chão é gerado
+        tamanhoChunk: 640, // Quantos pixels de chão gerar por vez
+        chanceEspinho: 0.10, // 15% de chance de um tile ser espinho
+        distanciaLimpeza: 500, // Distância atrás da câmera para apagar tiles
+        spriteChao: '../../assets/bloco terra/terra_horizontal.png',
+        spriteEspinho: '../../assets/personagem/estacasup.png'
+    };
+
+    let ultimaLimpezaX = 0;
+    let elementosVisuais = {}; // Mapeia chave -> Elemento DOM para limpeza
+
+    /**
+     * Converte coordenadas de grid para o formato de chave do motor (ex: 0,2 -> "c1")
+     */
+    function converterGridParaChave(gridX, gridY) {
+        const r = gridY;
+        const c = gridX;
+        const letra = r < 26 
+            ? String.fromCharCode(97 + r) 
+            : String.fromCharCode(97 + Math.floor(r/26) - 1) + String.fromCharCode(97 + (r % 26));
+        return letra + (c + 1);
+    }
+
+    /**
+     * Extrai o valor de X de uma chave de coordenada (ex: "c12" -> 11)
+     */
+    function extrairGridX(chave) {
+        const match = chave.match(/\d+/);
+        return match ? parseInt(match[0]) - 1 : 0;
+    }
+
+    /**
+     * Cria um elemento <img> no palco para representar o bloco ou espinho.
+     */
+    function criarElementoVisual(chave, gridX, gridY, ehEspinho) {
+        const img = document.createElement('img');
+        img.src = ehEspinho ? RUNNER_CONFIG.spriteEspinho : RUNNER_CONFIG.spriteChao;
+        img.style.position = 'absolute';
+        img.style.width = '32px';
+        img.style.height = '32px';
+        img.style.left = (gridX * 32) + 'px';
+        img.style.bottom = (gridY * 32) + 'px';
+        img.style.imageRendering = 'pixelated';
+        img.style.zIndex = '5'; // Sincroniza com layer-plataformas
+        
+        // Tenta adicionar ao layer de plataformas oficial ou ao palco principal
+        const container = document.getElementById('layer-plataformas') || document.getElementById('game-stage');
+        if (container) container.appendChild(img);
+        return img;
+    }
+
+    /**
+     * Loop principal do modo Runner.
+     * Executa paralelamente ao motor do jogo.
+     */
+    function cicloRunner() {
+        requestAnimationFrame(cicloRunner);
+
+        // 1. Verificações de Segurança e Estado
+        if (window.isPaused || !window.faseAtualData || !window.faseAtualData.modoRunner) {
+            return;
+        }
+
+        const player = window.playerControle;
+        if (!player || player.estaMorrendo || player.stunned) {
+            return;
+        }
+
+        // 2. Lógica de Movimento Automático e Progressão (Requisito 9)
+        let velocidade = Number(window.faseAtualData.velocidadeRunner || RUNNER_CONFIG.velocidadePadrao);
+        
+        // Aumenta a dificuldade gradualmente se não atingiu o limite
+        if (velocidade < RUNNER_CONFIG.velocidadeMaxima) {
+            velocidade += RUNNER_CONFIG.incrementoVelocidade;
+            window.faseAtualData.velocidadeRunner = velocidade;
+        }
+        
+        // Move o player para frente automaticamente
+        player.x += velocidade;
+
+        // 3. Geração de Chão e Expansão de Mundo (Requisito 4 e 5)
+        gerenciarChaoInfinito(player.x);
+
+        // 4. Limpeza de Memória (Requisito 7)
+        limparTilesAntigos(window.cameraX);
+
+        // 5. Verificação de Limite (Borda Esquerda)
+        // O limite da tela na esquerda é o window.cameraX
+        const limiteEsquerdo = window.cameraX;
+        
+        // Consideramos o offsetX da hitbox do jogador para precisão
+        const playerXReal = player.x + (player.offsetX || 0);
+
+        if (playerXReal < (limiteEsquerdo - RUNNER_CONFIG.toleranciaBorda)) {
+            executarMortePorBorda();
+        }
+    }
+
+    /**
+     * Permite ativar o modo runner via console a qualquer momento.
+     * Agora limpa a fase atual para criar um ambiente do zero.
+     */
+    window.ativarModoRunner = function(ativar, velocidade = RUNNER_CONFIG.velocidadePadrao) {
+        if (ativar) {
+            console.info(`[Runner] Iniciando Modo Runner... Limpando ambiente anterior.`);
+
+            // 1. Limpeza de Entidades e Cenário (Usando funções do core)
+            if (typeof window.limparCenario === 'function') window.limparCenario('game-stage');
+            if (typeof window.resetarInimigos === 'function') window.resetarInimigos([]);
+            
+            window.itensColetaveis = [];
+            window.plataformas = {};
+            window.arbustosFrente = [];
+
+            // 1.1 Limpeza de elementos visuais do Runner
+            Object.values(elementosVisuais).forEach(el => el.remove());
+            elementosVisuais = {};
+
+            // 2. Criação da Fase Virtual (Requisito 11)
+            window.faseAtualData = {
+                nome: "Zona de Fuga Infinita",
+                modoRunner: true,
+                velocidadeRunner: velocidade,
+                alturaChaoRunner: 64, // Define o chão um pouco acima do fundo do palco
+                proporcao: "1x1"
+            };
+
+            // 3. Reset de Mundo e Player (Requisito 10)
+            window.mundoLargura = 0; // Começa do zero para o gerador preencher o início
+            window.cameraX = 0;
+            ultimaLimpezaX = 0;
+
+            if (window.playerControle) {
+                const p = window.playerControle;
+                p.x = 100;
+                p.y = 120; // Um pouco mais alto para cair suavemente no chão
+                p.velocidadeY = 0;
+                p.estaMorrendo = false;
+                p.stunned = true; // "Congela" o player (Requisito 12)
+                p.stunTimer = 20; // 20 frames são suficientes para o cenário carregar
+            }
+
+            // 4. Inicia a primeira geração de chão imediatamente
+            gerenciarChaoInfinito(0); // Força a geração a partir do X:0
+
+        } else {
+            if (window.faseAtualData) window.faseAtualData.modoRunner = false;
+            console.info(`[Runner] Modo Runner DESATIVADO.`);
+        }
+    };
+
+    /**
+     * Gera colisões de chão dinamicamente e expande o mundo.
+     */
+    function gerenciarChaoInfinito(playerX) {
+        const limiteMundo = window.mundoLargura || 0;
+        
+        // Se o player estiver chegando perto do fim do mundo conhecido
+        if (playerX > (limiteMundo - RUNNER_CONFIG.distanciaGerecao)) {
+            const novoLimite = limiteMundo + RUNNER_CONFIG.tamanhoChunk;
+            
+            // Altura do chão definida na fase ou padrão (Y=0)
+            const alturaChao = window.faseAtualData.alturaChaoRunner || 0;
+            
+            for (let x = limiteMundo; x < novoLimite; x += 32) {
+                const gridX = Math.floor(x / 32);
+                const gridY = Math.floor(alturaChao / 32);
+                const chave = converterGridParaChave(gridX, gridY);
+                
+                if (window.plataformas) {
+                    // Sorteia se o bloco será chão normal ou espinho (Requisito 8)
+                    const ehEspinho = Math.random() < RUNNER_CONFIG.chanceEspinho;
+
+                    if (ehEspinho) {
+                        // Define colisão tipo estaca para o motor de dano reconhecer
+                        window.plataformas[chave] = { 
+                            tipo: 'estaca', direcao: 'cima', yOffset: 16, height: 16 
+                        };
+                    } else {
+                        window.plataformas[chave] = true;
+                    }
+
+                    // Cria a representação visual (IMG) para o bloco
+                    elementosVisuais[chave] = criarElementoVisual(chave, gridX, gridY, ehEspinho);
+                }
+            }
+            
+            // Atualiza a largura do mundo para a câmera não travar
+            window.mundoLargura = novoLimite;
+        }
+    }
+
+    /**
+     * Remove tiles que já saíram da tela para evitar consumo excessivo de memória.
+     */
+    function limparTilesAntigos(cameraX) {
+        // Executa a limpeza apenas a cada 320px para poupar CPU
+        if (cameraX < ultimaLimpezaX + 320) return;
+        ultimaLimpezaX = cameraX;
+
+        const limiteXParaApagar = Math.floor((cameraX - RUNNER_CONFIG.distanciaLimpeza) / 32);
+
+        if (window.plataformas) {
+            Object.keys(window.plataformas).forEach(chave => {
+                const gridX = extrairGridX(chave);
+                if (gridX < limiteXParaApagar) {
+                    delete window.plataformas[chave];
+                    
+                    // Remove o elemento visual do DOM
+                    if (elementosVisuais[chave]) {
+                        elementosVisuais[chave].remove();
+                        delete elementosVisuais[chave];
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Aciona o sistema de morte do jogador definido no motor principal.
+     */
+    function executarMortePorBorda() {
+        if (typeof window.prepararMorteJogador === 'function') {
+            // Passamos 1 para o knockback ser para a direita (como se a borda o esmagasse)
+            window.prepararMorteJogador(1);
+            console.log("[Runner] Game Over: Jogador saiu da tela pela esquerda.");
+        } else {
+            // Fallback de emergência
+            if (window.playerControle) {
+                window.playerControle.dano = 99;
+                if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
+            }
+        }
+    }
+
+    // Inicia o monitoramento assim que o script é carregado
+    // Ele ficará em "stand-by" até que uma fase com modoRunner seja detectada.
+    document.addEventListener('DOMContentLoaded', () => {
+        cicloRunner();
+        console.log("[Runner] Sistema Runner inicializado. Use window.ativarModoRunner(true) para começar.");
+    });
+
+    // Expõe a função imediatamente após a definição do script
+    console.log("[Runner] Script carregado e comandos de console disponíveis.");
+})();

@@ -188,6 +188,12 @@
                         }
                     }
                 }
+                
+                // Tenta subir degraus (meio-bloco) automaticamente
+                if (deslocX !== 0 && typeof window.tentarAutoDegrau === 'function') {
+                    window.tentarAutoDegrau(pet, window.plataformas, config);
+                }
+
                 // Mapeia teclas de pulo para o sistema de física
                 // Ajuste: Removido o mapeamento de 'w' e 'ArrowUp' para que apenas o Espaço execute o pulo.
                 teclasParaFisica[' '] = !!teclas[' '];

@@ -50,7 +50,7 @@
             width: savedWidth,
             height: savedHeight,
         };
-        console.info(`[Tela] Resolução carregada da memória: ${savedWidth}x${savedHeight}`);
+        // console.info(`[Tela] Resolução carregada da memória: ${savedWidth}x${savedHeight}`);
     } else {
         const viewportInicial = window.VIEWPORT || { width: BASE_W, height: BASE_H };
         viewportNormal = {
@@ -61,7 +61,7 @@
             width: viewportInicial.width,
             height: viewportInicial.height,
         };
-        console.info(`[Tela] Usando resolução padrão: ${window.VIEWPORT.width}x${window.VIEWPORT.height}`);
+        // console.info(`[Tela] Usando resolução padrão: ${window.VIEWPORT.width}x${window.VIEWPORT.height}`);
     }
 
     let modoTelaSelecionado = SCREEN_MODES.NORMAL;

@@ -1,4 +1,4 @@
-console.log('[IDLE/FILE] animacao.js carregado');
+// console.log('[IDLE/FILE] animacao.js carregado');
 
 
 /**

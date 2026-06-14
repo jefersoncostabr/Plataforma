@@ -640,12 +640,6 @@
             "escala": 1
         },
         {
-            "idSprite": "funil.png",
-            "x": 1088,
-            "y": 352,
-            "escala": 1
-        },
-        {
             "idSprite": "funil2.png",
             "x": 896,
             "y": 128,
@@ -666,48 +660,6 @@
         {
             "idSprite": "fundo.png",
             "x": 416,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "funil_pilar.png",
-            "x": 672,
-            "y": 224,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo_irregular_horizontal.png",
-            "x": 672,
-            "y": 256,
-            "escala": 1
-        },
-        {
-            "idSprite": "pilar.png",
-            "x": 672,
-            "y": 192,
-            "escala": 1
-        },
-        {
-            "idSprite": "pilar.png",
-            "x": 672,
-            "y": 160,
-            "escala": 1
-        },
-        {
-            "idSprite": "pilar.png",
-            "x": 672,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "pilar.png",
-            "x": 672,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "pilar.png",
-            "x": 672,
             "y": 64,
             "escala": 1
         },
@@ -754,9 +706,27 @@
             "escala": 1
         },
         {
-            "idSprite": "pilar.png",
-            "x": 672,
-            "y": 32,
+            "idSprite": "canto4.png",
+            "x": 1216,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto4.png",
+            "x": 1184,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto4.png",
+            "x": 1152,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto4.png",
+            "x": 1088,
+            "y": 352,
             "escala": 1
         }
     ],

@@ -558,7 +558,7 @@
                                     const itemQuadrado = document.createElement('button');
                                     itemQuadrado.type = 'button';
                                     itemQuadrado.className = 'crafting-inv-item img-button retro-grid';
-                                    console.log('[Interacao] Aplicando Retro Grid ao item do inventário no Crafting');
+                                    // console.log('[Interacao] Aplicando Retro Grid ao item do inventário no Crafting');
 
                                     if (item.isXP) {
                                         const xpLabel = document.createElement('div');

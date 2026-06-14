@@ -672,7 +672,7 @@ async function carregarFase(nomeArquivo) {
         const dificuldade = fase.inimigoAleatorio[0]; // 1, 2 ou 3
         const tipoEquipamento = fase.inimigoAleatorio[1]; // 0=sem, 1=revólver, 2=escudo, 3=bota, 4=jetpack, 6=garra, 7=cinto, 8=colete, 9=todos
         
-        console.log(`[Spawn] Ativando Robôs Aleatórios: Dificuldade ${dificuldade}, Equip: ${tipoEquipamento}`);
+        // console.log(`[Spawn] Ativando Robôs Aleatórios: Dificuldade ${dificuldade}, Equip: ${tipoEquipamento}`);
 
         // Calcula o tempo baseado na dificuldade
         let tempoEmMs = 60000; // padrão: 1 minuto
@@ -705,14 +705,14 @@ async function carregarFase(nomeArquivo) {
             window.timeoutPrimeiroInimigoAleatorio = null;
         }, tempoEmMs);
     } else {
-        console.log("[Spawn] Robôs Aleatórios desativados para esta fase.");
+        // console.log("[Spawn] Robôs Aleatórios desativados para esta fase.");
     }
 
     // Configura spawn de humanos aleatórios (Pode rodar junto com o anterior)
     if (Array.isArray(fase.humanoAleatorio) && fase.humanoAleatorio.length >= 1 && fase.humanoAleatorio[0] > 0) {
         const dificuldade = fase.humanoAleatorio[0];
-        console.log(`[Spawn] Configurando spawn de humanos: Dificuldade ${dificuldade}`);
-        console.log(`[Spawn] Ativando Humanos Aleatórios: Dificuldade ${dificuldade}`);
+        // console.log(`[Spawn] Configurando spawn de humanos: Dificuldade ${dificuldade}`);
+        // console.log(`[Spawn] Ativando Humanos Aleatórios: Dificuldade ${dificuldade}`);
         
         let tempoEmMs = 60000;
         if (dificuldade === 1) tempoEmMs = 60000;
@@ -722,7 +722,7 @@ async function carregarFase(nomeArquivo) {
         const criarHumanoRepetido = () => {
             if (window.isPaused) return;
 
-            console.log(`[Spawn] Gerando Humano Aleatório (Dificuldade ${dificuldade})`);
+            // console.log(`[Spawn] Gerando Humano Aleatório (Dificuldade ${dificuldade})`);
             if (typeof criarInimigoAleatorio === 'function') {
                 const todasAsPlataformas = [...(fase.plataformas || []), ...(fase.plataformasNeve || [])];
                 // Spawna o humano (ID 13 definido no ia-inimigo.js)
@@ -736,7 +736,7 @@ async function carregarFase(nomeArquivo) {
             window.timeoutPrimeiroHumanoAleatorio = null;
         }, tempoEmMs);
     } else {
-        console.log("[Spawn] Humanos Aleatórios desativados para esta fase.");
+        // console.log("[Spawn] Humanos Aleatórios desativados para esta fase.");
     }
 }
 

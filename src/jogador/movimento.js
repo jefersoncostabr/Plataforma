@@ -1358,7 +1358,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
         controle.movendoHorizontal = false;
         const xAnterior = controle.x;
-        const yAnterior = controle.y;
+        let yAnterior = controle.y;
 
         const velBase = config.velocidadePlayer || 2;
 
@@ -1749,6 +1749,12 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                         continue; // Continua o movimento horizontal
                     }
                     
+                    // Tenta subir degrau automático antes de aplicar o Snap (travar)
+                    if (typeof window.tentarAutoDegrau === 'function' && window.tentarAutoDegrau(controle, window.plataformas, config)) {
+                        yAnterior = controle.y; // Sincroniza a posição anterior para evitar o reset no diagonal resolution
+                        continue; // Se subiu, ignora a colisão e continua andando
+                    }
+
                     if (incrementoX > 0) { // Indo para Direita
                         const novoX = aplicarSnapColisao(controle.x, controle.offsetX, controle.largura, hitH, 'direita');
                         controle.x = novoX;
@@ -1769,7 +1775,13 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 // Ignora colisões que não têm efeito horizontal
                 if (hitH.tipo !== 'solido' && hitH.temColisaoLateral === false) {
                     // Continua movimento
-                } else {
+                } 
+                // Tenta subir degrau automático
+                else if (typeof window.tentarAutoDegrau === 'function' && window.tentarAutoDegrau(controle, window.plataformas, config)) {
+                    // Sucesso no degrau, mantém o X atual
+                    yAnterior = controle.y; // Atualiza referência
+                }
+                else {
                     if (controle.x > xAnterior) { // Indo para Direita
                         const novoX = aplicarSnapColisao(controle.x, controle.offsetX, controle.largura, hitH, 'direita');
                         controle.x = novoX;

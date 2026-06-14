@@ -419,6 +419,39 @@ function tentarCorrecaoQuinaSubida(entidade, plataformas = window.plataformas, o
 window.tentarCorrecaoQuinaSubida = tentarCorrecaoQuinaSubida;
 
 /**
+ * Tenta subir um pequeno degrau automaticamente se houver espaço acima.
+ * Melhora a fluidez ao caminhar por meios-blocos.
+ */
+window.tentarAutoDegrau = function(entidade, plataformas, config = window.config || {}) {
+    // Só sobe degrau se estiver no chão, em movimento e não estiver agachado
+    if (!entidade || !entidade.noChao || entidade.estaAgachado || (entidade.velocidadeY || 0) > 0.1) {
+        return false;
+    }
+
+    const maxDegrau = Number(config.maxAutoStepHeight ?? 18); // Meio bloco tem 16px, 18px é seguro
+    const xCheck = entidade.x + (entidade.offsetX || 0);
+    const yOriginal = entidade.y;
+
+    // Tenta encontrar uma altura livre acima do obstáculo
+    // Verificamos de 1 em 1 pixel para garantir a subida mais baixa possível (mais suave)
+    for (let h = 1; h <= maxDegrau; h++) {
+        const hitAcima = typeof verificarColisaoComTiles === 'function' 
+            ? verificarColisaoComTiles(xCheck, yOriginal + h, entidade.largura, entidade.altura, plataformas)
+            : null;
+
+        if (!hitAcima) {
+            // Encontrou um espaço livre. Sobe a entidade e reseta a queda.
+            entidade.y = Math.ceil(yOriginal + h);
+            entidade.noChao = true;
+            entidade.velocidadeY = 0;
+            if (entidade.coyoteFramesRestantes !== undefined) entidade.coyoteFramesRestantes = 10;
+            return true;
+        }
+    }
+    return false;
+};
+
+/**
  * ⚠️ FUNÇÃO CENTRALIZADA DE SNAP - Alternativa 2
  * Remove duplicação de código em movimentacao.js
  * 
