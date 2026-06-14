@@ -16,14 +16,27 @@
         spriteChao: '../../assets/bloco terra/terra_horizontal.png',
         spriteEspinho: '../../assets/personagem/estacasup.png',
         tamanhoSegmento: 50, // Quantidade de blocos antes de mudar de área (Requisito 14)
-        segmentos: ['plano', 'espinhos'], // Áreas que serão intercaladas
-        chanceEspinhoNoPerigo: 0.25 // 25% de chance de espinho na área de perigo
+        segmentos: ['plano', 'espinhos', 'saltos'], // Áreas que serão intercaladas
+        chanceEspinhoNoPerigo: 0.25, // 25% de chance de espinho na área de perigo
+        chanceEspinhoOnPlatform: 0.02, // 2% de chance de espinho em plataforma no bioma 'saltos' (Reduzido por pedido)
+        saltosConfig: { // Configurações para o bioma 'saltos' (Requisito 15)
+            chanceGap: 0.05, // 15% de chance de gerar um buraco
+            minGapTiles: 1, maxGapTiles: 3, // Buracos de 1 a 3 tiles de largura
+            minPlatformTiles: 1, maxPlatformTiles: 2, // Pilares de 1 a 2 tiles de largura (Melhoria: Pilares)
+            minPlatformHeightTiles: 1, maxPlatformHeightTiles: 3 // Pilares de 1 a 3 blocos de altura
+        }
     };
 
     let ultimaLimpezaX = 0;
     let elementosVisuais = {}; // Mapeia chave -> Elemento DOM para limpeza
+    // Variáveis de estado para o gerador de biomas
     let indiceSegmentoAtual = 0; // Controla qual bioma está ativo
     let blocosGeradosNoSegmento = 0; // Contador para saber quando trocar de bioma
+    let currentSaltosState = { // Estado específico para o bioma 'saltos'
+        isGeneratingPlatform: false, // Estamos gerando uma plataforma ou um buraco?
+        tilesRemainingInCurrentFeature: 0, // Quantos tiles faltam para a feature atual (plataforma/buraco)
+        currentFeatureHeight: 0 // Altura da plataforma atual (em tiles)
+    };
 
     /**
      * Converte coordenadas de grid para o formato de chave do motor (ex: 0,2 -> "c1")
@@ -91,8 +104,16 @@
             window.faseAtualData.velocidadeRunner = velocidade;
         }
         
-        // Move o player para frente automaticamente
-        player.x += velocidade;
+        // Move o player para frente automaticamente com detecção de colisão (Fix: Requisito 17)
+        if (typeof window.aplicarDeslocamentoHorizontalComColisaoPadrao === 'function') {
+            window.aplicarDeslocamentoHorizontalComColisaoPadrao(player, velocidade, window.plataformas, {
+                largura: player.largura,
+                altura: player.altura,
+                offsetX: player.offsetX || 0
+            });
+        } else {
+            player.x += velocidade;
+        }
 
         // 3. Geração de Chão e Expansão de Mundo (Requisito 4 e 5)
         gerenciarChaoInfinito(player.x);
@@ -147,6 +168,13 @@
             ultimaLimpezaX = 0;
             indiceSegmentoAtual = 0;
             blocosGeradosNoSegmento = 0;
+            currentSaltosState = { // Resetar estado do bioma de saltos
+                isGeneratingPlatform: false,
+                tilesRemainingInCurrentFeature: 0,
+                currentFeatureHeight: 0
+            };
+            // Garante que o primeiro segmento seja sempre 'plano' ao iniciar
+            RUNNER_CONFIG.segmentos[0] = 'plano';
 
             if (window.playerControle) {
                 const p = window.playerControle;
@@ -182,32 +210,74 @@
             
             for (let x = limiteMundo; x < novoLimite; x += 32) {
                 const gridX = Math.floor(x / 32);
-                const gridY = Math.floor(alturaChao / 32);
-                const chave = converterGridParaChave(gridX, gridY);
+                let yOffsetTile = 0;
+                let skipTile = false;
                 
                 if (window.plataformas) {
                     // Lógica de Segmentos Intercalados (Requisito 14)
                     const tipoArea = RUNNER_CONFIG.segmentos[indiceSegmentoAtual];
                     let ehEspinho = false;
 
-                    if (tipoArea === 'espinhos') {
+                    if (tipoArea === 'saltos') {
+                        // Lógica de geração procedural para o bioma 'saltos' (Requisito 15)
+                        if (currentSaltosState.tilesRemainingInCurrentFeature <= 0) {
+                            const isGap = Math.random() < RUNNER_CONFIG.saltosConfig.chanceGap;
+                            if (isGap) {
+                                currentSaltosState.isGeneratingPlatform = false;
+                                currentSaltosState.tilesRemainingInCurrentFeature = Math.floor(Math.random() * (RUNNER_CONFIG.saltosConfig.maxGapTiles - RUNNER_CONFIG.saltosConfig.minGapTiles + 1)) + RUNNER_CONFIG.saltosConfig.minGapTiles;
+                            } else {
+                                currentSaltosState.isGeneratingPlatform = true;
+                                currentSaltosState.tilesRemainingInCurrentFeature = Math.floor(Math.random() * (RUNNER_CONFIG.saltosConfig.maxPlatformTiles - RUNNER_CONFIG.saltosConfig.minPlatformTiles + 1)) + RUNNER_CONFIG.saltosConfig.minPlatformTiles;
+                                currentSaltosState.currentFeatureHeight = Math.floor(Math.random() * (RUNNER_CONFIG.saltosConfig.maxPlatformHeightTiles - RUNNER_CONFIG.saltosConfig.minPlatformHeightTiles + 1)) + RUNNER_CONFIG.saltosConfig.minPlatformHeightTiles;
+                            }
+                        }
+
+                        if (currentSaltosState.isGeneratingPlatform) {
+                            // Empilha blocos para criar o pilar (Requisito 16: Pilares empilhados)
+                            const gridYBase = Math.floor(alturaChao / 32);
+                            const alturaPilar = currentSaltosState.currentFeatureHeight;
+                            
+                            for (let h = 0; h <= alturaPilar; h++) {
+                                const currentGridY = gridYBase + h;
+                                const chavePilar = converterGridParaChave(gridX, currentGridY);
+                                const ehTopo = (h === alturaPilar);
+                                const pilarEhEspinho = ehTopo ? (Math.random() < RUNNER_CONFIG.chanceEspinhoOnPlatform) : false;
+
+                                if (!window.plataformas[chavePilar]) {
+                                    if (pilarEhEspinho) {
+                                        window.plataformas[chavePilar] = { tipo: 'estaca', direcao: 'cima', yOffset: 16, height: 16 };
+                                    } else {
+                                        window.plataformas[chavePilar] = true;
+                                    }
+                                    elementosVisuais[chavePilar] = criarElementoVisual(chavePilar, gridX, currentGridY, pilarEhEspinho);
+                                }
+                            }
+                        }
+                        skipTile = true; // Sempre pula a renderização padrão no bioma de saltos
+                        currentSaltosState.tilesRemainingInCurrentFeature--;
+                    } else if (tipoArea === 'espinhos') {
                         // Só tem chance de espinho se estivermos na área de perigo
                         ehEspinho = Math.random() < RUNNER_CONFIG.chanceEspinhoNoPerigo;
                     } else {
                         // Área plana: ehEspinho sempre false
                     }
 
-                    if (ehEspinho) {
-                        // Define colisão tipo estaca para o motor de dano reconhecer
-                        window.plataformas[chave] = { 
-                            tipo: 'estaca', direcao: 'cima', yOffset: 16, height: 16 
-                        };
-                    } else {
-                        window.plataformas[chave] = true;
-                    }
+                    if (!skipTile) {
+                        const gridY = Math.floor((alturaChao + yOffsetTile) / 32);
+                        const chave = converterGridParaChave(gridX, gridY);
+                        
+                        if (ehEspinho) {
+                            // Define colisão tipo estaca para o motor de dano reconhecer
+                            window.plataformas[chave] = { 
+                                tipo: 'estaca', direcao: 'cima', yOffset: 16, height: 16 
+                            };
+                        } else {
+                            window.plataformas[chave] = true;
+                        }
 
-                    // Cria a representação visual (IMG) para o bloco
-                    elementosVisuais[chave] = criarElementoVisual(chave, gridX, gridY, ehEspinho);
+                        // Cria a representação visual (IMG) para o bloco
+                        elementosVisuais[chave] = criarElementoVisual(chave, gridX, gridY, ehEspinho);
+                    }
                 }
 
                 // Gerencia a troca de segmentos
@@ -215,6 +285,8 @@
                 if (blocosGeradosNoSegmento >= RUNNER_CONFIG.tamanhoSegmento) {
                     blocosGeradosNoSegmento = 0;
                     indiceSegmentoAtual = (indiceSegmentoAtual + 1) % RUNNER_CONFIG.segmentos.length;
+                    // Reset do estado das features ao mudar de bioma
+                    currentSaltosState.tilesRemainingInCurrentFeature = 0;
                     console.log(`[Runner] Mudando bioma para: ${RUNNER_CONFIG.segmentos[indiceSegmentoAtual]}`);
                 }
             }

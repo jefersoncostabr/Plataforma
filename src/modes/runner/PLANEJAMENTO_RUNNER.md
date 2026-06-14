@@ -18,6 +18,9 @@ Modo de jogo estilo "Infinite Runner" onde o jogador avança automaticamente e o
 12. ~~**Sincronização de Chaves**: Corrigir formato de coordenadas para compatibilidade com o motor de colisão.~~ (CONCLUÍDO)
 13. ~~**Renderização Dinâmica**: Criar elementos visuais (IMG) para o chão e espinhos gerados proceduralmente.~~ (CONCLUÍDO)
 14. ~~**Geração por Segmentos**: Implementar áreas configuráveis (planas e perigosas) que se intercalam a cada N blocos.~~ (CONCLUÍDO)
+15. ~~**Bioma de Saltos**: Adicionar plataformas de 1 e 2 blocos de altura, com buracos e chão de segurança (altura base).~~ (CONCLUÍDO)
+16. ~~**Pilares Empilhados**: Transformar o bioma de saltos em pilares verticais empilhados em vez de plataformas flutuantes.~~ (CONCLUÍDO)
+17. ~~**Colisão de Avanço**: Corrigir falha onde o movimento automático ignorava colisões horizontais (clipping).~~ (CONCLUÍDO)
 
 ## 3. Implementação Técnica
 - **Pasta**: `src/modes/runner/`
@@ -39,6 +42,7 @@ Modo de jogo estilo "Infinite Runner" onde o jogador avança automaticamente e o
 7. ~~**Safe Start**: Aplicar um pequeno atordoamento inicial para garantir que o chão seja processado antes do player cair.~~ (CONCLUÍDO)
 8. ~~**Sincronia Visual**: Gerar e destruir elementos DOM (IMG) acompanhando a lógica do mundo.~~ (CONCLUÍDO)
 9. ~~**Lógica de Biomas/Áreas**: Alternar entre trechos planos e trechos com obstáculos baseando-se em contadores de blocos.~~ (CONCLUÍDO)
+10. ~~**Geração de Plataformas Variadas**: Dentro do bioma de saltos, gerar plataformas com alturas e larguras aleatórias, e buracos.~~ (CONCLUÍDO)
 
 ## 6. Comandos de Console
 Para ativar o modo manualmente em qualquer fase, use:
