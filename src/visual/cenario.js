@@ -146,6 +146,14 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         plataformaArbustoPequenoClaro: '../../assets/fundo/arbusto_pequenoClaro.png',
         plataformaFunil: '../../assets/fundo/funil.png',
         plataformaFunil2: '../../assets/fundo/funil2.png',
+        plataformaFunil3: '../../assets/fundo/funil3.png',
+        plataformaFunil4: '../../assets/fundo/funil4.png',
+        plataformaFunilPilar: '../../assets/fundo/funil_pilar.png',
+        plataformaPilar: '../../assets/fundo/pilar.png',
+        plataformaFundoCanto: '../../assets/fundo/canto.png',
+        plataformaFundoCanto2: '../../assets/fundo/canto2.png',
+        plataformaFundoCanto3: '../../assets/fundo/canto3.png',
+        plataformaFundoCanto4: '../../assets/fundo/canto4.png',
         plataformaMeiaPedraTerra: '../../assets/fundo/meia_pedraTerra.png',
         plataformaPedraObjeto: '../../assets/personagem/objetos/pedra.png',
         plataformaArbustoFrente: '../../assets/personagem/objetos/arbusto.png',
@@ -160,8 +168,8 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
             zIndex: 25
         },
         plataformaMetalFundo: {
-            layerId: window.LAYERS?.FUNDO,
-            zIndex: 0
+            layerId: window.LAYERS?.DECORACOES,
+            zIndex: 5
         }
     };
 
