@@ -758,6 +758,32 @@ window.proximoNivel = async function() {
     const indiceConfirmado = obterIndiceFasePorNome(window.faseAtualPathRelativo || window.faseAtualNome);
     if (indiceConfirmado >= 0) window.nivelAtual = indiceConfirmado;
 
+    // Intercepta a conclusão da primeira fase para inserir o modo Runner por 40 segundos
+    if (window.nivelAtual === 0 && typeof window.ativarModoRunner === 'function' && !window.__emModoRunnerTransicao) {
+        window.__emModoRunnerTransicao = true;
+        
+        window.ativarModoRunner(true);
+        
+        // Aguarda 40 segundos ou até que o estado seja cancelado (por morte/reset)
+        await new Promise(resolve => {
+            window.__cancelarRunnerPromise = resolve;
+            window.__timerRunnerTimeout = setTimeout(resolve, 40000);
+        });
+
+        const sobreviveu = window.__emModoRunnerTransicao && window.faseAtualData?.modoRunner && 
+                           window.playerControle && !window.playerControle.estaMorrendo;
+
+        window.__emModoRunnerTransicao = false;
+        window.__cancelarRunnerPromise = null;
+        if (window.__timerRunnerTimeout) clearTimeout(window.__timerRunnerTimeout);
+
+        if (sobreviveu) {
+            window.ativarModoRunner(false);
+        } else {
+            return; // Se morreu ou resetou, interrompe o fluxo de proximoNivel
+        }
+    }
+
     const proximoIndice = window.nivelAtual + 1;
 
     if (proximoIndice < window.niveis.length) {
@@ -825,6 +851,13 @@ window.proximoNivel = async function() {
 // Reinicia a fase atual
 window.reiniciarJogo = async function(porMorte = true) {
     limparAnimacaoDanoJogador();
+
+    // Cancela qualquer transição de Runner em curso ao reiniciar
+    if (typeof window.__cancelarRunnerPromise === 'function') {
+        window.__cancelarRunnerPromise();
+    }
+    window.__emModoRunnerTransicao = false;
+
     const eraModoTreino = window.isTraining;
     window.__transicaoFaseAtiva = false; // Garante que a transição não trave o próximo reset por morte
 

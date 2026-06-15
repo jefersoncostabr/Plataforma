@@ -17,11 +17,11 @@
         spriteEspinho: '../../assets/personagem/estacasup.png',
         tamanhoSegmento: 50, // Quantidade de blocos antes de mudar de área (Requisito 14)
         segmentos: ['plano', 'espinhos', 'saltos'], // Áreas que serão intercaladas
-        chanceEspinhoNoPerigo: 0.25, // 25% de chance de espinho na área de perigo
+        chanceEspinhoNoPerigo: 0.20, // 25% de chance de espinho na área de perigo
         chanceEspinhoOnPlatform: 0.02, // 2% de chance de espinho em plataforma no bioma 'saltos' (Reduzido por pedido)
         saltosConfig: { // Configurações para o bioma 'saltos' (Requisito 15)
-            chanceGap: 0.05, // 15% de chance de gerar um buraco
-            minGapTiles: 1, maxGapTiles: 3, // Buracos de 1 a 3 tiles de largura
+            chanceGap: 0.05, // 5% de chance de gerar um buraco
+            minGapTiles: 1, maxGapTiles: 2, // Buracos de 1 a 2 tiles de largura (Reduzido por pedido)
             minPlatformTiles: 1, maxPlatformTiles: 2, // Pilares de 1 a 2 tiles de largura (Melhoria: Pilares)
             minPlatformHeightTiles: 1, maxPlatformHeightTiles: 3 // Pilares de 1 a 3 blocos de altura
         }
@@ -33,6 +33,7 @@
     // Variáveis de estado para o gerador de biomas
     let indiceSegmentoAtual = 0; // Controla qual bioma está ativo
     let blocosGeradosNoSegmento = 0; // Contador para saber quando trocar de bioma
+    let consecutiveSpikesCount = 0; // Controla o limite de espinhos consecutivos
     let currentSaltosState = { // Estado específico para o bioma 'saltos'
         isGeneratingPlatform: false, // Estamos gerando uma plataforma ou um buraco?
         tilesRemainingInCurrentFeature: 0, // Quantos tiles faltam para a feature atual (plataforma/buraco)
@@ -224,6 +225,7 @@
             ultimaLimpezaX = 0;
             indiceSegmentoAtual = 0;
             blocosGeradosNoSegmento = 0;
+            consecutiveSpikesCount = 0;
             currentSaltosState = { // Resetar estado do bioma de saltos
                 isGeneratingPlatform: false,
                 tilesRemainingInCurrentFeature: 0,
@@ -282,6 +284,7 @@
                     let ehEspinho = false;
 
                     if (tipoArea === 'saltos') {
+                        consecutiveSpikesCount = 0;
                         // Lógica de geração procedural para o bioma 'saltos' (Requisito 15)
                         if (currentSaltosState.tilesRemainingInCurrentFeature <= 0) {
                             const isGap = Math.random() < RUNNER_CONFIG.saltosConfig.chanceGap;
@@ -321,8 +324,19 @@
                     } else if (tipoArea === 'espinhos') {
                         // Só tem chance de espinho se estivermos na área de perigo
                         ehEspinho = Math.random() < RUNNER_CONFIG.chanceEspinhoNoPerigo;
+
+                        if (ehEspinho) {
+                            consecutiveSpikesCount++;
+                            if (consecutiveSpikesCount > 3) {
+                                ehEspinho = false;
+                                consecutiveSpikesCount = 0;
+                            }
+                        } else {
+                            consecutiveSpikesCount = 0;
+                        }
                     } else {
                         // Área plana: ehEspinho sempre false
+                        consecutiveSpikesCount = 0;
                     }
 
                     if (!skipTile) {
@@ -350,6 +364,7 @@
                     indiceSegmentoAtual = (indiceSegmentoAtual + 1) % RUNNER_CONFIG.segmentos.length;
                     // Reset do estado das features ao mudar de bioma
                     currentSaltosState.tilesRemainingInCurrentFeature = 0;
+                    consecutiveSpikesCount = 0;
                     console.log(`[Runner] Mudando bioma para: ${RUNNER_CONFIG.segmentos[indiceSegmentoAtual]}`);
                 }
             }
