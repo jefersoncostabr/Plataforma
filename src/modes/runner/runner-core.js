@@ -8,7 +8,8 @@
     const RUNNER_CONFIG = {
         presets: {
             easy: { base: 2, max: 5 },
-            medium: { base: 3.5, max: 7.5 }
+            medium: { base: 3.5, max: 7.5 },
+            hard: { base: 5, max: 10 }
         },
         velocidadePadrao: 2,
         velocidadeMaxima: 5,     // Velocidade máxima permitida (Requisito 9)

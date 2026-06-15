@@ -534,6 +534,15 @@ window.onload = async () => {
                 document.getElementById('humano-config-fields').style.pointerEvents = spawnHumanoCheck.checked ? 'auto' : 'none';
             }
 
+            const bonusCheck = document.getElementById('bonus-active');
+            if (bonusCheck) {
+                bonusCheck.checked = !!estado.faseBonus;
+                if (document.getElementById('bonus-qual')) document.getElementById('bonus-qual').value = estado.qualBonus || 0;
+                if (document.getElementById('bonus-nivel')) document.getElementById('bonus-nivel').value = estado.nivelBonus || 'a';
+                document.getElementById('bonus-config-fields').style.opacity = bonusCheck.checked ? '1' : '0.3';
+                document.getElementById('bonus-config-fields').style.pointerEvents = bonusCheck.checked ? 'auto' : 'none';
+            }
+
             console.debug('[Editor] fase aplicada', {
                 proporcao: estado.proporcao,
                 posicaoInicialJogador: estado.posicaoInicialJogador,

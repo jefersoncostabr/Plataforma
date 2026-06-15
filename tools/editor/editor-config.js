@@ -114,7 +114,10 @@
             posicaoGato: '',
             chefes: [],
             itens: {},
-            inimigoAleatorio: [1, 0]
+            inimigoAleatorio: [1, 0],
+            faseBonus: false,
+            qualBonus: 0,
+            nivelBonus: 'a'
         };
 
         return { ...base, ...overrides };

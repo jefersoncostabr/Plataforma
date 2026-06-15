@@ -515,6 +515,61 @@
                     setFaseData(fase);
                 };
             }
+
+            // Injeta UI para Fase Bônus (Requisito: faseBonus, qual, nivel)
+            let bonusFields = document.getElementById('bonus-config-fields');
+            if (!bonusFields) {
+                const parent = (humanoFields || document.getElementById('random-config-fields'))?.parentElement;
+                if (parent) {
+                    const container = document.createElement('div');
+                    container.style.marginTop = '10px';
+                    container.style.borderTop = '1px solid #444';
+                    container.style.paddingTop = '10px';
+                    container.innerHTML = `
+                        <label title="Ativa uma fase bônus ao concluir este nível">
+                            <input type="checkbox" id="bonus-active"> Fase Bônus
+                        </label>
+                        <div id="bonus-config-fields" style="opacity: 0.3; transition: opacity 0.3s; pointer-events: none; margin-left: 20px; font-size: 11px; display: flex; flex-direction: column; gap: 4px; margin-top: 5px;">
+                            <label>Tipo: 
+                                <select id="bonus-qual">
+                                    <option value="0">0 (Runner)</option>
+                                </select>
+                            </label>
+                            <label>Dificuldade: 
+                                <select id="bonus-nivel">
+                                    <option value="a">A (Fácil)</option>
+                                    <option value="b">B (Normal)</option>
+                                    <option value="c">C (Difícil)</option>
+                                </select>
+                            </label>
+                        </div>
+                    `;
+                    parent.appendChild(container);
+                }
+            }
+
+            const bonusCheck = document.getElementById('bonus-active');
+            const bonusQual = document.getElementById('bonus-qual');
+            const bonusNivel = document.getElementById('bonus-nivel');
+
+            const atualizarEstadoBonus = () => {
+                if (bonusCheck) {
+                    const fields = document.getElementById('bonus-config-fields');
+                    if (fields) {
+                        fields.style.opacity = bonusCheck.checked ? '1' : '0.3';
+                        fields.style.pointerEvents = bonusCheck.checked ? 'auto' : 'none';
+                    }
+                    const fase = getFaseData();
+                    fase.faseBonus = bonusCheck.checked;
+                    fase.qualBonus = parseInt(bonusQual.value) || 0;
+                    fase.nivelBonus = bonusNivel.value || 'a';
+                    setFaseData(fase);
+                }
+            };
+
+            if (bonusCheck) bonusCheck.onchange = atualizarEstadoBonus;
+            if (bonusQual) bonusQual.onchange = atualizarEstadoBonus;
+            if (bonusNivel) bonusNivel.onchange = atualizarEstadoBonus;
         }
 
         async function configurarSeletorFases(opcoes = {}) {

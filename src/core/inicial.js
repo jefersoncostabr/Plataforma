@@ -758,11 +758,20 @@ window.proximoNivel = async function() {
     const indiceConfirmado = obterIndiceFasePorNome(window.faseAtualPathRelativo || window.faseAtualNome);
     if (indiceConfirmado >= 0) window.nivelAtual = indiceConfirmado;
 
-    // Intercepta a conclusão da primeira fase para inserir o modo Runner por 40 segundos
-    if (window.nivelAtual === 0 && typeof window.ativarModoRunner === 'function' && !window.__emModoRunnerTransicao) {
+    // Intercepta se a fase concluída possui fase bônus definida no JSON (Requisito: faseBonus)
+    const dataFase = window.faseAtualData || {};
+    if (dataFase.faseBonus && typeof window.ativarModoRunner === 'function' && !window.__emModoRunnerTransicao) {
         window.__emModoRunnerTransicao = true;
         
-        window.ativarModoRunner(true);
+        // Determina dificuldade do Runner (a=easy, b=normal/medium, c=hard. Vazio = easy)
+        let dificuldade = "easy";
+        if (dataFase.nivelBonus === 'b') dificuldade = "medium";
+        else if (dataFase.nivelBonus === 'c') dificuldade = "hard";
+
+        // Se qualBonus for 0 ou vazio, inicia o modo Runner (Requisito: qualBonus)
+        if (!dataFase.qualBonus || dataFase.qualBonus === 0) {
+            window.ativarModoRunner(true, dificuldade);
+        }
         
         // Aguarda 40 segundos ou até que o estado seja cancelado (por morte/reset)
         await new Promise(resolve => {
