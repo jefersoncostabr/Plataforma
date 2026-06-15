@@ -861,6 +861,11 @@
                 bb.ePressionadoAnterior = ePressionado;
             }
 
+            // No modo Runner, o BB sempre anima andando se estiver no chão
+            if (window.faseAtualData?.modoRunner && bb.noChao) {
+                bb.movendoHorizontal = true;
+            }
+
             // Gravidade e física vertical
             if (typeof window.aplicarFisica === 'function') {
                 window.aplicarFisica(bb, teclasParaFisica, forcaPuloBase, gravidade, 30);

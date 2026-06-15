@@ -315,6 +315,11 @@
             }
             }
 
+            // No modo Runner, pets sempre animam andando se estiverem no chão
+            if (window.faseAtualData?.modoRunner && pet.noChao) {
+                pet.movendoHorizontal = true;
+            }
+
             // --- MECÂNICA DE TRAMPOLIM ---
             // 1. O Pet pula na cabeça do Jogador
              if (pet.velocidadeY < 0 && player && !player.estaMorrendo) {
