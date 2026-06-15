@@ -24,6 +24,7 @@ Modo de jogo estilo "Infinite Runner" onde o jogador avança automaticamente e o
 18. ~~**Independência de Câmera**: A câmera avança em velocidade constante, mesmo se o jogador estiver bloqueado por obstáculos.~~ (CONCLUÍDO)
 19. ~~**Mecânica de Empurrão**: O jogador é "empurrado" para a borda esquerda da tela ao colidir com pilares, resultando em derrota.~~ (CONCLUÍDO)
 20. ~~**Sincronia Visual de Câmera**: Garantir que o transform do palco seja aplicado no modo Runner.~~ (CONCLUÍDO)
+21. **Níveis de Dificuldade**: Implementar presets "easy" e "medium", com fallback para "easy" se não definido. (CONCLUÍDO)
 
 ## 3. Implementação Técnica
 - **Pasta**: `src/modes/runner/`
@@ -50,8 +51,10 @@ Modo de jogo estilo "Infinite Runner" onde o jogador avança automaticamente e o
 ## 6. Comandos de Console
 Para ativar o modo manualmente em qualquer fase, use:
 ```javascript
-window.ativarModoRunner(true, 2.5); // Ativar com velocidade 2.5
-window.ativarModoRunner(false);     // Desativar
+window.ativarModoRunner(true, "medium"); // Ativar nível médio
+window.ativarModoRunner(true, "easy");   // Ativar nível fácil (padrão)
+window.ativarModoRunner(true, 2.5);      // Ativar com velocidade base 2.5
+window.ativarModoRunner(false);          // Desativar
 ```
 
 ## 5. Exemplo de Configuração (JSON da Fase)

@@ -6,6 +6,10 @@
  */
 (function () {
     const RUNNER_CONFIG = {
+        presets: {
+            easy: { base: 2, max: 5 },
+            medium: { base: 3.5, max: 7.5 }
+        },
         velocidadePadrao: 2,
         velocidadeMaxima: 5,     // Velocidade máxima permitida (Requisito 9)
         incrementoVelocidade: 0.0002, // Aceleração por frame (Requisito 9)
@@ -143,10 +147,18 @@
         }
 
         // 2. Lógica de Movimento Automático e Progressão (Requisito 9)
-        let velocidade = Number(window.faseAtualData.velocidadeRunner || RUNNER_CONFIG.velocidadePadrao);
+        // Fallback: Se não estiver definido na fase, aplica o preset Easy (Requisito: default easy)
+        if (window.faseAtualData.velocidadeRunner === undefined) {
+            const preset = RUNNER_CONFIG.presets.easy;
+            window.faseAtualData.velocidadeRunner = preset.base;
+            window.faseAtualData.velocidadeMaximaRunner = preset.max;
+        }
+
+        let velocidade = Number(window.faseAtualData.velocidadeRunner);
+        const vMax = Number(window.faseAtualData.velocidadeMaximaRunner || RUNNER_CONFIG.presets.easy.max);
         
         // Aumenta a dificuldade gradualmente se não atingiu o limite
-        if (velocidade < RUNNER_CONFIG.velocidadeMaxima) {
+        if (velocidade < vMax) {
             velocidade += RUNNER_CONFIG.incrementoVelocidade;
             window.faseAtualData.velocidadeRunner = velocidade;
         }
@@ -194,9 +206,25 @@
      * Permite ativar o modo runner via console a qualquer momento.
      * Agora limpa a fase atual para criar um ambiente do zero.
      */
-    window.ativarModoRunner = function(ativar, velocidade = RUNNER_CONFIG.velocidadePadrao) {
+    window.ativarModoRunner = function(ativar, param) {
         if (ativar) {
             console.info(`[Runner] Iniciando Modo Runner... Limpando ambiente anterior.`);
+
+            // Determina as velocidades base e máxima (Requisito: Níveis de dificuldade)
+            let vBase = RUNNER_CONFIG.presets.easy.base;
+            let vMax = RUNNER_CONFIG.presets.easy.max;
+
+            // Se for passado um número, usamos como velocidade base e calculamos uma máxima proporcional
+            if (typeof param === 'number') {
+                vBase = param;
+                vMax = Math.max(param + 3, RUNNER_CONFIG.presets.easy.max);
+            } 
+            // Se for string, buscamos no preset (ex: "medium")
+            else if (typeof param === 'string' && RUNNER_CONFIG.presets[param.toLowerCase()]) {
+                const preset = RUNNER_CONFIG.presets[param.toLowerCase()];
+                vBase = preset.base;
+                vMax = preset.max;
+            }
 
             // 1. Limpeza de Entidades e Cenário (Usando funções do core)
             if (typeof window.limparCenario === 'function') window.limparCenario('game-stage');
@@ -220,7 +248,8 @@
             window.faseAtualData = {
                 nome: "Zona de Fuga Infinita",
                 modoRunner: true,
-                velocidadeRunner: velocidade,
+                velocidadeRunner: vBase,
+                velocidadeMaximaRunner: vMax,
                 alturaChaoRunner: 64, // Define o chão um pouco acima do fundo do palco
                 proporcao: "1x1"
             };
