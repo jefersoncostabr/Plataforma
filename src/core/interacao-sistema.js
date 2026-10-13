@@ -359,6 +359,7 @@
         }
 
         window.isInteractionMenuOpen = false;
+        window.TutorialControles?.sincronizarVisibilidade?.();
         window.interactionPauseApplied = false;
         window.interactionMenuContext = null;
         // [FIX B] Snap instantaneo ao fechar base/crafting (aplicarEscalaJogo
@@ -951,6 +952,7 @@
         obterRaizUI().appendChild(overlay);
         overlayAtual = overlay;
         window.isInteractionMenuOpen = true;
+        window.TutorialControles?.sincronizarVisibilidade?.();
 
         // [E1] Nao chama aplicarEscalaJogo() ao abrir: o overlay (#interaction-
         // overlay-root, fixed, fora do stage) ja aparece por cima sem herdar o

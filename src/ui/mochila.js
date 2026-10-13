@@ -685,6 +685,7 @@
         } else if (typeof window.togglePause === 'function') {
             window.togglePause('mochila');
         }
+        window.TutorialControles?.sincronizarVisibilidade?.();
 
         if (window.isMochilaMenuOpen) {
             mochilaAreaSelecionada = controle?.temColete ? 'colete' : (temSecaoCinto(controle) ? 'cinto' : 'colete');

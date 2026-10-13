@@ -57,6 +57,7 @@
             const multiplicadorChute = botaAtivaNoChute ? 2 : 1;
             controle.framesImpulsoRestante = duracaoDash;
             controle.velocidadeDash = (Number(config.impulsoChute ?? 0) * multiplicadorChute) / duracaoDash;
+            window.TutorialControles?.registrarAcao?.('chute');
 
             if (Array.isArray(inimigos)) {
                 inimigos.forEach((inimigo) => {

@@ -319,6 +319,7 @@ window.toggleSkillMenu = async () => {
     } else if (typeof window.togglePause === 'function') {
         window.togglePause('skills');
     }
+    window.TutorialControles?.sincronizarVisibilidade?.();
 
     if (window.isSkillMenuOpen) {
         // console.log("SkillTree: Abrindo menu de habilidades...");

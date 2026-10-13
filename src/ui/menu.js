@@ -239,6 +239,7 @@ function definirTeclaAcao(acao, tecla) {
     cfg[acao] = [String(tecla)];
     window.controlesConfig = cfg;
     salvarControlesNoStorage();
+    window.TutorialControles?.atualizarTeclas?.();
 }
 
 carregarControlesDoStorage();
@@ -688,6 +689,7 @@ const getActiveMenuOptions = () => {
                         await window.carregarDadosSkills(false);
                     }
 
+                    await window.TutorialControles?.iniciarSessao?.();
                     window.isFirstStart = false;
                     window.togglePauseMenu();
                     if (typeof window.reiniciarJogo === 'function') {
@@ -809,6 +811,7 @@ window.togglePauseMenu = () => {
     } else if (typeof window.togglePause === 'function') {
         window.togglePause('pause');
     }
+    window.TutorialControles?.sincronizarVisibilidade?.();
 
     if (window.isMenuOpen) {
         menuMode = 'main';

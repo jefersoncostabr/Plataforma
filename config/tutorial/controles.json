@@ -1,0 +1,44 @@
+{
+  "tutoriais": [
+    {
+      "id": "esquerda",
+      "teclaPadrao": "a/ESQUERDA",
+      "acao": "Andar para Esquerda",
+      "nivel": 1,
+      "fase": 1,
+      "blocoVisivel": "a2",
+      "repeticoesNecessarias": 3,
+      "ativo": true
+    },
+    {
+      "id": "direita",
+      "teclaPadrao": "d/DIREITA",
+      "acao": "Andar para Direita",
+      "nivel": 1,
+      "fase": 1,
+      "blocoVisivel": "a2",
+      "repeticoesNecessarias": 3,
+      "ativo": true
+    },
+    {
+      "id": "pulo",
+      "teclaPadrao": "ESPAÇO",
+      "acao": "Pulo",
+      "nivel": 1,
+      "fase": 1,
+      "blocoVisivel": "a2",
+      "repeticoesNecessarias": 3,
+      "ativo": true
+    },
+    {
+      "id": "chute",
+      "teclaPadrao": "K",
+      "acao": "Chute",
+      "nivel": 1,
+      "fase": 1,
+      "blocoVisivel": "f30",
+      "repeticoesNecessarias": 3,
+      "ativo": true
+    }
+  ]
+}

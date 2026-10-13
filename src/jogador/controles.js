@@ -53,6 +53,7 @@
         }
 
         window.controlesConfig = normalizarControles({ ...doArquivo, ...doStorage });
+        window.TutorialControles?.atualizarTeclas?.();
         return window.controlesConfig;
     }
 
@@ -154,6 +155,14 @@
 
             controle.teclas[e.key] = !teclaAbertura;
             controle.acoesDiscretas = controle.acoesDiscretas || {};
+
+            if (!e.repeat && teclaEhAcao(e.key, 'direita')) {
+                window.TutorialControles?.registrarAcao?.('direita');
+            }
+
+            if (!e.repeat && teclaEhAcao(e.key, 'esquerda')) {
+                window.TutorialControles?.registrarAcao?.('esquerda');
+            }
 
             if (teclaAbertura) {
                 controle.acoesDiscretas.abertura = true;

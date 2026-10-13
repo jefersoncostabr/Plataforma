@@ -1870,6 +1870,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 window.AudioManager?.playSFX('pulo', 0.5);
                 controle.pulosRealizados = 1;
                 controle.velocidadeY = forcaPuloFinal; // CORREÇÃO: Aplica a força do pulo no chão
+                if (deveConsumirPuloInicial) window.TutorialControles?.registrarAcao?.('pulo');
                 controle.noChao = false;
                 controle.coyoteFramesRestantes = 0;
                 controle.jumpBufferFramesRestantes = 0;
@@ -1889,6 +1890,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         } else if (puloAcabouDeSerPressionado && window.temSkill?.((window.SKILLS || {}).SALTO) && controle.pulosRealizados === 1 && controle.timerPuloDuplo > 0 && controle.cooldownPuloDuplo === 0) {
             // Segundo salto: agora com 1.25x da força (um quarto a mais) e com timing mais exigente
             controle.velocidadeY = forcaPuloFinal * (config.multiplicadorPuloDuplo ?? 1.25);
+            window.TutorialControles?.registrarAcao?.('pulo');
             window.AudioManager?.playSFX('pulo', 0.5);
             window.AudioManager?.playSFX('dash', 0.5);
             
