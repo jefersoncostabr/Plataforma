@@ -325,6 +325,22 @@ function criarChipResumo(texto, cor = '#3a3a3a', corTexto = '#fff') {
     return chip;
 }
 
+function registrarItemResumoSlot(item, tipo, slotId) {
+    item.classList.add('menu-nav-item', 'menu-slot-summary-item');
+    item.dataset.menuMode = 'main';
+    item.dataset.navType = tipo;
+    item.dataset.slotId = slotId;
+    item.title = item.title || `Detalhes do ${getSlotLabel(slotId)}`;
+    item.onmouseenter = () => {
+        menuSelectedIndex = getMainMenuNavItems().indexOf(item);
+        updateMenuVisuals();
+    };
+    item.onmouseleave = () => {
+        menuSelectedIndex = -1;
+        updateMenuVisuals();
+    };
+}
+
 function criarPainelResumoSalvo(slotId = getSlotSelecionadoMenu()) {
     const inventarioSalvo = lerJsonStorage('plataformaCheckpointEquipamento', slotId) || {};
     const baseSalva = lerJsonStorage('plataformaCraftPersistente', slotId) || {};
@@ -344,6 +360,9 @@ function criarPainelResumoSalvo(slotId = getSlotSelecionadoMenu()) {
         : getDificuldadeDraftSlot(slotId);
 
     const painel = document.createElement('div');
+    painel.className = 'menu-slot-summary';
+    painel.dataset.slotId = slotId;
+    painel.title = `Detalhes do ${getSlotLabel(slotId)}`;
     painel.style.width = '188px';
     painel.style.minHeight = '148px';
     painel.style.padding = '10px';
@@ -354,7 +373,6 @@ function criarPainelResumoSalvo(slotId = getSlotSelecionadoMenu()) {
     painel.style.display = 'flex';
     painel.style.flexDirection = 'column';
     painel.style.gap = '8px';
-
     const tituloWrap = document.createElement('div');
     tituloWrap.style.display = 'flex';
     tituloWrap.style.alignItems = 'center';
@@ -367,12 +385,21 @@ function criarPainelResumoSalvo(slotId = getSlotSelecionadoMenu()) {
     titulo.style.fontWeight = '800';
     titulo.style.letterSpacing = '2px';
     titulo.style.opacity = '0.9';
+    registrarItemResumoSlot(titulo, 'slot-summary-title', slotId);
     tituloWrap.appendChild(titulo);
 
     if (slotOcupado) {
         const excluirBtn = document.createElement('button');
         excluirBtn.type = 'button';
         excluirBtn.className = 'menu-slot-delete-btn';
+        excluirBtn.classList.add('menu-nav-item');
+        excluirBtn.dataset.menuMode = 'main';
+        excluirBtn.dataset.navType = 'slot-delete';
+        excluirBtn.dataset.slotId = slotId;
+        excluirBtn.onmouseenter = () => {
+            menuSelectedIndex = getMainMenuNavItems().indexOf(excluirBtn);
+            updateMenuVisuals();
+        };
         excluirBtn.textContent = 'EXCLUIR';
         excluirBtn.title = `Excluir save do ${getSlotLabel(slotId)}`;
         excluirBtn.onclick = (e) => {
@@ -386,6 +413,7 @@ function criarPainelResumoSalvo(slotId = getSlotSelecionadoMenu()) {
     painel.appendChild(tituloWrap);
 
     const equipamentosWrap = document.createElement('div');
+    registrarItemResumoSlot(equipamentosWrap, 'slot-summary-equipment', slotId);
     equipamentosWrap.style.display = 'flex';
     equipamentosWrap.style.flexWrap = 'wrap';
     equipamentosWrap.style.gap = '6px';
@@ -416,6 +444,7 @@ function criarPainelResumoSalvo(slotId = getSlotSelecionadoMenu()) {
     painel.appendChild(equipamentosWrap);
 
     const skillsRow = document.createElement('div');
+    registrarItemResumoSlot(skillsRow, 'slot-summary-stats', slotId);
     skillsRow.style.display = 'flex';
     skillsRow.style.flexWrap = 'wrap';
     skillsRow.style.gap = '6px';
@@ -428,6 +457,7 @@ function criarPainelResumoSalvo(slotId = getSlotSelecionadoMenu()) {
     painel.appendChild(skillsRow);
 
     const baseBox = document.createElement('div');
+    registrarItemResumoSlot(baseBox, 'slot-summary-base', slotId);
     baseBox.style.display = 'flex';
     baseBox.style.alignItems = 'center';
     baseBox.style.gap = '8px';
@@ -487,11 +517,9 @@ function criarPainelDificuldade() {
 
         const linha = document.createElement('div');
         linha.className = 'menu-difficulty-option menu-slot-option';
-        if (window.isFirstStart) {
-            linha.classList.add('menu-nav-item');
-            linha.dataset.menuMode = 'main';
-            linha.dataset.navType = 'slot';
-        }
+        linha.classList.add('menu-nav-item');
+        linha.dataset.menuMode = 'main';
+        linha.dataset.navType = 'slot';
         linha.dataset.slotId = slotId;
         linha.dataset.slotEmpty = slotOcupado ? '0' : '1';
         linha.dataset.slotLocked = slotTravado ? '1' : '0';
@@ -522,13 +550,11 @@ function criarPainelDificuldade() {
         status.textContent = formatarDificuldade(dificuldade);
 
         linha.onmouseenter = () => {
-            if (!window.isFirstStart) return;
             menuSelectedIndex = getMainMenuNavItems().indexOf(linha);
             updateMenuVisuals();
         };
 
         linha.onmouseleave = () => {
-            if (!window.isFirstStart) return;
             menuSelectedIndex = -1;
             updateMenuVisuals();
         };
@@ -690,7 +716,8 @@ function getCloseMenuOption() {
 }
 
 function getMainMenuNavItems() {
-    return Array.from(document.querySelectorAll('#pause-menu-overlay .menu-nav-item[data-menu-mode="main"]'));
+    return Array.from(document.querySelectorAll('#pause-menu-overlay .menu-nav-item[data-menu-mode="main"]'))
+        .sort((a, b) => Number(a.dataset.navType === 'close') - Number(b.dataset.navType === 'close'));
 }
 
 function ajustarVolumeMenu(delta) {
@@ -707,6 +734,7 @@ function ativarItemMenuPrincipal(item) {
     const navType = item.dataset.navType;
 
     if (navType === 'slot') {
+        if (!window.isFirstStart) return;
         selecionarSlotMenu(item.dataset.slotId, { ciclarSeVazio: true, direcao: 1 });
         renderMenuUI();
         updateMenuVisuals();
@@ -816,7 +844,7 @@ function obterIndexEspacial(items, currentIndex, key) {
     const safeIdx = currentIndex >= 0 ? currentIndex : 0;
     const rects = items.map(el => el.getBoundingClientRect());
     const curr = rects[safeIdx];
-    const TOL = 16; // tolerância em px para considerar mesma linha/coluna
+    const TOL = 24; // tolerância para elementos da mesma linha com alturas diferentes
 
     function maisProximoNaColuna(candidatos) {
         // Dentre candidatos em outra linha, prefere o que tem left mais próximo
@@ -852,10 +880,12 @@ function obterIndexEspacial(items, currentIndex, key) {
     if (key === 'arrowleft' || key === 'arrowright') {
         const indoEsquerda = key === 'arrowleft';
 
-        // Itens na mesma linha (mesmo top ± TOL), excluindo o próprio
+        // Itens cuja área vertical se alinha, mesmo que tenham alturas diferentes.
         const mesmaLinha = rects
             .map((r, i) => ({ r, i }))
-            .filter(({ r, i }) => i !== safeIdx && Math.abs(r.top - curr.top) < TOL);
+            .filter(({ r, i }) => i !== safeIdx
+                && r.bottom + TOL >= curr.top
+                && r.top - TOL <= curr.bottom);
 
         // Candidatos na direção horizontal dentro da mesma linha
         const candidatos = mesmaLinha.filter(({ r }) =>
@@ -867,13 +897,117 @@ function obterIndexEspacial(items, currentIndex, key) {
             return obterIndexEspacial(items, currentIndex, indoEsquerda ? 'arrowup' : 'arrowdown');
         }
 
-        // O mais próximo horizontalmente
-        return candidatos.reduce((best, c) =>
-            Math.abs(c.r.left - curr.left) < Math.abs(best.r.left - curr.left) ? c : best
-        ).i;
+        // Prioriza a distância horizontal e usa o alinhamento vertical como desempate.
+        const score = ({ r }) =>
+            Math.abs(r.left - curr.left)
+            + Math.abs((r.top + r.height / 2) - (curr.top + curr.height / 2)) * 1.5;
+        return candidatos.reduce((best, c) => score(c) < score(best) ? c : best).i;
     }
 
     return currentIndex;
+}
+
+function obterExtremidadeVerticalMenu(items, direcao, indiceReferencia) {
+    const candidatos = items
+        .map((item, index) => ({ item, index, rect: item.getBoundingClientRect() }))
+        .filter(({ item }) => item.dataset.navType !== 'close');
+    if (!candidatos.length) return -1;
+
+    const extremo = direcao === 'up'
+        ? Math.max(...candidatos.map(({ rect }) => rect.bottom))
+        : Math.min(...candidatos.map(({ rect }) => rect.top));
+    const linhaExtrema = candidatos.filter(({ rect }) =>
+        Math.abs((direcao === 'up' ? rect.bottom : rect.top) - extremo) < 16
+    );
+    const referencia = items[indiceReferencia]?.getBoundingClientRect();
+    if (!referencia) return linhaExtrema[0].index;
+
+    return linhaExtrema.reduce((maisProximo, atual) =>
+        Math.abs(atual.rect.left - referencia.left) < Math.abs(maisProximo.rect.left - referencia.left)
+            ? atual
+            : maisProximo
+    ).index;
+}
+
+function estaNaExtremidadeVerticalMenu(items, indiceAtual, direcao) {
+    const atual = items[indiceAtual]?.getBoundingClientRect();
+    if (!atual) return false;
+
+    return !items.some((item, index) => {
+        if (index === indiceAtual || item.dataset.navType === 'close') return false;
+        const rect = item.getBoundingClientRect();
+        return direcao === 'up' ? rect.top < atual.top - 16 : rect.top > atual.top + 16;
+    });
+}
+
+function obterDestinoColunaDireitaMenu(items, itemAtual, key) {
+    if (!itemAtual) return -1;
+
+    const resumoItems = items.filter((item) =>
+        item.dataset.navType?.startsWith('slot-summary-') && item.dataset.slotId === itemAtual.dataset.slotId
+    );
+    const resumoIndex = items.findIndex((item) =>
+        item.dataset.navType === 'slot-summary-title' && item.dataset.slotId === itemAtual.dataset.slotId
+    );
+    const deleteIndex = items.findIndex((item) =>
+        item.dataset.navType === 'slot-delete' && item.dataset.slotId === itemAtual.dataset.slotId
+    );
+    const slots = items.filter((item) => item.dataset.navType === 'slot');
+    const slotIndex = slots.indexOf(itemAtual);
+    const resumoItemIndex = resumoItems.indexOf(itemAtual);
+
+    // Permite sair do painel de informações para a escolha de slots com a
+    // seta direita. Escolhe a opção visualmente mais próxima da linha atual.
+    if (resumoItemIndex >= 0 && itemAtual.dataset.navType !== 'slot-summary-title'
+        && (key === 'arrowright' || key === 'd') && slots.length) {
+        const resumoRect = itemAtual.getBoundingClientRect();
+        const slotMaisAlinhado = slots.reduce((melhor, slot) => {
+            const rect = slot.getBoundingClientRect();
+            const distanciaVertical = Math.abs((rect.top + rect.height / 2) - (resumoRect.top + resumoRect.height / 2));
+            return !melhor || distanciaVertical < melhor.distanciaVertical
+                ? { slot, distanciaVertical }
+                : melhor;
+        }, null);
+        return items.indexOf(slotMaisAlinhado.slot);
+    }
+
+    if (itemAtual.dataset.navType === 'slot-summary-title') {
+        if ((key === 'arrowright' || key === 'd') && deleteIndex >= 0) return deleteIndex;
+        if (key === 'arrowdown' || key === 's') return items.indexOf(resumoItems[1]);
+    }
+
+    if (itemAtual.dataset.navType === 'slot-delete') {
+        if ((key === 'arrowleft' || key === 'a' || key === 'arrowup' || key === 'w') && resumoIndex >= 0) {
+            return resumoIndex;
+        }
+        if (key === 'arrowdown' || key === 's') return items.indexOf(resumoItems[1]);
+    }
+
+    if (resumoItemIndex >= 0) {
+        if ((key === 'arrowup' || key === 'w') && resumoItemIndex > 0) {
+            return items.indexOf(resumoItems[resumoItemIndex - 1]);
+        }
+        if ((key === 'arrowdown' || key === 's') && resumoItemIndex < resumoItems.length - 1) {
+            return items.indexOf(resumoItems[resumoItemIndex + 1]);
+        }
+        if ((key === 'arrowdown' || key === 's') && resumoItemIndex === resumoItems.length - 1) {
+            if (slots.length) return items.indexOf(slots[0]);
+            return resumoIndex;
+        }
+    }
+
+    if (slotIndex >= 0) {
+        if (key === 'arrowup' || key === 'w') {
+            return slotIndex === 0 && resumoItems.length
+                ? items.indexOf(resumoItems[resumoItems.length - 1])
+                : items.indexOf(slots[slotIndex - 1]);
+        }
+        if ((key === 'arrowdown' || key === 's') && slotIndex < slots.length - 1) {
+            return items.indexOf(slots[slotIndex + 1]);
+        }
+    }
+
+    return -1;
 }
 
 function handleMenuInput(e) {
@@ -925,6 +1059,36 @@ function handleMenuInput(e) {
         }
 
         // Navegação espacial: usa posições reais no DOM
+        const closeIndex = currentItems.findIndex((item) => item.dataset.navType === 'close');
+        const itemAtual = currentItems[menuSelectedIndex];
+        const destinoColunaDireita = obterDestinoColunaDireitaMenu(currentItems, itemAtual, navKey);
+        if (destinoColunaDireita >= 0) {
+            menuSelectedIndex = destinoColunaDireita;
+            updateMenuVisuals();
+            return;
+        }
+
+        if (closeIndex >= 0 && (navKey === 'arrowup' || navKey === 'arrowdown')) {
+            if (itemAtual?.dataset.navType === 'close') {
+                menuSelectedIndex = obterExtremidadeVerticalMenu(
+                    currentItems,
+                    navKey === 'arrowup' ? 'up' : 'down',
+                    closeIndex
+                );
+                updateMenuVisuals();
+                return;
+            }
+            if (estaNaExtremidadeVerticalMenu(
+                currentItems,
+                menuSelectedIndex,
+                navKey === 'arrowup' ? 'up' : 'down'
+            )) {
+                menuSelectedIndex = closeIndex;
+                updateMenuVisuals();
+                return;
+            }
+        }
+
         const idxAtual = menuSelectedIndex < 0 ? 0 : menuSelectedIndex;
         menuSelectedIndex = obterIndexEspacial(currentItems, idxAtual, navKey);
         updateMenuVisuals();
@@ -1201,11 +1365,32 @@ async function renderMenuUI() {
     // Adiciona o título dinâmico apenas se estiver no menu principal/pause.
     // Evita duplicidade nos menus que já carregam o título via HTML (Controles e Configurações).
     if (menuMode === 'main') {
-        mainLayout.appendChild(criarElementoTitulo());        
+        const titleRow = document.createElement('div');
+        titleRow.className = 'menu-title-row';
+        titleRow.appendChild(criarElementoTitulo());
+
+        const closeButton = document.createElement('button');
+        closeButton.type = 'button';
+        closeButton.className = 'menu-close-button menu-nav-item';
+        closeButton.dataset.menuMode = 'main';
+        closeButton.dataset.navType = 'close';
+        closeButton.setAttribute('aria-label', 'Fechar pausa');
+        closeButton.title = 'Fechar';
+        closeButton.onclick = () => window.togglePauseMenu();
+        titleRow.appendChild(closeButton);
+        mainLayout.appendChild(titleRow);
     }
 
    
     await preencherConteudoPorModo(mainLayout);
+
+    if (menuMode === 'main') {
+        const titleRow = mainLayout.querySelector('.menu-title-row');
+        const blocoPrincipal = mainLayout.querySelector('.menu-main-layout');
+        if (titleRow && blocoPrincipal) {
+            titleRow.style.width = `${blocoPrincipal.getBoundingClientRect().width}px`;
+        }
+    }
 
     // [E1] Nao recalcula escala/filtro ao abrir pause: overlays ja sao
     // position:fixed fora do #game-stage, entao aparecem por cima sem herdar
@@ -1572,6 +1757,9 @@ function updateMenuVisuals() {
         if (isSelected) {
             if (item.title) {
                 selectedLabelText = item.title;
+            } else if (item.dataset.navType === 'slot') {
+                const slotNumber = getSlotIds().indexOf(item.dataset.slotId) + 1;
+                selectedLabelText = `SLOT ${slotNumber}`;
             } else if (item.dataset.navType === 'volume') {
                 selectedLabelText = 'VOLUME';
             } else if (item.dataset.navType === 'close') {

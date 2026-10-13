@@ -95,6 +95,20 @@
     margin-bottom: 30px;
     letter-spacing: 6px;
 }
+.menu-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    margin-bottom: 30px;
+}
+.menu-title-row .menu-title {
+    margin-bottom: 0;
+}
+.menu-title-row .menu-close-button {
+    position: static;
+    flex: 0 0 auto;
+}
 .menu-title--controls {
     margin-bottom: 12px;
 }
@@ -200,6 +214,17 @@
     flex-direction: column;
     /* Espaçamento entre os itens do resumo */
     gap: 8px;
+}
+
+.menu-slot-summary.menu-nav-selected {
+    outline: 2px solid rgba(0, 255, 255, 0.9);
+    outline-offset: 2px;
+}
+
+.menu-slot-summary-item.menu-nav-selected {
+    outline: 1px solid rgba(0, 255, 255, 0.85);
+    outline-offset: 2px;
+    border-radius: 4px;
 }
 
 /* Ícones de equipamentos no resumo */
@@ -575,6 +600,13 @@
     padding: 5px 8px;
 }
 
+.menu-slot-option.menu-nav-selected {
+    position: relative;
+    z-index: 2;
+    outline: 2px solid rgba(0, 255, 255, 0.95);
+    outline-offset: 2px;
+}
+
 .menu-slot-option--occupied {
     border-color: rgba(0, 255, 255, 0.5);
     background: linear-gradient(90deg, rgba(0, 100, 100, 0.4) 0%, rgba(255, 255, 255, 0.08) 100%);
@@ -647,7 +679,8 @@
     cursor: pointer;
 }
 
-.menu-slot-delete-btn:hover {
+.menu-slot-delete-btn:hover,
+.menu-slot-delete-btn.menu-nav-selected {
     background: rgba(227, 74, 74, 0.4);
     border-color: rgba(255, 170, 170, 0.95);
 }
