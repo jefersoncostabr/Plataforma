@@ -6,6 +6,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     background: var(--cor-fundo-overlay, rgba(0, 0, 0, 0.85));
     z-index: 9999;
     display: flex;
@@ -22,17 +23,22 @@
 
 .skill-tree-container {
     position: relative;
-    width: 95%;
-    max-width: 800px;
-    height: 90%;
-    max-height: 550px;
+    width: min(96vw, 1200px);
+    height: min(92vh, 900px);
+    height: min(92dvh, 900px);
     background: #1a1a1a;
     border: 3px solid #444;
     border-radius: 12px;
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
     margin: auto;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+.skill-tree-container.is-normal {
+    width: min(90vw, 850px);
+    height: min(85vh, 600px);
+    height: min(85dvh, 600px);
 }
 
 .skill-tree-header {
@@ -44,6 +50,13 @@
     border-radius: 9px 9px 0 0;
     width: 100%;
     box-sizing: border-box;
+}
+
+.skill-tree-canvas {
+    position: relative;
+    flex: 0 0 auto;
+    width: 800px;
+    margin: 0 auto;
 }
 
 .skill-tree-header h2 {

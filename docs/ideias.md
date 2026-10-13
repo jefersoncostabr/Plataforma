@@ -38,7 +38,8 @@
 ## Melhorias
 - Corrigir reset de câmera no view normal
 - Fazer view normal ampliada agora tá só um quadradinho
-- melhorar a visualização de controles
+- Melhorar a visualização de controles
 - Tutorial na tela dos controles principais
 - Clareza de como se ganha experiencia. o inimigo mais fraco dá menos experiência?
 - Navegar para o slot de salvamento com cetas também
+- Ao alterar o viewport (tamanho da tela) acontece o bug de câmera que vai p baixo (ao dar f5 resolve o problema). 

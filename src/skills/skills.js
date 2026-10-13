@@ -160,6 +160,7 @@ function salvarProgressoSkills() {
 }
 
 let selectedSkillId = null;
+let closeButtonFocused = false;
 let skillsLevelMap = {}; 
 let skillButtonsMap = {};
 
@@ -349,8 +350,41 @@ function handleSkillMenuInput(e) {
     }
 
     const key = rawKey.toLowerCase();
+    const isDirectionalKey = ['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'a', 'd', 'w', 's'].includes(key);
+    if (closeButtonFocused) {
+        if (key === ' ' || key === 'enter') {
+            e.preventDefault();
+            document.querySelector('#skill-tree-overlay .menu-close-button')?.click();
+        } else if (isDirectionalKey) {
+            e.preventDefault();
+            closeButtonFocused = false;
+            if (key === 'arrowup' || key === 'w') {
+                const ultimoNivel = Math.max(...Object.keys(skillsLevelMap).map(Number));
+                const skillsInferiores = skillsLevelMap[ultimoNivel];
+                selectedSkillId = skillsInferiores[skillsInferiores.length - 1];
+            } else if (key === 'arrowdown' || key === 's') {
+                selectedSkillId = skillsLevelMap[0][0];
+            }
+            atualizarVisualSelecaoSkills();
+        }
+        return;
+    }
+
     let depth = getSkillDepth(selectedSkillId, window.skillsData);
     let index = skillsLevelMap[depth].indexOf(selectedSkillId);
+
+    if ((key === 'arrowup' || key === 'w') && depth === 0) {
+        e.preventDefault();
+        closeButtonFocused = true;
+        atualizarVisualSelecaoSkills();
+        return;
+    }
+    if ((key === 'arrowdown' || key === 's') && !skillsLevelMap[depth + 1]) {
+        e.preventDefault();
+        closeButtonFocused = true;
+        atualizarVisualSelecaoSkills();
+        return;
+    }
 
     // Navegação Horizontal (A/D ou Setas)
     if (key === 'arrowleft' || key === 'a') {
@@ -385,19 +419,52 @@ function handleSkillMenuInput(e) {
     }
 
     selectedSkillId = skillsLevelMap[depth][index];
+    e.preventDefault();
     atualizarVisualSelecaoSkills();
 }
 
 function atualizarVisualSelecaoSkills() {
     Object.keys(skillButtonsMap).forEach(id => {
         const btn = skillButtonsMap[id];
-        const isSelected = (id === selectedSkillId);
+        const isSelected = !closeButtonFocused && (id === selectedSkillId);
         if (isSelected) {
             btn.classList.add('selected');
         } else {
             btn.classList.remove('selected');
         }
     });
+
+    const closeButton = document.querySelector('#skill-tree-overlay .menu-close-button');
+    closeButton?.classList.toggle('selected', closeButtonFocused);
+
+    const painel = document.querySelector('.skill-tree-container');
+    const selecionado = closeButtonFocused ? null : skillButtonsMap[selectedSkillId];
+    if (!painel) return;
+    if (closeButtonFocused) {
+        painel.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+        return;
+    }
+    if (!selecionado) return;
+
+    const painelRect = painel.getBoundingClientRect();
+    const itemRect = selecionado.getBoundingClientRect();
+    const margemVisivel = 32;
+    const areaTop = painelRect.top + painel.clientTop + margemVisivel;
+    const areaLeft = painelRect.left + painel.clientLeft + margemVisivel;
+    const areaBottom = painelRect.top + painel.clientTop + painel.clientHeight - margemVisivel;
+    const areaRight = painelRect.left + painel.clientLeft + painel.clientWidth - margemVisivel;
+    let scrollTop = painel.scrollTop;
+    let scrollLeft = painel.scrollLeft;
+
+    if (itemRect.top < areaTop) scrollTop -= areaTop - itemRect.top;
+    else if (itemRect.bottom > areaBottom) scrollTop += itemRect.bottom - areaBottom;
+
+    if (itemRect.left < areaLeft) scrollLeft -= areaLeft - itemRect.left;
+    else if (itemRect.right > areaRight) scrollLeft += itemRect.right - areaRight;
+
+    if (scrollTop !== painel.scrollTop || scrollLeft !== painel.scrollLeft) {
+        painel.scrollTo({ top: scrollTop, left: scrollLeft, behavior: 'smooth' });
+    }
 }
 
 function getSkillDepth(skillId, data) {
@@ -414,23 +481,22 @@ function abrirMenuSkillsUI() {
     const viewport = document.getElementById('jogo-container') || document.getElementById('game-stage')?.parentElement;
     if (!viewport) return;
 
-    const rect = viewport.getBoundingClientRect();
     const target = document.body;
 
     skillsLevelMap = {};
     skillButtonsMap = {};
+    closeButtonFocused = false;
     const buttonPositions = {};
 
     const overlay = document.createElement('div');
     overlay.id = 'skill-tree-overlay';
     overlay.className = 'skill-tree-overlay';
-    overlay.style.top = `${rect.top}px`;
-    overlay.style.left = `${rect.left}px`;
-    overlay.style.width = `${rect.width}px`;
-    overlay.style.height = `${rect.height}px`;
-
     const container = document.createElement('div');
     container.className = 'skill-tree-container';
+    if (typeof window.obterModoTelaAtual === 'function'
+        && window.obterModoTelaAtual() === window.SCREEN_MODES?.NORMAL) {
+        container.classList.add('is-normal');
+    }
 
     // Botão de fechar (X) - movido para dentro do container e usando a classe padrão de menus
     const closeButton = document.createElement('button');
@@ -452,6 +518,10 @@ function abrirMenuSkillsUI() {
         <small>WASD: Navegar • ENTER/ESPAÇO: Comprar • ESC: Menu</small>
     `;
     container.appendChild(header);
+
+    const canvas = document.createElement('div');
+    canvas.className = 'skill-tree-canvas';
+    container.appendChild(canvas);
 
     // Agrupar skills por profundidade para calcular o X dinamicamente
     const levels = {};
@@ -492,7 +562,9 @@ function abrirMenuSkillsUI() {
 
     const containerWidth = 800;
     const vGap = 110; // Espaço vertical entre níveis aumentado para melhor clareza
-    const startY = 160; // Posição inicial Y ajustada para o novo cabeçalho
+    const startY = 70; // Reduz o espaço entre o cabeçalho e a primeira fileira
+    const maxDepth = Math.max(...Object.keys(levels).map(Number));
+    canvas.style.height = `${startY + (maxDepth * vGap) + 100}px`;
 
     Object.keys(window.skillsData).forEach(skillId => {
         const skill = window.skillsData[skillId];
@@ -538,7 +610,7 @@ function abrirMenuSkillsUI() {
         }
 
         skillButtonsMap[skillId] = btn;
-        container.appendChild(btn);
+        canvas.appendChild(btn);
     });
 
     // Draw connection lines after all buttons are created and their positions are known
@@ -567,7 +639,7 @@ function abrirMenuSkillsUI() {
                 line.style.top = `${parentCenterY}px`;
                 line.style.transformOrigin = '0 50%';
                 line.style.transform = `rotate(${angle}deg)`;
-                container.appendChild(line);
+                canvas.appendChild(line);
             }
         }
     });
@@ -575,10 +647,6 @@ function abrirMenuSkillsUI() {
     overlay.appendChild(container);
     target.appendChild(overlay);
     atualizarVisualSelecaoSkills();
-    // [MODAIS] Repoem o tamanho antigo (scale) sem tocar na camera.
-    if (typeof window.sincronizarEscalaModais === 'function') {
-        try { window.sincronizarEscalaModais(); } catch (_) {}
-    }
 }
 
 function fecharMenuSkillsUI() {

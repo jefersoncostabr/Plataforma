@@ -212,7 +212,7 @@
     window.sincronizarEscalaModais = function() {
         const escala = Number(window.escalaAtual)
             || Number(window.config?.escalaPalco) || 1;
-        const overlays = document.querySelectorAll('.pause-menu-overlay, .interaction-overlay, .skill-tree-overlay, #colete-backpack-overlay, .skill-menu-overlay, .mochila-menu-overlay, .cheat-menu-overlay');
+        const overlays = document.querySelectorAll('.pause-menu-overlay, .interaction-overlay, #colete-backpack-overlay, .skill-menu-overlay, .mochila-menu-overlay, .cheat-menu-overlay');
         overlays.forEach(overlay => {
             const conteudo = overlay.querySelector('.menu-layout-container') ||
                              overlay.querySelector('.menu-main-layout') ||
@@ -220,7 +220,6 @@
                              overlay.querySelector('.base-panel') ||
                              overlay.querySelector('.menu-controls-container') ||
                              overlay.querySelector('.menu-settings-container') ||
-                             overlay.querySelector('.skill-tree-container') ||
                              overlay.querySelector('.skill-menu-container') ||
                              overlay.querySelector('.mochila-container') ||
                              overlay.querySelector('.cheat-menu-box') ||
