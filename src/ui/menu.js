@@ -1212,7 +1212,11 @@ async function renderMenuUI() {
     // transform. Recalcular aqui causava reflow + deslocamento visual da
     // camera (parecia "ir pra baixo da terra"). Escala continua em resize,
     // troca de resolucao/modo de tela e carregarFase.
-    // (removido: window.aplicarEscalaJogo() aqui)
+    // O tamanho do modal e reposto por sincronizarEscalaModais() (so scale
+    // no conteudo, sem tocar em container/stage/camera).
+    if (typeof window.sincronizarEscalaModais === 'function') {
+        window.sincronizarEscalaModais();
+    }
 
     updateMenuVisuals();
 }

@@ -575,6 +575,10 @@ function abrirMenuSkillsUI() {
     overlay.appendChild(container);
     target.appendChild(overlay);
     atualizarVisualSelecaoSkills();
+    // [MODAIS] Repoem o tamanho antigo (scale) sem tocar na camera.
+    if (typeof window.sincronizarEscalaModais === 'function') {
+        try { window.sincronizarEscalaModais(); } catch (_) {}
+    }
 }
 
 function fecharMenuSkillsUI() {

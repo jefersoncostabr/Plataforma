@@ -956,7 +956,10 @@
         // overlay-root, fixed, fora do stage) ja aparece por cima sem herdar o
         // transform da camera. Recalcular aqui mexia no container/stage e
         // deslocava visualmente a camera no proprio frame do pause.
-        // (removido: window.aplicarEscalaJogo() aqui)
+        // O tamanho do modal e reposto por sincronizarEscalaModais().
+        if (typeof window.sincronizarEscalaModais === 'function') {
+            window.sincronizarEscalaModais();
+        }
 
         return true;
     }

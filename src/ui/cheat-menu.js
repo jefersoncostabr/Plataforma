@@ -158,6 +158,10 @@
 
         overlayEl.appendChild(box);
         document.body.appendChild(overlayEl);
+        // [MODAIS] Repoem o tamanho antigo (scale) sem tocar na camera.
+        if (typeof window.sincronizarEscalaModais === 'function') {
+            try { window.sincronizarEscalaModais(); } catch (_) {}
+        }
         // Foco acessível
         setTimeout(() => cheatMenuBtns[0]?.focus(), 10);
     }

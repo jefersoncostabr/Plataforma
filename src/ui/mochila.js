@@ -543,6 +543,10 @@
         document.body.appendChild(overlay);
 
         renderizarSlotsMochila(controle);
+        // [MODAIS] Repoem o tamanho antigo (scale) sem tocar na camera.
+        if (typeof window.sincronizarEscalaModais === 'function') {
+            try { window.sincronizarEscalaModais(); } catch (_) {}
+        }
     }
 
     function moverSelecaoColete(deltaLinha, deltaColuna) {

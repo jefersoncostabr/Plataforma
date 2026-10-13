@@ -33,3 +33,12 @@
 - [ ] Salvar jogo (save explicito).
 - [ ] Capacete (consolidar com item acima).
 - [ ] Plant and defuse bomb (consolidar).
+
+
+## Melhorias
+- Corrigir reset de câmera no view normal
+- Fazer view normal ampliada agora tá só um quadradinho
+- melhorar a visualização de controles
+- Tutorial na tela dos controles principais
+- Clareza de como se ganha experiencia. o inimigo mais fraco dá menos experiência?
+- Navegar para o slot de salvamento com cetas também

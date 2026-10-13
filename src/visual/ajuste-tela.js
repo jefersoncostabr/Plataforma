@@ -201,6 +201,38 @@
         emitirEventoModoTela(modoTelaAtual);
     }
 
+    /**
+     * [MODAIS] Sincroniza APENAS o tamanho dos modais abertos (scale no
+     * conteudo), sem tocar em container/stage/camera. Repoe o "tamanho
+     * antigo" dos modais (ex: 1.5x via config.escalaPalco) que antes vinha
+     * de aplicarEscalaJogo() — removido do abrir-menu no fix E1 porque o
+     * recalculo completo deslocava a camera. Pode chamar ao abrir qualquer
+     * menu com seguranca.
+     */
+    window.sincronizarEscalaModais = function() {
+        const escala = Number(window.escalaAtual)
+            || Number(window.config?.escalaPalco) || 1;
+        const overlays = document.querySelectorAll('.pause-menu-overlay, .interaction-overlay, .skill-tree-overlay, #colete-backpack-overlay, .skill-menu-overlay, .mochila-menu-overlay, .cheat-menu-overlay');
+        overlays.forEach(overlay => {
+            const conteudo = overlay.querySelector('.menu-layout-container') ||
+                             overlay.querySelector('.menu-main-layout') ||
+                             overlay.querySelector('.interaction-modal') ||
+                             overlay.querySelector('.base-panel') ||
+                             overlay.querySelector('.menu-controls-container') ||
+                             overlay.querySelector('.menu-settings-container') ||
+                             overlay.querySelector('.skill-tree-container') ||
+                             overlay.querySelector('.skill-menu-container') ||
+                             overlay.querySelector('.mochila-container') ||
+                             overlay.querySelector('.cheat-menu-box') ||
+                             overlay.querySelector('.interaction-content');
+            if (conteudo) {
+                conteudo.style.transform = `scale(${escala})`;
+                conteudo.style.transformOrigin = 'center center';
+            }
+        });
+        return escala;
+    };
+
     window.aplicarEscalaJogo = function() {
         const container = document.getElementById('jogo-container');
         if (!container || !window.config) return;
