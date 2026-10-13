@@ -1,7 +1,9 @@
+# Skills (Arvore de Habilidades) - O que comprar e por que
 
-# Skills (Árvore de Habilidades)
+> Em 30 segundos: abra o menu SKILLS no jogo, compre com ENTER/ESPACO (custa 1 ponto), filho so destrava se o pai ja foi comprado. Quer dano? Va em Atirador. Quer se mover melhor? Va em Dash.
+> Detalhe tecnico da arvore fica em `config/skills-dados.json`.
 
-Guia prático para usar as Skills do personagem: **o que fazer**, **quais botões/ações usam no jogo** e **o que precisa comprar antes** (dependência na árvore).
+Guia pratico para usar as Skills do personagem: **o que fazer**, **quais botoes/acoes usam no jogo** e **o que precisa comprar antes** (dependencia na arvore).
 
 ---
 
@@ -85,7 +87,7 @@ Guia prático para usar as Skills do personagem: **o que fazer**, **quais botõe
 
 ### Visão
 - **Como usa:** Passiva (sempre ativa).
-- **Efeito:** Habilita o HUD no canto superior esquerdo mostrando Vida e durabilidade do Escudo.
+- **Efeito:** Habilita o HUD no canto superior esquerdo mostrando Vida, durabilidade do Escudo e pontos livres para gastar em skills (esse numero e o `skillPoints`, nao o XP total acumulado).
 - **Dependência:** **Vida**.
 
 ### Dropar

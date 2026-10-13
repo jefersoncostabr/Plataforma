@@ -355,4 +355,20 @@
     });
 
     document.addEventListener('fullscreenchange', sincronizarEstadoFullscreen);
+
+    /**
+     * Define a cor de fundo do céu para a fase atual.
+     * A cor fica no #jogo-container (que não se move com a câmera),
+     * cobrindo toda a área visível mesmo quando o mundo é maior que o viewport.
+     *
+     * Chamada em carregarFase() lendo o campo `corFundo` do JSON da fase.
+     * Exemplo: window.definirCorFundo('rgb(100,150,200)') ou window.definirCorFundo('#1a1a2e')
+     *
+     * @param {string} cor - Qualquer valor CSS válido (rgb, hex, hsl, etc.)
+     */
+    window.definirCorFundo = function(cor) {
+        const container = document.getElementById('jogo-container');
+        if (!container) return;
+        container.style.backgroundColor = cor || 'rgb(100, 150, 200)';
+    };
 })();

@@ -1,4 +1,12 @@
-# Guia de Controles
+# 🎮 Guia de Controles — Pra jogar sem adivinhar nada
+
+> **Em 10 segundos:** A/D move, Espaço pula, E interage, Q troca de pet, Y entra/sai da armadura.
+> Guarde esta página aberta enquanto testa o jogo.
+
+## Como ler este guia
+- **Jogador =** você dentro da armadura/mecha.
+- **BB =** o bebê que pilota a armadura (sai com `Y`).
+- **Pet =** cão/gato aliado que você pode controlar.
 
 ## Jogador (Armadura)
 | Ação | Comando | Observação |

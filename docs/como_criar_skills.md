@@ -1,4 +1,19 @@
-# Guia de Configuração de Habilidades (skills-dados.json)
+> **Pra quem chegou agora:** o menu de skills nasce deste JSON. Voce so diz quem e filho de quem; o jogo calcula a posicao sozinho.
+> Skill que funciona no codigo mas nao aparece no menu = faltou cadastrar aqui.
+
+## Resumo em 30 segundos (linguagem humana)
+
+- `playerStats`: xp inicial, pontos iniciais, lista `acquired` (o que ja comeca desbloqueado).
+- `skills`: cada chave e uma skill, o valor e o nome do pai (`null` = raiz no topo).
+- Posicao automatica: Y = profundidade na arvore; X = divide igual entre irmaos (ordem alfabetica).
+- Skill nova com efeito no codigo? Cadastre o no em `skills` senao nao aparece no menu (caso real: Slide).
+- Efeito real fica em `src/jogador/skills-efeitos.js` + pontos do gameplay (ex: Vida = +1 maxVida).
+
+---
+# 🧠 Guia de Configuração de Habilidades (`skills-dados.json`) — Sem mistério
+
+> **Em 30 segundos:** a árvore do menu nasce deste JSON. `playerStats` = com o que o jogador começa. `skills` = quem é filho de quem (`null` = raiz no topo). Posição X/Y é automática — você só diz a hierarquia.
+> Se a skill funciona no código mas não aparece no menu, ela provavelmente não foi cadastrada aqui.
 
 Este documento explica como configurar o arquivo de habilidades, que controla o progresso do jogador e a estrutura visual da árvore de habilidades. O posicionamento dos botões no menu de habilidades é automático, baseado na hierarquia definida.
 

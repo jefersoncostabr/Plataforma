@@ -51,6 +51,12 @@
                     hudElemento.appendChild(quadrado);
                 }
             }
+
+            const pontosLivres = Math.max(0, Number(window.skillPoints || 0));
+            const xpNumero = document.createElement('span');
+            xpNumero.className = 'hud-xp-numero';
+            xpNumero.textContent = String(pontosLivres);
+            hudElemento.appendChild(xpNumero);
         }
 
         function destruir() {
@@ -58,6 +64,8 @@
                 hudElemento.remove();
             }
         }
+
+        window.atualizarHUD = atualizarHUD;
 
         return {
             elemento: hudElemento,

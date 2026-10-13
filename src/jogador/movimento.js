@@ -583,6 +583,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
     });
 
     const { atualizarHUD } = hudSistema;
+    window.atualizarHUD = atualizarHUD;
 
     const sistemaControles = window.criarSistemaControlesJogador({
         controle,

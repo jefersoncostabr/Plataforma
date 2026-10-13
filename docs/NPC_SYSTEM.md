@@ -1,4 +1,18 @@
-# Sistema de NPCs — Guia de Criação, Reuso e Integração com Editor de Fases
+> **Pra quem chegou agora:** NPC = arquivo JSON + funcoes prontas. Crie o JSON, aponte a IA pelo nome, use a fabrica pra criar, liste na fase.
+> Comportamento novo? Crie a funcao e referencie pelo nome no JSON. Simples assim.
+
+## Resumo em 30 segundos (linguagem humana)
+
+- Arquivos: `npc-base.js` (classe mae), `npc-comportamentos.js` (andar/patrulhar/fugir), `npc-ias.js` (agressivo/passivo), `npc-factory.js` (monta tudo a partir do JSON).
+- Novo NPC = JSON com `nome, vida, dano, sprite, ia, comportamentos, drops`.
+- Novo comportamento/IA = cria a funcao no arquivo certo e usa o mesmo nome no JSON.
+- Na fase: lista em `npcs: [{tipo, x, y, config}]` e carrega com `criarNPC({...config, x, y})` no loader.
+- Editor pode expor todos os campos do JSON pra edicao visual.
+
+---
+# 🤖 Sistema de NPCs — Criar, reusar e pôr na fase sem dor de cabeça
+
+> **Em 30 segundos:** NPC = um JSON em `config/` + lógica pronta em `src/core/npc-*.js`. Crie o JSON, aponte `ia` e `comportamentos` pelo nome, use a fábrica `criarNPC(config)` e liste na fase. Quer comportamento novo? Crie a função e referencie pelo nome no JSON.
 
 ## Visão Geral
 Este sistema permite criar, configurar e manter NPCs (inimigos, aliados, etc.) de forma modular e reutilizável. Toda a lógica base, comportamentos e IA são separados em módulos, e os dados dos NPCs ficam em arquivos JSON, facilitando integração com o editor de fases.

@@ -1,4 +1,19 @@
-# Como adicionar bloco novo no jogo (runtime)
+> **Pra quem chegou agora:** bloco novo = declara no JSON da fase, registra a colisao, diz qual sprite desenhar, testa.
+> Se o bloco machuca/empurra, tem um passo extra de regra. Detalhe abaixo.
+
+## Resumo em 30 segundos (linguagem humana)
+
+- Bloco em chave existente (`plataformas` com `coord` + `type`) ou chave propria (`plataformasLava: ["b4","c4"]`).
+- Registra a colisao em `src/core/inicial.js` (`true` = solido cheio; objeto = colisao especial).
+- Diz o sprite: chamada `renderizarPlataformas()` em `inicial.js` ou mapeia o `type` em `SPRITE_POR_TIPO_PLATAFORMA` (`cenario.js`).
+- Regra especial (dano/empurrao)? Vai em `colisoes.js` / `estacas.js` / `dano-estacas.js`.
+- Valida: poe na fase, recarrega, confere sprite + colisao + que nada antigo quebrou.
+
+---
+# 🧱 Como adicionar bloco novo no jogo (runtime) — Passo a passo
+
+> **Em 30 segundos:** bloco novo = 1) declara no JSON da fase → 2) registra a colisão em `src/core/inicial.js` → 3) diz qual sprite desenhar → 4) se dá dano/empurra, põe a regra em `colisoes.js`/`estacas.js`. Depois testa: sprite certo? colide certo? não quebrou os antigos?
+> O editor de fases tem doc própria — aqui é só o lado do jogo rodando.
 
 Este guia cobre apenas o lado do jogo (runtime).
 O editor de fases ja esta coberto por documentacao propria.

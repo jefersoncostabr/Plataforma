@@ -1,3 +1,15 @@
+> **Pra quem chegou agora:** este é o mapa das pastas. Se perdeu um arquivo, procure aqui.
+> Regra de ouro: ordem dos `<script>` no `index.html` não pode mudar — quebra o jogo.
+> Árvore completa continua abaixo.
+
+## Resumo em 30 segundos (linguagem humana)
+
+- Pastas por dono: `src/core/` (motor/fisica), `src/jogador/` (voce), `src/inimigos/` (IA), `src/visual/` (desenho), `src/ui/` (menus), `config/` (dados das fases/itens/skills).
+- Editor de fases fica em `tools/editor/`. Documentos ficam aqui em `docs/`.
+- Quer adicionar feature? Arquivo novo na pasta do dono + `<script>` no `index.html` na ordem certa + teste jogando.
+- Arquivos `bb-debug*.js` sao so pra debug: nao vao pra producao.
+
+---
 # Estrutura de Projetos (project-tree.md)
 
 **Data**: Maio 2026  

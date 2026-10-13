@@ -1,3 +1,16 @@
+> **Pra quem chegou agora:** este doc é técnico, de referência. Você não precisa ler tudo.
+> Leia só o **Resumo em 30 segundos** abaixo e depois use o índice pra pular pro que precisa.
+> Detalhe completo continua depois — nada foi apagado.
+
+## Resumo em 30 segundos (linguagem humana)
+
+- O jogo e JavaScript puro no navegador, sem framework, rodando a 60 quadros por segundo.
+- Todo mundo conversa via variaveis globais (`window.*`, umas 200). Funciona, mas e fragil.
+- A ordem dos `<script>` no `index.html` e sagrada: mudou, quebrou.
+- Pontos perigosos: `movimento.js` (jogador, 1900 linhas) e `ia-inimigo.js` (inimigos, 1600 linhas).
+- Plano de arrumacao em 5 fases: 1) tirar duplicacao, 2) quebrar arquivos gigantes, 3) criar base comum, 4) organizar globais, 5) usar modulos modernos.
+
+---
 # Arquitetura do Jogo - Visão Atual (v1.0)
 
 **Data**: Maio 2026  

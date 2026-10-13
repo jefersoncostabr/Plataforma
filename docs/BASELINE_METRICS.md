@@ -1,3 +1,16 @@
+> **Pra quem chegou agora:** este é o raio-X do jogo em números (tamanho, lentidão, duplicação).
+> Moral da história: `movimento.js` e `ia-inimigo.js` são gigantes e perigosos de mexer; `GridUtils` está copiado em 4 lugares.
+> Números exatos continuam abaixo pra quem for refatorar.
+
+## Resumo em 30 segundos (linguagem humana)
+
+- Tamanho: ~18 mil linhas, 55+ scripts, 200 globais. 61% do codigo esta em 15 arquivos.
+- Vilas: `movimento.js` (complexidade 45!) e `ia-inimigo.js` (38). Meta e baixar pra menos de 15.
+- Duplicacao: ~650 linhas copiadas (GridUtils em 4 lugares, knockback em 3, ciclo de pet em 2).
+- Performance: roda a ~14-15ms por quadro (limite 16.6ms). Folga pequena, mas ok.
+- Caminho: centralizar utils (tira 500 linhas em 2 dias) antes de quebrar os gigantes.
+
+---
 # Baseline Metrics - Phase 0 (v1.0)
 
 **Data Coleta**: 13 de Maio de 2026  

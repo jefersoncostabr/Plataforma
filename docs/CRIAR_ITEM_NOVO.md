@@ -1,4 +1,19 @@
-# Como criar item novo (Editor + Jogo)
+> **Pra quem chegou agora:** quer colocar item novo sem quebrar o jogo? Siga os 6 passos abaixo na ordem.
+> Erro mais comum: esquecer de registrar o id nos 2 carregadores (ai aparece no editor mas nao no jogo).
+
+## Resumo em 30 segundos (linguagem humana)
+
+- Passo 1-2: sprite em `assets/` + JSON em `config/items/<id>.json` (com `coletavel: true`).
+- Passo 3 (obrigatorio!): registra o id em `src/itens/loadAllItems.js` E em `src/itens/itens.js`.
+- Passo 4-5: testa no editor (aparece na paleta? salva no JSON?) e no jogo (aparece no mapa? some ao encostar?).
+- Passo 6: se for material (nao equipa), libera em `config/colete-itens.json` senao nao coleta.
+- Deu ruim? Veja a secao "Erros comuns" no fim: 90% e id esquecido ou caminho de sprite errado.
+
+---
+# 📦 Como criar item novo (Editor + Jogo) — Sem quebrar nada
+
+> **Em 30 segundos:** 1) sprite em `assets/` → 2) JSON em `config/items/<id>.json` → 3) registra o id nos 2 carregadores → 4) testa no editor → 5) testa no jogo pegando do chão.
+> Se aparecer no editor mas não no jogo, 90% das vezes é id esquecido num carregador.
 
 Guia atualizado para o fluxo real do projeto.
 

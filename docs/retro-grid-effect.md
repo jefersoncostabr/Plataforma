@@ -1,3 +1,14 @@
+> **Pra quem chegou agora:** efeito visual cyber (grade + linha scanner) pra botao. Copie o HTML, cole o CSS, pronto.
+> O JS e opcional (so pra ligar/desligar no clique). Cores: ciano neon + magenta.
+
+## Resumo em 30 segundos (linguagem humana)
+
+- HTML: `<button class="img-button retro-grid">` com `<img>` dentro. Pronto, ja liga.
+- CSS: `::before` desenha a grade 8x8px; `::after` e a linha scanner que desce em 4s (0.5s no hover).
+- Imagem fica por cima (`z-index: 3`) com brilho ciano. Fundo preto + borda ciano + sombra magenta.
+- Quer ligar/desligar no clique? Descomente o `classList.toggle('retro-grid')` no JS.
+
+---
 # Efeito Retro Grid & Scanline (Botão 4)
 
 Este guia contém todo o código necessário para implementar o efeito de grade cibernética com linha de scanner animada, integrando as cores Neon Cyan e Magenta do padrão do seu projeto.

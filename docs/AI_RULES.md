@@ -1,3 +1,16 @@
+> **Pra quem chegou agora:** estas são as regras pra IA e pra gente não quebrar o jogo.
+> Regra de ouro: nome em português, função pequena, sem `console.log` solto, sem global nova sem avisar.
+> O resto é detalhe — consulte quando for codar.
+
+## Resumo em 30 segundos (linguagem humana)
+
+- Nomes em portugues, completos, camelCase: `velocidadeX`, `calcularDistancia()`. Sem `calc`, sem ingles misturado.
+- Funcao pequena: max 80 linhas, complexidade max 15. Loop principal pode ser maior (excecao documentada).
+- Cada arquivo .js e uma IIFE que exporta so o necessario em `window.*`.
+- Sem `console.log` solto: use `console.error/warn/info` ou flag `window.DEBUG_*`.
+- Antes de commitar: sem log espalhado, sem global nova, sem duplicar funcao que ja existe (procure com grep), teste 5 min jogando.
+
+---
 # IA Guardrails & Rules (Phase 0, Ref: ai-rules.md)
 
 **Data**: Maio 2026  

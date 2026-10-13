@@ -1,4 +1,17 @@
-# Menu da Base: referência rápida
+> **Pra quem chegou agora:** o menu da base nao fica fixo na pagina. Ele e carregado quando voce interage com a base e injetado via JS.
+> Nao abre? Olhe `interacao-sistema.js`. Quebrou o visual? Olhe os 2 CSS abaixo.
+
+## Resumo em 30 segundos (linguagem humana)
+
+- ID `craft_base` -> mapeado em `config/interacoes/mapeamento.json` -> HTML `base-craft.html` carregado via fetch.
+- JS `interacao-sistema.js` cria `div.interaction-overlay`, injeta o HTML, anexa na raiz da interface.
+- Visual: `base-craft.html` (estrutura) + `base-interacao.css` (modal/header/body) + `base-menu-style.css` (pets/feedback/crafting).
+- Debug rapido: inspecione `.interaction-overlay` > `.base-panel` no DevTools.
+
+---
+# 🏠 Menu da Base: referência rápida — Onde fica cada coisa
+
+> **Em 10 segundos:** o menu não está fixo no HTML — ele é carregado quando você interage com `craft_base`, injetado num `div.interaction-overlay` e estilizado por `base-craft.html` + `base-interacao.css`. Se quebrou visual, olhe o CSS; se não abre, olhe `interacao-sistema.js`.
 
 ## Como o menu da base é criado
 

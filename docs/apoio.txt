@@ -1,37 +1,41 @@
--Pegar ultimo commit
-git reset --hard HEAD
+# Apoio rapido - comandos do dia a dia
 
--Pegar commit específico
-git reset --hard 8c4e92
+> Em 10 segundos: aqui ficam os comandos git + debug que a gente vive esquecendo. Copie e cole.
 
--Log dos commits
-git log --oneline
+## Git - voltar no tempo (CUIDADO: apaga mudanca local!)
+- Voltar pro ultimo commit (descarta tudo local!):
+  `git reset --hard HEAD`
+- Voltar pra um commit especifico (exemplo):
+  `git reset --hard 8c4e92`
+- Ver historico curto:
+  `git log --oneline`
+- Ver historico da branch atual:
+  `git log --oneline --decorate --no-merges`
 
--Log da branch atual
-git log --oneline --decorate --no-merges
+## Git - levar pra main (merge)
+  `git checkout main`
+  `git pull origin main`
+  `git merge <branch>`
+  `git add .`
+  `git commit`
+  `git push origin main`
 
+## No console do navegador (F12)
+- Mostra velocidade do player:
+  `window.toggleDebugVelocidadePlayer()`
+- Limpa save da base (so dev):
+  `window.apagarBasePersistidaDev()`
 
-*Pegar para a main(merge)
-git checkout main
-git pull origin main
-git merge <branch>
-git add .
-git commit
-git push origin main
+## Testar gamepad (sem controle fisico)
+  `gp.mostrarEstadoGamepad()`   (botoes ao vivo)
+  `gp.mostrarMapeamentos()`     (acao -> botao)
+  `gp.simularAcao('pulo')`      (finge que pulou)
+  `gp.mostrarAcoesAtivas()`     (o que esta ativo agora)
+  `gp.testarConectividade()`
+- Site util: https://gamepad-tester.com/
 
-*codigo no console do navegador
-window.toggleDebugVelocidadePlayer()
-window.apagarBasePersistidaDev()
-* testar gamepad
-gp.mostrarEstadoGamepad()      // Live gamepad state + buttons
-gp.mostrarMapeamentos()        // Action→button mappings
-gp.simularAcao('pulo')         // Test action without hardware
-gp.mostrarAcoesAtivas()        // Currently active actions
-gp.testarConectividade()   
-
-*Código de terminal para pegar dados do git
-git config --get user.email; git config --get user.name
-
-https://gamepad-tester.com/
-
-node ".\tools\editor\editor-save-server.js"
+## Diversos
+- Ver quem e voce no git:
+  `git config --get user.email; git config --get user.name`
+- Subir servidor do editor:
+  `node tools/editor/editor-save-server.js`

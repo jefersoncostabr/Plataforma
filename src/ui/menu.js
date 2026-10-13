@@ -799,6 +799,80 @@ window.togglePauseMenu = () => {
     }
 };
 
+/**
+ * Retorna o índice do item mais próximo na direção indicada, usando posições reais no DOM.
+ * Funciona com qualquer layout (1 coluna, 2 colunas, grade mista).
+ *
+ * @param {Element[]} items - Lista de itens navegáveis
+ * @param {number}    currentIndex - Índice atual (-1 = nenhum)
+ * @param {string}    key - 'arrowup' | 'arrowdown' | 'arrowleft' | 'arrowright'
+ * @returns {number} Novo índice
+ */
+function obterIndexEspacial(items, currentIndex, key) {
+    if (!items || items.length === 0) return currentIndex;
+    const safeIdx = currentIndex >= 0 ? currentIndex : 0;
+    const rects = items.map(el => el.getBoundingClientRect());
+    const curr = rects[safeIdx];
+    const TOL = 16; // tolerância em px para considerar mesma linha/coluna
+
+    function maisProximoNaColuna(candidatos) {
+        // Dentre candidatos em outra linha, prefere o que tem left mais próximo
+        return candidatos.reduce((best, c) =>
+            Math.abs(c.r.left - curr.left) < Math.abs(best.r.left - curr.left) ? c : best
+        ).i;
+    }
+
+    if (key === 'arrowup' || key === 'arrowdown') {
+        const subindo = key === 'arrowup';
+
+        // Itens em outra linha na direção desejada
+        const candidatos = rects
+            .map((r, i) => ({ r, i }))
+            .filter(({ r }) => subindo ? r.top < curr.top - TOL : r.top > curr.top + TOL);
+
+        if (candidatos.length === 0) {
+            // Wrap: vai para a linha oposta (topo ↔ base)
+            const extremo = subindo
+                ? Math.max(...rects.map(r => r.top))
+                : Math.min(...rects.map(r => r.top));
+            const linhaExtrema = rects.map((r, i) => ({ r, i })).filter(({ r }) => Math.abs(r.top - extremo) < TOL);
+            return maisProximoNaColuna(linhaExtrema);
+        }
+
+        // Linha imediatamente adjacente na direção
+        const tops = candidatos.map(c => c.r.top);
+        const topoAlvo = subindo ? Math.max(...tops) : Math.min(...tops);
+        const linhaAlvo = candidatos.filter(({ r }) => Math.abs(r.top - topoAlvo) < TOL);
+        return maisProximoNaColuna(linhaAlvo);
+    }
+
+    if (key === 'arrowleft' || key === 'arrowright') {
+        const indoEsquerda = key === 'arrowleft';
+
+        // Itens na mesma linha (mesmo top ± TOL), excluindo o próprio
+        const mesmaLinha = rects
+            .map((r, i) => ({ r, i }))
+            .filter(({ r, i }) => i !== safeIdx && Math.abs(r.top - curr.top) < TOL);
+
+        // Candidatos na direção horizontal dentro da mesma linha
+        const candidatos = mesmaLinha.filter(({ r }) =>
+            indoEsquerda ? r.left < curr.left - TOL : r.left > curr.left + TOL
+        );
+
+        if (candidatos.length === 0) {
+            // Sem vizinho na mesma linha nessa direção: sobe/desce de linha
+            return obterIndexEspacial(items, currentIndex, indoEsquerda ? 'arrowup' : 'arrowdown');
+        }
+
+        // O mais próximo horizontalmente
+        return candidatos.reduce((best, c) =>
+            Math.abs(c.r.left - curr.left) < Math.abs(best.r.left - curr.left) ? c : best
+        ).i;
+    }
+
+    return currentIndex;
+}
+
 function handleMenuInput(e) {
     if (!window.isMenuOpen) return;
 
@@ -817,20 +891,31 @@ function handleMenuInput(e) {
     const currentItems = getMainMenuNavItems();
     if (!currentItems || currentItems.length === 0) return;
 
-    if (key === 'arrowup' || key === 'w') {
-        menuSelectedIndex = (menuSelectedIndex <= 0) ? currentItems.length - 1 : menuSelectedIndex - 1;
-        updateMenuVisuals();
-    } else if (key === 'arrowdown' || key === 's') {
-        menuSelectedIndex = (menuSelectedIndex === -1 || menuSelectedIndex >= currentItems.length - 1) ? 0 : menuSelectedIndex + 1;
-        updateMenuVisuals();
-    } else if (tratarAjusteHorizontalMenuPrincipal(currentItems[menuSelectedIndex], key)) {
+    // Mapeia WASD para as setas equivalentes
+    const WASD_MAP = { w: 'arrowup', s: 'arrowdown', a: 'arrowleft', d: 'arrowright' };
+    const navKey = WASD_MAP[key] || key;
+
+    const isArrow = navKey === 'arrowup' || navKey === 'arrowdown' || navKey === 'arrowleft' || navKey === 'arrowright';
+
+    if (isArrow) {
         e.preventDefault();
+
+        // Teclas horizontais: primeiro tenta ajuste especial do item (slot/volume)
+        if (navKey === 'arrowleft' || navKey === 'arrowright') {
+            const consumida = tratarAjusteHorizontalMenuPrincipal(currentItems[menuSelectedIndex], key);
+            if (consumida) return;
+        }
+
+        // Navegação espacial: usa posições reais no DOM
+        const idxAtual = menuSelectedIndex < 0 ? 0 : menuSelectedIndex;
+        menuSelectedIndex = obterIndexEspacial(currentItems, idxAtual, navKey);
+        updateMenuVisuals();
+
     } else if (key === 'enter' || key === ' ') {
         e.preventDefault();
         if (menuSelectedIndex === -1) {
             menuSelectedIndex = 0;
         }
-
         try {
             ativarItemMenuPrincipal(currentItems[menuSelectedIndex]);
         } catch (error) {
@@ -838,6 +923,8 @@ function handleMenuInput(e) {
         }
     }
 }
+
+
 
 function handleControlsInput(e) {
     const entries = [...CONTROLES_MENU_ITEMS, { id: 'save_back' }, { id: 'reset_default' }];

@@ -1,3 +1,16 @@
+> **Pra quem chegou agora:** a ideia aqui é ter vários bebês (BB) espalhados pela fase, não um só fixo.
+> Hoje o BB é único (singleton). O plano é envelopar ele pra poder dar spawn/despawn como inimigo, sem quebrar o que já existe.
+> Passo a passo técnico continua abaixo — nada foi apagado.
+
+## Resumo em 30 segundos (linguagem humana)
+
+- Hoje so existe UM bebe (BB) por vez, preso num singleton (`window.bbEntidade`).
+- Queremos VARIOS bebes por fase, cada um com `update()`, `destroy()` e `setControlado()`, guardados em `window.bbNPCs[]`.
+- Atalhos antigos (`controlarBB`, `despawnBB`) continuam funcionando por compatibilidade (shim pra instancia ativa).
+- Cuidado: nao mexer no `inimigo.ehBBInimigo` (o "BB inimigo" e outro sistema, continua igual).
+- Falta fazer: scaffold em `bb.js`, leitura de `fase.bbNPCs` em `inicial.js`, paleta no editor, testes.
+
+---
 # Planejamento: criar e “envelopar” NPC BB para reaproveitamento (instanciável)
 
 ## Objetivo
