@@ -182,6 +182,7 @@ const cameraGrande = function(alvoX, alvoY, mundoW, mundoH) {
 
 /**
  * Reseta a posição da câmera para a origem.
+ * ATENCAO: nao chamar com menu aberto (ver fix A em ajuste-tela.js).
  */
 window.resetarCamera = function() {
     window.cameraX = 0;
@@ -189,6 +190,62 @@ window.resetarCamera = function() {
     const stage = document.getElementById('game-stage');
     if (stage) {
         stage.style.transform = `translate(0px, 0px)`;
+    }
+};
+
+/**
+ * [FIX B - camera menus] Recoloca a camera INSTANTANEAMENTE no jogador,
+ * sem passar pelo lerp de cameraGrande(). Chamar logo apos fechar qualquer
+ * menu (pause/skills/mochila/interacao/cheat), quando as flags ja estao
+ * false mas o proximo frame ainda herdaria cameraX/Y zerados.
+ * Usa o mesmo calculo de alvo + clamp das cameras pequena/grande, mas
+ * atribui direto em vez de suavizar.
+ */
+window.recolocarCameraNoJogador = function() {
+    const controle = window.playerControle;
+    if (!controle) return;
+    // Se um pet/BB assumiu o foco, usa ele como alvo igual ao loop principal.
+    const petFoco = window.controlandoCao ? window.caoEntidade
+        : (window.controlandoGato ? window.gatoEntidade
+        : (window.controlandoBB ? window.bbEntidade : null));
+    const alvo = petFoco || controle;
+    const alvoX = Number(alvo.x || 0) + Number(alvo.offsetX || controle.offsetX || 0)
+        + (Number(alvo.largura || controle.largura || 20) / 2);
+    const alvoY = Number(alvo.y || 0) + (Number(alvo.altura || controle.altura || 30) / 2);
+    const mundoW = Number(window.mundoLargura || 0);
+    const mundoH = Number(window.mundoAltura || 0);
+    if (!mundoW || !mundoH) return;
+
+    const viewW_Config = window.VIEWPORT?.width || 640;
+    const viewH_Config = window.VIEWPORT?.height || 480;
+    const zoom = window.cameraZoomFactor || 1;
+    const viewW = viewW_Config / zoom;
+    const viewH = viewH_Config / zoom;
+
+    // cameraGrande aplica offsetY de 20px para deixar o foco um pouco abaixo
+    // do centro; replica aqui para o snap cair no mesmo ponto do lerp.
+    const modo = (typeof window.detectarTamanhoCâmera === 'function')
+        ? window.detectarTamanhoCâmera() : 'pequena';
+    const offsetYGrande = (modo === 'grande') ? 20 : 0;
+
+    const targetX = alvoX - (viewW / 2);
+    const targetY = mundoH - alvoY - (viewH / 2) - offsetYGrande;
+    window.cameraX = clamparCamera(targetX, mundoW, viewW);
+    window.cameraY = clamparCamera(targetY, mundoH, viewH);
+
+    // Reaplica o transform imediatamente (mesma formula das cameras).
+    const stage = document.getElementById('game-stage');
+    if (stage) {
+        stage.style.transformOrigin = '0 0';
+        const x = Math.round(window.cameraX);
+        const y = Math.round(window.cameraY);
+        if (modo === 'grande') {
+            const offX = calcularOffsetCentralizacao(mundoW, viewW);
+            const offY = calcularOffsetCentralizacao(mundoH, viewH);
+            stage.style.transform = `scale(${zoom}) translate(${Math.round(offX - x)}px, ${Math.round(offY - y)}px)`;
+        } else {
+            stage.style.transform = `scale(${zoom}) translate(${-x}px, ${-y}px)`;
+        }
     }
 };
 
@@ -206,6 +263,10 @@ window.atualizarCamera = function(alvoX, alvoY, mundoW, mundoH) {
     // quando a camera ainda pode estar desalinhada com a posição do player.
     if (window.isInteractionMenuOpen) return;
     if (window.isMenuOpen) return;
+    // Congela a camera enquanto skills/mochila abertos: sem isso ela atualiza
+    // com estado velho do menu e dá salto quando o menu fecha.
+    if (window.isSkillMenuOpen) return;
+    if (window.isMochilaMenuOpen) return;
 
     // Atualiza o timer do tremor (aproximadamente 60fps = 16.6ms por frame)
     window.atualizarTremorCamera(16.6);

@@ -368,10 +368,28 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
     aplicarInventarioSalvo();
 
     window.isPaused = false;
-    window.togglePause = () => {
-        window.isPaused = !window.isPaused;
-        if (elemento.parentElement) {
-            elemento.parentElement.style.filter = window.isPaused ? 'brightness(0.3) grayscale(0.6)' : 'none';
+    // [E2] Dono unico de pausa: cada menu registra seu proprio dono.
+    // ESC duplo / abrir menu por cima de outro nao dessincroniza mais:
+    // o jogo so despausa quando TODOS os donos liberarem.
+    // O palco NAO recebe filter aqui (filter em ancestral muda o containing
+    // block e desloca visualmente a camera); o escurecimento ja e feito
+    // pelos overlays (pause-menu-overlay etc).
+    window.__pauseOwners = window.__pauseOwners instanceof Set ? window.__pauseOwners : new Set();
+    window.setPausado = (pausar, dono = 'anon') => {
+        if (pausar) {
+            window.__pauseOwners.add(dono);
+        } else if (dono === '__todos') {
+            window.__pauseOwners.clear();
+        } else {
+            window.__pauseOwners.delete(dono);
+        }
+        window.isPaused = window.__pauseOwners.size > 0;
+    };
+    window.togglePause = (dono = 'anon') => {
+        if (window.__pauseOwners.has(dono)) {
+            window.setPausado(false, dono);
+        } else {
+            window.setPausado(true, dono);
         }
     };
 

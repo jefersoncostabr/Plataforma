@@ -611,6 +611,10 @@
         const key = String(e.key || '').toLowerCase();
         if (key === 'escape' || key === 'esc') {
             e.preventDefault();
+            // Consome o ESC aqui: sem isso ele borbulha ate o listener global
+            // (controles.js) que abre o pause por cima — jogo segue pausado e
+            // a camera congela (mesmo "bug" das skills/base).
+            e.stopPropagation();
             window.toggleMochilaMenu(window.playerControle);
             return;
         }
@@ -671,8 +675,11 @@
 
         window.isMochilaMenuOpen = !window.isMochilaMenuOpen;
 
-        if (typeof window.togglePause === 'function') {
-            window.togglePause();
+        // [E2] Pausa com dono proprio (mochila).
+        if (typeof window.setPausado === 'function') {
+            window.setPausado(window.isMochilaMenuOpen, 'mochila');
+        } else if (typeof window.togglePause === 'function') {
+            window.togglePause('mochila');
         }
 
         if (window.isMochilaMenuOpen) {
@@ -684,6 +691,10 @@
         } else {
             window.removeEventListener('keydown', handleMochilaMenuInput);
             fecharMenuMochilaUI();
+            // [FIX B] Snap instantaneo ao fechar mochila.
+            if (typeof window.recolocarCameraNoJogador === 'function') {
+                try { window.recolocarCameraNoJogador(); } catch (_) {}
+            }
         }
 
         return true;

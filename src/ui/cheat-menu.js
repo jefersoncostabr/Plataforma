@@ -51,7 +51,19 @@
         cheatMenuPausou = false;
         cheatMenuAbertoViaCombo = false;
         // Pausar jogo se estiver no gameplay (não pausado e não em menus)
+        // [E2] Pausa com dono proprio (cheat).
         if (
+            typeof window.setPausado === 'function' &&
+            !window.isPaused &&
+            !window.isMenuOpen &&
+            !window.isSkillMenuOpen &&
+            !window.isMochilaMenuOpen &&
+            !window.isInteractionMenuOpen
+        ) {
+            window.setPausado(true, 'cheat');
+            cheatMenuPausou = true;
+            cheatMenuAbertoViaCombo = true;
+        } else if (
             typeof window.togglePause === 'function' &&
             !window.isPaused &&
             !window.isMenuOpen &&
@@ -59,7 +71,7 @@
             !window.isMochilaMenuOpen &&
             !window.isInteractionMenuOpen
         ) {
-            window.togglePause();
+            window.togglePause('cheat');
             cheatMenuPausou = true;
             cheatMenuAbertoViaCombo = true;
         }
@@ -155,12 +167,25 @@
         if (overlayEl) overlayEl.remove();
         overlayEl = null;
         // Só despausa se foi aberto via combo no gameplay
+        // [E2] Libera so o dono 'cheat'; se outro menu pausou por cima, o jogo
+        // continua pausado corretamente.
         if (
+            cheatMenuAbertoViaCombo &&
+            typeof window.setPausado === 'function' &&
+            window.isPaused
+        ) {
+            window.setPausado(false, 'cheat');
+        } else if (
             cheatMenuAbertoViaCombo &&
             typeof window.togglePause === 'function' &&
             window.isPaused
         ) {
-            window.togglePause();
+            window.togglePause('cheat');
+        }
+        // [FIX B] Cheat menu tambem pausa sem setar flag is*MenuOpen; ao
+        // fechar, recoloca a camera para nao herdar posicao obsoleta.
+        if (typeof window.recolocarCameraNoJogador === 'function') {
+            try { window.recolocarCameraNoJogador(); } catch (_) {}
         }
     }
 

@@ -270,7 +270,15 @@
 
         console.debug(`[Tela] Renderizado: ${baseW}x${baseH} @ ${escala}x (Modo: ${modoTelaAtual})`);
 
-        if (typeof window.resetarCamera === 'function') {
+        // [FIX A - camera menus] Nao zera a camera enquanto algum menu estiver
+        // aberto: aplicarEscalaJogo() e chamado ao ABRIR pause/base (menu.js,
+        // interacao-sistema.js) e o reset jogava cameraX/Y para 0,0 com a
+        // camera congelada -> ao fechar, lerp deslizava da origem ate o player
+        // ("vai pra baixo da terra"). Com menu aberto, so preserva; o snap de
+        // retorno e feito por window.recolocarCameraNoJogador() ao fechar.
+        const algumMenuAberto = !!(window.isMenuOpen || window.isSkillMenuOpen
+            || window.isMochilaMenuOpen || window.isInteractionMenuOpen || window.isPaused);
+        if (!algumMenuAberto && typeof window.resetarCamera === 'function') {
             window.resetarCamera();
         }
     };

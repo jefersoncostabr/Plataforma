@@ -312,9 +312,11 @@ window.toggleSkillMenu = async () => {
 
     window.isSkillMenuOpen = !window.isSkillMenuOpen;
     
-    // Utiliza a lógica de pausa já existente no jogo
-    if (typeof window.togglePause === 'function') {
-        window.togglePause();
+    // [E2] Pausa com dono: ESC duplo ou pause por cima nao dessincroniza.
+    if (typeof window.setPausado === 'function') {
+        window.setPausado(window.isSkillMenuOpen, 'skills');
+    } else if (typeof window.togglePause === 'function') {
+        window.togglePause('skills');
     }
 
     if (window.isSkillMenuOpen) {
@@ -325,13 +327,28 @@ window.toggleSkillMenu = async () => {
         // console.log("SkillTree: Fechando menu de habilidades...");
         window.removeEventListener('keydown', handleSkillMenuInput);
         fecharMenuSkillsUI();
+        // [FIX B] Snap instantaneo ao fechar skills (mesmo motivo do pause).
+        if (typeof window.recolocarCameraNoJogador === 'function') {
+            try { window.recolocarCameraNoJogador(); } catch (_) {}
+        }
     }
 };
 
 function handleSkillMenuInput(e) {
     if (!window.isSkillMenuOpen || !window.skillsData) return;
 
-    const key = e.key.toLowerCase();
+    const rawKey = String(e.key || '');
+    // ESC fecha as skills aqui mesmo (dono do proprio ESC): sem isso o evento
+    // cai no listener global e o fechamento depende da ordem de registro —
+    // mesma familia do bug da mochila/base que congelava a camera.
+    if (rawKey === 'Escape' || rawKey === 'Esc') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof window.toggleSkillMenu === 'function') window.toggleSkillMenu();
+        return;
+    }
+
+    const key = rawKey.toLowerCase();
     let depth = getSkillDepth(selectedSkillId, window.skillsData);
     let index = skillsLevelMap[depth].indexOf(selectedSkillId);
 

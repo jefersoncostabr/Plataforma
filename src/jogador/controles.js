@@ -229,6 +229,10 @@
 
                 if (window.isMochilaMenuOpen) {
                     callbacks.onToggleMochila?.();
+                } else if (window.isSkillMenuOpen) {
+                    // ESC com skills aberto = fecha as skills e volta ao jogo (igual a mochila).
+                    // Antes caia no pause e a camera congelava no estado do menu.
+                    callbacks.onToggleSkillMenu?.();
                 } else {
                     callbacks.onTogglePauseMenu?.();
                 }

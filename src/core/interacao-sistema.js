@@ -352,13 +352,20 @@
         }
         overlayAtual = null;
 
-        if (window.interactionPauseApplied && window.isPaused && typeof window.togglePause === 'function') {
-            window.togglePause();
+        if (window.interactionPauseApplied && window.isPaused && typeof window.setPausado === 'function') {
+            window.setPausado(false, 'interacao');
+        } else if (window.interactionPauseApplied && window.isPaused && typeof window.togglePause === 'function') {
+            window.togglePause('interacao');
         }
 
         window.isInteractionMenuOpen = false;
         window.interactionPauseApplied = false;
         window.interactionMenuContext = null;
+        // [FIX B] Snap instantaneo ao fechar base/crafting (aplicarEscalaJogo
+        // e chamado ao abrir e antes zerava a camera).
+        if (typeof window.recolocarCameraNoJogador === 'function') {
+            try { window.recolocarCameraNoJogador(); } catch (_) {}
+        }
         return true;
     }
 
@@ -874,6 +881,11 @@
             const ativo = document.activeElement;
             if (event.key === 'Escape') {
                 event.preventDefault();
+                // O listener da base roda no document, ANTES do listener global
+                // (window) dos controles. Sem parar a propagacao, o mesmo ESC
+                // fecha a base aqui e logo depois abre o pause la — o jogo
+                // continua pausado e a camera congela (o "bug").
+                event.stopPropagation();
 
                 // Se estivermos no menu de crafting, o ESC volta para o menu principal da base
                 if (id === 'menu_crafting') {
@@ -926,8 +938,11 @@
             requestAnimationFrame(() => focoInicial.focus());
         }
 
-        if (!window.isPaused && typeof window.togglePause === 'function') {
-            window.togglePause();
+        if (!window.isPaused && typeof window.setPausado === 'function') {
+            window.setPausado(true, 'interacao');
+            window.interactionPauseApplied = true;
+        } else if (!window.isPaused && typeof window.togglePause === 'function') {
+            window.togglePause('interacao');
             window.interactionPauseApplied = true;
         } else {
             window.interactionPauseApplied = false;
@@ -937,10 +952,11 @@
         overlayAtual = overlay;
         window.isInteractionMenuOpen = true;
 
-        // Sincroniza a escala do novo menu aberto (Base, Crafting, etc)
-        if (typeof window.aplicarEscalaJogo === 'function') {
-            window.aplicarEscalaJogo();
-        }
+        // [E1] Nao chama aplicarEscalaJogo() ao abrir: o overlay (#interaction-
+        // overlay-root, fixed, fora do stage) ja aparece por cima sem herdar o
+        // transform da camera. Recalcular aqui mexia no container/stage e
+        // deslocava visualmente a camera no proprio frame do pause.
+        // (removido: window.aplicarEscalaJogo() aqui)
 
         return true;
     }

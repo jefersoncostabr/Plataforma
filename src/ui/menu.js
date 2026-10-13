@@ -754,15 +754,10 @@ function tratarAjusteHorizontalMenuPrincipal(item, key) {
 
 window.togglePauseMenu = () => {
     if (window.isSkillMenuOpen) {
-        if (typeof fecharMenuSkillsUI === 'function') fecharMenuSkillsUI();
-        window.isSkillMenuOpen = false;
-
-        window.isMenuOpen = true;
-        menuMode = 'main';
-        menuSelectedIndex = 0;
-        menuSelectedSlotId = window.SaveSlots?.getActiveSlotId?.() || menuSelectedSlotId;
-        renderMenuUI();
-        window.addEventListener('keydown', handleMenuInput);
+        // Fecha as skills pelo caminho oficial: despausa, remove o listener de input
+        // das skills e remove o overlay. Antes esse trecho abria o pause por cima
+        // (sem despausar) e vazava o listener, deixando a camera congelada/bugada.
+        if (typeof window.toggleSkillMenu === 'function') window.toggleSkillMenu();
         return;
     }
 
@@ -781,8 +776,10 @@ window.togglePauseMenu = () => {
 
     window.isMenuOpen = !window.isMenuOpen;
 
-    if (typeof window.togglePause === 'function') {
-        window.togglePause();
+    if (typeof window.setPausado === 'function') {
+        window.setPausado(window.isMenuOpen, 'pause');
+    } else if (typeof window.togglePause === 'function') {
+        window.togglePause('pause');
     }
 
     if (window.isMenuOpen) {
@@ -796,6 +793,12 @@ window.togglePauseMenu = () => {
     } else {
         removeMenuUI();
         window.removeEventListener('keydown', handleMenuInput);
+        // [FIX B] Snap instantaneo: a camera ficou congelada + preservada
+        // (fix A) enquanto o pause estava aberto; recoloca no jogador para
+        // nao herdar lerp de posicao zerada ("embaixo da terra").
+        if (typeof window.recolocarCameraNoJogador === 'function') {
+            try { window.recolocarCameraNoJogador(); } catch (_) {}
+        }
     }
 };
 
@@ -877,6 +880,21 @@ function handleMenuInput(e) {
     if (!window.isMenuOpen) return;
 
     const key = e.key.toLowerCase();
+
+    // ESC no pause fecha aqui mesmo (dono do proprio ESC): sem isso o evento
+    // borbulha ate o listener global que chama togglePauseMenu de novo —
+    // abre/fecha 2x no mesmo aperto e deixa isPaused/isMenuOpen desemparelhados,
+    // congelando a camera com a tela aparentemente normal.
+    if (key === 'escape' || key === 'esc') {
+        // Nos submenus controls/settings o handler especifico ja trata o ESC
+        // (volta pro main); aqui so fecha o pause quando estiver no main.
+        if (menuMode === 'main') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof window.togglePauseMenu === 'function') window.togglePauseMenu();
+            return;
+        }
+    }
 
     if (menuMode === 'controls') {
         handleControlsInput(e);
@@ -1189,10 +1207,12 @@ async function renderMenuUI() {
    
     await preencherConteudoPorModo(mainLayout);
 
-    // Sincroniza a escala do menu com o aumento da tela
-    if (typeof window.aplicarEscalaJogo === 'function') {
-        window.aplicarEscalaJogo();
-    }
+    // [E1] Nao recalcula escala/filtro ao abrir pause: overlays ja sao
+    // position:fixed fora do #game-stage, entao aparecem por cima sem herdar
+    // transform. Recalcular aqui causava reflow + deslocamento visual da
+    // camera (parecia "ir pra baixo da terra"). Escala continua em resize,
+    // troca de resolucao/modo de tela e carregarFase.
+    // (removido: window.aplicarEscalaJogo() aqui)
 
     updateMenuVisuals();
 }
