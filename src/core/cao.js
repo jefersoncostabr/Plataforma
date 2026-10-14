@@ -465,6 +465,7 @@
 
         if (tipo === 'cao') {
             window.isCaoResgatado = true;
+            window.TutorialControles?.registrarItemColetado?.('cao');
         } else {
             window.isGatoResgatado = true;
             window.TutorialControles?.registrarItemColetado?.('gato');

@@ -495,7 +495,10 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         const jaTemMesmoItem = jaTemNoCorpo && (['revolver', 'doze'].includes(tipo) ? inimigo.heldWeaponType === tipo : true);
 
         // Se já tem exatamente o mesmo item equipado e não tem mochila para guardar a sobra, ignora
-        if (jaTemMesmoItem && !inimigo.temCinto && !inimigo.temColete && tipo !== 'cinto' && tipo !== 'colete') {
+        const armaIgualSemMunicao = ['revolver', 'doze'].includes(tipo)
+            && Number(inimigo.municao || 0) <= 0;
+        if (jaTemMesmoItem && !armaIgualSemMunicao
+            && !inimigo.temCinto && !inimigo.temColete && tipo !== 'cinto' && tipo !== 'colete') {
             return;
         }
 
@@ -2022,9 +2025,9 @@ window.AudioManager.playSFX('chute', 0.4);
 
                         const tiros = isDoze 
                             ? [
-                                { dx: 0, dy: 0 },      // Tiro central
-                                { dx: 0, dy: 16 },     // Tiro superior
-                                { dx: 0, dy: -16 }     // Tiro inferior
+                                { dx: 0, dy: 0, velocidadeY: 0 },
+                                { dx: 0, dy: 0, velocidadeY: 1 },
+                                { dx: 0, dy: 0, velocidadeY: -1 }
                             ]
                             : [
                                 { dx: 0, dy: 0 }       // Tiro único (revolver)
@@ -2051,6 +2054,7 @@ window.AudioManager.playSFX('chute', 0.4);
                                     x: xPartida + tiro.dx,
                                     y: yPartida + tiro.dy,
                                     direcao: dir,
+                                    velocidadeY: tiro.velocidadeY || 0,
                                     elemento: projElemento,
                                     origem: 'inimigo'
                                 });

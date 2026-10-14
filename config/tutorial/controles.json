@@ -53,7 +53,7 @@
     {
       "id": "cinto_fase2",
       "pegarItem": "cinto",
-      "msg": "O cinto pode guardar seus equipamentos teclando l",
+      "msg": "Use L ou dê um toque rápido em Cima para recolher/liberar os itens do cinto",
       "nivel": 1,
       "fase": 2,
       "ativo": true
@@ -91,6 +91,14 @@
       "ativo": true
     },
     {
+      "id": "cao_fase5",
+      "pegarItem": "cao",
+      "msg": "Magrelin! Vai te ajudar na aventura",
+      "nivel": 1,
+      "fase": 5,
+      "ativo": true
+    },
+    {
       "id": "tiro_fase4",
       "acaoId": "pulo",
       "teclaPadrao": "ESPAÇO",
@@ -99,6 +107,22 @@
       "fase": 4,
       "blocoVisivel": "a2",
       "repeticoesNecessarias": 3,
+      "ativo": true
+    },
+    {
+      "id": "doze_fase5",
+      "pegarItem": "doze",
+      "msg": "Espingarda doze de cano serrado",
+      "nivel": 1,
+      "fase": 5,
+      "ativo": true
+    },
+    {
+      "id": "escudo_fase5",
+      "pegarItem": "escudo",
+      "msg": "Escudo Balistico, é pesado mas bloqueia tiros e quebra após 3 tiros",
+      "nivel": 1,
+      "fase": "",
       "ativo": true
     }
   ]

@@ -58,6 +58,17 @@ window.inicializarVisualEquipamentoEntidade = function(entidade, parentElement, 
 
         // Gerencia visibilidade
         if (entidade[key]) {
+            if (key === 'armaElemento') {
+                const tipoArma = entidade.heldWeaponType === 'doze' ? 'doze' : 'revolver';
+                const spriteArma = typeof window.obterSpriteItem === 'function'
+                    ? window.obterSpriteItem(tipoArma, config, 'equipado')
+                    : '';
+                const spriteDesejado = spriteArma || info.fallback;
+                if (entidade[key].getAttribute('src') !== spriteDesejado) {
+                    entidade[key].src = spriteDesejado;
+                }
+            }
+
             const ocultarPeloCinto = !!(entidade.itensGuardadosNoCinto && key !== 'cintoElemento');
             let visivel = !!entidade[info.flag] && !ocultarPeloCinto;
 

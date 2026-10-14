@@ -1604,9 +1604,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             // Padrão de tiro: Revolver = 1 tiro reto | Doze = 3 tiros (1 reto + 2 diagonais)
             const tiros = armaEquipada === 'doze' 
                 ? [
-                    { dx: 0, dy: 0, dir: dir },      // Tiro reto no meio
-                    { dx: 0, dy: 16, dir: dir },     // Tiro diagonal para cima
-                    { dx: 0, dy: -16, dir: dir }     // Tiro diagonal para baixo
+                    { dx: 0, dy: 0, dir: dir, velocidadeY: 0 },
+                    { dx: 0, dy: 0, dir: dir, velocidadeY: 1 },
+                    { dx: 0, dy: 0, dir: dir, velocidadeY: -1 }
                 ]
                 : [
                     { dx: 0, dy: 0, dir: dir }       // Tiro reto (revolver)
@@ -1632,6 +1632,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                         x: xPartida + tiro.dx,
                         y: yPartida + tiro.dy,
                         direcao: tiro.dir,
+                        velocidadeY: tiro.velocidadeY || 0,
                         elemento: projElemento,
                         origem: 'player'
                     });
@@ -2198,7 +2199,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             for (let i = window.projeteis.length - 1; i >= 0; i--) {
                 const proj = window.projeteis[i];
                 proj.x += (config.velocidadeProjetil ?? 8) * proj.direcao;
+                proj.y += Number(proj.velocidadeY || 0);
                 proj.elemento.style.left = proj.x + 'px';
+                proj.elemento.style.bottom = proj.y + 'px';
 
                 let hitAlvo = false;
 

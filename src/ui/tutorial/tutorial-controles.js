@@ -39,6 +39,18 @@
         return normalizado === 'municao_plus' ? 'municao' : normalizado;
     }
 
+    function normalizarEscopoFase(valor) {
+        const texto = String(valor ?? '').trim();
+        if (!texto) return null;
+        const numero = Number(texto);
+        return Number.isInteger(numero) && numero >= 1 ? numero : null;
+    }
+
+    function correspondeAoEscopo(tutorial, faseAtual) {
+        return (tutorial.nivel === null || tutorial.nivel === faseAtual.nivel)
+            && (tutorial.fase === null || tutorial.fase === faseAtual.fase);
+    }
+
     function obterLegendaTecla(tutorial) {
         const binds = window.controlesConfig?.[tutorial.id];
         const bind = Array.isArray(binds) && binds.length ? String(binds[0]) : tutorial.teclaPadrao;
@@ -144,7 +156,8 @@
         configuracao.tutoriais.forEach((tutorial) => {
             if (!ehTutorialDeControle(tutorial) || !tutorial.ativo || tutoriaisAtivados.has(tutorial.id)
                 || (progresso.get(tutorial.id) || 0) >= tutorial.repeticoesNecessarias) return;
-            if (tutorial.nivel !== faseAtual.nivel || tutorial.fase !== faseAtual.fase) return;
+            if (tutorial.nivel === null || tutorial.fase === null
+                || tutorial.nivel !== faseAtual.nivel || tutorial.fase !== faseAtual.fase) return;
             if (!blocoEstaVisivel(tutorial.blocoVisivel)) return;
 
             tutoriaisAtivados.add(tutorial.id);
@@ -177,10 +190,9 @@
                 const ids = new Set();
                 const validos = tutoriais.filter((item) => {
                     const id = String(item?.id || '').trim();
-                    const nivel = Number(item?.nivel);
-                    const fase = Number(item?.fase);
-                    if (!id || ids.has(id) || !Number.isInteger(nivel) || nivel < 1
-                        || !Number.isInteger(fase) || fase < 1) return false;
+                    const nivel = normalizarEscopoFase(item?.nivel);
+                    const fase = normalizarEscopoFase(item?.fase);
+                    if (!id || ids.has(id)) return false;
 
                     if (ehTutorialInformativo(item)) {
                         const pegarItem = String(item?.pegarItem || '').trim().toLowerCase();
@@ -191,6 +203,7 @@
                         const duracao = Number(item.duracaoMs);
                         item.duracaoMs = Number.isFinite(duracao) && duracao > 0 ? duracao : 6000;
                     } else {
+                        if (nivel === null || fase === null) return false;
                         const repeticoes = Number(item?.repeticoesNecessarias);
                         const blocoVisivel = String(item?.blocoVisivel || '').trim().toLowerCase();
                         const acaoId = String(item?.acaoId || item?.id || '').trim().toLowerCase();
@@ -273,7 +286,7 @@
             if (!ehTutorialInformativo(tutorial) || !tutorial.ativo
                 || tutoriaisItensExibidos.has(tutorial.id)
                 || normalizarTipoItem(tutorial.pegarItem) !== tipoNormalizado
-                || tutorial.nivel !== faseAtual.nivel || tutorial.fase !== faseAtual.fase) return;
+                || !correspondeAoEscopo(tutorial, faseAtual)) return;
 
             tutoriaisItensExibidos.add(tutorial.id);
             const raiz = obterContainer();
