@@ -613,6 +613,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                     tentarLevantarJogador();
                 } else if (podeAgacharSemBloqueio()) {
                     controle.estaAgachado = true;
+                    window.TutorialControles?.registrarAcao?.('agachar');
                 } else if (typeof flashElement === 'function') {
                     flashElement(elemento, 120, 4);
                 }

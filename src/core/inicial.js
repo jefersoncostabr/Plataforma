@@ -326,11 +326,14 @@ async function carregarFase(nomeArquivo) {
             return String(entrada?.coord || entrada?.pos || '').trim().toLowerCase();
         }
 
+        const tiposPlataformaSemColisao = new Set(['plataformaMetalFundo', 'plataformaFundoMisto', 'plataformaFundoTerraPedra', 'plataformaMeiaPedra', 'plataformaArbustoPequeno']);
+
         function registrarColisao(entrada) {
             const coord = obterCoordEntradaPlataforma(entrada);
             if (!coord) return;
             // Se for bloco metálico de fundo, não registra colisão (apenas visual)
-            if (entrada?.type === 'plataformaMetalFundo' || (typeof entrada === 'object' && entrada.type === 'plataformaMetalFundo')) return;
+            const tipo = typeof entrada === 'object' ? String(entrada?.type || '').trim() : '';
+            if (tiposPlataformaSemColisao.has(tipo)) return;
             window.plataformas[coord] = true;
         }
         

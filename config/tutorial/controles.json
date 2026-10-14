@@ -36,8 +36,42 @@
       "acao": "Chute",
       "nivel": 1,
       "fase": 1,
-      "blocoVisivel": "f30",
+      "blocoVisivel": "f35",
       "repeticoesNecessarias": 3,
+      "ativo": true
+    },
+    {
+      "id": "agachar",
+      "teclaPadrao": "S",
+      "acao": "Agachar",
+      "nivel": 1,
+      "fase": 2,
+      "blocoVisivel": "a2",
+      "repeticoesNecessarias": 3,
+      "ativo": true
+    },
+    {
+      "id": "cinto_fase2",
+      "pegarItem": "cinto",
+      "msg": "O cinto pode guardar seus equipamentos teclando l",
+      "nivel": 1,
+      "fase": 2,
+      "ativo": true
+    },
+    {
+      "id": "munição_fase3",
+      "pegarItem": "munição",
+      "msg": "Recupera a munição da sua arma",
+      "nivel": 1,
+      "fase": 3,
+      "ativo": true
+    },
+    {
+      "id": "restauração_fase3",
+      "pegarItem": "restauração",
+      "msg": "Restaura a energia do seu personagem",
+      "nivel": 1,
+      "fase": 3,
       "ativo": true
     }
   ]

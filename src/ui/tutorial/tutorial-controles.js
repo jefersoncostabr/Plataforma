@@ -18,6 +18,26 @@
     let inicializacaoEmCurso = null;
     let sessaoIniciada = false;
     let intervaloVisibilidade = null;
+    let mensagensAtivas = new Map();
+    let tutoriaisItensExibidos = new Set();
+
+    function ehTutorialInformativo(tutorial) {
+        return Object.prototype.hasOwnProperty.call(tutorial, 'pegarItem')
+            || Object.prototype.hasOwnProperty.call(tutorial, 'msg');
+    }
+
+    function ehTutorialDeControle(tutorial) {
+        return !ehTutorialInformativo(tutorial);
+    }
+
+    function normalizarTipoItem(tipo) {
+        const normalizado = String(tipo || '')
+            .trim()
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+        return normalizado === 'municao_plus' ? 'municao' : normalizado;
+    }
 
     function obterLegendaTecla(tutorial) {
         const binds = window.controlesConfig?.[tutorial.id];
@@ -48,7 +68,7 @@
         raiz.replaceChildren();
 
         configuracao.tutoriais.forEach((tutorial) => {
-            if (!tutorial.ativo || !tutoriaisAtivados.has(tutorial.id)
+            if (!ehTutorialDeControle(tutorial) || !tutorial.ativo || !tutoriaisAtivados.has(tutorial.id)
                 || (progresso.get(tutorial.id) || 0) >= tutorial.repeticoesNecessarias) return;
 
             const item = document.createElement('div');
@@ -72,6 +92,8 @@
             raiz.appendChild(item);
         });
 
+        mensagensAtivas.forEach(({ elemento }) => raiz.appendChild(elemento));
+
         sincronizarVisibilidade();
     }
 
@@ -93,26 +115,20 @@
         const palco = document.getElementById('game-stage');
         if (!palco) return false;
 
-        const fase = window.faseAtualData || {};
-        const blocoExisteNaFase = Object.entries(fase).some(([chave, entradas]) =>
-            chave.toLowerCase().startsWith('plataformas')
-            && Array.isArray(entradas)
-            && entradas.some((entrada) => {
-                const coord = typeof entrada === 'string' ? entrada : entrada?.coord;
-                return String(coord || '').trim().toLowerCase() === coordenada;
-            })
-        );
-        if (!blocoExisteNaFase) return false;
-
         const posicao = window.gridParaPixels(coordenada);
         const tamanhoBloco = 32;
+        const mundoLargura = Number(window.mundoLargura || palco.offsetWidth || 0);
         const mundoAltura = Number(window.mundoAltura || palco.offsetHeight || 0);
+        const esquerdaBloco = Number(posicao.x || 0);
+        const baseBloco = Number(posicao.y || 0);
+        if (esquerdaBloco < 0 || esquerdaBloco + tamanhoBloco > mundoLargura
+            || baseBloco < 0 || baseBloco + tamanhoBloco > mundoAltura) return false;
+
         const zoom = Math.max(0.01, Number(window.cameraZoomFactor || 1));
         const larguraViewport = Number(window.VIEWPORT?.width || 640) / zoom;
         const alturaViewport = Number(window.VIEWPORT?.height || 480) / zoom;
         const esquerdaViewport = Number(window.cameraX || 0);
         const topoViewport = Number(window.cameraY || 0);
-        const esquerdaBloco = Number(posicao.x || 0);
         const topoBloco = mundoAltura - Number(posicao.y || 0) - tamanhoBloco;
 
         return esquerdaBloco + tamanhoBloco > esquerdaViewport
@@ -127,7 +143,7 @@
         let ativouTutorial = false;
 
         configuracao.tutoriais.forEach((tutorial) => {
-            if (!tutorial.ativo || tutoriaisAtivados.has(tutorial.id)
+            if (!ehTutorialDeControle(tutorial) || !tutorial.ativo || tutoriaisAtivados.has(tutorial.id)
                 || (progresso.get(tutorial.id) || 0) >= tutorial.repeticoesNecessarias) return;
             if (tutorial.nivel !== faseAtual.nivel || tutorial.fase !== faseAtual.fase) return;
             if (!blocoEstaVisivel(tutorial.blocoVisivel)) return;
@@ -162,21 +178,33 @@
                 const ids = new Set();
                 const validos = tutoriais.filter((item) => {
                     const id = String(item?.id || '').trim();
-                    const repeticoes = Number(item?.repeticoesNecessarias);
                     const nivel = Number(item?.nivel);
                     const fase = Number(item?.fase);
-                    const blocoVisivel = String(item?.blocoVisivel || '').trim().toLowerCase();
-                    if (!id || ids.has(id) || !String(item?.acao || '').trim()
-                        || !Number.isFinite(repeticoes) || repeticoes < 1
-                        || !Number.isInteger(nivel) || nivel < 1
-                        || !Number.isInteger(fase) || fase < 1
-                        || !/^[a-z]+\d+$/.test(blocoVisivel)) return false;
+                    if (!id || ids.has(id) || !Number.isInteger(nivel) || nivel < 1
+                        || !Number.isInteger(fase) || fase < 1) return false;
+
+                    if (ehTutorialInformativo(item)) {
+                        const pegarItem = String(item?.pegarItem || '').trim().toLowerCase();
+                        const msg = String(item?.msg || '').trim();
+                        if (!pegarItem || !msg) return false;
+                        item.pegarItem = pegarItem;
+                        item.msg = msg;
+                        const duracao = Number(item.duracaoMs);
+                        item.duracaoMs = Number.isFinite(duracao) && duracao > 0 ? duracao : 6000;
+                    } else {
+                        const repeticoes = Number(item?.repeticoesNecessarias);
+                        const blocoVisivel = String(item?.blocoVisivel || '').trim().toLowerCase();
+                        if (!String(item?.acao || '').trim()
+                            || !Number.isFinite(repeticoes) || repeticoes < 1
+                            || !/^[a-z]+\d+$/.test(blocoVisivel)) return false;
+                        item.blocoVisivel = blocoVisivel;
+                        item.repeticoesNecessarias = Math.floor(repeticoes);
+                    }
+
                     ids.add(id);
                     item.id = id;
                     item.nivel = nivel;
                     item.fase = fase;
-                    item.blocoVisivel = blocoVisivel;
-                    item.repeticoesNecessarias = Math.floor(repeticoes);
                     item.ativo = item.ativo !== false;
                     return true;
                 });
@@ -198,7 +226,12 @@
 
     async function iniciarSessao() {
         const dados = await carregarConfiguracao();
-        progresso = new Map(dados.tutoriais.map((tutorial) => [tutorial.id, 0]));
+        mensagensAtivas.forEach(({ timeout }) => clearTimeout(timeout));
+        mensagensAtivas = new Map();
+        tutoriaisItensExibidos = new Set();
+        progresso = new Map(dados.tutoriais
+            .filter(ehTutorialDeControle)
+            .map((tutorial) => [tutorial.id, 0]));
         tutoriaisAtivados = new Set();
         sessaoIniciada = true;
         renderizar();
@@ -209,7 +242,9 @@
 
     function registrarAcao(id) {
         if (!sessaoIniciada || !configuracao) return;
-        const tutorial = configuracao.tutoriais.find((item) => item.id === id && item.ativo);
+        const tutorial = configuracao.tutoriais.find((item) =>
+            ehTutorialDeControle(item) && item.id === id && item.ativo
+        );
         if (!tutorial || !tutoriaisAtivados.has(id)) return;
 
         const atual = progresso.get(id) || 0;
@@ -219,6 +254,38 @@
         renderizar();
     }
 
+    function registrarItemColetado(tipoItem) {
+        if (!sessaoIniciada || !configuracao || !tipoItem) return;
+        const tipoNormalizado = normalizarTipoItem(tipoItem);
+        const faseAtual = obterFaseAtual();
+
+        configuracao.tutoriais.forEach((tutorial) => {
+            if (!ehTutorialInformativo(tutorial) || !tutorial.ativo
+                || tutoriaisItensExibidos.has(tutorial.id)
+                || normalizarTipoItem(tutorial.pegarItem) !== tipoNormalizado
+                || tutorial.nivel !== faseAtual.nivel || tutorial.fase !== faseAtual.fase) return;
+
+            tutoriaisItensExibidos.add(tutorial.id);
+            const raiz = obterContainer();
+            if (!raiz) return;
+
+            const elemento = document.createElement('div');
+            elemento.className = 'tutorial-controles-linha tutorial-controles-mensagem';
+            elemento.dataset.tutorialId = tutorial.id;
+            elemento.textContent = tutorial.msg;
+            mensagensAtivas.set(tutorial.id, { elemento, timeout: null });
+
+            const timeout = setTimeout(() => {
+                mensagensAtivas.delete(tutorial.id);
+                elemento.remove();
+                sincronizarVisibilidade();
+            }, tutorial.duracaoMs);
+            mensagensAtivas.get(tutorial.id).timeout = timeout;
+
+            renderizar();
+        });
+    }
+
     function atualizarTeclas() {
         if (sessaoIniciada) renderizar();
     }
@@ -226,6 +293,7 @@
     window.TutorialControles = {
         iniciarSessao,
         registrarAcao,
+        registrarItemColetado,
         atualizarTeclas,
         sincronizarVisibilidade
     };

@@ -32,6 +32,12 @@
     white-space: nowrap;
 }
 
+.tutorial-controles-mensagem {
+    max-width: min(420px, calc(100vw - 24px));
+    white-space: normal;
+    text-align: right;
+}
+
 .tutorial-controles-tecla {
     min-width: 28px;
     padding: 3px 7px;

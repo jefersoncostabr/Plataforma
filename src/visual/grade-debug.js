@@ -25,28 +25,52 @@ function configurarGrade(idPalco) {
     `;
     grade.style.backgroundSize = '32px 32px';
 
-    // Gera os nomes das coordenadas (ex: a1, b2...) dinamicamente
-    const colunas = 20; // 640 / 32
-    const linhas = 15;  // 480 / 32
-
-    for (let r = 0; r < linhas; r++) {
-        for (let c = 1; c <= colunas; c++) {
-            const label = document.createElement('span');
-            const letra = String.fromCharCode(97 + r); // a, b, c...
-            label.textContent = letra + c;
-            
-            // Estilização do texto da coordenada
-            label.style.position = 'absolute';
-            label.style.left = ((c - 1) * 32) + 'px';
-            label.style.bottom = (r * 32) + 'px';
-            label.style.width = '32px';
-            label.style.height = '32px';
-            label.style.fontSize = '9px';
-            label.style.color = 'rgba(0, 255, 0, 0.6)';
-            label.style.textAlign = 'center';
-            label.style.lineHeight = '32px'; // Centraliza verticalmente no tile
-            grade.appendChild(label);
+    // Gera os nomes com base no tamanho atual do mundo, em vez de assumir
+    // que toda fase tem apenas o viewport antigo de 640x480.
+    const indiceParaLetras = (indice) => {
+        let valor = indice + 1;
+        let letras = '';
+        while (valor > 0) {
+            const resto = (valor - 1) % 26;
+            letras = String.fromCharCode(97 + resto) + letras;
+            valor = Math.floor((valor - 1) / 26);
         }
+        return letras;
+    };
+
+    const atualizarRotulos = () => {
+        const largura = Number(window.mundoLargura || palco.clientWidth || 640);
+        const altura = Number(window.mundoAltura || palco.clientHeight || 480);
+        const colunas = Math.ceil(largura / 32);
+        const linhas = Math.ceil(altura / 32);
+        grade.replaceChildren();
+
+        for (let r = 0; r < linhas; r++) {
+            for (let c = 1; c <= colunas; c++) {
+                const label = document.createElement('span');
+                const letra = indiceParaLetras(r);
+                label.textContent = letra + c;
+
+                // Estilização do texto da coordenada
+                label.style.position = 'absolute';
+                label.style.left = ((c - 1) * 32) + 'px';
+                label.style.bottom = (r * 32) + 'px';
+                label.style.width = '32px';
+                label.style.height = '32px';
+                label.style.fontSize = '9px';
+                label.style.color = 'rgba(0, 255, 0, 0.6)';
+                label.style.textAlign = 'center';
+                label.style.lineHeight = '32px'; // Centraliza verticalmente no tile
+                grade.appendChild(label);
+            }
+        }
+    };
+
+    atualizarRotulos();
+
+    if (typeof ResizeObserver !== 'undefined') {
+        const observador = new ResizeObserver(atualizarRotulos);
+        observador.observe(palco);
     }
 
     palco.appendChild(grade);

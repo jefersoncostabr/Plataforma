@@ -1420,7 +1420,7 @@
             return controle.coleteSlots;
         }
 
-        function tentarColetarItemJogador(item) {
+        function tentarColetarItemJogadorInterno(item) {
 
             if (!item || !item.tipo) return false;
             if (item.tipo === 'airdrop') return null;
@@ -1547,6 +1547,14 @@
 
             // Se não coube em nenhum lugar, retorna false para o item permanecer no mundo
             return false;
+        }
+
+        function tentarColetarItemJogador(item) {
+            const coletado = tentarColetarItemJogadorInterno(item);
+            if (coletado === true) {
+                window.TutorialControles?.registrarItemColetado?.(item?.tipo);
+            }
+            return coletado;
         }
 
         function droparItemJogador() {
