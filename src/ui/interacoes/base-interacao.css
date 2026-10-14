@@ -51,8 +51,8 @@
     place-items: center;
     align-content: center;
     border-radius: 10px;
-    background: linear-gradient(180deg, #ffd36f 0%, #c99522 100%);
-    color: #2c1e00;
+    background: linear-gradient(180deg, #8ff5ef 0%, #48d1cc 100%);
+    color: #073b3a;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
     flex-shrink: 0;
 }
@@ -178,12 +178,20 @@
 }
 
 .base-toggle-btn:focus-visible,
+.base-toggle-btn:hover,
 .base-actions button:focus-visible,
+.base-actions button:hover,
 .interaction-close:focus-visible,
 .menu-close-button:focus-visible {
-    outline: 2px solid #ffe58c;
+    outline: 2px solid #8ff5ef;
     outline-offset: 2px;
-    box-shadow: 0 0 0 3px rgba(255, 229, 140, 0.2);
+    box-shadow: 0 0 0 3px rgba(72, 209, 204, 0.24);
+}
+
+.base-toggle-btn:hover:not(:disabled):not(.is-locked),
+.base-actions button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
 }
 
 .base-toggle-btn.is-locked,
@@ -197,10 +205,16 @@
 }
 
 .base-toggle-btn.active {
-    background: #ffd36f;
-    color: #2b2000;
-    border-color: #ffe7a7;
-    box-shadow: 0 0 0 2px rgba(255, 211, 111, 0.2);
+    background: linear-gradient(145deg, #173c43 0%, #102b35 100%);
+    color: #65e6df;
+    border-color: #48d1cc;
+    box-shadow: inset 0 0 0 1px rgba(143, 245, 239, 0.16), 0 0 12px rgba(72, 209, 204, 0.2);
+}
+
+.base-toggle-btn.active:hover,
+.base-toggle-btn.active:focus-visible {
+    background: linear-gradient(145deg, #20515a 0%, #153743 100%);
+    color: #8ff5ef;
 }
 
 .base-tip {
@@ -252,6 +266,16 @@
     background: #7ee081;
     color: #0f3113;
     flex-shrink: 0;
+    transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+}
+
+.base-saved-toolbar .btn-primary:hover,
+.base-saved-toolbar .btn-primary:focus-visible {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+    outline: 2px solid #8ff5ef;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(72, 209, 204, 0.24);
 }
 
 .base-saved-list {
@@ -378,4 +402,9 @@
 .base-actions button:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+}
+
+.base-actions .btn-crafting {
+    border: 2px solid #48d1cc;
+    box-shadow: inset 0 0 0 1px rgba(143, 245, 239, 0.2);
 }

@@ -55,7 +55,7 @@
       "pegarItem": "cinto",
       "msg": "Use L ou dê um toque rápido em Cima para recolher/liberar os itens do cinto",
       "nivel": 1,
-      "fase": 2,
+      "fase": "",
       "ativo": true
     },
     {
@@ -63,7 +63,7 @@
       "pegarItem": "munição",
       "msg": "Recupera a munição da sua arma",
       "nivel": 1,
-      "fase": 3,
+      "fase": "",
       "ativo": true
     },
     {
@@ -71,7 +71,7 @@
       "pegarItem": "restauração",
       "msg": "Restaura a energia e munição",
       "nivel": 1,
-      "fase": 3,
+      "fase": "",
       "ativo": true
     },
     {
@@ -87,7 +87,7 @@
       "pegarItem": "gato",
       "msg": "Libertou o gato, pule nele para ir mais alto",
       "nivel": 1,
-      "fase": 3,
+      "fase": "",
       "ativo": true
     },
     {
@@ -95,7 +95,7 @@
       "pegarItem": "cao",
       "msg": "Magrelin! Vai te ajudar na aventura",
       "nivel": 1,
-      "fase": 5,
+      "fase": "",
       "ativo": true
     },
     {
@@ -114,7 +114,7 @@
       "pegarItem": "doze",
       "msg": "Espingarda doze de cano serrado",
       "nivel": 1,
-      "fase": 5,
+      "fase":"",
       "ativo": true
     },
     {

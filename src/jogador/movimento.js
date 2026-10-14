@@ -295,6 +295,32 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
         if (controle.estaMorrendo) return;
 
+        // Morrer na mesma fase da base custa 1 XP, evitando que o checkpoint
+        // transforme tentativas repetidas em farm sem risco.
+        const craftPersistido = typeof window.obterCraftPersistido === 'function'
+            ? window.obterCraftPersistido()
+            : null;
+        const faseAtual = String(window.faseAtualPathRelativo || window.faseAtualNome || '').trim().toLowerCase();
+        const faseDaBase = String(craftPersistido?.fase || '').trim().toLowerCase();
+        const normalizarFase = (fase) => fase
+            .replace(/\\/g, '/')
+            .replace(/^.*?config\/fases\//, '')
+            .replace(/^\.\.\//, '');
+        const faseAtualNormalizada = normalizarFase(faseAtual);
+        const faseBaseNormalizada = normalizarFase(faseDaBase);
+        const mesmaFaseDaBase = !!faseBaseNormalizada && (
+            faseAtualNormalizada === faseBaseNormalizada ||
+            faseAtualNormalizada.endsWith(`/${faseBaseNormalizada}`) ||
+            faseBaseNormalizada.endsWith(`/${faseAtualNormalizada}`)
+        );
+
+        if (mesmaFaseDaBase && Number(window.playerXP || 0) > 0) {
+            window.playerXP = Math.max(0, Number(window.playerXP) - 1);
+            if (typeof window.salvarProgressoSkills === 'function') {
+                window.salvarProgressoSkills();
+            }
+        }
+
         controle.estaMorrendo = true;
         controle.framesMorrendo = 35;
         controle.velocidadeY = 10;

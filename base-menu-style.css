@@ -29,7 +29,7 @@
 .interaction-pets {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     margin-left: auto; /* Empurra para a direita */
     margin-right: 45px; /* ESPAÇO RESERVADO PARA O BOTÃO FECHAR (X) */
 }
@@ -38,7 +38,7 @@
     width: 40px;
     height: 40px;
     overflow: hidden;
-    border-radius: 6px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -68,12 +68,19 @@
         0 0 0 2px #fff,
         0 0 8px rgba(255, 255, 255, 0.5);
 }
-.pet-badge img {
-    width: 64px;
-    height: 64px;
+.pet-badge:hover,
+.pet-badge:focus-visible {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(72, 209, 204, 0.65);
+}
+.interaction-pets .pet-badge img {
+    width: 66px;
+    height: 66px;
     image-rendering: pixelated;
     object-fit: contain;
     flex-shrink: 0;
+    position: relative;
+    z-index: 3;
     transition: filter 0.3s;
 }
 .pet-badge.inactive img {
@@ -338,13 +345,23 @@
     align-items: center;
     justify-content: center;
     background: #222;
-    border: 2px solid #ffd700;
+    border: 2px solid #48d1cc;
     border-radius: 6px;
     cursor: pointer;
     margin-right: 8px;
     transition:
         border-color 0.2s,
-        background 0.2s;
+        background 0.2s,
+        transform 0.15s,
+        box-shadow 0.15s;
+}
+.btn-crafting:hover,
+.btn-crafting:focus-visible {
+    border-color: #8ff5ef;
+    background: rgba(72, 209, 204, 0.22);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 0 0 2px rgba(72, 209, 204, 0.35);
+    outline: none;
 }
 .btn-crafting img {
     width: 24px;
