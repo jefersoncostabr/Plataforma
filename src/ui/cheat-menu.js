@@ -5,6 +5,7 @@
     const teclasPressionadas = new Set();
     const COMBO = ['q', 'e', 'j', 'k'];
     let overlayEl = null;
+    let cheatMenuBtns = [];
 
     // Utilitário: verifica se todos do combo estão pressionados
     function comboAtivo() {
@@ -24,19 +25,59 @@
     // Keydown/up listeners
     function onKeyDown(e) {
         const key = e.key.toLowerCase();
+        if (isOpen) return;
         const wasCombo = comboAtivo();
         teclasPressionadas.add(key);
         // Só abre se combo ficou completo neste keydown
         if (!isOpen && comboAtivo() && !wasCombo) {
             window.toggleCheatMenu();
         }
-        if (isOpen && e.key === 'Escape') {
-            window.toggleCheatMenu();
-        }
     }
     function onKeyUp(e) {
         const key = e.key.toLowerCase();
         teclasPressionadas.delete(key);
+    }
+
+    function handleCheatMenuInput(e) {
+        if (!isOpen || !cheatMenuBtns.length) return;
+
+        const tecla = String(e.key || '').toLowerCase();
+        const indiceAtual = Math.max(0, cheatMenuBtns.indexOf(document.activeElement));
+        if (tecla === 'escape' || tecla === 'esc') {
+            e.preventDefault();
+            e.stopPropagation();
+            window.toggleCheatMenu();
+            return;
+        }
+
+        let proximoIndice = indiceAtual;
+        if (tecla === 'home') proximoIndice = 0;
+        else if (tecla === 'end') proximoIndice = cheatMenuBtns.length - 1;
+        else if (['arrowdown', 's'].includes(tecla)) proximoIndice = (indiceAtual + 1) % cheatMenuBtns.length;
+        else if (['arrowup', 'w'].includes(tecla)) proximoIndice = (indiceAtual - 1 + cheatMenuBtns.length) % cheatMenuBtns.length;
+        else if (tecla === 'enter' || tecla === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            cheatMenuBtns[indiceAtual]?.click();
+            return;
+        } else if (tecla === 'tab') {
+            const primeiro = cheatMenuBtns[0];
+            const ultimo = cheatMenuBtns[cheatMenuBtns.length - 1];
+            if (e.shiftKey && document.activeElement === primeiro) {
+                e.preventDefault();
+                ultimo.focus();
+            } else if (!e.shiftKey && document.activeElement === ultimo) {
+                e.preventDefault();
+                primeiro.focus();
+            }
+            return;
+        } else {
+            return;
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+        cheatMenuBtns[proximoIndice]?.focus();
     }
 
     // Overlay e botões
@@ -79,6 +120,8 @@
         overlayEl = document.createElement('div');
         overlayEl.className = 'cheat-menu-overlay';
         overlayEl.tabIndex = -1;
+        overlayEl.setAttribute('role', 'dialog');
+        overlayEl.setAttribute('aria-modal', 'true');
         overlayEl.addEventListener('mousedown', (e) => {
             if (e.target === overlayEl) window.toggleCheatMenu();
         });
@@ -91,11 +134,13 @@
         const title = document.createElement('h2');
         title.textContent = 'CHEAT MENU';
         title.className = 'cheat-menu-title';
+        title.id = 'cheat-menu-title';
+        overlayEl.setAttribute('aria-labelledby', title.id);
         box.appendChild(title);
 
         // Botões (agora <button>, padrão menu principal)
         const options = getCheatOptions();
-        let cheatMenuBtns = [];
+        cheatMenuBtns = [];
         for (const opt of options) {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -106,23 +151,11 @@
             btn.innerText = opt.label;
             btn.onmouseenter = () => selectBtn(btn);
             btn.onmouseleave = () => selectBtn(null);
-            btn.onfocus = () => selectBtn(btn);
-            btn.onblur = () => selectBtn(null);
-            btn.onkeydown = (e) => {
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    const idx = cheatMenuBtns.indexOf(btn);
-                    const next = cheatMenuBtns[(idx + 1) % cheatMenuBtns.length];
-                    next.focus();
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    const idx = cheatMenuBtns.indexOf(btn);
-                    const prev = cheatMenuBtns[(idx - 1 + cheatMenuBtns.length) % cheatMenuBtns.length];
-                    prev.focus();
-                } else if (e.key === 'Enter' || e.key === ' ') {
-                    btn.click();
-                }
+            btn.onfocus = () => {
+                selectBtn(btn);
+                btn.scrollIntoView({ block: 'nearest', inline: 'nearest' });
             };
+            btn.onblur = () => selectBtn(null);
             btn.onclick = (e) => {
                 e.stopPropagation();
                 opt.action();
@@ -137,10 +170,19 @@
         closeBtn.className = 'menu-close-button menu-nav-item';
         closeBtn.setAttribute('aria-label', 'Fechar menu');
         closeBtn.title = 'Fechar';
+        closeBtn.dataset.menuMode = 'cheat';
+        closeBtn.dataset.navType = 'action';
+        closeBtn.onmouseenter = () => selectBtn(closeBtn);
+        closeBtn.onfocus = () => {
+            selectBtn(closeBtn);
+            closeBtn.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        };
+        closeBtn.onblur = () => selectBtn(null);
         closeBtn.onclick = (e) => {
             e.stopPropagation();
             window.toggleCheatMenu();
         };
+        cheatMenuBtns.push(closeBtn);
         box.appendChild(closeBtn);
         // Garante que overlay não bloqueie pointer-events do botão X
         overlayEl.style.pointerEvents = 'auto';
@@ -158,6 +200,7 @@
 
         overlayEl.appendChild(box);
         document.body.appendChild(overlayEl);
+        window.addEventListener('keydown', handleCheatMenuInput, true);
         // [MODAIS] Repoem o tamanho antigo (scale) sem tocar na camera.
         if (typeof window.sincronizarEscalaModais === 'function') {
             try { window.sincronizarEscalaModais(); } catch (_) {}
@@ -168,8 +211,10 @@
     function removeCheatMenu() {
         if (!isOpen) return;
         isOpen = false;
+        window.removeEventListener('keydown', handleCheatMenuInput, true);
         if (overlayEl) overlayEl.remove();
         overlayEl = null;
+        cheatMenuBtns = [];
         // Só despausa se foi aberto via combo no gameplay
         // [E2] Libera so o dono 'cheat'; se outro menu pausou por cima, o jogo
         // continua pausado corretamente.
@@ -193,12 +238,30 @@
         }
     }
 
+    function spawnInimigoCheat(tipoEscolhido) {
+        if (typeof window.criarInimigoAleatorio !== 'function') return;
+        const plataformas = Object.keys(window.plataformas || {}).filter((coord) => /^[a-z]+\d+$/i.test(coord));
+        if (!plataformas.length) {
+            console.warn('[Cheats] Não foi possível criar inimigo: a fase não tem plataformas disponíveis.');
+            return;
+        }
+        const tipoHumano = Number(window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID ?? 13);
+        const tipo = tipoEscolhido === 'aleatorio'
+            ? (Math.random() < 0.5 ? 0 : tipoHumano)
+            : tipoEscolhido === 'humano' ? tipoHumano : 0;
+        window.criarInimigoAleatorio(plataformas, tipo);
+    }
+
     // Opções do menu
     function getCheatOptions() {
         return [
             { label: 'PRÓX. FASE', action: () => window.proximoNivel?.(), closeOnClick: true },
             { label: 'GANHAR XP', action: () => window.ganharXP?.(10), closeOnClick: true },
             { label: 'AIRDROP', action: () => { if(window.playerControle) { window.playerControle.teclas['5'] = true; setTimeout(()=>window.playerControle.teclas['5']=false,100); } }, closeOnClick: true },
+            { label: 'SPAWN INIMIGO ALEATÓRIO', action: () => spawnInimigoCheat('aleatorio'), closeOnClick: true },
+            { label: 'SPAWN ROBÔ', action: () => spawnInimigoCheat('robo'), closeOnClick: true },
+            { label: 'SPAWN HUMANO', action: () => spawnInimigoCheat('humano'), closeOnClick: true },
+            { label: `VOO INFINITO: ${window.playerControle?.vooInfinitoCheat ? 'DESATIVAR' : 'ATIVAR'}`, action: () => window.alternarVooInfinitoTeste?.(), closeOnClick: true },
             { label: 'MATAR INIMIGOS', action: () => { if(window.inimigos && window.removerInimigoDerrotado) { for(const i of window.inimigos) window.removerInimigoDerrotado(i); } }, closeOnClick: true },
             { label: 'RESET SKILLS', action: () => { window.playerSkills?.resetarSkills?.(); window.playerXP=0; window.salvarProgressoSkills?.(); }, closeOnClick: true },
             { label: 'APAGAR SAVE', action: () => window.apagarBasePersistidaDev?.(), closeOnClick: true },

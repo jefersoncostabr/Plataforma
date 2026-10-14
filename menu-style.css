@@ -6,50 +6,71 @@
     left: 0;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     background: rgba(0, 0, 0, 0.85);
     z-index: 100000;
     display: flex;
     /* Centraliza o conteúdo horizontal e verticalmente */
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    padding: 2vh 0;
+    box-sizing: border-box;
 }
 
 .cheat-menu-box {
+    box-sizing: border-box;
     background: rgba(40, 40, 40, 0.98);
     /* Fundo escuro semi-transparente */
     min-width: 320px;
-    padding: 32px 28px 24px 28px;
-    border-radius: 16px;
+    height: auto;
+    max-height: 96vh;
+    max-height: 96dvh;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #00ffff #282828;
+    padding: 20px 22px 14px;
+    border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
     position: relative;
     display: flex;
+    margin: auto;
     /* Organiza os itens em coluna */
     flex-direction: column;
     /* Centraliza os itens horizontalmente */
     align-items: center;
 }
 
+.cheat-menu-title,
+.cheat-menu-select-btn,
+.cheat-menu-box .menu-close-button {
+    flex: 0 0 auto;
+}
+
 .cheat-menu-title {
     text-align: center;
-    letter-spacing: 5px;
-    font-size: 22px;
+    letter-spacing: 3px;
+    font-size: 18px;
     font-weight: 900;
-    margin-bottom: 18px;
+    margin-bottom: 10px;
     color: #fff;
 }
 
 /* Botões de seleção dentro do menu de cheats */
 .cheat-menu-select-btn {
     width: 100%;
-    padding: 10px 0;
-    margin: 6px 0;
+    padding: 7px 8px;
+    margin: 3px 0;
     border: none;
     border-radius: 7px;
     background: rgba(0, 255, 255, 0.08);
     color: #fff;
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 1px;
     cursor: pointer;
     /* Transições suaves para interatividade */
     transition:

@@ -69,9 +69,36 @@
     {
       "id": "restauração_fase3",
       "pegarItem": "restauração",
-      "msg": "Restaura a energia do seu personagem",
+      "msg": "Restaura a energia e munição",
       "nivel": 1,
       "fase": 3,
+      "ativo": true
+    },
+    {
+      "id": "revolver_fase3",
+      "pegarItem": "revolver",
+      "msg": "Canela seca, atire com i",
+      "nivel": 1,
+      "fase": 3,
+      "ativo": true
+    },
+    {
+      "id": "gato_fase3",
+      "pegarItem": "gato",
+      "msg": "Libertou o gato, pule nele para ir mais alto",
+      "nivel": 1,
+      "fase": 3,
+      "ativo": true
+    },
+    {
+      "id": "tiro_fase4",
+      "acaoId": "pulo",
+      "teclaPadrao": "ESPAÇO",
+      "acao": "Que tiro foi esse! Pule com espaço para desviar",
+      "nivel": 1,
+      "fase": 4,
+      "blocoVisivel": "a2",
+      "repeticoesNecessarias": 3,
       "ativo": true
     }
   ]

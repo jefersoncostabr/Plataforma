@@ -463,8 +463,12 @@
         const key = tipo === 'cao' ? CAO_STORAGE_KEY : GATO_STORAGE_KEY;
         if (localStorage.getItem(key) === 'true') return;
 
-        if (tipo === 'cao') window.isCaoResgatado = true;
-        else window.isGatoResgatado = true;
+        if (tipo === 'cao') {
+            window.isCaoResgatado = true;
+        } else {
+            window.isGatoResgatado = true;
+            window.TutorialControles?.registrarItemColetado?.('gato');
+        }
         
         localStorage.setItem(key, 'true');
         

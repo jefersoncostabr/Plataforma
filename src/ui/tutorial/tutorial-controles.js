@@ -66,7 +66,6 @@
         if (!raiz || !configuracao) return;
 
         raiz.replaceChildren();
-
         configuracao.tutoriais.forEach((tutorial) => {
             if (!ehTutorialDeControle(tutorial) || !tutorial.ativo || !tutoriaisAtivados.has(tutorial.id)
                 || (progresso.get(tutorial.id) || 0) >= tutorial.repeticoesNecessarias) return;
@@ -140,7 +139,7 @@
     function atualizarDisponibilidade() {
         if (!sessaoIniciada || !configuracao) return;
         const faseAtual = obterFaseAtual();
-        let ativouTutorial = false;
+        let alterouTutoriais = false;
 
         configuracao.tutoriais.forEach((tutorial) => {
             if (!ehTutorialDeControle(tutorial) || !tutorial.ativo || tutoriaisAtivados.has(tutorial.id)
@@ -149,10 +148,10 @@
             if (!blocoEstaVisivel(tutorial.blocoVisivel)) return;
 
             tutoriaisAtivados.add(tutorial.id);
-            ativouTutorial = true;
+            alterouTutoriais = true;
         });
 
-        if (ativouTutorial) renderizar();
+        if (alterouTutoriais) renderizar();
     }
 
     function sincronizarVisibilidade() {
@@ -194,11 +193,14 @@
                     } else {
                         const repeticoes = Number(item?.repeticoesNecessarias);
                         const blocoVisivel = String(item?.blocoVisivel || '').trim().toLowerCase();
+                        const acaoId = String(item?.acaoId || item?.id || '').trim().toLowerCase();
                         if (!String(item?.acao || '').trim()
                             || !Number.isFinite(repeticoes) || repeticoes < 1
-                            || !/^[a-z]+\d+$/.test(blocoVisivel)) return false;
+                            || !/^[a-z]+\d+$/.test(blocoVisivel)
+                            || !acaoId) return false;
                         item.blocoVisivel = blocoVisivel;
                         item.repeticoesNecessarias = Math.floor(repeticoes);
+                        item.acaoId = acaoId;
                     }
 
                     ids.add(id);
@@ -242,16 +244,24 @@
 
     function registrarAcao(id) {
         if (!sessaoIniciada || !configuracao) return;
-        const tutorial = configuracao.tutoriais.find((item) =>
-            ehTutorialDeControle(item) && item.id === id && item.ativo
-        );
-        if (!tutorial || !tutoriaisAtivados.has(id)) return;
+        const acaoNormalizada = String(id || '').trim().toLowerCase();
+        let alterouProgresso = false;
 
-        const atual = progresso.get(id) || 0;
-        if (atual >= tutorial.repeticoesNecessarias) return;
+        configuracao.tutoriais.forEach((tutorial) => {
+            if (
+                ehTutorialDeControle(tutorial)
+                && tutorial.acaoId === acaoNormalizada
+                && tutorial.ativo
+                && tutoriaisAtivados.has(tutorial.id)
+            ) {
+                const atual = progresso.get(tutorial.id) || 0;
+                if (atual >= tutorial.repeticoesNecessarias) return;
+                progresso.set(tutorial.id, atual + 1);
+                alterouProgresso = true;
+            }
+        });
 
-        progresso.set(id, atual + 1);
-        renderizar();
+        if (alterouProgresso) renderizar();
     }
 
     function registrarItemColetado(tipoItem) {

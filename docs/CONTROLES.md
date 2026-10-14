@@ -62,4 +62,8 @@
 | `8` | Jump Debug | Força pulo dos inimigos (IA) |
 | `9` | Kill All | Elimina todos os inimigos da tela |
 | `G` | Grade | Ativa/Desativa Grade de Debug |
-| `qejk` | Cheat Menu | Abre/fecha o menu de cheat (debug) |
+| `qejk` | Cheat Menu | Abre/fecha o menu de testes; inclui spawn aleatório, de robô ou humano (sem equipamento), e voo infinito (toggle, válido só na fase atual) |
+
+No menu de cheats, use `↑`/`↓` ou `W`/`S` para navegar, `Home`/`End` para ir ao primeiro/último item, `Enter`/`Espaço` para ativar e `Esc` para fechar. Se a lista não couber na tela, role o painel para ver as demais opções.
+
+No voo infinito, use os mesmos comandos do jetpack: `↑ + Espaço` ou mantenha `Espaço` pressionado para ativar. O voo fica disponível sem coletar o jetpack e é desativado ao carregar outra fase.

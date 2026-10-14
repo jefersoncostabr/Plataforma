@@ -206,6 +206,12 @@ window.obterKnockbackRecebidoPadrao = (ent, config, tipo) => window.obterForcaKn
 
 async function carregarFase(nomeArquivo) {
 
+    if (typeof window.desativarVooInfinitoTeste === 'function') {
+        window.desativarVooInfinitoTeste();
+    } else if (window.playerControle) {
+        window.playerControle.vooInfinitoCheat = false;
+    }
+
     // Para todos os sons antes de iniciar a nova fase
     if (window.AudioManager && typeof window.AudioManager.stopAllSounds === 'function') {
         window.AudioManager.stopAllSounds();

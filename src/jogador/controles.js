@@ -38,7 +38,7 @@
     async function carregarControles() {
         let doArquivo = {};
         try {
-            const resp = await fetch('../../config/controles.json');
+            const resp = await fetch('../../config/controles.json', { cache: 'no-store' });
             if (resp.ok) doArquivo = await resp.json();
         } catch (_) {
             doArquivo = {};

@@ -12,7 +12,7 @@
         }
 
         function podeUsarJetpack() {
-            return !!controle.temJetpack && !controle.itensGuardadosNoCinto;
+            return !!controle.vooInfinitoCheat || (!!controle.temJetpack && !controle.itensGuardadosNoCinto);
         }
 
         function iniciarJetpack() {
@@ -51,6 +51,23 @@
             }
         }
 
+        function definirVooInfinitoTeste(ativo) {
+            controle.vooInfinitoCheat = !!ativo;
+            controle.timerAtivacaoJetpack = 0;
+
+            if (controle.vooInfinitoCheat) {
+                if (!controle.temJetpack) controle.cooldownVooJetpack = 0;
+            } else if (!controle.temJetpack && controle.jetpackAtivo) {
+                desligarJetpack(false);
+                controle.timerVooRestante = 0;
+            }
+
+            return controle.vooInfinitoCheat;
+        }
+
+        window.alternarVooInfinitoTeste = () => definirVooInfinitoTeste(!controle.vooInfinitoCheat);
+        window.desativarVooInfinitoTeste = () => definirVooInfinitoTeste(false);
+
         function atualizarCooldownJetpack() {
             if ((controle.cooldownVooJetpack || 0) > 0) {
                 controle.cooldownVooJetpack--;
@@ -73,10 +90,11 @@
             }
 
             const segurandoCimaAtivacao = acaoAtiva('cima');
+            const podeIgnorarCooldown = !!controle.vooInfinitoCheat || (controle.cooldownVooJetpack || 0) === 0;
 
-            if (segurandoCimaAtivacao && puloAcabouDeSerPressionado && !controle.jetpackAtivo && (controle.cooldownVooJetpack || 0) === 0) {
+            if (segurandoCimaAtivacao && puloAcabouDeSerPressionado && !controle.jetpackAtivo && podeIgnorarCooldown) {
                 iniciarJetpack();
-            } else if (acaoAtiva('pulo') && (controle.cooldownVooJetpack || 0) === 0) {
+            } else if (acaoAtiva('pulo') && podeIgnorarCooldown) {
                 controle.timerAtivacaoJetpack = (controle.timerAtivacaoJetpack || 0) + 1;
                 if (controle.timerAtivacaoJetpack >= Number(config.jetpackTempoAtivacao ?? 120) && !controle.jetpackAtivo) {
                     iniciarJetpack();
@@ -86,7 +104,9 @@
             }
 
             if (controle.jetpackAtivo) {
-                controle.timerVooRestante = (controle.timerVooRestante || 0) - 1;
+                if (!controle.vooInfinitoCheat) {
+                    controle.timerVooRestante = (controle.timerVooRestante || 0) - 1;
+                }
                 controle.framesVoando = (controle.framesVoando || 0) + 1;
 
                 const subindo = !!(acaoAtiva('cima') || controle.teclas?.ArrowUp || controle.teclas?.w || controle.teclas?.W);
@@ -106,7 +126,7 @@
 
                 controle.y += controle.velocidadeY;
 
-                if ((controle.timerVooRestante || 0) <= 0) {
+                if (!controle.vooInfinitoCheat && (controle.timerVooRestante || 0) <= 0) {
                     desligarJetpack(true);
                 } else if (controle.noChao && (controle.framesVoando || 0) > 10) {
                     desligarJetpack(false);

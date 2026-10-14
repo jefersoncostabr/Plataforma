@@ -1144,6 +1144,35 @@
             return false;
         }
 
+        function descartarEquipamentosVermelhosAoAgachar() {
+            // Itens guardados no cinto não estão equipados/ativos; agachar não deve quebrá-los.
+            if (!controle || controle.itensGuardadosNoCinto) return false;
+
+            const equipamentos = [];
+            const adicionarEquipamento = (tipo, ativo, quebrado) => {
+                if (ativo) equipamentos.push({ tipo, quebrado: !!quebrado });
+            };
+
+            const tipoArma = obterTipoArmaAtivaDoControle();
+            adicionarEquipamento(tipoArma, !!controle.temArma, Number(controle.municao || 0) <= 0);
+            adicionarEquipamento('escudo', !!(controle.temEscudo || controle.escudoVermelho), !!controle.escudoVermelho);
+            adicionarEquipamento('bota', !!controle.temBota, !!controle.botaVermelha);
+            adicionarEquipamento('jetpack', !!controle.temJetpack, Number(controle.cooldownVooJetpack || 0) > 0);
+            adicionarEquipamento('garra', !!controle.temGarra, !!controle.garraVermelha);
+
+            const equipamentosVermelhos = equipamentos.filter((item) => item.quebrado);
+            const temEquipamentoBrancoUtilizavel = equipamentos.some((item) => !item.quebrado);
+            if (!equipamentosVermelhos.length || temEquipamentoBrancoUtilizavel) return false;
+
+            equipamentosVermelhos.forEach(({ tipo }) => {
+                if (removerItemDoCorpoSemDropar(tipo)) removerTipoDoInventario(tipo);
+            });
+
+            salvarInventario();
+            if (typeof window.atualizarMochilaUI === 'function') window.atualizarMochilaUI(controle);
+            return true;
+        }
+
         function obterItensDisponiveisNoCinto() {
             const itens = [];
             const adicionar = (tipo, ativo) => {
@@ -1808,6 +1837,7 @@
         window.tentarColetarItemJogador = tentarColetarItemJogador;
         window.verificarAutoReparoEquipamentos = verificarAutoReparoEquipamentos;
         window.removerItemDoCorpoSemDropar = removerItemDoCorpoSemDropar;
+        window.descartarEquipamentosVermelhosAoAgachar = descartarEquipamentosVermelhosAoAgachar;
         window.usarOuDroparItemColete = usarOuDroparItemDoColete;
         window.droparItemColete = droparItemDoColete;
         window.obterSlotsColete = obterSlotsColete;
@@ -1836,7 +1866,8 @@
             tentarColetarItemJogador,
             usarOuDroparItemDoColete,
             droparItemDoColete,
-            obterSlotsColete
+            obterSlotsColete,
+            descartarEquipamentosVermelhosAoAgachar
         };
     }
 

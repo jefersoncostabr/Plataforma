@@ -181,7 +181,7 @@ function atualizarVisibilidadeEquipamentosCintoPortador(portador, elementos = {}
         jetpackElemento.style.display = (portador.temJetpack && !guardados) ? 'block' : 'none';
     }
 
-    if (jetFogoElemento && (!portador.temJetpack || guardados || !portador.jetpackAtivo)) {
+    if (jetFogoElemento && ((!portador.temJetpack && !portador.vooInfinitoCheat) || (guardados && !portador.vooInfinitoCheat) || !portador.jetpackAtivo)) {
         jetFogoElemento.style.display = 'none';
     }
 
@@ -476,7 +476,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
         if (coleteElemento) coleteElemento.style.display = (controle.temColete && (!guardados || !permiteRecolherColete)) ? 'block' : 'none';
         if (jetpackElemento) jetpackElemento.style.display = (controle.temJetpack && !guardados) ? 'block' : 'none';
 
-        if (jetFogoElemento && (!controle.temJetpack || guardados || !controle.jetpackAtivo)) {
+        if (jetFogoElemento && ((!controle.temJetpack && !controle.vooInfinitoCheat) || (guardados && !controle.vooInfinitoCheat) || !controle.jetpackAtivo)) {
             jetFogoElemento.style.display = 'none';
         }
 
@@ -795,7 +795,10 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
             botaElemento.style.filter = controle.botaVermelha ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)' : 'none';
         }
 
-        if (controle.temJetpack && !controle.itensGuardadosNoCinto) {
+        const mostrarJetpack = !!(controle.temJetpack && !controle.itensGuardadosNoCinto);
+        const mostrarFogoJetpack = !!((mostrarJetpack || controle.vooInfinitoCheat) && controle.jetpackAtivo);
+
+        if (mostrarJetpack) {
             jetpackElemento.style.display = 'block';
             jetpackElemento.style.left = controle.x + 'px';
             jetpackElemento.style.bottom = controle.y + 'px';
@@ -807,6 +810,11 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
                 jetpackElemento.style.filter = 'none';
             }
 
+        } else {
+            jetpackElemento.style.display = 'none';
+        }
+
+        if (mostrarFogoJetpack) {
             const subindo = !!(controle.teclas['ArrowUp'] || controle.teclas['w'] || controle.teclas['W']);
             let efeitoPisca;
             if (subindo) {
@@ -818,7 +826,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
             }
             const tremorFogo = (Math.random() * 3) - 1.5;
 
-            if (controle.jetpackAtivo && efeitoPisca) {
+            if (efeitoPisca) {
                 jetFogoElemento.style.display = 'block';
                 jetFogoElemento.style.left = controle.x + 'px';
                 jetFogoElemento.style.bottom = (controle.y - 4 + tremorFogo) + 'px';
@@ -827,7 +835,6 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
                 jetFogoElemento.style.display = 'none';
             }
         } else {
-            jetpackElemento.style.display = 'none';
             jetFogoElemento.style.display = 'none';
         }
 

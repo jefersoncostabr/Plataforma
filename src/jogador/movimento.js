@@ -223,6 +223,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         temJetpack: false,
         temColete: false,
         jetpackAtivo: false,
+        vooInfinitoCheat: false,
         timerAtivacaoJetpack: 0,
         framesVoando: 0,
         timerVooRestante: 0,
@@ -347,7 +348,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         limparInventarioSalvo,
         droparItemJogador,
         droparItensInimigo,
-        aplicarInventarioSalvo
+        aplicarInventarioSalvo,
+        descartarEquipamentosVermelhosAoAgachar
     } = inventarioSistema;
 
     const sistemaMorteInimigo = window.criarSistemaMorteInimigo({
@@ -611,11 +613,14 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 if (controle.estaoAberto || controle.abrindo || controle.fechando) return;
                 if (controle.estaAgachado) {
                     tentarLevantarJogador();
-                } else if (podeAgacharSemBloqueio()) {
-                    controle.estaAgachado = true;
-                    window.TutorialControles?.registrarAcao?.('agachar');
-                } else if (typeof flashElement === 'function') {
-                    flashElement(elemento, 120, 4);
+                } else {
+                    const descartouEquipamentosVermelhos = descartarEquipamentosVermelhosAoAgachar();
+                    if (descartouEquipamentosVermelhos || podeAgacharSemBloqueio()) {
+                        controle.estaAgachado = true;
+                        window.TutorialControles?.registrarAcao?.('agachar');
+                    } else if (typeof flashElement === 'function') {
+                        flashElement(elemento, 120, 4);
+                    }
                 }
             },
             onLevantar: () => {
@@ -647,13 +652,6 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             },
             onDebugProximoNivel: () => {
                 if (typeof window.proximoNivel === 'function') window.proximoNivel();
-            },
-            onDebugSpawnInimigo: () => {
-                if (typeof criarInimigoAleatorio === 'function' && window.plataformas) {
-                    const coordsArray = Object.keys(window.plataformas);
-                    const tipoAleatorio = Math.floor(Math.random() * 3);
-                    criarInimigoAleatorio(coordsArray, tipoAleatorio);
-                }
             },
             onAcionarGarra: () => {
                 acionarGarra();

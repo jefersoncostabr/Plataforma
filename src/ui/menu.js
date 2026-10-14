@@ -178,7 +178,6 @@ const CONTROLES_MENU_ITEMS = [
     { id: 'abertura', label: 'Abrir/Fechar Robo' },
     { id: 'troca_pet', label: 'Pets' },
     { id: 'debugProximoNivel', label: 'Próxima Fase' },
-    { id: 'debugSpawnInimigo', label: 'Spawn Inimigo' },
     { id: 'debugReset', label: 'Reset Total' },
     { id: 'pause', label: 'Pausar' },
     { id: 'debugGrade', label: 'Grade' }
