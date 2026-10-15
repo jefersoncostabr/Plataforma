@@ -1156,7 +1156,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                     if (tentarTroca(window.caoEntidade, 'controlandoCao') || 
                         tentarTroca(window.gatoEntidade, 'controlandoGato') ||
                         tentarTroca(window.bbEntidade, 'controlandoBB')) {
-                        window.cameraZoomFactor = 1.5;
+                        if (typeof window.definirZoomCamera === 'function') window.definirZoomCamera(1.5);
+                        else window.cameraZoomFactor = 1.5;
                         requestAnimationFrame(atualizar);
                         return;
                     }
@@ -1367,11 +1368,6 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             sincronizarVisuaisEquipamentos();
             const petFoco = window.controlandoCao ? window.caoEntidade : (window.controlandoGato ? window.gatoEntidade : window.bbEntidade);
             if (typeof window.atualizarCamera === 'function' && petFoco) {
-                // Enquanto o BB estiver sob controle, força o mesmo zoom de pet em todo frame.
-                if (window.controlandoBB) {
-                    window.cameraZoomFactor = 1.5;
-                }
-
                 // Usa centro da hitbox com pequeno ajuste à esquerda para enquadramento melhor (configurável).
                 const ajusteEsquerdaPet = Number(config.cameraAjusteEsquerdaPetBB ?? 32);
                 const centroFocoX = Number(petFoco.x || 0) + Number(petFoco.offsetX || 0) + (Number(petFoco.largura || 20) / 2) + ajusteEsquerdaPet;

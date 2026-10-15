@@ -84,6 +84,7 @@
 
     const SYSTEM_DEFS = [
         { type: 'player', stateKey: 'posicaoInicialJogador', sprite: '../../assets/personagem/Personagem_parado.png', label: 'Ponto Inicial do Jogador', className: 'player-filter', kind: 'single' },
+        { type: 'playerBB', stateKey: 'posicaoInicialBB', sprite: '../../assets/personagem/bb/bb-parado.png', label: 'Ponto Inicial do Jogador como BB', kind: 'single' },
         { type: 'objetivo', stateKey: 'objetivo', sprite: '../../assets/personagem/objetivo.png', label: 'Objetivo da Fase', kind: 'single' },
         { type: 'alavanca', stateKey: 'posicaoAlavanca', sprite: '../../assets/personagem/alavanca.png', label: 'Alavanca', kind: 'single' },
         { type: 'roboDesativado', stateKey: 'posicaoRoboDesativado', sprite: '../../assets/personagem/robo_desativado.png', label: 'Robô Desativado (Interativo)', kind: 'single' },
@@ -101,6 +102,7 @@
         const base = {
             proporcao: DEFAULT_PROPORTION,
             posicaoInicialJogador: 'b2',
+            posicaoInicialBB: '',
             objetivo: 'f19',
             fundoFrente: [],
             posicaoAlavanca: '',

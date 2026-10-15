@@ -52,8 +52,6 @@
             throw new Error('Controle, config e elemento do jogador são obrigatórios para ações especiais.');
         }
 
-        let combinacaoVendaAnterior = false;
-
         function obterSpriteVisualItem(tipo) {
             return window.obterSpriteItem(tipo, config);
         }
@@ -171,16 +169,7 @@
 
         function iniciarVendaItem(tipo, alvo = {}) {
             const ehEquipado = alvo.origem === 'equipado';
-            console.info('[VENDER] Iniciando venda do item.', {
-                tipo,
-                origem: alvo.origem,
-                inventario: [...(controle.inventario || [])],
-                fase: window.faseAtualPathRelativo || window.faseAtualNome || '(desconhecida)'
-            });
             if (ehEquipado && tipo === 'colete' && Array.isArray(controle.coleteSlots) && controle.coleteSlots.some(Boolean)) {
-                console.warn('[VENDER] Venda bloqueada: esvazie a mochila antes de vender o colete.', {
-                    slotsOcupados: controle.coleteSlots.filter(Boolean).length
-                });
                 return false;
             }
 
@@ -260,19 +249,11 @@
                 zIndex: 20
             });
             salvarInventario();
-            console.info('[VENDER] Item removido da origem; animação de venda iniciada.', {
-                tipo,
-                origem: alvo.origem,
-                duracaoFrames: 120,
-                cancelavelCom: window.controlesConfig?.pulo || ['espaço']
-            });
             return true;
         }
 
         function cancelarVendaItem() {
             if (!controle.vendaEmCurso) return;
-
-            const tipoCancelado = controle.vendaTipo;
 
             const transacao = controle.vendaOrigem || { origem: 'inventario', tipo: controle.vendaTipo };
             if (transacao.origem === 'mochila') {
@@ -324,11 +305,6 @@
             controle.vendaEmCurso = false;
             controle.vendaOrigem = null;
             salvarInventario();
-            console.info('[VENDER] Venda cancelada pelo pulo; item devolvido ao inventário.', {
-                tipo: tipoCancelado,
-                origem: transacao.origem,
-                inventario: [...(controle.inventario || [])]
-            });
         }
 
         function processarComandosEspeciais() {
@@ -372,28 +348,6 @@
 
             const segurandoBaixoVenda = acaoAtiva('baixo');
             const combinacaoVendaAtiva = segurandoBaixoVenda && apertouTiro;
-            if (combinacaoVendaAtiva && !combinacaoVendaAnterior) {
-                const temSkillVender = !!window.temSkill?.((window.SKILLS || {}).VENDER);
-                console.info('[VENDER] Combinação Baixo + Tiro detectada.', {
-                    teclasConfiguradas: {
-                        baixo: window.controlesConfig?.baixo || ['seta para baixo'],
-                        tiro: window.controlesConfig?.tiro || ['i']
-                    },
-                    skillAdquirida: temSkillVender,
-                    vendaEmCurso: !!controle.vendaEmCurso,
-                    inventario: [...(controle.inventario || [])]
-                });
-                if (!temSkillVender) {
-                    console.warn('[VENDER] Comando reconhecido, mas a skill Vender não foi adquirida.');
-                } else if (!controle.inventario?.length) {
-                    console.warn('[VENDER] Comando reconhecido, mas o inventário está vazio.');
-                } else if (controle.vendaEmCurso) {
-                    console.warn('[VENDER] Comando reconhecido, mas já existe uma venda em andamento.');
-                }
-            } else if (!combinacaoVendaAtiva && combinacaoVendaAnterior) {
-                console.info('[VENDER] Combinação Baixo + Tiro liberada.');
-            }
-            combinacaoVendaAnterior = combinacaoVendaAtiva;
 
             const alvoVenda = proximoAlvoVenda();
             if (
@@ -402,16 +356,7 @@
                 !controle.vendaEmCurso &&
                 alvoVenda?.tipo
             ) {
-                const iniciouVenda = iniciarVendaItem(alvoVenda.tipo, alvoVenda);
-                if (!iniciouVenda) {
-                    // O alvo continua na origem quando a venda é recusada.
-                } else {
-                    console.info('[VENDER] Venda aceita; pressione Pulo para cancelar.', {
-                        tipo: alvoVenda.tipo,
-                        origem: alvoVenda.origem,
-                        duracaoFrames: 120
-                    });
-                }
+                iniciarVendaItem(alvoVenda.tipo, alvoVenda);
             }
         }
 
@@ -429,24 +374,11 @@
             if (acaoAtiva('pulo')) {
                 cancelarVendaItem();
             } else if (controle.vendaTimer >= 120) {
-                const xpAntes = Number(window.playerXP || 0);
-                const pontosAntes = Number(window.skillPoints || 0);
-                const tipoVendido = controle.vendaTipo;
-                const origemVenda = controle.vendaOrigem?.origem;
                 if (typeof window.ganharXP === 'function') window.ganharXP(1);
                 controle.vendaVisual.remove();
                 controle.vendaVisual = null;
                 controle.vendaEmCurso = false;
                 controle.vendaOrigem = null;
-                console.info('[VENDER] Venda concluída; ganharXP(1) foi chamado.', {
-                    tipo: tipoVendido,
-                    origem: origemVenda,
-                    xpAntes,
-                    xpDepois: Number(window.playerXP || 0),
-                    pontosSkillAntes: pontosAntes,
-                    pontosSkillDepois: Number(window.skillPoints || 0),
-                    duracaoFrames: controle.vendaTimer
-                });
             }
 
             return true;

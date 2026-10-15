@@ -119,7 +119,8 @@
                 window.controlarBB();
             } else {
                 window.controlandoBB = true;
-                window.cameraZoomFactor = 1.5;
+                if (typeof window.definirZoomCamera === 'function') window.definirZoomCamera(1.5);
+                else window.cameraZoomFactor = 1.5;
             }
         }
 
@@ -141,7 +142,8 @@
             }
 
             window.controlandoBB = false;
-            window.cameraZoomFactor = 1;
+            if (typeof window.definirZoomCamera === 'function') window.definirZoomCamera(1);
+            else window.cameraZoomFactor = 1;
         }
 
         function obterTempoTotalAnimacao() {
@@ -182,6 +184,11 @@
             controle.estaoAberto = false;
             controle.estaAgachado = false;
             controle._fechamentoRetornaAoPlayer = fechamentoIniciadoPeloBB;
+
+            if (fechamentoIniciadoPeloBB && window.inicioComoBB) {
+                const elementoJogador = document.getElementById('player');
+                if (elementoJogador) elementoJogador.style.visibility = '';
+            }
 
             liberarControleDoBBParaFechamento();
 

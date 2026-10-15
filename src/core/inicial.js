@@ -214,6 +214,11 @@ window.obterKnockbackRecebidoPadrao = (ent, config, tipo) => window.obterForcaKn
 
 async function carregarFase(nomeArquivo) {
 
+    if (typeof window.despawnBB === 'function') window.despawnBB();
+    window.controlandoBB = false;
+    const elementoJogador = document.getElementById('player');
+    if (elementoJogador) elementoJogador.style.visibility = '';
+
     if (typeof window.desativarVooInfinitoTeste === 'function') {
         window.desativarVooInfinitoTeste();
     } else if (window.playerControle) {
@@ -298,6 +303,16 @@ async function carregarFase(nomeArquivo) {
         const resposta = await fetch(nomeArquivo);
         if (!resposta.ok) throw new Error(`Erro ${resposta.status}: ${nomeArquivo} não encontrado.`);
         fase = await resposta.json();
+        window.inicioComoBB = !!fase.posicaoInicialBB;
+        window.posicaoInicialBBPixels = null;
+
+        if (window.inicioComoBB) {
+            resetarJogadorParaZeroMantendoSkills({ preservarEstadoSalvo: true, temBaseNestaFase: true });
+            window.__basePendenteAutoSpawn = null;
+            window.removerTodosCrafts?.(true);
+            window.limparCheckpointEquipamentoSalvo?.();
+            window.limparInventarioSalvo?.();
+        }
         
         // Expõe os dados da fase para o AudioManager e outros sistemas
         window.faseAtualData = fase;
@@ -563,11 +578,16 @@ async function carregarFase(nomeArquivo) {
 
         const pos = usarSpawnpointDaBase
             ? { x: Number(renascimentoBase.x || 0), y: Number(renascimentoBase.y || 0) }
-            : (typeof fase.posicaoInicialJogador === 'string'
-                ? (typeof window.gridParaPixels === 'function' ? window.gridParaPixels(fase.posicaoInicialJogador) : { x: 0, y: 0 })
-                : fase.posicaoInicialJogador);
+            : (fase.posicaoInicialBB
+                ? window.gridParaPixels(fase.posicaoInicialBB)
+                : (typeof fase.posicaoInicialJogador === 'string'
+                    ? (typeof window.gridParaPixels === 'function' ? window.gridParaPixels(fase.posicaoInicialJogador) : { x: 0, y: 0 })
+                    : fase.posicaoInicialJogador));
         window.playerControle.x = pos.x;
         window.playerControle.y = pos.y;
+        window.posicaoInicialBBPixels = fase.posicaoInicialBB
+            ? { x: Number(pos.x), y: Number(pos.y) }
+            : null;
         window.playerControle.velocidadeY = 0;
 
         // Auto-implantação da base resgatada no ponto de respawn (Caso 2)
@@ -616,6 +636,12 @@ async function carregarFase(nomeArquivo) {
 
         // --- LÓGICA DE PETS ---
         if (typeof window.limparGaiolas === 'function') window.limparGaiolas();
+
+        if (fase.posicaoInicialBB && typeof window.inicializarBB === 'function') {
+            window.inicializarBB(pos.x, pos.y, window.config);
+            window.controlarBB?.();
+            if (elementoJogador) elementoJogador.style.visibility = 'hidden';
+        }
 
         const processarPet = (tipo, resgatado, naBase, posGaiola, spawnFunc) => {
             if (resgatado && !naBase) {
@@ -680,7 +706,7 @@ async function carregarFase(nomeArquivo) {
         window.resetarItens(fase.itens || {});
     }
 
-    if (typeof window.restaurarCraftPersistenteDaFaseAtual === 'function') {
+    if (!window.inicioComoBB && typeof window.restaurarCraftPersistenteDaFaseAtual === 'function') {
         window.restaurarCraftPersistenteDaFaseAtual();
     }
 
@@ -1032,7 +1058,7 @@ window.reiniciarJogo = async function(porMorte = true, opcoes = {}) {
         await carregarFase(window.niveis[window.nivelAtual]);
     }
 
-    if (temCheckpointEquipamento && window.playerControle && typeof window.aplicarInventarioSalvoNoControle === 'function') {
+    if (temCheckpointEquipamento && !window.inicioComoBB && window.playerControle && typeof window.aplicarInventarioSalvoNoControle === 'function') {
         window.aplicarInventarioSalvoNoControle(window.playerControle);
     }
 

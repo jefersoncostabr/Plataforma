@@ -37,6 +37,38 @@ window.cameraX = 0;
 window.cameraY = 0;
 window.cameraModo = null; // "pequena" ou "grande"
 window.cameraZoomFactor = 1; // Default zoom factor for camera
+window.cameraZoomTransicao = null;
+
+window.definirZoomCamera = function(zoom, duracaoMs = 240) {
+    const destino = Math.max(0.1, Number(zoom) || 1);
+    const atual = Number(window.cameraZoomFactor) || 1;
+    if (Math.abs(atual - destino) < 0.001) {
+        window.cameraZoomTransicao = null;
+        window.cameraZoomFactor = destino;
+        return;
+    }
+    if (window.cameraZoomTransicao?.destino === destino) return;
+    window.cameraZoomTransicao = {
+        inicio: atual, destino, inicioMs: performance.now(),
+        duracaoMs: Math.max(0, Number(duracaoMs) || 0)
+    };
+    if (!window.cameraZoomTransicao.duracaoMs) {
+        window.cameraZoomFactor = destino;
+        window.cameraZoomTransicao = null;
+    }
+};
+
+function atualizarZoomCamera() {
+    const transicao = window.cameraZoomTransicao;
+    if (!transicao) return;
+    const progresso = Math.min(1, (performance.now() - transicao.inicioMs) / transicao.duracaoMs);
+    const suave = progresso * progresso * (3 - 2 * progresso);
+    window.cameraZoomFactor = transicao.inicio + (transicao.destino - transicao.inicio) * suave;
+    if (progresso >= 1) {
+        window.cameraZoomFactor = transicao.destino;
+        window.cameraZoomTransicao = null;
+    }
+}
 window.cameraAtiva = "padrao"; // Qual câmera está ativa
 
 /**
@@ -79,13 +111,15 @@ const cameraPequena = function(alvoX, alvoY, mundoW, mundoH) {
         // Define a origem no canto superior esquerdo para alinhar com a tradução
         stage.style.transformOrigin = "0 0";
 
-        let x = Math.round(window.cameraX);
-        let y = Math.round(window.cameraY);
+        const offsetX = calcularOffsetCentralizacao(mundoW, viewW);
+        const offsetY = calcularOffsetCentralizacao(mundoH, viewH);
+        let x = Math.round(offsetX - window.cameraX);
+        let y = Math.round(offsetY - window.cameraY);
         // Aplica tremor vertical se ativo
         if (window.cameraTremorAtivo) {
             y += (Math.random() * window.cameraTremorIntensidade) - (window.cameraTremorIntensidade / 2);
         }
-        stage.style.transform = `scale(${window.cameraZoomFactor}) translate(${-x}px, ${-y}px)`;
+        stage.style.transform = `scale(${window.cameraZoomFactor}) translate(${x}px, ${y}px)`;
     }
 };
 
@@ -152,8 +186,10 @@ const cameraGrande = function(alvoX, alvoY, mundoW, mundoH) {
 
     // Suaviza em todo o percurso e só "cola" na borda quando estiver muito perto.
     // Isso evita a pancada seca nas extremidades.
-    window.cameraX = aplicarSuavidade(window.cameraX, targetClampedX, 0.10);
-    window.cameraY = aplicarSuavidade(window.cameraY, targetClampedY, 0.10);
+    // Se o mapa cabe no viewport, fixa a origem e centraliza o mapa sem mostrar bordas.
+    const suavidade = window.cameraZoomTransicao ? 0.28 : 0.10;
+    window.cameraX = mundoW <= viewW ? 0 : aplicarSuavidade(window.cameraX, targetClampedX, suavidade);
+    window.cameraY = mundoH <= viewH ? 0 : aplicarSuavidade(window.cameraY, targetClampedY, suavidade);
 
     const LIMIAR_BORDA = 0.75;
     if (Math.abs(window.cameraX - targetClampedX) <= LIMIAR_BORDA) {
@@ -239,13 +275,9 @@ window.recolocarCameraNoJogador = function() {
         stage.style.transformOrigin = '0 0';
         const x = Math.round(window.cameraX);
         const y = Math.round(window.cameraY);
-        if (modo === 'grande') {
-            const offX = calcularOffsetCentralizacao(mundoW, viewW);
-            const offY = calcularOffsetCentralizacao(mundoH, viewH);
-            stage.style.transform = `scale(${zoom}) translate(${Math.round(offX - x)}px, ${Math.round(offY - y)}px)`;
-        } else {
-            stage.style.transform = `scale(${zoom}) translate(${-x}px, ${-y}px)`;
-        }
+        const offX = calcularOffsetCentralizacao(mundoW, viewW);
+        const offY = calcularOffsetCentralizacao(mundoH, viewH);
+        stage.style.transform = `scale(${zoom}) translate(${Math.round(offX - x)}px, ${Math.round(offY - y)}px)`;
     }
 };
 
@@ -267,6 +299,8 @@ window.atualizarCamera = function(alvoX, alvoY, mundoW, mundoH) {
     // com estado velho do menu e dá salto quando o menu fecha.
     if (window.isSkillMenuOpen) return;
     if (window.isMochilaMenuOpen) return;
+
+    atualizarZoomCamera();
 
     // Atualiza o timer do tremor (aproximadamente 60fps = 16.6ms por frame)
     window.atualizarTremorCamera(16.6);

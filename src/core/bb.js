@@ -541,7 +541,8 @@
         window.controlandoGato = false;
         window[petInfo.flag] = true;
         window.retornoControlePetParaBB = true;
-        window.cameraZoomFactor = 1.5;
+        if (typeof window.definirZoomCamera === 'function') window.definirZoomCamera(1.5);
+        else window.cameraZoomFactor = 1.5;
 
         if (teclas) {
             teclas['q'] = false;
@@ -616,9 +617,16 @@
         const yOriginal = Number(player.y || 0);
         const novoX = Number(roboAberto.spawnX || 0);
         const novoY = Number(roboAberto.spawnY || 0);
+        const elementoJogador = document.getElementById('player');
+        const visibilidadeAnterior = elementoJogador?.style.visibility || '';
+        if (elementoJogador) elementoJogador.style.visibility = 'hidden';
 
         const mudouDePosicao = xOriginal !== novoX || yOriginal !== novoY;
-        if (mudouDePosicao && window.sistemaAbertura?.isAberto?.()) {
+        const pontoInicialBB = window.posicaoInicialBBPixels;
+        const origemEhSpawnBB = pontoInicialBB
+            && Math.abs(xOriginal - Number(pontoInicialBB.x)) < 1
+            && Math.abs(yOriginal - Number(pontoInicialBB.y)) < 1;
+        if (mudouDePosicao && window.sistemaAbertura?.isAberto?.() && !origemEhSpawnBB) {
             manterCascoOriginalNoLocal(xOriginal, yOriginal);
         }
 
@@ -627,6 +635,11 @@
         player.velocidadeX = 0;
         player.velocidadeY = 0;
         player.estaAgachado = false;
+        if (elementoJogador) {
+            elementoJogador.style.left = `${novoX}px`;
+            elementoJogador.style.bottom = `${novoY}px`;
+            elementoJogador.style.transform = player.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+        }
 
         if (window.bbEntidade) {
             window.bbEntidade.cooldownTrocaCorpo = 18;
@@ -638,11 +651,11 @@
 
         // Fecha usando o fluxo padrão para manter a animação normal.
         // O corpo usado é consumido; o casco residual fica no local original.
-        if (window.sistemaAbertura?.isAberto?.()) {
-            return !!window.sistemaAbertura.iniciarFechamento?.();
+        const iniciouFechamento = !!window.sistemaAbertura?.iniciarFechamento?.();
+        if (elementoJogador && (!window.inicioComoBB || !iniciouFechamento)) {
+            elementoJogador.style.visibility = visibilidadeAnterior;
         }
-
-        return false;
+        return iniciouFechamento;
     }
 
     function cicloVidaBB(bb, idControle) {
@@ -1003,8 +1016,13 @@
         }
         
         window.controlandoBB = true;
+        if (window.inicioComoBB) {
+            const elementoJogador = document.getElementById('player');
+            if (elementoJogador) elementoJogador.style.visibility = 'hidden';
+        }
         // Mesmo comportamento dos pets: ao assumir controle, aplica ampliacao da camera.
-        window.cameraZoomFactor = 1.5;
+        if (typeof window.definirZoomCamera === 'function') window.definirZoomCamera(1.5);
+        else window.cameraZoomFactor = 1.5;
     };
 
     /**
@@ -1017,8 +1035,13 @@
         }
 
         window.controlandoBB = false;
+        if (window.inicioComoBB) {
+            const elementoJogador = document.getElementById('player');
+            if (elementoJogador) elementoJogador.style.visibility = '';
+        }
         // Reset camera zoom when returning control to player
-        window.cameraZoomFactor = 1;
+        if (typeof window.definirZoomCamera === 'function') window.definirZoomCamera(1);
+        else window.cameraZoomFactor = 1;
     };
 
     /**
