@@ -215,8 +215,9 @@ const __debugIdle = false;
         return;
     }
 
-    // Só anima se estiver movendo horizontalmente E estiver no chão
-    if (controle.movendoHorizontal && controle.noChao) {
+    // No Runner, mantém os frames de corrida também durante o salto.
+    const runnerAtivo = !!window.faseAtualData?.modoRunner;
+    if (runnerAtivo || (controle.movendoHorizontal && controle.noChao)) {
         resetIdleTimers();
         controle.contadorAnimacao++;
 

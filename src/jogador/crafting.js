@@ -157,6 +157,7 @@
                 id: String(craft.id || 'craft-persistente'),
                 fase: faseOriginal.toLowerCase(),
                 faseOriginal,
+                faseResumo: String(window.faseAtualPathRelativo || faseOriginal).trim(),
                 posicaoGrid,
                 x: Number(craft.x || 0),
                 y: Number(craft.y || 0),

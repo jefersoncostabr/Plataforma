@@ -309,6 +309,29 @@
         });
     }
 
+    function mostrarMensagem(msg, duracaoMs = 6000) {
+        const texto = String(msg || '').trim();
+        const raiz = obterContainer();
+        if (!texto || !raiz) return;
+
+        const id = `mensagem-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const elemento = document.createElement('div');
+        elemento.className = 'tutorial-controles-linha tutorial-controles-mensagem';
+        elemento.dataset.tutorialId = id;
+        elemento.textContent = texto;
+        mensagensAtivas.set(id, { elemento, timeout: null });
+
+        const duracao = Number(duracaoMs);
+        const timeout = setTimeout(() => {
+            mensagensAtivas.delete(id);
+            elemento.remove();
+            sincronizarVisibilidade();
+        }, Number.isFinite(duracao) && duracao > 0 ? duracao : 6000);
+        mensagensAtivas.get(id).timeout = timeout;
+
+        renderizar();
+    }
+
     function atualizarTeclas() {
         if (sessaoIniciada) renderizar();
     }
@@ -317,6 +340,7 @@
         iniciarSessao,
         registrarAcao,
         registrarItemColetado,
+        mostrarMensagem,
         atualizarTeclas,
         sincronizarVisibilidade
     };

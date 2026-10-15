@@ -42,6 +42,9 @@
 }
 
 .skill-tree-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
     text-align: center;
     padding: 20px 0;
     border-bottom: 1px solid #333;
@@ -74,6 +77,37 @@
     color: #888;
     text-transform: uppercase;
     font-size: 10px;
+}
+
+.skill-tree-description {
+    width: min(90%, 680px);
+    min-height: 76px;
+    margin: 14px auto 0;
+    padding: 10px 14px;
+    box-sizing: border-box;
+    border: 1px solid #4d7074;
+    border-left: 4px solid #54ded1;
+    border-radius: 8px;
+    background: #172326;
+    text-align: left;
+}
+
+.skill-tree-description-title {
+    color: #72eee2;
+    font-size: 16px;
+}
+
+.skill-tree-description .skill-tree-description-text {
+    margin: 5px 0;
+    color: #e2e8f0;
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+.skill-tree-description-status {
+    display: block;
+    color: #aebbc6;
+    font-size: 11px;
 }
 
 .skill-tree-btn {

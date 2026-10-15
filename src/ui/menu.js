@@ -298,12 +298,27 @@ function extrairEquipamentosConquistados(estado = {}) {
 }
 
 function formatarFaseResumo(nomeArquivo = '') {
-    const valor = String(nomeArquivo || '').trim().toLowerCase();
+    let valor = String(nomeArquivo || '').trim().toLowerCase().replace(/\\/g, '/');
     if (!valor) return '--';
-    if (valor.includes('treino')) return 'TR';
+    if (valor.includes('treino')) return 'Treino';
 
-    const numero = valor.match(/(\d+)/);
-    if (numero?.[1]) return `F${numero[1]}`;
+    const fase = valor.match(/fase[_-]?(\d+)/)?.[1];
+    let nivel = valor.match(/nivel[_-]?(\d+)/)?.[1]
+        || valor.match(/level[_-]?(\d+)/)?.[1];
+
+    // Saves antigos registravam só "faseN.json". Tenta recuperar o nível
+    // pelo catálogo de fases quando o nome for único.
+    if (fase && !nivel && Array.isArray(window.niveis)) {
+        const candidatos = window.niveis
+            .map((caminho) => String(caminho || '').toLowerCase().replace(/\\/g, '/'))
+            .filter((caminho) => new RegExp(`(?:^|/)fase[_-]?${fase}\\.json$`).test(caminho));
+        const niveisCandidatos = [...new Set(candidatos
+            .map((caminho) => caminho.match(/(?:nivel|level)[_-]?(\d+)/)?.[1])
+            .filter(Boolean))];
+        if (niveisCandidatos.length === 1) nivel = niveisCandidatos[0];
+    }
+
+    if (fase) return `F ${nivel || '?'}.${fase}`;
 
     return valor.replace('.json', '').slice(0, 5).toUpperCase();
 }
@@ -330,7 +345,13 @@ function registrarItemResumoSlot(item, tipo, slotId) {
     item.dataset.menuMode = 'main';
     item.dataset.navType = tipo;
     item.dataset.slotId = slotId;
-    item.title = item.title || `Detalhes do ${getSlotLabel(slotId)}`;
+    const descricoes = {
+        'slot-summary-title': `Status do ${getSlotLabel(slotId)}. Selecione para continuar ou iniciar neste slot.`,
+        'slot-summary-equipment': 'Equipamentos guardados no checkpoint deste slot.',
+        'slot-summary-stats': 'Dificuldade, skills, XP, skill points e vida do personagem.',
+        'slot-summary-base': 'Nível e modos da base, além da fase em que ela foi instalada.'
+    };
+    item.title = item.title || descricoes[tipo] || `Resumo do ${getSlotLabel(slotId)}.`;
     item.onmouseenter = () => {
         menuSelectedIndex = getMainMenuNavItems().indexOf(item);
         updateMenuVisuals();
@@ -352,6 +373,19 @@ function criarPainelResumoSalvo(slotId = getSlotSelecionadoMenu()) {
             ? new Set(skillsSalvas.playerSkills.map((item) => String(item || ''))).size
             : 0;
     const xp = Number(skillsSalvas?.playerXP ?? skillsSalvas?.xp ?? 0);
+    const skillPoints = Math.max(0, Number(skillsSalvas?.skillPoints || 0));
+    const slotAtivo = normalizarSlotId(window.SaveSlots?.getActiveSlotId?.() || 'slot1');
+    const slotSkills = Array.isArray(skillsSalvas?.acquired)
+        ? skillsSalvas.acquired
+        : Array.isArray(skillsSalvas?.playerSkills)
+            ? skillsSalvas.playerSkills
+            : [];
+    const vidaMaximaSalva = 3 + (slotSkills.some((skill) => String(skill || '').toLowerCase() === 'vida') ? 1 : 0);
+    const controleAtual = slotId === slotAtivo ? window.playerControle : null;
+    const vidaMaxima = Math.max(1, Number(controleAtual?.maxVida || vidaMaximaSalva));
+    const vidaAtual = controleAtual
+        ? Math.max(0, vidaMaxima - Number(controleAtual.dano || 0))
+        : vidaMaxima;
     const modoBase = String(baseSalva?.modoRenascimento || '').toLowerCase();
     const nivelBase = Math.max(0, Number(baseSalva?.nivel || 0));
     const slotOcupado = slotTemSave(slotId);
@@ -421,6 +455,7 @@ function criarPainelResumoSalvo(slotId = getSlotSelecionadoMenu()) {
     if (equipamentos.length === 0) {
         const vazio = document.createElement('div');
         vazio.textContent = 'Sem equipamentos';
+        vazio.title = 'Este slot não tem equipamentos guardados no checkpoint.';
         vazio.style.fontSize = '11px';
         vazio.style.opacity = '0.72';
         equipamentosWrap.appendChild(vazio);
@@ -448,12 +483,23 @@ function criarPainelResumoSalvo(slotId = getSlotSelecionadoMenu()) {
     skillsRow.style.display = 'flex';
     skillsRow.style.flexWrap = 'wrap';
     skillsRow.style.gap = '6px';
-    skillsRow.appendChild(criarChipResumo(formatarDificuldade(dificuldade), '#37474f'));
+    const chipDificuldade = criarChipResumo(formatarDificuldade(dificuldade), '#37474f');
+    chipDificuldade.title = `Dificuldade selecionada para este Slot.`;
+    skillsRow.appendChild(chipDificuldade);
     skillsRow.appendChild(criarChipResumo(`★ ${qtdSkills}`, '#3f51b5'));
-    skillsRow.appendChild(criarChipResumo(`XP ${xp}`, '#5b2a86'));
-    if (inventarioSalvo && Object.keys(inventarioSalvo).length > 0) {
-        skillsRow.appendChild(criarChipResumo('CP', '#0c8b62'));
-    }
+    const chipSkills = skillsRow.lastElementChild;
+    chipSkills.title = 'Quantidade de skills já adquiridas.';
+    const chipXp = criarChipResumo(`XP ${xp}`, '#5b2a86');
+    chipXp.title = 'Experiência acumulada.';
+    skillsRow.appendChild(chipXp);
+    const chipSkillPoints = criarChipResumo(`SK ${skillPoints}`, '#00796b');
+    chipSkillPoints.title = 'Skill points disponíveis para gastar.';
+    skillsRow.appendChild(chipSkillPoints);
+    const chipVida = criarChipResumo(`\u2665 ${vidaAtual}/${vidaMaxima}`, '#9b2635');
+    chipVida.title = controleAtual
+        ? 'Mostra a vida atual e a vida total.'
+        : 'Mostra a vida prevista ao renascer e a vida total; o dano não é salvo.';
+    skillsRow.appendChild(chipVida);
     painel.appendChild(skillsRow);
 
     const baseBox = document.createElement('div');
@@ -465,6 +511,7 @@ function criarPainelResumoSalvo(slotId = getSlotSelecionadoMenu()) {
 
     const baseImg = document.createElement('img');
     baseImg.alt = 'Base';
+    baseImg.title = nivelBase > 0 ? 'Base de campanha salva.' : 'Nenhuma base de campanha salva.';
     baseImg.style.width = '26px';
     baseImg.style.height = '26px';
     baseImg.style.objectFit = 'contain';
@@ -483,14 +530,29 @@ function criarPainelResumoSalvo(slotId = getSlotSelecionadoMenu()) {
     baseInfo.style.gap = '4px';
 
     if (nivelBase > 0) {
-        baseInfo.appendChild(criarChipResumo(`N${nivelBase}`, nivelBase >= 4 ? '#ffd700' : '#00695c'));
-        baseInfo.appendChild(criarChipResumo(
+        const chipNivelBase = criarChipResumo(`N${nivelBase}`, nivelBase >= 4 ? '#ffd700' : '#00695c');
+        chipNivelBase.title = 'Nível atual da base.';
+        baseInfo.appendChild(chipNivelBase);
+        const chipModoBase = criarChipResumo(
             modoBase === 'ambos' ? 'SP+MEM' : modoBase === 'spawnpoint' ? 'SP' : modoBase === 'memoria' ? 'MEM' : 'OFF',
             modoBase === 'ambos' ? '#ff6f00' : modoBase === 'spawnpoint' ? '#1565c0' : modoBase === 'memoria' ? '#8e24aa' : '#555'
-        ));
-        baseInfo.appendChild(criarChipResumo(formatarFaseResumo(baseSalva?.faseOriginal || baseSalva?.fase), '#424242'));
+        );
+        chipModoBase.title = modoBase === 'ambos'
+            ? 'Spawnpoint e Memória ativos.'
+            : modoBase === 'spawnpoint'
+                ? 'Modo Spawnpoint ativo: renasce nesta base.'
+                : modoBase === 'memoria'
+                    ? 'Modo Memória ativo: preserva o equipamento salvo.'
+                    : 'Nenhum modo de renascimento ativo.';
+        baseInfo.appendChild(chipModoBase);
+        const faseResumo = formatarFaseResumo(baseSalva?.faseResumo || baseSalva?.faseOriginal || baseSalva?.fase);
+        const chipFase = criarChipResumo(faseResumo, '#424242');
+        chipFase.title = 'Fase atual onde está a base';
+        baseInfo.appendChild(chipFase);
     } else {
-        baseInfo.appendChild(criarChipResumo('SEM BASE', '#555'));
+        const chipSemBase = criarChipResumo('SEM BASE', '#555');
+        chipSemBase.title = 'Este slot ainda não tem uma base de campanha salva.';
+        baseInfo.appendChild(chipSemBase);
     }
 
     baseBox.appendChild(baseInfo);
@@ -624,7 +686,9 @@ const getActiveMenuOptions = () => {
         label: 'REINICIAR', action: () => {
             window.isFirstStart = false;
             window.togglePauseMenu();
-            if (typeof window.reiniciarJogo === 'function') window.reiniciarJogo();
+            if (typeof window.reiniciarJogo === 'function') {
+                window.reiniciarJogo(true, { usarSpawnpointDaBase: false });
+            }
         }
     };
 
@@ -648,6 +712,12 @@ const getActiveMenuOptions = () => {
                 window.isTraining = true;
                 window.togglePauseMenu();
                 if (typeof carregarFase === 'function') carregarFase('../../config/fases/treino.json');
+            }
+        },
+        {
+            label: 'PARAR', action: () => {
+                if (!confirm('Deseja encerrar a partida atual e voltar ao menu principal?')) return;
+                acaoVoltarParaMenuInicial();
             }
         },
         reiniciarOption,
@@ -1417,6 +1487,7 @@ function obterIconePorLabel(label) {
     if (l === 'SKILLS') return 'assets/icones/skill.png';
     if (l === 'CONFIGURAÇÕES') return 'assets/icones/config.png';
     if (l === 'TREINO') return 'assets/icones/treinar.png';
+    if (l === 'PARAR') return 'assets/icones/parar.png';
     if (l === 'SAIR') return 'assets/icones/lixo.png';
     return null;
 }

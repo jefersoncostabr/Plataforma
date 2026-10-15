@@ -169,9 +169,7 @@
 
         // Garante que o player sempre olhe para a direita e anime andando se no chão
         player.direcao = 'd';
-        if (player.noChao) {
-            player.movendoHorizontal = true;
-        }
+        player.movendoHorizontal = true;
 
         // Move o player para frente automaticamente com detecção de colisão (Fix: Requisito 17)
         if (typeof window.aplicarDeslocamentoHorizontalComColisaoPadrao === 'function') {

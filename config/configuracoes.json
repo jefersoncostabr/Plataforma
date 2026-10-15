@@ -155,7 +155,7 @@
     "caoAlcancePuloY": 32,
     "caoAlcancePuloX": 80,
     "cameraAjusteEsquerdaPetBB": 16,
-    "faseInicial": 1,
+    "faseInicial": "nivel_2/fase1.json",
     "escalaPalco": 1.5,
     "tempoColetaItem": 100,
     "tempoColetaAirdrop": 100,

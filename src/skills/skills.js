@@ -7,6 +7,7 @@ window.isSkillMenuOpen = false;
 window.playerXP = 0;
 window.skillPoints = 0;
 window.skillsData = null;
+window.skillDescriptions = {};
 
 // Rastreia se a função obterConfigRenascimentoBase já ficou disponível
 let baseConfigFunctionAvailable = false;
@@ -245,10 +246,13 @@ window.ganharXP = (quantidade = 1) => {
 window.carregarDadosSkills = async (forçarReset = false) => {
     try {
 
-        const resposta = await fetch('../../config/skills-dados.json?v=20260522-skill-garra-rename');
+        const resposta = await fetch('../../config/skills-dados.json?v=20261015-skill-descriptions');
         const dados = await resposta.json();
         const skillsOriginais = dados.skills || {};
         const skillsNormalizadas = normalizarEstruturaSkills(skillsOriginais);
+        window.skillDescriptions = dados.descricoes && typeof dados.descricoes === 'object'
+            ? dados.descricoes
+            : {};
         const estadoPersistencia = obterEstadoPersistenciaSkills();
         const progressoSalvo = carregarProgressoSkillsSalvo();
         window.skillsData = skillsNormalizadas;
@@ -441,6 +445,22 @@ function atualizarVisualSelecaoSkills() {
     const painel = document.querySelector('.skill-tree-container');
     const selecionado = closeButtonFocused ? null : skillButtonsMap[selectedSkillId];
     if (!painel) return;
+    const tituloDescricao = painel.querySelector('.skill-tree-description-title');
+    const textoDescricao = painel.querySelector('.skill-tree-description-text');
+    const statusDescricao = painel.querySelector('.skill-tree-description-status');
+    if (tituloDescricao && textoDescricao && statusDescricao) {
+        const skill = window.skillsData?.[selectedSkillId];
+        const depth = skill ? getSkillDepth(selectedSkillId, window.skillsData) : 0;
+        const custo = 1 + depth;
+        const possui = Array.isArray(window.playerSkills) && window.playerSkills.includes(selectedSkillId);
+        tituloDescricao.textContent = skill?.nome || 'Selecione uma habilidade';
+        textoDescricao.textContent = skill
+            ? (window.skillDescriptions?.[selectedSkillId] || 'Descrição ainda não cadastrada.')
+            : 'Navegue pela árvore para ver o que cada habilidade faz.';
+        statusDescricao.textContent = skill
+            ? (possui ? 'Habilidade adquirida' : `Custo: ${custo} SP`)
+            : '';
+    }
     if (closeButtonFocused) {
         painel.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
         return;
@@ -518,6 +538,12 @@ function abrirMenuSkillsUI() {
         <p>XP: <span style="color: #ffd700;">${window.playerXP}</span> | Pontos: <span style="color: #00ff00;">${window.skillPoints}</span></p>
         <small>WASD: Navegar • ENTER/ESPAÇO: Comprar • ESC: Menu</small>
     `;
+    const painelDescricao = document.createElement('section');
+    painelDescricao.className = 'skill-tree-description';
+    painelDescricao.setAttribute('aria-live', 'polite');
+    painelDescricao.setAttribute('aria-label', 'Descrição da habilidade selecionada');
+    painelDescricao.innerHTML = '<strong class="skill-tree-description-title"></strong><p class="skill-tree-description-text"></p><small class="skill-tree-description-status"></small>';
+    header.appendChild(painelDescricao);
     container.appendChild(header);
 
     const canvas = document.createElement('div');
@@ -593,6 +619,11 @@ function abrirMenuSkillsUI() {
         btn.style.position = 'absolute';
         btn.style.left = `${x}px`;
         btn.style.top = `${y}px`;
+        btn.addEventListener('mouseenter', () => {
+            selectedSkillId = skillId;
+            closeButtonFocused = false;
+            atualizarVisualSelecaoSkills();
+        });
 
         if (jaPossui) {
             btn.classList.add('owned');

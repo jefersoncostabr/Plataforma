@@ -750,7 +750,7 @@
         0,
         0
     ],
-    "faseBonus": false,
+    "faseBonus": true,
     "qualBonus": 0,
     "nivelBonus": "a",
     "plataformas": [

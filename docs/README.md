@@ -14,6 +14,7 @@
 - `como_criar_skills.md` — como a arvore de skills nasce do `skills-dados.json`.
 - `NPC_SYSTEM.md` — NPC via JSON + fabrica, como por na fase e no editor.
 - `MENU_BASE_REFERENCIA.md` — onde fica cada parte do menu da base (HTML/CSS/JS).
+- `MODO_RUNNER.md` — resumo do bônus Runner, controles e configuração por fase.
 - `retro-grid-effect.md` — efeito visual do botao (copiar e colar CSS/HTML/JS).
 
 ## Quero entender o codigo / refatorar

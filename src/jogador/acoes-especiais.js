@@ -52,6 +52,8 @@
             throw new Error('Controle, config e elemento do jogador são obrigatórios para ações especiais.');
         }
 
+        let combinacaoVendaAnterior = false;
+
         function obterSpriteVisualItem(tipo) {
             return window.obterSpriteItem(tipo, config);
         }
@@ -119,37 +121,133 @@
             }, tempoEspera);
         }
 
-        function iniciarVendaItem(tipo) {
-            if (tipo === 'colete' && Array.isArray(controle.coleteSlots) && controle.coleteSlots.some(Boolean)) {
-                console.log('Colete: esvazie a mochila antes de vender o colete.');
+        function tipoEstaEquipado(tipo) {
+            if ((tipo === 'revolver' || tipo === 'doze') && controle.temArma) {
+                return (controle.heldWeaponType || tipo) === tipo;
+            }
+            if (tipo === 'escudo') return !!(controle.temEscudo || controle.escudoVermelho);
+            if (tipo === 'bota') return !!controle.temBota;
+            if (tipo === 'jetpack') return !!controle.temJetpack;
+            if (tipo === 'garra') return !!controle.temGarra;
+            if (tipo === 'cinto') return !!controle.temCinto;
+            if (tipo === 'colete') return !!controle.temColete;
+            return false;
+        }
+
+        function proximoAlvoVenda() {
+            if (!Array.isArray(controle.inventario)) controle.inventario = [];
+            if (!Array.isArray(controle.coleteSlots)) controle.coleteSlots = [];
+
+            const indiceMochila = controle.coleteSlots.findIndex(Boolean);
+            if (indiceMochila >= 0) {
+                const entrada = controle.coleteSlots[indiceMochila];
+                return { tipo: entrada?.tipo || entrada?.id || entrada, origem: 'mochila', indice: indiceMochila };
+            }
+            if (controle.cintoSlot) {
+                const entrada = controle.cintoSlot;
+                return { tipo: entrada?.tipo || entrada?.id || entrada, origem: 'slot-cinto' };
+            }
+
+            // Igual ao drop: o colete só pode ser vendido depois de esvaziar a mochila.
+            if (controle.temColete && controle.inventario.includes('colete')) {
+                return { tipo: 'colete', origem: 'equipado' };
+            }
+
+            const arma = controle.temArma ? (controle.heldWeaponType || (controle.inventario.includes('doze') ? 'doze' : 'revolver')) : null;
+            const equipamentos = [
+                arma,
+                (controle.temEscudo || controle.escudoVermelho) ? 'escudo' : null,
+                controle.temBota ? 'bota' : null,
+                controle.temJetpack ? 'jetpack' : null,
+                controle.temGarra ? 'garra' : null,
+                controle.temCinto ? 'cinto' : null
+            ];
+            const equipado = equipamentos.find(tipo => tipo && controle.inventario.includes(tipo));
+            if (equipado) return { tipo: equipado, origem: 'equipado' };
+
+            const tipo = controle.inventario[controle.inventario.length - 1];
+            return tipo ? { tipo, origem: 'inventario' } : null;
+        }
+
+        function iniciarVendaItem(tipo, alvo = {}) {
+            const ehEquipado = alvo.origem === 'equipado';
+            console.info('[VENDER] Iniciando venda do item.', {
+                tipo,
+                origem: alvo.origem,
+                inventario: [...(controle.inventario || [])],
+                fase: window.faseAtualPathRelativo || window.faseAtualNome || '(desconhecida)'
+            });
+            if (ehEquipado && tipo === 'colete' && Array.isArray(controle.coleteSlots) && controle.coleteSlots.some(Boolean)) {
+                console.warn('[VENDER] Venda bloqueada: esvazie a mochila antes de vender o colete.', {
+                    slotsOcupados: controle.coleteSlots.filter(Boolean).length
+                });
                 return false;
             }
+
+            const transacao = { ...alvo, tipo, entradaOriginal: null, removeuTipoInventario: false };
+            if (alvo.origem === 'mochila') {
+                const entrada = controle.coleteSlots[alvo.indice];
+                transacao.entradaOriginal = (typeof entrada === 'object')
+                    ? { ...entrada, dados: { ...(entrada.dados || {}) } }
+                    : entrada;
+                if (Number(entrada?.quantidade || 1) > 1) {
+                    controle.coleteSlots[alvo.indice] = { ...entrada, quantidade: Number(entrada.quantidade) - 1 };
+                } else {
+                    controle.coleteSlots[alvo.indice] = null;
+                }
+            } else if (alvo.origem === 'slot-cinto') {
+                const entrada = controle.cintoSlot;
+                transacao.entradaOriginal = (typeof entrada === 'object')
+                    ? { ...entrada, dados: { ...(entrada.dados || {}) } }
+                    : entrada;
+                if (Number(entrada?.quantidade || 1) > 1) {
+                    controle.cintoSlot = { ...entrada, quantidade: Number(entrada.quantidade) - 1 };
+                } else {
+                    controle.cintoSlot = null;
+                }
+            }
+
+            if (alvo.origem === 'mochila' || alvo.origem === 'slot-cinto') {
+                const continuaGuardado = controle.coleteSlots.some(entrada => (entrada?.tipo || entrada?.id || entrada) === tipo)
+                    || (controle.cintoSlot && (controle.cintoSlot?.tipo || controle.cintoSlot?.id || controle.cintoSlot) === tipo);
+                if (!continuaGuardado && !tipoEstaEquipado(tipo)) {
+                    const indiceInventario = controle.inventario.lastIndexOf(tipo);
+                    if (indiceInventario >= 0) {
+                        controle.inventario.splice(indiceInventario, 1);
+                        transacao.removeuTipoInventario = true;
+                    }
+                }
+            } else {
+                const indiceInventario = controle.inventario.lastIndexOf(tipo);
+                if (indiceInventario >= 0) controle.inventario.splice(indiceInventario, 1);
+            }
+            controle.vendaOrigem = transacao;
 
             controle.vendaEmCurso = true;
             controle.vendaTimer = 0;
             controle.vendaTipo = tipo;
 
-            if (tipo === 'revolver' || tipo === 'doze') {
+            if (ehEquipado && (tipo === 'revolver' || tipo === 'doze')) {
                 controle.temArma = false;
                 armaElemento.style.display = 'none';
-            } else if (tipo === 'escudo') {
+            } else if (ehEquipado && tipo === 'escudo') {
                 controle.temEscudo = false;
                 atualizarVisualEscudo();
-            } else if (tipo === 'bota') {
+            } else if (ehEquipado && tipo === 'bota') {
                 controle.temBota = false;
                 botaElemento.style.display = 'none';
-            } else if (tipo === 'jetpack') {
+            } else if (ehEquipado && tipo === 'jetpack') {
                 controle.temJetpack = false;
                 controle.jetpackAtivo = false;
                 jetpackElemento.style.display = 'none';
                 jetFogoElemento.style.display = 'none';
-            } else if (tipo === 'garra') {
+            } else if (ehEquipado && tipo === 'garra') {
                 controle.temGarra = false;
                 garraElemento.style.display = 'none';
-            } else if (tipo === 'cinto') {
+            } else if (ehEquipado && tipo === 'cinto') {
                 controle.temCinto = false;
                 cintoElemento.style.display = 'none';
-            } else if (tipo === 'colete') {
+            } else if (ehEquipado && tipo === 'colete') {
                 controle.temColete = false;
                 if (coleteElemento) coleteElemento.style.display = 'none';
             }
@@ -162,33 +260,61 @@
                 zIndex: 20
             });
             salvarInventario();
+            console.info('[VENDER] Item removido da origem; animação de venda iniciada.', {
+                tipo,
+                origem: alvo.origem,
+                duracaoFrames: 120,
+                cancelavelCom: window.controlesConfig?.pulo || ['espaço']
+            });
             return true;
         }
 
         function cancelarVendaItem() {
             if (!controle.vendaEmCurso) return;
 
-            controle.inventario.push(controle.vendaTipo);
+            const tipoCancelado = controle.vendaTipo;
 
-            if (controle.vendaTipo === 'revolver' || controle.vendaTipo === 'doze') {
+            const transacao = controle.vendaOrigem || { origem: 'inventario', tipo: controle.vendaTipo };
+            if (transacao.origem === 'mochila') {
+                const indice = transacao.indice;
+                if (!controle.coleteSlots[indice]) controle.coleteSlots[indice] = transacao.entradaOriginal;
+                else {
+                    const indiceLivre = controle.coleteSlots.findIndex(entrada => !entrada);
+                    if (indiceLivre >= 0) controle.coleteSlots[indiceLivre] = transacao.entradaOriginal;
+                    else controle.inventario.push(transacao.tipo);
+                }
+                if (transacao.removeuTipoInventario && !controle.inventario.includes(transacao.tipo)) {
+                    controle.inventario.push(transacao.tipo);
+                }
+            } else if (transacao.origem === 'slot-cinto') {
+                if (!controle.cintoSlot) controle.cintoSlot = transacao.entradaOriginal;
+                else controle.inventario.push(transacao.tipo);
+                if (transacao.removeuTipoInventario && !controle.inventario.includes(transacao.tipo)) {
+                    controle.inventario.push(transacao.tipo);
+                }
+            } else {
+                controle.inventario.push(transacao.tipo);
+            }
+
+            if (transacao.origem === 'equipado' && (controle.vendaTipo === 'revolver' || controle.vendaTipo === 'doze')) {
                 controle.temArma = true;
                 armaElemento.style.display = 'block';
-            } else if (controle.vendaTipo === 'escudo') {
+            } else if (transacao.origem === 'equipado' && controle.vendaTipo === 'escudo') {
                 controle.temEscudo = true;
                 atualizarVisualEscudo();
-            } else if (controle.vendaTipo === 'bota') {
+            } else if (transacao.origem === 'equipado' && controle.vendaTipo === 'bota') {
                 controle.temBota = true;
                 botaElemento.style.display = 'block';
-            } else if (controle.vendaTipo === 'jetpack') {
+            } else if (transacao.origem === 'equipado' && controle.vendaTipo === 'jetpack') {
                 controle.temJetpack = true;
                 jetpackElemento.style.display = 'block';
-            } else if (controle.vendaTipo === 'garra') {
+            } else if (transacao.origem === 'equipado' && controle.vendaTipo === 'garra') {
                 controle.temGarra = true;
                 garraElemento.style.display = 'block';
-            } else if (controle.vendaTipo === 'cinto') {
+            } else if (transacao.origem === 'equipado' && controle.vendaTipo === 'cinto') {
                 controle.temCinto = true;
                 cintoElemento.style.display = 'block';
-            } else if (controle.vendaTipo === 'colete') {
+            } else if (transacao.origem === 'equipado' && controle.vendaTipo === 'colete') {
                 controle.temColete = true;
                 if (coleteElemento) coleteElemento.style.display = 'block';
             }
@@ -196,7 +322,13 @@
             if (controle.vendaVisual?.remove) controle.vendaVisual.remove();
             controle.vendaVisual = null;
             controle.vendaEmCurso = false;
+            controle.vendaOrigem = null;
             salvarInventario();
+            console.info('[VENDER] Venda cancelada pelo pulo; item devolvido ao inventário.', {
+                tipo: tipoCancelado,
+                origem: transacao.origem,
+                inventario: [...(controle.inventario || [])]
+            });
         }
 
         function processarComandosEspeciais() {
@@ -239,18 +371,46 @@
             }
 
             const segurandoBaixoVenda = acaoAtiva('baixo');
+            const combinacaoVendaAtiva = segurandoBaixoVenda && apertouTiro;
+            if (combinacaoVendaAtiva && !combinacaoVendaAnterior) {
+                const temSkillVender = !!window.temSkill?.((window.SKILLS || {}).VENDER);
+                console.info('[VENDER] Combinação Baixo + Tiro detectada.', {
+                    teclasConfiguradas: {
+                        baixo: window.controlesConfig?.baixo || ['seta para baixo'],
+                        tiro: window.controlesConfig?.tiro || ['i']
+                    },
+                    skillAdquirida: temSkillVender,
+                    vendaEmCurso: !!controle.vendaEmCurso,
+                    inventario: [...(controle.inventario || [])]
+                });
+                if (!temSkillVender) {
+                    console.warn('[VENDER] Comando reconhecido, mas a skill Vender não foi adquirida.');
+                } else if (!controle.inventario?.length) {
+                    console.warn('[VENDER] Comando reconhecido, mas o inventário está vazio.');
+                } else if (controle.vendaEmCurso) {
+                    console.warn('[VENDER] Comando reconhecido, mas já existe uma venda em andamento.');
+                }
+            } else if (!combinacaoVendaAtiva && combinacaoVendaAnterior) {
+                console.info('[VENDER] Combinação Baixo + Tiro liberada.');
+            }
+            combinacaoVendaAnterior = combinacaoVendaAtiva;
+
+            const alvoVenda = proximoAlvoVenda();
             if (
                 window.temSkill?.((window.SKILLS || {}).VENDER) &&
-                segurandoBaixoVenda &&
-                apertouTiro &&
+                combinacaoVendaAtiva &&
                 !controle.vendaEmCurso &&
-                Array.isArray(controle.inventario) &&
-                controle.inventario.length > 0
+                alvoVenda?.tipo
             ) {
-                const tipo = controle.inventario.pop();
-                const iniciouVenda = iniciarVendaItem(tipo);
+                const iniciouVenda = iniciarVendaItem(alvoVenda.tipo, alvoVenda);
                 if (!iniciouVenda) {
-                    controle.inventario.push(tipo);
+                    // O alvo continua na origem quando a venda é recusada.
+                } else {
+                    console.info('[VENDER] Venda aceita; pressione Pulo para cancelar.', {
+                        tipo: alvoVenda.tipo,
+                        origem: alvoVenda.origem,
+                        duracaoFrames: 120
+                    });
                 }
             }
         }
@@ -269,10 +429,24 @@
             if (acaoAtiva('pulo')) {
                 cancelarVendaItem();
             } else if (controle.vendaTimer >= 120) {
+                const xpAntes = Number(window.playerXP || 0);
+                const pontosAntes = Number(window.skillPoints || 0);
+                const tipoVendido = controle.vendaTipo;
+                const origemVenda = controle.vendaOrigem?.origem;
                 if (typeof window.ganharXP === 'function') window.ganharXP(1);
                 controle.vendaVisual.remove();
                 controle.vendaVisual = null;
                 controle.vendaEmCurso = false;
+                controle.vendaOrigem = null;
+                console.info('[VENDER] Venda concluída; ganharXP(1) foi chamado.', {
+                    tipo: tipoVendido,
+                    origem: origemVenda,
+                    xpAntes,
+                    xpDepois: Number(window.playerXP || 0),
+                    pontosSkillAntes: pontosAntes,
+                    pontosSkillDepois: Number(window.skillPoints || 0),
+                    duracaoFrames: controle.vendaTimer
+                });
             }
 
             return true;

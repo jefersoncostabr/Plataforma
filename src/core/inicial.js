@@ -15,6 +15,14 @@ window.intervalHumanoAleatorio = null; // Ciclo para humano aleatório
 window.timeoutPrimeiroHumanoAleatorio = null; // Delay inicial do humano
 
 function obterIndiceFaseInicial(valorFaseInicial) {
+    if (typeof valorFaseInicial === 'string' && valorFaseInicial.trim()) {
+        const identificador = valorFaseInicial.trim().replace(/\\/g, '/');
+        const indicePorNome = obterIndiceFasePorNome(identificador);
+        if (indicePorNome >= 0) return indicePorNome;
+        console.warn(`faseInicial "${identificador}" não encontrada. Usando fase 1 como padrão.`);
+        return 0;
+    }
+
     const faseNumero = Number(valorFaseInicial);
 
     if (!Number.isFinite(faseNumero) || faseNumero < 1) {
@@ -769,31 +777,72 @@ window.proximoNivel = async function() {
 
     // Intercepta se a fase concluída possui fase bônus definida no JSON (Requisito: faseBonus)
     const dataFase = window.faseAtualData || {};
-    if (dataFase.faseBonus && typeof window.ativarModoRunner === 'function' && !window.__emModoRunnerTransicao) {
+    const qualBonus = Number(dataFase.qualBonus ?? 0);
+    const runnerBonusValido = dataFase.faseBonus && qualBonus === 0;
+
+    if (dataFase.faseBonus && qualBonus !== 0) {
+        console.warn(`[Runner] Bônus ${dataFase.qualBonus} não é suportado; seguindo para a próxima fase.`);
+    }
+
+    if (runnerBonusValido && typeof window.ativarModoRunner === 'function' && !window.__emModoRunnerTransicao) {
         window.__emModoRunnerTransicao = true;
+
+        const caminhoFaseBonus = String(window.faseAtualPathRelativo || window.faseAtualNome || '');
+        const nivelCampanha = caminhoFaseBonus.match(/nivel_(\d+)/i)?.[1] || '1';
+        window.TutorialControles?.mostrarMensagem?.(
+            `Fase bônus — nível ${nivelCampanha}. Pule para sobreviver!`
+        );
         
         // Determina dificuldade do Runner (a=easy, b=normal/medium, c=hard. Vazio = easy)
         let dificuldade = "easy";
-        if (dataFase.nivelBonus === 'b') dificuldade = "medium";
-        else if (dataFase.nivelBonus === 'c') dificuldade = "hard";
+        const nivelBonus = String(dataFase.nivelBonus || 'a').trim().toLowerCase();
+        if (nivelBonus === 'b') dificuldade = "medium";
+        else if (nivelBonus === 'c') dificuldade = "hard";
 
-        // Se qualBonus for 0 ou vazio, inicia o modo Runner (Requisito: qualBonus)
-        if (!dataFase.qualBonus || dataFase.qualBonus === 0) {
-            window.ativarModoRunner(true, dificuldade);
-        }
+        window.ativarModoRunner(true, dificuldade);
         
-        // Aguarda 40 segundos ou até que o estado seja cancelado (por morte/reset)
+        // Conta 20 segundos de jogo ativo; o pause suspende a contagem.
         await new Promise(resolve => {
-            window.__cancelarRunnerPromise = resolve;
-            window.__timerRunnerTimeout = setTimeout(resolve, 40000);
+            let intervaloRunner = null;
+            let tempoRunnerRestante = 20000;
+            const concluirEsperaRunner = () => {
+                if (intervaloRunner !== null) {
+                    if (window.__timerRunnerTimeout === intervaloRunner) {
+                        window.__timerRunnerTimeout = null;
+                    }
+                    clearInterval(intervaloRunner);
+                    intervaloRunner = null;
+                }
+                if (window.__cancelarRunnerPromise === concluirEsperaRunner) {
+                    window.__cancelarRunnerPromise = null;
+                }
+                resolve();
+            };
+
+            intervaloRunner = setInterval(() => {
+                if (window.isPaused) return;
+                if (!window.__emModoRunnerTransicao
+                    || !window.faseAtualData?.modoRunner
+                    || !window.playerControle
+                    || window.playerControle.estaMorrendo) {
+                    concluirEsperaRunner();
+                    return;
+                }
+
+                tempoRunnerRestante -= 100;
+                if (tempoRunnerRestante <= 0) concluirEsperaRunner();
+            }, 100);
+
+            window.__cancelarRunnerPromise = concluirEsperaRunner;
+            window.__timerRunnerTimeout = intervaloRunner;
         });
 
         const sobreviveu = window.__emModoRunnerTransicao && window.faseAtualData?.modoRunner && 
                            window.playerControle && !window.playerControle.estaMorrendo;
 
         window.__emModoRunnerTransicao = false;
-        window.__cancelarRunnerPromise = null;
-        if (window.__timerRunnerTimeout) clearTimeout(window.__timerRunnerTimeout);
+        if (window.__timerRunnerTimeout) clearInterval(window.__timerRunnerTimeout);
+        window.__timerRunnerTimeout = null;
 
         if (sobreviveu) {
             window.ativarModoRunner(false);
@@ -867,8 +916,14 @@ window.proximoNivel = async function() {
 };
 
 // Reinicia a fase atual
-window.reiniciarJogo = async function(porMorte = true) {
+window.reiniciarJogo = async function(porMorte = true, opcoes = {}) {
     limparAnimacaoDanoJogador();
+
+    // Captura a fase visível antes do reset. Reinícios manuais devem permanecer
+    // nela; o spawnpoint salvo só se aplica ao renascimento após morte.
+    const indiceFaseAtual = obterIndiceFasePorNome(
+        window.faseAtualPathRelativo || window.faseAtualNome
+    );
 
     // Cancela qualquer transição de Runner em curso ao reiniciar
     if (typeof window.__cancelarRunnerPromise === 'function') {
@@ -888,7 +943,8 @@ window.reiniciarJogo = async function(porMorte = true) {
     const renascimentoBase = obterConfigRenascimentoBaseAtiva();
     const modo = renascimentoBase?.modoRenascimento;
     const usarMemoriaDaBase = !!(porMorte && (modo === 'memoria' || modo === 'ambos'));
-    const usarSpawnpointDaBase = modo === 'spawnpoint' || modo === 'ambos';
+    const spawnpointHabilitadoNaBase = modo === 'spawnpoint' || modo === 'ambos';
+    const usarSpawnpointDaBase = opcoes.usarSpawnpointDaBase ?? (porMorte && spawnpointHabilitadoNaBase);
     const skillsMemorizadas = usarMemoriaDaBase ? [...(window.playerSkills || [])] : [];
 
     // Cancela spawns de inimigos aleatórios
@@ -971,7 +1027,7 @@ window.reiniciarJogo = async function(porMorte = true) {
             : -1;
         window.nivelAtual = indiceSpawnpoint >= 0
             ? indiceSpawnpoint
-            : obterIndiceFaseInicial(window.config?.faseInicial);
+            : (indiceFaseAtual >= 0 ? indiceFaseAtual : obterIndiceFaseInicial(window.config?.faseInicial));
 
         await carregarFase(window.niveis[window.nivelAtual]);
     }

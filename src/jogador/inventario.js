@@ -408,7 +408,11 @@
             controle.temArma = true;
             controle.heldWeaponType = inventarioSalvo.heldWeaponType || (controle.inventario.includes('doze') ? 'doze' : 'revolver');
         }
-        if (controle.inventario.includes('escudo')) controle.temEscudo = true;
+        const escudoArmazenado = controle.cintoSlot?.tipo === 'escudo'
+            || controle.coleteSlots.some((slot) => slot?.tipo === 'escudo');
+        if (controle.inventario.includes('escudo') && !escudoArmazenado) {
+            controle.temEscudo = true;
+        }
         if (controle.inventario.includes('bota')) controle.temBota = true;
         if (controle.inventario.includes('jetpack')) controle.temJetpack = true;
         if (controle.inventario.includes('garra')) controle.temGarra = true;
@@ -1591,7 +1595,7 @@
                 console.log("Habilidade 'Dropar' não adquirida.");
                 return;
             }
-            if (!controle.inventario || controle.inventario.length === 0) return;
+            if (!Array.isArray(controle.inventario)) controle.inventario = [];
 
             const {
                 armaElemento,
@@ -1603,7 +1607,54 @@
                 coleteElemento
             } = obterElementos();
 
-            const tipo = controle.inventario[controle.inventario.length - 1];
+            controle.coleteSlots = normalizarSlotsColete(controle.coleteSlots);
+            const indiceMochila = controle.coleteSlots.findIndex(Boolean);
+            let origem = null;
+            let tipo = null;
+            let extras = {};
+
+            // Prioridade: mochila, slot do cinto, colete vazio, equipamentos e cinto equipado.
+            if (indiceMochila >= 0) {
+                origem = 'mochila';
+                const slot = normalizarEntradaArmazenada(controle.coleteSlots[indiceMochila]);
+                tipo = slot?.tipo;
+                extras = { ...(slot?.dados || {}) };
+            } else {
+                const slotCinto = obterSlotCinto();
+                if (slotCinto) {
+                    origem = 'slot-cinto';
+                    tipo = slotCinto.tipo;
+                    extras = { ...(slotCinto.dados || {}) };
+                } else if (controle.temColete && controle.inventario.includes('colete')) {
+                    origem = 'equipado';
+                    tipo = 'colete';
+                } else {
+                    tipo = obterTipoArmaAtivaDoControle();
+                    if (controle.temArma && tipo) origem = 'equipado';
+                    else if (controle.temEscudo || controle.escudoVermelho) { tipo = 'escudo'; origem = 'equipado'; }
+                    else if (controle.temBota) { tipo = 'bota'; origem = 'equipado'; }
+                    else if (controle.temJetpack) { tipo = 'jetpack'; origem = 'equipado'; }
+                    else if (controle.temGarra) { tipo = 'garra'; origem = 'equipado'; }
+                    else if (controle.temCinto && controle.inventario.includes('cinto')) { tipo = 'cinto'; origem = 'equipado'; }
+                    else {
+                        tipo = controle.inventario[controle.inventario.length - 1];
+                        origem = tipo ? 'inventario' : null;
+                    }
+                }
+            }
+            if (!tipo) return;
+
+            if (origem === 'mochila' || origem === 'slot-cinto') {
+                if (origem === 'mochila') controle.coleteSlots[indiceMochila] = null;
+                else controle.cintoSlot = null;
+                const aindaGuardado = controle.coleteSlots.some(slot => slot?.tipo === tipo)
+                    || controle.cintoSlot?.tipo === tipo;
+                if (!aindaGuardado && !itemJaAtivoNoCorpo(tipo)) removerTipoDoInventario(tipo);
+                droparTipoNoMundo(tipo, extras);
+                salvarInventario();
+                atualizarMochilaUI();
+                return;
+            }
             if (tipo === 'colete' && coleteTemConteudo()) {
                 console.log('Colete: esvazie a mochila antes de dropar o colete.');
                 return;
@@ -1613,15 +1664,12 @@
                 return;
             }
 
-            const slotCintoAtual = obterSlotCinto();
-            controle.inventario.pop();
-            const extras = (slotCintoAtual?.tipo === tipo)
-                ? { ...(slotCintoAtual.dados || {}) }
-                : {};
-
-            if (slotCintoAtual?.tipo === tipo) {
-                controle.cintoSlot = null;
-            }
+            extras = { ...extras };
+            if (tipo === 'revolver' || tipo === 'doze') extras.municao = controle.municao;
+            else if (tipo === 'escudo') Object.assign(extras, { escudoProtegido: controle.escudoProtegido, escudoVermelho: controle.escudoVermelho });
+            else if (tipo === 'bota') Object.assign(extras, { botaUsosDash: Number(controle.botaUsosDash || 0), botaVermelha: !!controle.botaVermelha });
+            else if (tipo === 'garra') Object.assign(extras, { garraImpactosSolidos: Number(controle.garraImpactosSolidos || 0), garraVermelha: !!controle.garraVermelha });
+            removerTipoDoInventario(tipo);
 
             if (tipo === 'revolver' || tipo === 'doze') {
                 extras.municao = controle.municao;
