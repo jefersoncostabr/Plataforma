@@ -122,6 +122,15 @@
                 if (typeof window.definirZoomCamera === 'function') window.definirZoomCamera(1.5);
                 else window.cameraZoomFactor = 1.5;
             }
+
+            // Deixa o corpo do robô aberto no local onde o jogador saiu,
+            // para o BB poder colidir com ele e entrar novamente depois.
+            if (typeof window.criarRoboAbertoInterativo === 'function') {
+                window.criarRoboAbertoInterativo(posX, posY, {
+                    origem: 'saida-jogador-para-bb',
+                    imagemPath: config?.spriteAberturaPlayerFinal || '../../assets/personagem/per_aberto.png'
+                });
+            }
         }
 
         function liberarControleDoBBParaFechamento() {

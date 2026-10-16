@@ -1,0 +1,73 @@
+﻿// =========================
+// EFEITO DE TREMOR NA CÃ‚MERA
+// =========================
+
+// Estado do tremor
+window.cameraTremorAtivo = false;
+window.cameraTremorIntensidade = 4; // pixels
+window.cameraTremorTempoRestante = 0;
+
+/**
+ * Ativa o efeito de tremor vertical na cÃ¢mera
+ * @param {number} duracaoMs - DuraÃ§Ã£o do tremor em milissegundos
+ * @param {number} intensidade - Intensidade do tremor em pixels (opcional)
+ */
+window.ativarTremorCamera = function(duracaoMs = 300, intensidade = 4) {
+    window.cameraTremorAtivo = true;
+    window.cameraTremorIntensidade = intensidade;
+    window.cameraTremorTempoRestante = duracaoMs;
+};
+
+// Atualiza o tempo do tremor a cada frame
+window.atualizarTremorCamera = function(deltaMs) {
+    if (window.cameraTremorAtivo) {
+        window.cameraTremorTempoRestante -= deltaMs;
+        if (window.cameraTremorTempoRestante <= 0) {
+            window.cameraTremorAtivo = false;
+            window.cameraTremorTempoRestante = 0;
+        }
+    }
+};
+/**
+ * Gerenciador de CÃ¢mera e Viewport
+ * Suporta duas estratÃ©gias: Tela Pequena e Tela Grande
+ */
+
+window.cameraX = 0;
+window.cameraY = 0;
+window.cameraZoomTransicao = null;
+
+window.definirZoomCamera = function(zoom, duracaoMs = 240) {
+    const destino = Math.max(0.1, Number(zoom) || 1);
+    const atual = Number(window.cameraZoomFactor) || 1;
+    if (Math.abs(atual - destino) < 0.001) {
+        window.cameraZoomTransicao = null;
+        window.cameraZoomFactor = destino;
+        return;
+    }
+    if (window.cameraZoomTransicao?.destino === destino) return;
+    window.cameraZoomTransicao = {
+        inicio: atual,
+        destino: destino,
+        inicioMs: performance.now(),
+        duracaoMs: Math.max(0, Number(duracaoMs) || 0)
+    };
+    if (!window.cameraZoomTransicao.duracaoMs) {
+        window.cameraZoomFactor = destino;
+        window.cameraZoomTransicao = null;
+    }
+};
+
+function atualizarZoomCamera() {
+    const transicao = window.cameraZoomTransicao;
+    if (!transicao) return;
+    const progresso = Math.min(1, (performance.now() - transicao.inicioMs) / transicao.duracaoMs);
+    const suave = progresso * progresso * (3 - 2 * progresso);
+    window.cameraZoomFactor = transicao.inicio + (transicao.destino - transicao.inicio) * suave;
+    if (progresso >= 1) {
+        window.cameraZoomFactor = transicao.destino;
+        window.cameraZoomTransicao = null;
+    }
+}
+
+window.cameraAtiva = "padrao"; // Qual cÃ¢mera estÃ¡ ativa
