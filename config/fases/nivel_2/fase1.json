@@ -6,12 +6,22 @@
     "posicaoAlavanca": "",
     "posicaoRoboDesativado": "",
     "posicaoRoboAberto": "b11",
-    "posicaoMusgoRoboAberto": "",
+    "posicaoMusgoRoboAberto": "b11",
     "posicaoMusgoRoboDesativado": "",
     "posicaoGaiola": "",
     "posicaoCachorro": "",
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
+    "itens": {
+        "bota": [
+            "b15",
+            "b18"
+        ],
+        "colete": "b16",
+        "cinto": "b17",
+        "jetpack": "b19",
+        "garra": "b20"
+    },
     "inimigoAleatorio": [
         1,
         0
@@ -92,5 +102,8 @@
     ],
     "plataformasPedra": [
         "b10"
+    ],
+    "plataformasEstacaSup": [
+        "b23"
     ]
 }
