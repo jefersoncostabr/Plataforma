@@ -309,7 +309,7 @@ async function carregarFase(nomeArquivo) {
         if (window.inicioComoBB) {
             resetarJogadorParaZeroMantendoSkills({ preservarEstadoSalvo: true, temBaseNestaFase: true });
             window.__basePendenteAutoSpawn = null;
-            window.removerTodosCrafts?.(true);
+            window.removerTodosCrafts?.();
             window.limparCheckpointEquipamentoSalvo?.();
             window.limparInventarioSalvo?.();
         }
@@ -706,7 +706,7 @@ async function carregarFase(nomeArquivo) {
         window.resetarItens(fase.itens || {});
     }
 
-    if (!window.inicioComoBB && typeof window.restaurarCraftPersistenteDaFaseAtual === 'function') {
+    if (typeof window.restaurarCraftPersistenteDaFaseAtual === 'function') {
         window.restaurarCraftPersistenteDaFaseAtual();
     }
 
