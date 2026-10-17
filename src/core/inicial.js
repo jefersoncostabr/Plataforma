@@ -1048,8 +1048,15 @@ window.reiniciarJogo = async function(porMorte = true, opcoes = {}) {
     if (eraModoTreino) {
         await carregarFase('../../config/fases/treino.json');
     } else {
-        const indiceSpawnpoint = usarSpawnpointDaBase
+        const renascimentoBase = obterConfigRenascimentoBaseAtiva();
+        const indiceFaseBase = renascimentoBase
             ? obterIndiceFasePorNome(renascimentoBase?.faseOriginal || renascimentoBase?.fase)
+            : -1;
+        // Só usa o spawnpoint da base se ela estiver instalada na fase em que o jogador morreu
+        const baseEstaNaFaseAtual = indiceFaseBase === indiceFaseAtual;
+
+        const indiceSpawnpoint = usarSpawnpointDaBase && baseEstaNaFaseAtual
+            ? indiceFaseBase
             : -1;
         window.nivelAtual = indiceSpawnpoint >= 0
             ? indiceSpawnpoint
