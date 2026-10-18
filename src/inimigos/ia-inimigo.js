@@ -921,15 +921,32 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 const inimigo = window.inimigos[i];
                 if (!inimigo) continue;
 
-                const roboAbertoAlvoBB = inimigo.bbRobo && Array.isArray(window.robosAbertosData)
-                    ? window.robosAbertosData.reduce((maisProximo, robo) => {
+                const robosAbertos = Array.isArray(window.robosAbertosData) ? window.robosAbertosData : [];
+                const transicaoPlayerAtiva = !!(
+                    playerControle?.abrindo
+                    || playerControle?.fechando
+                    || Number(playerControle?.tempoAbertura || 0) > 0
+                );
+                let roboAbertoAlvoBB = inimigo.bbRobo && inimigo.roboAlvoBBId
+                    ? robosAbertos.find((robo) => robo?.ativo && robo.id === inimigo.roboAlvoBBId) || null
+                    : null;
+
+                if (inimigo.bbRobo && inimigo.roboAlvoBBId && !roboAbertoAlvoBB) {
+                    inimigo.roboAlvoBBId = null;
+                }
+
+                // Escolhe um alvo após o stun e mantém esse casco durante a perseguição.
+                // Se o jogador estiver trocando de corpo, aguarda a transição terminar.
+                if (inimigo.bbRobo && !roboAbertoAlvoBB && !inimigo.stunned && !transicaoPlayerAtiva) {
+                    roboAbertoAlvoBB = robosAbertos.reduce((maisProximo, robo) => {
                         if (!robo?.ativo) return maisProximo;
                         if (!maisProximo) return robo;
                         const distanciaRobo = Math.hypot(robo.x - inimigo.x, robo.y - inimigo.y);
                         const distanciaMaisProximo = Math.hypot(maisProximo.x - inimigo.x, maisProximo.y - inimigo.y);
                         return distanciaRobo < distanciaMaisProximo ? robo : maisProximo;
-                    }, null)
-                    : null;
+                    }, null);
+                    inimigo.roboAlvoBBId = roboAbertoAlvoBB?.id || null;
+                }
 
                 // Cálculo da distância de detecção individual para cada inimigo
                 let distanciaAtivacao = distAtivacaoBase;
@@ -1106,6 +1123,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     inimigo.y = yAlvo;
                     inimigo.bbRobo = false;
                     inimigo.ehBBInimigo = false;
+                    inimigo.roboAlvoBBId = null;
                     inimigo.perseguindo = false;
                     inimigo.elemento.src = inimigo.spriteBase || config.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png';
                     inimigo.elemento.style.left = inimigo.x + 'px';
