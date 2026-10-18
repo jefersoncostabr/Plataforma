@@ -53,6 +53,45 @@ function obterConfigRenascimentoBaseAtiva() {
     return (craft && (modo === 'spawnpoint' || modo === 'memoria' || modo === 'ambos')) ? craft : null;
 }
 
+function baseEstaNaFase(craft, faseAtual) {
+    const faseBase = String(craft?.faseResumo || craft?.faseOriginal || craft?.fase || '')
+        .trim().replace(/\\/g, '/').replace(/^\.\.\/\.\.\/config\/fases\//i, '').toLowerCase();
+    const faseAlvo = String(faseAtual || '')
+        .trim().replace(/\\/g, '/').replace(/^\.\.\/\.\.\/config\/fases\//i, '').toLowerCase();
+    if (!faseBase || !faseAlvo) return false;
+
+    // Caminho completo distingue, por exemplo, nivel_1/fase2 de nivel_2/fase2.
+    if (faseBase.includes('/')) return faseBase === faseAlvo;
+    // Compatibilidade com saves antigos, que armazenavam apenas faseN.json.
+    return faseBase === faseAlvo.split('/').pop();
+}
+
+function obterChaveFaseSalva() {
+    const baseKey = 'plataformaFaseAtual';
+    if (window.SaveSlots && typeof window.SaveSlots.getStorageKey === 'function') {
+        return window.SaveSlots.getStorageKey(baseKey, window.SaveSlots.getActiveSlotId?.());
+    }
+    return baseKey;
+}
+
+function lerFaseSalva() {
+    try {
+        return localStorage.getItem(obterChaveFaseSalva()) || '';
+    } catch (_) {
+        return '';
+    }
+}
+
+function salvarFaseAtual(pathFase) {
+    const caminho = String(pathFase || '').trim().replace(/\\/g, '/').replace(/^\.\.\/\.\.\/config\/fases\//i, '');
+    if (!caminho) return;
+    try {
+        localStorage.setItem(obterChaveFaseSalva(), caminho);
+    } catch (_) {
+        // O jogo continua usando a fase inicial configurada se o armazenamento estiver indisponível.
+    }
+}
+
 function resetarJogadorParaZeroMantendoSkills(opcoes = {}) {
     const controle = window.playerControle;
     if (!controle) return;
@@ -252,7 +291,7 @@ async function carregarFase(nomeArquivo) {
     // Bloqueia o reset se houver base instalada, checkpoint, se for a última fase ou se virmos de uma transição de nível.
     const isLastPhase = window.nivelAtual === (window.niveis.length - 1);
     const craftSalvo = typeof window.obterCraftPersistido === 'function' ? window.obterCraftPersistido() : null;
-    const temBaseNestaFase = craftSalvo && (craftSalvo.fase === pathRelativoLocal.toLowerCase() || craftSalvo.fase === window.faseAtualNome.toLowerCase());
+    const temBaseNestaFase = craftSalvo && baseEstaNaFase(craftSalvo, pathRelativoLocal);
     
     // Verifica se existe um checkpoint de equipamento para evitar limpeza indevida no reinício
     const temCheckpoint = typeof window.carregarCheckpointEquipamentoSalvo === 'function' && !!window.carregarCheckpointEquipamentoSalvo();
@@ -318,6 +357,7 @@ async function carregarFase(nomeArquivo) {
         window.faseAtualData = fase;
         // Armazena o caminho relativo puro para o editor/persistência
         window.faseAtualPathRelativo = String(nomeArquivo).replace('../../config/fases/', '');
+        salvarFaseAtual(window.faseAtualPathRelativo);
     } catch (erro) {
         console.error("Erro ao carregar nível:", erro);
         alert("Erro técnico: O arquivo da fase não foi encontrado ou está corrompido.");
@@ -574,7 +614,7 @@ async function carregarFase(nomeArquivo) {
         const renascimentoBase = obterConfigRenascimentoBaseAtiva();
         const modo = renascimentoBase?.modoRenascimento;
         const usarSpawnpointDaBase = (modo === 'spawnpoint' || modo === 'ambos')
-            && String(renascimentoBase?.fase || '').trim().toLowerCase() === String(window.faseAtualNome || '').trim().toLowerCase();
+            && baseEstaNaFase(renascimentoBase, window.faseAtualPathRelativo || window.faseAtualNome);
 
         const pos = usarSpawnpointDaBase
             ? { x: Number(renascimentoBase.x || 0), y: Number(renascimentoBase.y || 0) }
@@ -1050,7 +1090,7 @@ window.reiniciarJogo = async function(porMorte = true, opcoes = {}) {
     } else {
         const renascimentoBase = obterConfigRenascimentoBaseAtiva();
         const indiceFaseBase = renascimentoBase
-            ? obterIndiceFasePorNome(renascimentoBase?.faseOriginal || renascimentoBase?.fase)
+            ? obterIndiceFasePorNome(renascimentoBase?.faseResumo || renascimentoBase?.faseOriginal || renascimentoBase?.fase)
             : -1;
         // Só usa o spawnpoint da base se ela estiver instalada na fase em que o jogador morreu
         const baseEstaNaFaseAtual = indiceFaseBase === indiceFaseAtual;
@@ -1160,7 +1200,9 @@ async function iniciarJogo() {
         window.niveis = ['../../config/fases/nivel_1/fase1.json'];
     }
 
-    window.nivelAtual = obterIndiceFaseInicial(config.faseInicial);
+    const indiceFaseInicial = obterIndiceFaseInicial(config.faseInicial);
+    const indiceFaseSalva = obterIndiceFasePorNome(lerFaseSalva());
+    window.nivelAtual = indiceFaseSalva >= 0 ? indiceFaseSalva : indiceFaseInicial;
 
 
     // Carrega as definições de itens para o jogo usar os sprites dos JSONs

@@ -134,6 +134,7 @@
                 id: String(craft.id || 'craft-persistente'),
                 fase: String(craft.fase || '').trim().toLowerCase(),
                 faseOriginal: String(craft.faseOriginal || craft.fase || '').trim(),
+                faseResumo: String(craft.faseResumo || '').trim(),
                 posicaoGrid: String(craft.posicaoGrid || ''),
                 x,
                 y,

@@ -921,6 +921,10 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 const inimigo = window.inimigos[i];
                 if (!inimigo) continue;
 
+                // A entrada no casco é uma transição temporizada. Mantém a IA
+                // suspensa enquanto os sprites de fechamento são exibidos.
+                if (inimigo.bbEntrandoNoRobo) continue;
+
                 const robosAbertos = Array.isArray(window.robosAbertosData) ? window.robosAbertosData : [];
                 const transicaoPlayerAtiva = !!(
                     playerControle?.abrindo
@@ -1120,16 +1124,41 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 if (inimigo.bbRobo && !inimigo.stunned && roboAbertoAlvoBB
                     && Math.abs((roboAbertoAlvoBB.x ?? xAlvo) - (inimigo.x + (inimigo.offsetX || 0))) <= 28
                     && Math.abs((roboAbertoAlvoBB.y ?? yAlvo) - inimigo.y) <= 28) {
-                    window.consumirRoboAbertoFase?.(roboAbertoAlvoBB);
+                    inimigo.bbEntrandoNoRobo = true;
+                    inimigo.perseguindo = false;
                     inimigo.x = xAlvo;
                     inimigo.y = yAlvo;
-                    inimigo.bbRobo = false;
-                    inimigo.ehBBInimigo = false;
-                    inimigo.roboAlvoBBId = null;
-                    inimigo.perseguindo = false;
-                    inimigo.elemento.src = inimigo.spriteBase || config.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png';
                     inimigo.elemento.style.left = inimigo.x + 'px';
                     inimigo.elemento.style.bottom = inimigo.y + 'px';
+
+                    const quadrosFechamento = [
+                        config.spriteAberturaPlayerFinal || '../../assets/personagem/per_aberto.png',
+                        config.spriteAberturaPlayer3 || '../../assets/personagem/per_abrindo2.png',
+                        config.spriteAberturaPlayer2 || '../../assets/personagem/per_abrindo1.png',
+                        inimigo.spriteBase || config.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png'
+                    ];
+                    const duracaoQuadro = Math.max(40, Math.round((1000 / 60) * Number(config.tempoAberturaFrame ?? 20)));
+                    let indiceQuadro = 0;
+                    const animarEntradaNoRobo = () => {
+                        if (!inimigo.elemento || inimigo.estaMorto || inimigo.estaMorrendo) {
+                            inimigo.bbEntrandoNoRobo = false;
+                            return;
+                        }
+                        if (indiceQuadro < quadrosFechamento.length) {
+                            inimigo.elemento.src = quadrosFechamento[indiceQuadro++];
+                            setTimeout(animarEntradaNoRobo, duracaoQuadro);
+                            return;
+                        }
+
+                        window.consumirRoboAbertoFase?.(roboAbertoAlvoBB);
+                        inimigo.bbRobo = false;
+                        inimigo.ehBBInimigo = false;
+                        inimigo.bbEntrandoNoRobo = false;
+                        inimigo.roboAlvoBBId = null;
+                        inimigo.contadorAnimacao = 0;
+                        inimigo.frameAtual = 0;
+                    };
+                    animarEntradaNoRobo();
                     continue;
                 }
                 

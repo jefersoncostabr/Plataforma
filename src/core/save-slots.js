@@ -4,7 +4,8 @@
         'plataformaInventario',
         'plataformaCheckpointEquipamento',
         'plataformaCraftPersistente',
-        'plataformaSkills'
+        'plataformaSkills',
+        'plataformaFaseAtual'
     ]);
 
     const ACTIVE_SLOT_KEY = 'plataformaSlotAtual';
