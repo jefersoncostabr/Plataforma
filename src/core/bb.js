@@ -520,7 +520,15 @@
             inimigo.spriteBBParado = config.spriteBB || '../../assets/personagem/bb/bb-parado.png';
             inimigo.spriteBBAndando = config.spriteBBAndando || '../../assets/personagem/bb/bb-andando.png';
             inimigo.elemento.src = inimigo.spriteBBParado;
-            window.flashRapido?.(inimigo.elemento);
+            const direcaoKnockback = bb.direcao === 'e' ? -1 : 1;
+            const forcaKnockback = window.obterForcaKnockback?.(config, 'playerChute')
+                ?? Number(config.knockbackInimigo ?? 150);
+            window.aplicarKnockback?.(inimigo, forcaKnockback, direcaoKnockback, 15);
+            if (typeof window.piscaLeve === 'function') {
+                window.piscaLeve(inimigo.elemento);
+            } else {
+                window.flashElement?.(inimigo.elemento, 120, 8);
+            }
             window.AudioManager?.playSFX('engrenagem', 0.45);
         };
 
