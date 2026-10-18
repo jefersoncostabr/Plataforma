@@ -921,6 +921,16 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 const inimigo = window.inimigos[i];
                 if (!inimigo) continue;
 
+                const roboAbertoAlvoBB = inimigo.bbRobo && Array.isArray(window.robosAbertosData)
+                    ? window.robosAbertosData.reduce((maisProximo, robo) => {
+                        if (!robo?.ativo) return maisProximo;
+                        if (!maisProximo) return robo;
+                        const distanciaRobo = Math.hypot(robo.x - inimigo.x, robo.y - inimigo.y);
+                        const distanciaMaisProximo = Math.hypot(maisProximo.x - inimigo.x, maisProximo.y - inimigo.y);
+                        return distanciaRobo < distanciaMaisProximo ? robo : maisProximo;
+                    }, null)
+                    : null;
+
                 // Cálculo da distância de detecção individual para cada inimigo
                 let distanciaAtivacao = distAtivacaoBase;
                 
@@ -1081,8 +1091,27 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     return Math.abs(it.x - inimigo.x) <= 220 && Math.abs(it.y - inimigo.y) <= 160;
                 });
                 
-                const xAlvo = itemInteresse ? itemInteresse.x : alvoPerseguicaoX;
-                const yAlvo = itemInteresse ? itemInteresse.y : alvoPerseguicaoY;
+                const xAlvo = inimigo.bbRobo && roboAbertoAlvoBB
+                    ? roboAbertoAlvoBB.spawnX
+                    : (itemInteresse ? itemInteresse.x : alvoPerseguicaoX);
+                const yAlvo = inimigo.bbRobo && roboAbertoAlvoBB
+                    ? roboAbertoAlvoBB.spawnY
+                    : (itemInteresse ? itemInteresse.y : alvoPerseguicaoY);
+
+                if (inimigo.bbRobo && !inimigo.stunned && roboAbertoAlvoBB
+                    && Math.abs(xAlvo - inimigo.x) <= 16
+                    && Math.abs(yAlvo - inimigo.y) <= 24) {
+                    window.consumirRoboAbertoFase?.(roboAbertoAlvoBB);
+                    inimigo.x = xAlvo;
+                    inimigo.y = yAlvo;
+                    inimigo.bbRobo = false;
+                    inimigo.ehBBInimigo = false;
+                    inimigo.perseguindo = false;
+                    inimigo.elemento.src = inimigo.spriteBase || config.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png';
+                    inimigo.elemento.style.left = inimigo.x + 'px';
+                    inimigo.elemento.style.bottom = inimigo.y + 'px';
+                    continue;
+                }
                 
                 // Navegação Inteligente: Desvio de teto (Reactive Pathfinding)
                 let xAlvoNavegacao = xAlvo;
@@ -1239,8 +1268,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     inimigo.velocidadeDash = 0;
                     inimigo.garraDirecaoAnim = 'e'; // Direção inicial da garra
 
-                    inimigo.stunned = false; // Inicializa estado de stun
-                    inimigo.stunTimer = 0;  // Inicializa timer de stun
+                    if (inimigo.stunned === undefined) inimigo.stunned = false;
+                    if (inimigo.stunTimer === undefined) inimigo.stunTimer = 0;
                     
                     // Inicializa sprites de agachado (NÃO sobrescreve para humano)
                     if (inimigo.tipo !== window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID) {
@@ -1618,15 +1647,15 @@ window.AudioManager.playSFX('chute', 0.4);
                 }
 
                 // Armadura aberta: não perseguir/travar no player vazio.
-                if (!alvoPerseguicao) {
+                if (!alvoPerseguicao && !roboAbertoAlvoBB) {
                     inimigo.perseguindo = false;
                     inimigo.afastando = false;
                     inimigo.tempoAfastamento = 0;
                 }
 
                 // Lógica de detecção de proximidade excessiva com o jogador
-                const distanciaX = Math.abs(alvoPerseguicaoX - inimigo.x);
-                const distanciaY = Math.abs(alvoPerseguicaoY - inimigo.y);
+                const distanciaX = Math.abs(xAlvo - inimigo.x);
+                const distanciaY = Math.abs(yAlvo - inimigo.y);
                 const distanciaMinima = config.inimigoDistanciaMinimaAtaque || 20;
 
                 // Exceção: não afasta se estiver atacando (tempoChute > 0)
@@ -1641,7 +1670,7 @@ window.AudioManager.playSFX('chute', 0.4);
                 if (!iaBloqueadaPorStun && inimigo.afastando && inimigo.tempoAfastamento > 0) {
                     const velocidadeAfastamento = config.inimigoVelocidadeAfastamento || 3;
                     // Afasta-se na direção oposta ao jogador
-                    if (inimigo.x < alvoPerseguicaoX) {
+                    if (inimigo.x < xAlvo) {
                         inimigo.x -= velocidadeAfastamento;
                         inimigo.direcao = 'e';
                         inimigo.elemento.style.transform = 'scaleX(-1)';
@@ -1702,12 +1731,14 @@ window.AudioManager.playSFX('chute', 0.4);
                 // Ativa a perseguição se o jogador estiver perto em X e Y, OU se detectar ameaça/interesse.
                 // Não ativa perseguição se o jogador está em resgate do BB.
                 // Regra de proximidade: só ativa por distância se estiver dentro do limite nos dois eixos (X e Y).
-                const dentroDistanciaAtivacao = distanciaAtual <= distanciaAtivacao && distanciaY <= distanciaAtivacao;
+                const dentroDistanciaAtivacao = inimigo.bbRobo && roboAbertoAlvoBB
+                    ? true
+                    : (distanciaAtual <= distanciaAtivacao && distanciaY <= distanciaAtivacao);
                 const alcanceGarraAtivacao = Number(config.garraAlcanceInimigo || 160);
                 const dentroAlcanceGarraAtivacao = inimigo.temGarra
                     && distanciaAtual <= alcanceGarraAtivacao
                     && distanciaY <= alcanceGarraAtivacao;
-                if (!iaBloqueadaPorStun && !inimigo.perseguindo && !emResgateBB && !jogadorEscondido && alvoPerseguicao && (dentroDistanciaAtivacao || projVindo || itemInteresse || dentroAlcanceGarraAtivacao)) {
+                if (!iaBloqueadaPorStun && !inimigo.perseguindo && !emResgateBB && !jogadorEscondido && (alvoPerseguicao || roboAbertoAlvoBB) && (dentroDistanciaAtivacao || projVindo || itemInteresse || dentroAlcanceGarraAtivacao)) {
                     inimigo.perseguindo = true;
                     // console.log("Inimigo ativado! Motivo: " + (projVindo ? "Tiro detectado" : "Proximidade"));
                 }
@@ -1959,7 +1990,7 @@ window.AudioManager.playSFX('chute', 0.4);
                 let movendoDestaVez = false;
                 // Ações que dependem da ativação (movimento e ataque) - só se não estiver afastando, coletando ou usando a garra
 
-                if (!iaBloqueadaPorStun && inimigo.perseguindo && !inimigo.afastando && !inimigo.estaColetando) {
+                if (!inimigo.bbRobo && !iaBloqueadaPorStun && inimigo.perseguindo && !inimigo.afastando && !inimigo.estaColetando) {
                     // Lógica para INICIAR o chute
                     const podeChutar = inimigo.tipo !== window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID;
                     

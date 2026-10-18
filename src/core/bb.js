@@ -512,13 +512,15 @@
             }
             // O inimigo sai do robô como BB hostil e mantém o inventário e a IA.
             inimigo.bbRobo = true;
+            inimigo.ehBBInimigo = true;
             inimigo.abrindoParaBB = false;
             inimigo.presoPorPet = false;
-            inimigo.stunned = false;
-            inimigo.stunTimer = 0;
+            inimigo.stunned = true;
+            inimigo.stunTimer = Math.max(1, Number(config.superDescidaStunDuracaoInimigos ?? 180));
             inimigo.spriteBBParado = config.spriteBB || '../../assets/personagem/bb/bb-parado.png';
             inimigo.spriteBBAndando = config.spriteBBAndando || '../../assets/personagem/bb/bb-andando.png';
             inimigo.elemento.src = inimigo.spriteBBParado;
+            window.flashRapido?.(inimigo.elemento);
             window.AudioManager?.playSFX('engrenagem', 0.45);
         };
 
