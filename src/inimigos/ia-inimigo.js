@@ -2256,7 +2256,7 @@ window.AudioManager.playSFX('chute', 0.4);
                     const spriteNoArUsado = spriteNoArUsadoCorrigido;
 
 
-                    if (typeof atualizarAnimacao === 'function') {
+                    if (!inimigo.bbRobo && typeof atualizarAnimacao === 'function') {
                         atualizarAnimacao(
                             controleAnimacao,
                             inimigo.elemento,
@@ -2272,7 +2272,7 @@ window.AudioManager.playSFX('chute', 0.4);
                         inimigo.frameAtual = controleAnimacao.frameAtual;
                     }
 
-                    if (estaChutando) {
+                    if (!inimigo.bbRobo && estaChutando) {
                         const isHumano = inimigo?.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID;
                         const spriteSoco = '../../assets/personagem/humano/humano_soco.png';
                         inimigo.elemento.src = isHumano ? spriteSoco : (config.spriteChuteInimigo || spriteChute);
