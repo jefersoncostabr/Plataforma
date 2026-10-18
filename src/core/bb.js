@@ -198,11 +198,10 @@
         };
 
         const fenoId = window.GAME_CONSTANTS?.INIMIGO_FENO_ID ?? 5;
+        const tiposRobo = new Set([0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11]);
         for (const inimigo of window.inimigos) {
             if (!inimigo || inimigo.estaMorto || inimigo.estaMorrendo || inimigo.abrindoParaBB || inimigo.bbRobo) continue;
-            if (inimigo.tipo === fenoId) continue;
-            // Qualquer robô inimigo pode ser aberto pelo BB; inimigos presos
-            // continuam válidos, mas não são mais pré-requisito.
+            if (inimigo.tipo === fenoId || !tiposRobo.has(Number(inimigo.tipo))) continue;
 
             const hitboxInimigo = {
                 x: inimigo.x + (inimigo.offsetX || 0),
@@ -517,9 +516,9 @@
             inimigo.presoPorPet = false;
             inimigo.stunned = false;
             inimigo.stunTimer = 0;
-            inimigo.elemento.src = inimigo.inventario?.length
-                ? '../../assets/personagem/inimigo_bb/inbb_par_armado.png'
-                : '../../assets/personagem/inimigo_bb/inbb_parado.png';
+            inimigo.spriteBBParado = config.spriteBB || '../../assets/personagem/bb/bb-parado.png';
+            inimigo.spriteBBAndando = config.spriteBBAndando || '../../assets/personagem/bb/bb-andando.png';
+            inimigo.elemento.src = inimigo.spriteBBParado;
             window.AudioManager?.playSFX('engrenagem', 0.45);
         };
 

@@ -2256,7 +2256,11 @@ window.AudioManager.playSFX('chute', 0.4);
                     const spriteNoArUsado = spriteNoArUsadoCorrigido;
 
 
-                    if (!inimigo.bbRobo && typeof atualizarAnimacao === 'function') {
+                    if (inimigo.bbRobo) {
+                        inimigo.elemento.src = movendoDestaVez
+                            ? inimigo.spriteBBAndando
+                            : inimigo.spriteBBParado;
+                    } else if (typeof atualizarAnimacao === 'function') {
                         atualizarAnimacao(
                             controleAnimacao,
                             inimigo.elemento,
