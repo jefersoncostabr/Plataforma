@@ -1115,9 +1115,11 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     ? roboAbertoAlvoBB.spawnY
                     : (itemInteresse ? itemInteresse.y : alvoPerseguicaoY);
 
+                // O BB usa hitbox menor que o inimigo original; considerar a área
+                // ocupada pelo casco evita que ele ultrapasse o ponto de entrada.
                 if (inimigo.bbRobo && !inimigo.stunned && roboAbertoAlvoBB
-                    && Math.abs(xAlvo - inimigo.x) <= 16
-                    && Math.abs(yAlvo - inimigo.y) <= 24) {
+                    && Math.abs((roboAbertoAlvoBB.x ?? xAlvo) - (inimigo.x + (inimigo.offsetX || 0))) <= 28
+                    && Math.abs((roboAbertoAlvoBB.y ?? yAlvo) - inimigo.y) <= 28) {
                     window.consumirRoboAbertoFase?.(roboAbertoAlvoBB);
                     inimigo.x = xAlvo;
                     inimigo.y = yAlvo;
@@ -2008,7 +2010,7 @@ window.AudioManager.playSFX('chute', 0.4);
                 let movendoDestaVez = false;
                 // Ações que dependem da ativação (movimento e ataque) - só se não estiver afastando, coletando ou usando a garra
 
-                if (!inimigo.bbRobo && !iaBloqueadaPorStun && inimigo.perseguindo && !inimigo.afastando && !inimigo.estaColetando) {
+                if (!iaBloqueadaPorStun && inimigo.perseguindo && !inimigo.afastando && !inimigo.estaColetando) {
                     // Lógica para INICIAR o chute
                     const podeChutar = inimigo.tipo !== window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID;
                     
@@ -2016,7 +2018,7 @@ window.AudioManager.playSFX('chute', 0.4);
                     // Permite ataque corpo a corpo se estiver perto no X e no Y (mesmo no ar)
                     const pertoVerticalmente = Math.abs(yAlvo - inimigo.y) <= 30;
 
-                    if (podeChutar && !inimigo.estaAgachado && distanciaAtual <= distAtaqueEfetiva && pertoVerticalmente && inimigo.cooldownChute === 0) {
+                    if (!inimigo.bbRobo && podeChutar && !inimigo.estaAgachado && distanciaAtual <= distAtaqueEfetiva && pertoVerticalmente && inimigo.cooldownChute === 0) {
                         inimigo.tempoChute = config.tempoChute;
                         inimigo.cooldownChute = config.cooldownChute;
                         window.AudioManager?.playSFX('chute', 0.3);
@@ -2038,7 +2040,7 @@ window.AudioManager.playSFX('chute', 0.4);
                     }
 
                     // Lógica para INICIAR o disparo
-                    if (inimigo.temArma && !inimigo.itensGuardadosNoCinto && distanciaAtual <= alcanceTiro && distanciaAtual > config.distanciaAtaqueInimigo && inimigo.cooldownTiro === 0 && inimigo.municao > 0) {
+                    if (!inimigo.bbRobo && inimigo.temArma && !inimigo.itensGuardadosNoCinto && distanciaAtual <= alcanceTiro && distanciaAtual > config.distanciaAtaqueInimigo && inimigo.cooldownTiro === 0 && inimigo.municao > 0) {
                         inimigo.cooldownTiro = config.cooldownTiro;
                         inimigo.municao--;
                         window.AudioManager?.playSFX('disparo', 0.4);
@@ -2175,7 +2177,7 @@ window.AudioManager.playSFX('chute', 0.4);
                     }
 
                     // Lógica para INICIAR a Garra (se tiver e estiver no alcance)
-                    if (inimigo.temGarra && !inimigo.itensGuardadosNoCinto && inimigo.garraAnimEstado === 'idle' && inimigo.cooldownGarra === 0 && distanciaAtual <= (config.garraAlcanceInimigo || 160)) {
+                    if (!inimigo.bbRobo && inimigo.temGarra && !inimigo.itensGuardadosNoCinto && inimigo.garraAnimEstado === 'idle' && inimigo.cooldownGarra === 0 && distanciaAtual <= (config.garraAlcanceInimigo || 160)) {
                         window.AudioManager?.playSFX('engrenagem', 0.3);
                         inimigo.garraAnimEstado = 'prep';
                         inimigo.garraTimer = 18;
@@ -2306,9 +2308,22 @@ window.AudioManager.playSFX('chute', 0.4);
 
 
                     if (inimigo.bbRobo) {
-                        inimigo.elemento.src = movendoDestaVez
+                        if (movendoDestaVez && inimigo.noChao) {
+                            inimigo.contadorAnimacao = (inimigo.contadorAnimacao || 0) + 1;
+                            if (inimigo.contadorAnimacao >= 10) {
+                                inimigo.frameAtual = inimigo.frameAtual === 0 ? 1 : 0;
+                                inimigo.contadorAnimacao = 0;
+                            }
+                        } else {
+                            inimigo.contadorAnimacao = 0;
+                            inimigo.frameAtual = 0;
+                        }
+                        const spriteBB = movendoDestaVez && inimigo.noChao && inimigo.frameAtual === 1
                             ? inimigo.spriteBBAndando
                             : inimigo.spriteBBParado;
+                        if (spriteBB && inimigo.elemento.getAttribute('src') !== spriteBB) {
+                            inimigo.elemento.src = spriteBB;
+                        }
                     } else if (typeof atualizarAnimacao === 'function') {
                         atualizarAnimacao(
                             controleAnimacao,

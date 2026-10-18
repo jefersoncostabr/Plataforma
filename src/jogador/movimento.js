@@ -2230,8 +2230,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 if (proj.origem === 'player' && window.inimigos) {
                     for (let j = window.inimigos.length - 1; j >= 0; j--) {
                         const inimigo = window.inimigos[j];
-                        
-                        if (inimigo.estaMorto) continue;
+
+                        // BBs que saíram do robô são imunes aos ataques do jogador.
+                        if (inimigo.estaMorto || inimigo.bbRobo || inimigo.ehBBInimigo) continue;
 
                         const hitboxInimigo = {
                             x: inimigo.x + (inimigo.offsetX || 0),
