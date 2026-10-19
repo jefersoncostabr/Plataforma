@@ -108,6 +108,27 @@ function alternarDificuldadeDraftSlot(slotId, direcao = 1) {
     return proxima;
 }
 
+function alternarDificuldadeDoSlotMenu(slotId) {
+    if (!window.isFirstStart) return;
+
+    const id = normalizarSlotId(slotId);
+    const atual = slotTemSave(id)
+        ? getSlotDifficultyPersistida(id)
+        : getDificuldadeDraftSlot(id);
+    const indiceAtual = Math.max(0, DIFFICULTY_LEVELS.indexOf(atual));
+    const proxima = DIFFICULTY_LEVELS[(indiceAtual + 1) % DIFFICULTY_LEVELS.length];
+
+    if (slotTemSave(id)) {
+        window.SaveSlots?.setSlotDifficulty?.(id, proxima);
+    } else {
+        menuDraftDifficultyBySlot[id] = proxima;
+    }
+
+    selecionarSlotMenu(id);
+    window.gameDifficulty = proxima;
+    renderMenuUI();
+}
+
 function selecionarSlotMenu(slotId, opcoes = {}) {
     const id = normalizarSlotId(slotId);
     const ciclarSeVazio = !!opcoes.ciclarSeVazio;
@@ -607,9 +628,19 @@ function criarPainelDificuldade() {
         badge.className = 'menu-slot-badge';
         badge.textContent = slotEmUso ? 'EM USO' : (slotOcupado ? 'SALVO' : 'NOVO');
 
-        const status = document.createElement('span');
+        const status = document.createElement('button');
+        status.type = 'button';
         status.className = 'menu-slot-status';
         status.textContent = formatarDificuldade(dificuldade);
+        status.disabled = !window.isFirstStart;
+        status.title = window.isFirstStart
+            ? 'Clique para mudar a dificuldade deste slot'
+            : 'A dificuldade só pode ser escolhida antes de iniciar';
+        status.setAttribute('aria-label', `${getSlotLabel(slotId)}, dificuldade ${formatarDificuldade(dificuldade)}. Clique para mudar.`);
+        status.onclick = (event) => {
+            event.stopPropagation();
+            alternarDificuldadeDoSlotMenu(slotId);
+        };
 
         linha.onmouseenter = () => {
             menuSelectedIndex = getMainMenuNavItems().indexOf(linha);
@@ -623,7 +654,7 @@ function criarPainelDificuldade() {
 
         linha.onclick = () => {
             if (!window.isFirstStart) return;
-            selecionarSlotMenu(slotId, { ciclarSeVazio: true, direcao: 1 });
+            selecionarSlotMenu(slotId);
             menuSelectedIndex = getMainMenuNavItems().indexOf(linha);
             renderMenuUI();
         };
@@ -635,6 +666,7 @@ function criarPainelDificuldade() {
     });
 
     painel.appendChild(opcoes);
+
     return painel;
 }
 
@@ -745,6 +777,18 @@ const getActiveMenuOptions = () => {
                         window.SaveSlots.setActiveSlotId(slotId);
                     }
 
+                    const chaveFaseSlot = window.SaveSlots?.getStorageKey?.('plataformaFaseAtual', slotId)
+                        || 'plataformaFaseAtual';
+                    let faseSalvaSlot = '';
+                    try {
+                        faseSalvaSlot = localStorage.getItem(chaveFaseSlot) || '';
+                    } catch (_) {}
+                    const indiceFaseSalvaSlot = obterIndiceFasePorNome(faseSalvaSlot);
+                    const indiceFaseConfigurada = obterIndiceFaseInicial(window.config?.faseInicial);
+                    const indiceFaseInicio = indiceFaseSalvaSlot >= 0
+                        ? indiceFaseSalvaSlot
+                        : indiceFaseConfigurada;
+
                     if (window.SaveSlots && typeof window.SaveSlots.setSlotDifficulty === 'function') {
                         window.SaveSlots.setSlotDifficulty(slotId, dificuldadeInicial);
                     }
@@ -762,7 +806,7 @@ const getActiveMenuOptions = () => {
                     window.isFirstStart = false;
                     window.togglePauseMenu();
                     if (typeof window.reiniciarJogo === 'function') {
-                        await window.reiniciarJogo(false);
+                        await window.reiniciarJogo(false, { indiceFaseInicialSlot: indiceFaseInicio });
                     }
                 }
             },
@@ -806,7 +850,7 @@ function ativarItemMenuPrincipal(item) {
 
     if (navType === 'slot') {
         if (!window.isFirstStart) return;
-        selecionarSlotMenu(item.dataset.slotId, { ciclarSeVazio: true, direcao: 1 });
+        selecionarSlotMenu(item.dataset.slotId);
         renderMenuUI();
         updateMenuVisuals();
         return;

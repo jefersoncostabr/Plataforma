@@ -7,6 +7,12 @@
         'plataformaSkills',
         'plataformaFaseAtual'
     ]);
+    const GLOBAL_PROGRESS_KEYS = Object.freeze([
+        'plataformaCaoResgatado',
+        'plataformaGatoResgatado',
+        'plataformaCaoNaBase',
+        'plataformaGatoNaBase'
+    ]);
 
     const ACTIVE_SLOT_KEY = 'plataformaSlotAtual';
     const MIGRATION_FLAG_KEY = 'plataformaSlotsMigracaoV1';
@@ -118,6 +124,17 @@
         return true;
     }
 
+    function clearAllSaves() {
+        SLOT_IDS.forEach(clearSlot);
+        BASE_SAVE_KEYS.forEach(safeRemoveItem);
+        GLOBAL_PROGRESS_KEYS.forEach(safeRemoveItem);
+        safeRemoveItem(ACTIVE_SLOT_KEY);
+        safeSetItem(ACTIVE_SLOT_KEY, 'slot1');
+        safeSetItem(MIGRATION_FLAG_KEY, '1');
+        window.slotAtualID = 'slot1';
+        return true;
+    }
+
     function migrateLegacyDataToSlot1() {
         if (safeGetItem(MIGRATION_FLAG_KEY) === '1') {
             return false;
@@ -175,6 +192,7 @@
         lockDifficultyForSlot,
         isSlotOccupied,
         clearSlot,
+        clearAllSaves,
         migrateLegacyDataToSlot1,
         init
     };

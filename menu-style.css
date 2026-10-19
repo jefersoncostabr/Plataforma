@@ -554,14 +554,6 @@
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
 }
 
-.menu-difficulty-title {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 2px;
-    color: #fff;
-    opacity: 0.9;
-}
-
 .menu-difficulty-options {
     display: flex;
     flex-direction: column;
@@ -682,10 +674,26 @@
 
 .menu-slot-status {
     flex: 1;
+    padding: 2px 4px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
     font-size: 9px;
     opacity: 0.88;
     text-align: right;
     white-space: nowrap;
+    cursor: pointer;
+}
+
+.menu-slot-status:hover:not(:disabled) {
+    color: #9dffd1;
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.menu-slot-status:disabled {
+    cursor: default;
 }
 
 .menu-slot-delete-btn {

@@ -265,6 +265,15 @@
             { label: 'MATAR INIMIGOS', action: () => { if(window.inimigos && window.removerInimigoDerrotado) { for(const i of window.inimigos) window.removerInimigoDerrotado(i); } }, closeOnClick: true },
             { label: 'RESET SKILLS', action: () => { window.playerSkills?.resetarSkills?.(); window.playerXP=0; window.salvarProgressoSkills?.(); }, closeOnClick: true },
             { label: 'APAGAR SAVE', action: () => window.apagarBasePersistidaDev?.(), closeOnClick: true },
+            { label: 'APAGAR TODOS OS SAVES', action: () => {
+                if (!confirm('Apagar todos os salvamentos dos três slots? Esta ação não pode ser desfeita.')) return;
+                if (typeof window.SaveSlots?.clearAllSaves !== 'function') {
+                    alert('Não foi possível apagar os saves: o sistema de salvamento não está disponível.');
+                    return;
+                }
+                window.SaveSlots.clearAllSaves();
+                window.location.reload();
+            }, closeOnClick: false },
             { label: 'RESET TOTAL', action: () => { window.resetarJogadorParaZeroMantendoSkills?.(); window.limparCraftPersistido?.(); }, closeOnClick: true },
             { label: 'TOGGLE GRADE', action: () => {
                 // Tenta chamar com o id correto se necessário

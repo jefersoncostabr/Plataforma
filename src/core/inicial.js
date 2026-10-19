@@ -987,9 +987,10 @@ window.reiniciarJogo = async function(porMorte = true, opcoes = {}) {
 
     // Captura a fase visível antes do reset. Reinícios manuais devem permanecer
     // nela; o spawnpoint salvo só se aplica ao renascimento após morte.
-    const indiceFaseAtual = obterIndiceFasePorNome(
-        window.faseAtualPathRelativo || window.faseAtualNome
-    );
+    const indiceFaseAtual = Number.isInteger(opcoes.indiceFaseInicialSlot)
+        && opcoes.indiceFaseInicialSlot >= 0
+        ? opcoes.indiceFaseInicialSlot
+        : obterIndiceFasePorNome(window.faseAtualPathRelativo || window.faseAtualNome);
 
     // Cancela qualquer transição de Runner em curso ao reiniciar
     if (typeof window.__cancelarRunnerPromise === 'function') {
