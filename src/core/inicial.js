@@ -1093,15 +1093,19 @@ window.reiniciarJogo = async function(porMorte = true, opcoes = {}) {
         const indiceFaseBase = renascimentoBase
             ? obterIndiceFasePorNome(renascimentoBase?.faseResumo || renascimentoBase?.faseOriginal || renascimentoBase?.fase)
             : -1;
-        // Só usa o spawnpoint da base se ela estiver instalada na fase em que o jogador morreu
-        const baseEstaNaFaseAtual = indiceFaseBase === indiceFaseAtual;
+        const spawnpointValido = porMorte
+            && usarSpawnpointDaBase
+            && spawnpointHabilitadoNaBase
+            && indiceFaseBase >= 0;
+        const indiceFaseInicial = obterIndiceFaseInicial(window.config?.faseInicial);
 
-        const indiceSpawnpoint = usarSpawnpointDaBase && baseEstaNaFaseAtual
+        // Na morte, o spawnpoint pode estar em uma fase anterior. Sem spawnpoint,
+        // a campanha recomeça da fase inicial configurada. Reinício manual mantém a fase atual.
+        window.nivelAtual = spawnpointValido
             ? indiceFaseBase
-            : -1;
-        window.nivelAtual = indiceSpawnpoint >= 0
-            ? indiceSpawnpoint
-            : (indiceFaseAtual >= 0 ? indiceFaseAtual : obterIndiceFaseInicial(window.config?.faseInicial));
+            : (porMorte && !opcoes.manterFaseAtual
+                ? indiceFaseInicial
+                : (indiceFaseAtual >= 0 ? indiceFaseAtual : indiceFaseInicial));
 
         await carregarFase(window.niveis[window.nivelAtual]);
     }

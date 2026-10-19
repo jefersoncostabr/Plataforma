@@ -719,7 +719,7 @@ const getActiveMenuOptions = () => {
             window.isFirstStart = false;
             window.togglePauseMenu();
             if (typeof window.reiniciarJogo === 'function') {
-                window.reiniciarJogo(true, { usarSpawnpointDaBase: false });
+                window.reiniciarJogo(true, { usarSpawnpointDaBase: false, manterFaseAtual: true });
             }
         }
     };

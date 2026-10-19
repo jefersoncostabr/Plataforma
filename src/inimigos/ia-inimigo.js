@@ -1118,6 +1118,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 const yAlvo = inimigo.bbRobo && roboAbertoAlvoBB
                     ? roboAbertoAlvoBB.spawnY
                     : (itemInteresse ? itemInteresse.y : alvoPerseguicaoY);
+                const perseguindoItem = !!itemInteresse;
 
                 // O BB usa hitbox menor que o inimigo original; considerar a área
                 // ocupada pelo casco evita que ele ultrapasse o ponto de entrada.
@@ -1353,7 +1354,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 // End of one-time initialization block
 
                 // --- IA de ataque para NPC humano ---
-                if (inimigo.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID && inimigo.podeAtacar) {
+                if (!perseguindoItem && inimigo.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID && inimigo.podeAtacar) {
                     // Distância para atacar (reduzida para exigir aproximação maior)
                     const distanciaAtaque = 28;
                     // Ataca se estiver próximo do alvo (agora permite ataque no ar)
@@ -1707,8 +1708,14 @@ window.AudioManager.playSFX('chute', 0.4);
                 const distanciaY = Math.abs(yAlvo - inimigo.y);
                 const distanciaMinima = config.inimigoDistanciaMinimaAtaque || 20;
 
+                // Evita que o recuo de combate afaste o inimigo do item que está perseguindo.
+                if (perseguindoItem && inimigo.afastando) {
+                    inimigo.afastando = false;
+                    inimigo.tempoAfastamento = 0;
+                }
+
                 // Exceção: não afasta se estiver atacando (tempoChute > 0)
-                if (!iaBloqueadaPorStun && inimigo.perseguindo && distanciaX <= distanciaMinima && distanciaY <= distanciaMinima && !inimigo.afastando && inimigo.tempoAfastamento === 0 && inimigo.cooldownAfastamento === 0 && !(inimigo.tempoChute > 0)) {
+                if (!perseguindoItem && !iaBloqueadaPorStun && inimigo.perseguindo && distanciaX <= distanciaMinima && distanciaY <= distanciaMinima && !inimigo.afastando && inimigo.tempoAfastamento === 0 && inimigo.cooldownAfastamento === 0 && !(inimigo.tempoChute > 0)) {
                     // Inimigo está muito próximo do jogador - inicia afastamento
                     inimigo.afastando = true;
                     inimigo.tempoAfastamento = config.inimigoTempoAfastamento || 30; // Removido console.log de debug
@@ -2047,7 +2054,7 @@ window.AudioManager.playSFX('chute', 0.4);
                     // Permite ataque corpo a corpo se estiver perto no X e no Y (mesmo no ar)
                     const pertoVerticalmente = Math.abs(yAlvo - inimigo.y) <= 30;
 
-                    if (!inimigo.bbRobo && podeChutar && !inimigo.estaAgachado && distanciaAtual <= distAtaqueEfetiva && pertoVerticalmente && inimigo.cooldownChute === 0) {
+                    if (!perseguindoItem && !inimigo.bbRobo && podeChutar && !inimigo.estaAgachado && distanciaAtual <= distAtaqueEfetiva && pertoVerticalmente && inimigo.cooldownChute === 0) {
                         inimigo.tempoChute = config.tempoChute;
                         inimigo.cooldownChute = config.cooldownChute;
                         window.AudioManager?.playSFX('chute', 0.3);
