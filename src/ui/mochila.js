@@ -6,6 +6,10 @@
     let mochilaSlotElements = [];
     let cintoSlotElements = [];
     let cintoLinhaAtual = [];
+    let botaoVoltarBaseAtivo = null;
+    let botaoFecharMochilaAtivo = null;
+    let selecaoVoltarBase = false;
+    let selecaoFecharMochila = false;
 
     const COLUNAS_COLETE = 3;
     const TOTAL_CELULAS_CINTO = 7;
@@ -196,16 +200,51 @@
         return overlay;
     }
 
+    function baseSobJogador(controle = window.playerControle) {
+        if (!controle) return null;
+        const jogador = {
+            left: Number(controle.x || 0),
+            right: Number(controle.x || 0) + Number(controle.largura || 20),
+            bottom: Number(controle.y || 0),
+            top: Number(controle.y || 0) + Number(controle.altura || 32)
+        };
+        return (window.craftsAtivos || []).find((craft) => {
+            if (!craft) return false;
+            const base = {
+                left: Number(craft.x || 0),
+                right: Number(craft.x || 0) + Number(craft.largura || 32),
+                bottom: Number(craft.y || 0),
+                top: Number(craft.y || 0) + Number(craft.altura || 32)
+            };
+            return jogador.left < base.right - 4
+                && jogador.right > base.left + 4
+                && jogador.bottom < base.top + 8
+                && jogador.top > base.bottom + 4;
+        }) || null;
+    }
+
     function aplicarEstiloSelecao(slotEl, selecionado) {
         if (!slotEl) return;
+        slotEl.classList.toggle('is-key-selected', selecionado);
+        slotEl.style.background = selecionado
+            ? 'linear-gradient(180deg, #3a3a3a 0%, #2c2c2c 100%)'
+            : 'linear-gradient(180deg, #2a2a2a 0%, #1c1c1c 100%)';
         slotEl.style.borderColor = selecionado ? '#f7e27b' : '#4a4a4a';
         slotEl.style.boxShadow = selecionado
-            ? '0 0 0 2px rgba(247,226,123,0.55), inset 0 0 12px rgba(247,226,123,0.18)'
+            ? '0 0 10px rgba(0, 255, 255, 0.7), 0 0 25px rgba(0, 255, 255, 0.45), 0 0 50px rgba(255, 0, 255, 0.3)'
             : 'inset 0 0 8px rgba(0,0,0,0.25)';
         slotEl.style.transform = selecionado ? 'scale(1.03)' : 'scale(1)';
     }
 
     function atualizarSelecaoSlots() {
+        botaoFecharMochilaAtivo?.classList.toggle('menu-nav-selected', selecaoFecharMochila);
+        if (botaoVoltarBaseAtivo) {
+            botaoVoltarBaseAtivo.style.borderColor = selecaoVoltarBase ? '#f7e27b' : 'rgba(0, 238, 255, 0.6)';
+            botaoVoltarBaseAtivo.style.boxShadow = selecaoVoltarBase
+                ? '0 0 0 3px rgba(247,226,123,0.45), 0 0 22px rgba(0,238,255,0.4)'
+                : '0 2px 10px rgba(0,0,0,0.35)';
+            botaoVoltarBaseAtivo.style.transform = selecaoVoltarBase ? 'translateY(-1px)' : 'translateY(0)';
+        }
         cintoSlotElements.forEach((slotEl, indice) => {
             const selecionado = mochilaAreaSelecionada === 'cinto' && indice === cintoSlotSelecionado;
             aplicarEstiloSelecao(slotEl, selecionado);
@@ -305,6 +344,10 @@
         mochilaSlotElements = [];
         cintoSlotElements = [];
         cintoLinhaAtual = [];
+        botaoVoltarBaseAtivo = null;
+        botaoFecharMochilaAtivo = null;
+        selecaoVoltarBase = false;
+        selecaoFecharMochila = false;
     }
 
     function criarBlocoTitulo(tipo) {
@@ -346,9 +389,13 @@
         // Efeito de hover
         slot.addEventListener('mouseenter', () => {
             slot.style.background = 'linear-gradient(180deg, #3a3a3a 0%, #2c2c2c 100%)';
+            slot.style.transform = 'scale(1.03)';
         });
         slot.addEventListener('mouseleave', () => {
-            slot.style.background = 'linear-gradient(180deg, #2a2a2a 0%, #1c1c1c 100%)';
+            if (!slot.classList.contains('is-key-selected')) {
+                slot.style.background = 'linear-gradient(180deg, #2a2a2a 0%, #1c1c1c 100%)';
+                slot.style.transform = 'scale(1)';
+            }
         });
         
         return slot;
@@ -370,6 +417,16 @@
             cursor: pointer;
             user-select: none;
         `;
+        celula.addEventListener('mouseenter', () => {
+            celula.style.background = 'linear-gradient(180deg, #3a3a3a 0%, #2c2c2c 100%)';
+            celula.style.transform = 'scale(1.03)';
+        });
+        celula.addEventListener('mouseleave', () => {
+            if (!celula.classList.contains('is-key-selected')) {
+                celula.style.background = 'linear-gradient(180deg, #2a2a2a 0%, #1c1c1c 100%)';
+                celula.style.transform = 'scale(1)';
+            }
+        });
         return celula;
     }
 
@@ -397,31 +454,48 @@
         header.style = 'padding: 18px 20px 14px; border-bottom: 1px solid #333; background: #222; text-align: center; position: relative;';
         
         const closeBtn = document.createElement('button');
-        closeBtn.textContent = '✕';
-        closeBtn.className = ''; // Removido efeito retro do fechar
-        closeBtn.style.cssText = `
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #fff;
-            font-size: 18px;
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        `;
-        closeBtn.onmouseenter = () => { closeBtn.style.background = 'rgba(255,100,100,0.3)'; };
-        closeBtn.onmouseleave = () => { closeBtn.style.background = 'rgba(255,255,255,0.1)'; };
+        closeBtn.type = 'button';
+        closeBtn.className = 'menu-close-button menu-nav-item';
+        closeBtn.setAttribute('aria-label', 'Fechar armazenamento');
+        closeBtn.title = 'Fechar';
         closeBtn.onclick = () => {
             window.toggleMochilaMenu(window.playerControle);
         };
+        botaoFecharMochilaAtivo = closeBtn;
         header.appendChild(closeBtn);
+
+        const craftSobJogador = baseSobJogador(controle);
+        botaoVoltarBaseAtivo = null;
+        selecaoVoltarBase = false;
+        selecaoFecharMochila = false;
+        if (craftSobJogador) {
+            const voltarBaseBtn = document.createElement('button');
+            voltarBaseBtn.type = 'button';
+            voltarBaseBtn.className = 'menu-nav-item';
+            voltarBaseBtn.setAttribute('aria-label', 'Voltar para o menu da base');
+            voltarBaseBtn.title = 'Voltar para o menu da base';
+            voltarBaseBtn.innerHTML = '<span aria-hidden="true" style="font-size:18px; line-height:1;">↩</span><span>VOLTAR À BASE</span>';
+            voltarBaseBtn.style.cssText = 'position:absolute; top:12px; left:15px; display:flex; align-items:center; gap:9px; padding:9px 14px; border:1px solid rgba(0,238,255,0.6); border-radius:8px; background:linear-gradient(135deg, rgba(0,115,130,0.42), rgba(20,28,34,0.96)); color:#e8fdff; font:700 11px/1 "Segoe UI", Tahoma, sans-serif; letter-spacing:1px; text-shadow:0 1px 3px #000; cursor:pointer; transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;';
+            voltarBaseBtn.onmouseenter = () => { if (!selecaoVoltarBase) voltarBaseBtn.style.boxShadow = '0 0 15px rgba(0,238,255,0.35)'; };
+            voltarBaseBtn.onmouseleave = () => atualizarSelecaoSlots();
+            voltarBaseBtn.onclick = () => {
+                const contexto = {
+                    craftId: String(craftSobJogador.id || ''),
+                    x: craftSobJogador.x,
+                    y: craftSobJogador.y,
+                    nivel: String(craftSobJogador.nivel || 1),
+                    modoRenascimento: String(craftSobJogador.modoRenascimento || ''),
+                    sprite: craftSobJogador.elementos?.[Math.max(0, Number(craftSobJogador.nivel || 1) - 1)]?.src
+                        || craftSobJogador.elementos?.[0]?.src
+                        || 'assets/craft/craft_nivel1.png',
+                    interactor: controle
+                };
+                window.toggleMochilaMenu(controle);
+                window.abrirTelaInteracao?.('craft_base', contexto);
+            };
+            botaoVoltarBaseAtivo = voltarBaseBtn;
+            header.appendChild(voltarBaseBtn);
+        }
 
         const title = document.createElement('h2');
         title.style = 'margin: 0; letter-spacing: 2px; text-transform: uppercase;';
@@ -635,20 +709,43 @@
 
         if (key === 'arrowleft' || key === 'a') {
             e.preventDefault();
+            if (selecaoFecharMochila) {
+                if (botaoVoltarBaseAtivo) {
+                    selecaoFecharMochila = false;
+                    selecaoVoltarBase = true;
+                    atualizarSelecaoSlots();
+                }
+                return;
+            }
+            if (selecaoVoltarBase) return;
             if (mochilaAreaSelecionada === 'cinto') moverSelecaoCinto(-1);
             else moverSelecaoColete(0, -1);
             return;
         }
         if (key === 'arrowright' || key === 'd') {
             e.preventDefault();
+            if (selecaoVoltarBase && botaoFecharMochilaAtivo) {
+                selecaoVoltarBase = false;
+                selecaoFecharMochila = true;
+                atualizarSelecaoSlots();
+                return;
+            }
+            if (selecaoVoltarBase) return;
             if (mochilaAreaSelecionada === 'cinto') moverSelecaoCinto(1);
             else moverSelecaoColete(0, 1);
             return;
         }
         if (key === 'arrowup' || key === 'w') {
             e.preventDefault();
+            if (selecaoVoltarBase || selecaoFecharMochila) return;
             if (mochilaAreaSelecionada === 'cinto') {
                 mochilaAreaSelecionada = 'colete';
+                atualizarSelecaoSlots();
+            } else if (botaoVoltarBaseAtivo && mochilaSlotSelecionado < COLUNAS_COLETE) {
+                selecaoVoltarBase = true;
+                atualizarSelecaoSlots();
+            } else if (botaoFecharMochilaAtivo && mochilaSlotSelecionado < COLUNAS_COLETE) {
+                selecaoFecharMochila = true;
                 atualizarSelecaoSlots();
             } else {
                 moverSelecaoColete(-1, 0);
@@ -657,7 +754,11 @@
         }
         if (key === 'arrowdown' || key === 's') {
             e.preventDefault();
-            if (mochilaAreaSelecionada === 'colete') {
+            if (selecaoVoltarBase || selecaoFecharMochila) {
+                selecaoVoltarBase = false;
+                selecaoFecharMochila = false;
+                atualizarSelecaoSlots();
+            } else if (mochilaAreaSelecionada === 'colete') {
                 const totalLinhasColete = Math.max(1, Math.ceil(capacidadeColete() / COLUNAS_COLETE));
                 const linhaAtual = Math.floor(mochilaSlotSelecionado / COLUNAS_COLETE);
                 if (linhaAtual >= totalLinhasColete - 1 && temSecaoCinto(window.playerControle)) {
@@ -672,7 +773,9 @@
         }
         if (key === 'enter' || key === ' ') {
             e.preventDefault();
-            acionarSelecaoAtual();
+            if (selecaoVoltarBase && botaoVoltarBaseAtivo) botaoVoltarBaseAtivo.click();
+            else if (selecaoFecharMochila && botaoFecharMochilaAtivo) botaoFecharMochilaAtivo.click();
+            else acionarSelecaoAtual();
             return;
         }
         if (teclaEhAcaoMenu(key, 'chute')) {

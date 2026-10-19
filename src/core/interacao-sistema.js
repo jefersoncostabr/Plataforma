@@ -801,6 +801,15 @@
         const botaoRecolher = overlay.querySelector('[data-interaction-action="recolher-base"]');
 
         const btnCrafting = overlay.querySelector('[data-interaction-action="abrir-crafting"]');
+
+        const btnArmazenamento = overlay.querySelector('[data-interaction-action="abrir-armazenamento"]');
+        if (id === 'craft_base' && btnArmazenamento) {
+            btnArmazenamento.addEventListener('click', () => {
+                const controle = contexto.interactor || window.playerControle;
+                fecharTelaInteracao();
+                window.toggleMochilaMenu?.(controle);
+            });
+        }
         if (id === 'craft_base' && btnCrafting) {
             btnCrafting.addEventListener('click', () => abrirTelaInteracao('menu_crafting', contexto));
         }
