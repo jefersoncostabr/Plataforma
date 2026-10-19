@@ -6,6 +6,8 @@
     const COMBO = ['q', 'e', 'j', 'k'];
     let overlayEl = null;
     let cheatMenuBtns = [];
+    let cheatMenuPhaseInput = null;
+    let cheatMenuPhaseFeedback = null;
 
     // Utilitário: verifica se todos do combo estão pressionados
     function comboAtivo() {
@@ -42,6 +44,15 @@
         if (!isOpen || !cheatMenuBtns.length) return;
 
         const tecla = String(e.key || '').toLowerCase();
+        if (document.activeElement === cheatMenuPhaseInput) {
+            if (tecla === 'enter' || tecla === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!e.repeat) irParaFaseCheat();
+                return;
+            }
+            if (tecla !== 'escape') return;
+        }
         const indiceAtual = Math.max(0, cheatMenuBtns.indexOf(document.activeElement));
         if (tecla === 'escape' || tecla === 'esc') {
             e.preventDefault();
@@ -158,11 +169,33 @@
             btn.onblur = () => selectBtn(null);
             btn.onclick = (e) => {
                 e.stopPropagation();
-                opt.action();
-                if (opt.closeOnClick) window.toggleCheatMenu();
+                const resultado = opt.action();
+                if (opt.closeOnClick && resultado !== false) window.toggleCheatMenu();
             };
             cheatMenuBtns.push(btn);
             box.appendChild(btn);
+            if (opt.id === 'go-to-phase') {
+                const form = document.createElement('div');
+                form.className = 'cheat-menu-phase-form';
+                form.hidden = true;
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.inputMode = 'decimal';
+                input.maxLength = 7;
+                input.placeholder = 'Nível.Fase (ex.: 1.1)';
+                input.setAttribute('aria-label', 'Nível e fase no formato nível.fase');
+                input.autocomplete = 'off';
+
+                const feedback = document.createElement('div');
+                feedback.className = 'cheat-menu-phase-feedback';
+                feedback.textContent = 'Digite nível.fase e pressione Enter ou Espaço.';
+
+                form.append(input, feedback);
+                box.appendChild(form);
+                cheatMenuPhaseInput = input;
+                cheatMenuPhaseFeedback = feedback;
+            }
         }
         // Botão fechar igual ao menu principal: X, só classes, sem sobrescrita de estilo
         const closeBtn = document.createElement('button');
@@ -215,6 +248,8 @@
         if (overlayEl) overlayEl.remove();
         overlayEl = null;
         cheatMenuBtns = [];
+        cheatMenuPhaseInput = null;
+        cheatMenuPhaseFeedback = null;
         // Só despausa se foi aberto via combo no gameplay
         // [E2] Libera so o dono 'cheat'; se outro menu pausou por cima, o jogo
         // continua pausado corretamente.
@@ -252,10 +287,48 @@
         window.criarInimigoAleatorio(plataformas, tipo);
     }
 
+    function abrirSeletorFaseCheat() {
+        if (!cheatMenuPhaseInput) return false;
+        cheatMenuPhaseInput.closest('.cheat-menu-phase-form').hidden = false;
+        cheatMenuPhaseFeedback.textContent = 'Digite nível.fase e pressione Enter ou Espaço.';
+        cheatMenuPhaseInput.focus();
+        return false;
+    }
+
+    function irParaFaseCheat() {
+        const valor = String(cheatMenuPhaseInput?.value || '').trim();
+        const correspondencia = valor.match(/^(\d+)\.(\d+)$/);
+        if (!correspondencia) {
+            cheatMenuPhaseFeedback.textContent = 'Formato inválido. Use nível.fase, por exemplo 1.1.';
+            return false;
+        }
+
+        const nivel = Number(correspondencia[1]);
+        const fase = Number(correspondencia[2]);
+        const caminhoAlvo = `nivel_${nivel}/fase${fase}.json`;
+        const indice = Array.isArray(window.niveis)
+            ? window.niveis.findIndex((caminho) => String(caminho).replace(/\\/g, '/').toLowerCase().endsWith(caminhoAlvo.toLowerCase()))
+            : -1;
+
+        if (indice < 0 || typeof window.carregarFase !== 'function') {
+            cheatMenuPhaseFeedback.textContent = `Fase ${valor} não encontrada.`;
+            return false;
+        }
+
+        window.nivelAtual = indice;
+        window.__transicaoFaseAtiva = true;
+        window.toggleCheatMenu();
+        Promise.resolve(window.carregarFase(window.niveis[indice]))
+            .catch((erro) => console.error(`[Cheats] Erro ao carregar a fase ${valor}:`, erro))
+            .finally(() => { window.__transicaoFaseAtiva = false; });
+        return true;
+    }
+
     // Opções do menu
     function getCheatOptions() {
         return [
             { label: 'PRÓX. FASE', action: () => window.proximoNivel?.(), closeOnClick: true },
+            { id: 'go-to-phase', label: 'IR PARA', action: abrirSeletorFaseCheat, closeOnClick: false },
             { label: 'GANHAR XP', action: () => window.ganharXP?.(10), closeOnClick: true },
             { label: 'AIRDROP', action: () => { if(window.playerControle) { window.playerControle.teclas['5'] = true; setTimeout(()=>window.playerControle.teclas['5']=false,100); } }, closeOnClick: true },
             { label: 'SPAWN INIMIGO ALEATÓRIO', action: () => spawnInimigoCheat('aleatorio'), closeOnClick: true },

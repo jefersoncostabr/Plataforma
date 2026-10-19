@@ -2229,7 +2229,11 @@ window.AudioManager.playSFX('chute', 0.4);
                         inimigo.patrulhaTimer = 60; // Reset para 1 segundo
                         
                         if (inimigo.estadoPatrulha === 'caminhando') {
-                            inimigo.direcaoPatrulha = Math.random() < 0.5 ? 'e' : 'd';
+                            if (inimigo.patrulhaReversaoPendente) {
+                                inimigo.patrulhaReversaoPendente = false;
+                            } else {
+                                inimigo.direcaoPatrulha = Math.random() < 0.5 ? 'e' : 'd';
+                            }
                         }
                     }
 
@@ -2252,6 +2256,8 @@ window.AudioManager.playSFX('chute', 0.4);
                         if (perigoPatrulha.lateral) {
                             inimigo.estadoPatrulha = 'parado';
                             inimigo.patrulhaTimer = 60;
+                            inimigo.direcaoPatrulha = inimigo.direcaoPatrulha === 'd' ? 'e' : 'd';
+                            inimigo.patrulhaReversaoPendente = true;
                         } else if (perigoPatrulha.up) {
                             if (inimigo.noChao && (inimigo.cooldownPulo || 0) === 0 && inimigo.puloTimer === 0 && !inimigo.jumpQueued && !inimigo.estaAgachado && !temEstacaBaixoNoArcoDoPulo(inimigo, dirPatrulha)) {
                                 inimigo.puloTimer = 0;
@@ -2265,6 +2271,8 @@ window.AudioManager.playSFX('chute', 0.4);
                             // Se encontrar obstáculo, para imediatamente
                             inimigo.estadoPatrulha = 'parado';
                             inimigo.patrulhaTimer = 60;
+                            inimigo.direcaoPatrulha = inimigo.direcaoPatrulha === 'd' ? 'e' : 'd';
+                            inimigo.patrulhaReversaoPendente = true;
                         }
                     }
                 }

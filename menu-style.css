@@ -11,11 +11,10 @@
     z-index: 100000;
     display: flex;
     /* Centraliza o conteúdo horizontal e verticalmente */
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    overflow-y: auto;
-    overscroll-behavior-y: contain;
-    padding: 2vh 0;
+    overflow: hidden;
+    padding: 12px;
     box-sizing: border-box;
 }
 
@@ -23,16 +22,17 @@
     box-sizing: border-box;
     background: rgba(40, 40, 40, 0.98);
     /* Fundo escuro semi-transparente */
-    min-width: 320px;
+    width: min(420px, 100%);
+    min-width: 0;
     height: auto;
-    max-height: 96vh;
-    max-height: 96dvh;
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
     scrollbar-color: #00ffff #282828;
-    padding: 20px 22px 14px;
+    padding: 12px 14px 10px;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
     position: relative;
@@ -52,25 +52,25 @@
 
 .cheat-menu-title {
     text-align: center;
-    letter-spacing: 3px;
-    font-size: 18px;
+    letter-spacing: 2px;
+    font-size: 15px;
     font-weight: 900;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
     color: #fff;
 }
 
 /* Botões de seleção dentro do menu de cheats */
 .cheat-menu-select-btn {
     width: 100%;
-    padding: 7px 8px;
-    margin: 3px 0;
+    padding: 5px 7px;
+    margin: 2px 0;
     border: none;
-    border-radius: 7px;
+    border-radius: 6px;
     background: rgba(0, 255, 255, 0.08);
     color: #fff;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     cursor: pointer;
     /* Transições suaves para interatividade */
     transition:
@@ -88,6 +88,34 @@
     color: #222;
     box-shadow: 0 0 12px #00ffff99;
     transform: scale(1.02);
+}
+
+.cheat-menu-phase-form {
+    width: 100%;
+    margin: 2px 0 6px;
+}
+
+.cheat-menu-phase-form[hidden] {
+    display: none;
+}
+
+.cheat-menu-phase-form input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #00ffff;
+    border-radius: 5px;
+    background: #181818;
+    color: #fff;
+    font: inherit;
+    font-size: 12px;
+}
+
+.cheat-menu-phase-feedback {
+    margin-top: 4px;
+    color: #b8dede;
+    font-size: 10px;
+    text-align: center;
 }
 
 /* Overlay do menu de pausa */
