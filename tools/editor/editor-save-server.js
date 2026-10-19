@@ -34,6 +34,8 @@ async function handleShiftPhases(req, res) {
             await fs.promises.rename(oldPath, newPath);
         }
 
+        await atualizarManifestoFases();
+
         return sendJson(res, 200, { ok: true, shifted: faseFiles.length });
     } catch (error) {
         console.error(`[Server] ERRO ao shift phases: ${error.message}`);
@@ -50,6 +52,7 @@ const ROOT_DIR = path.resolve(__dirname, '..', '..');
 const PHASES_DIR = path.join(ROOT_DIR, 'config', 'fases');
 const EDITOR_DIR = path.join(ROOT_DIR, 'tools', 'editor');
 const FUNDO_ASSETS_DIR = path.join(ROOT_DIR, 'assets', 'fundo');
+const PHASE_MANIFEST_PATH = path.join(PHASES_DIR, 'manifesto-fases.json');
 
 function setCorsHeaders(res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -102,6 +105,14 @@ async function readRequestBody(req) {
     });
 }
 
+async function atualizarManifestoFases() {
+    const arquivos = await listarArquivosJsonFaseRecursivo(PHASES_DIR);
+    const fases = arquivos
+        .filter(arquivo => /^nivel_\d+\/fase\d+\.json$/i.test(arquivo))
+        .sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true, sensitivity: 'base' }));
+    await fs.promises.writeFile(PHASE_MANIFEST_PATH, `${JSON.stringify(fases, null, 2)}\n`, 'utf8');
+}
+
 async function handleSavePhase(req, res) {
     try {
         const body = await readRequestBody(req);
@@ -138,6 +149,7 @@ async function handleSavePhase(req, res) {
         console.log(`[Server] DEBUG: Caminho final de destino no servidor: "${destino}"`);
 
         await fs.promises.writeFile(destino, content.endsWith('\n') ? content : `${content}\n`, 'utf8');
+        await atualizarManifestoFases();
 
         return sendJson(res, 200, {
             ok: true,
@@ -305,6 +317,7 @@ async function handleListarFases(req, res) {
         }
 
         const fases = (await listarArquivosJsonFaseRecursivo(PHASES_DIR))
+            .filter(arquivo => /^nivel_\d+\/fase\d+\.json$/i.test(arquivo))
             .sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
         return sendJson(res, 200, {

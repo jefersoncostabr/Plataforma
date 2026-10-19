@@ -1,0 +1,10 @@
+{
+  "id": "airdrop_plus",
+  "nome": "Airdrop Plus",
+  "descricao": "Suprimento aéreo extra de uso único. Acione com o comando Airdrop.",
+  "spriteColetavel": "../../assets/personagem/airdrop.png",
+  "categoria": "consumivel",
+  "consumivel": true,
+  "empilhavel": true,
+  "quantidadeMax": 5
+}

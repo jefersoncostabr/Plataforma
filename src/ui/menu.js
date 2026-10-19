@@ -1552,7 +1552,6 @@ function renderMainMenuContent(overlay) {
     buttonsGrid.className = 'menu-buttons-grid';
 
     const currentOptions = getMainMenuOptions();
-    console.log('[Menu] Analisando layout. Total de opções:', currentOptions.length);
 
     // Split visual em 2 colunas: a lógica de layout fica no CSS.
     // JS só habilita a classe quando há mais de 3 opções.

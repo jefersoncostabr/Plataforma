@@ -454,6 +454,13 @@
                     
                     // Definição de Receitas (Fácil de expandir)
                     const RECEITAS = [
+                        {
+                            id: 'craft_airdrop_plus',
+                            resultado: () => 'airdrop_plus',
+                            check: (s1, s2) => (s1.ocupado === "true" && s2.ocupado === "true")
+                                && ((s1.itemTipo === 'scrap' && s2.isSkillPoint === "true")
+                                    || (s2.itemTipo === 'scrap' && s1.isSkillPoint === "true"))
+                        },
                         { 
                             id: 'upgrade_plus', 
                             resultado: (tipo) => tipo + '_plus',
@@ -461,7 +468,7 @@
                                 const restrito = ['cinto', 'colete', 'scrap', 'revolver', 'doze'];
                                 const temScrap = s1.itemTipo === 'scrap' || s2.itemTipo === 'scrap';
                                 const itemBase = s1.itemTipo === 'scrap' ? s2 : s1;
-                                return temScrap && itemBase.ocupado === "true" && s1.isXP !== "true" && s2.isXP !== "true" && !restrito.includes(itemBase.itemTipo);
+                                return temScrap && itemBase.ocupado === "true" && s1.isXP !== "true" && s2.isXP !== "true" && s1.isSkillPoint !== "true" && s2.isSkillPoint !== "true" && !restrito.includes(itemBase.itemTipo);
                             }
                         },
                         { 
@@ -477,7 +484,9 @@
                         {
                             id: 'reciclagem',
                             resultado: () => 'scrap',
-                            check: (s1, s2) => (s1.ocupado === "true" && s2.ocupado === "true") && (s1.isXP === "true" || s2.isXP === "true") && s1.itemTipo !== 'scrap' && s2.itemTipo !== 'scrap'
+                            check: (s1, s2) => (s1.ocupado === "true" && s2.ocupado === "true")
+                                && ((s1.isSkillPoint === "true") !== (s2.isSkillPoint === "true"))
+                                && s1.itemTipo !== 'scrap' && s2.itemTipo !== 'scrap'
                         }
                     ];
 
@@ -497,7 +506,7 @@
                             rSlot.classList.add('crafting-result-slot');
 
                             if (receita) {
-                                const itemBase = s1.itemTipo === 'scrap' ? s2 : (s1.isXP === "true" ? s2 : s1);
+                                const itemBase = s1.itemTipo === 'scrap' ? s2 : ((s1.isXP === "true" || s1.isSkillPoint === "true") ? s2 : s1);
                                 const tipoResultado = receita.resultado(itemBase.itemTipo);
                                 
                                 rSlot.innerHTML = '';
@@ -548,12 +557,12 @@
                                 }
                             }
 
-                            // 3. Adiciona o XP como o primeiro item (pilha)
+                            // 3. Adiciona os pontos de habilidade como recurso de crafting.
                             itensParaMostrar.unshift({
-                                tipo: 'xp_display',
-                                nome: 'Experiência (XP)',
-                                quantidade: Number(window.playerXP || 0),
-                                isXP: true
+                                tipo: 'skillpoint_display',
+                                nome: 'Pontos de habilidade (SP)',
+                                quantidade: Number(window.skillPoints || 0),
+                                isSkillPoint: true
                             });
 
                             if (itensParaMostrar.length === 0) {
@@ -568,7 +577,12 @@
                                     itemQuadrado.className = 'crafting-inv-item img-button retro-grid';
                                     // console.log('[Interacao] Aplicando Retro Grid ao item do inventário no Crafting');
 
-                                    if (item.isXP) {
+                                    if (item.isSkillPoint) {
+                                        const skillPointLabel = document.createElement('div');
+                                        skillPointLabel.className = 'xp-label skillpoint-label';
+                                        skillPointLabel.textContent = 'SP';
+                                        itemQuadrado.appendChild(skillPointLabel);
+                                    } else if (item.isXP) {
                                         const xpLabel = document.createElement('div');
                                         xpLabel.className = 'xp-label';
                                         xpLabel.textContent = 'XP';
@@ -576,7 +590,12 @@
                                     } else {
                                         const img = document.createElement('img');
                                         img.className = 'crafting-item-icon';
-                                        img.src = item.spriteColetavel || item.spriteEquipado || (typeof window.obterSpriteItem === 'function' ? window.obterSpriteItem(item.tipo, window.config) : '');
+                                        const spriteResolvido = typeof window.obterSpriteItem === 'function'
+                                            ? window.obterSpriteItem(item.tipo, window.config)
+                                            : '';
+                                        img.src = item.tipo?.endsWith('_plus')
+                                            ? (spriteResolvido || item.spriteColetavel || item.spriteEquipado || '')
+                                            : (item.spriteColetavel || item.spriteEquipado || spriteResolvido);
                                         itemQuadrado.appendChild(img);
                                     }
                                     
@@ -589,10 +608,10 @@
                                     }
 
                                     let badgeEl = null;
-                                    const ehEmpilhavel = ['scrap'].includes(item.tipo) || item.isXP || (item.tipo && item.tipo.endsWith('_plus'));
+                                    const ehEmpilhavel = ['scrap'].includes(item.tipo) || item.isXP || item.isSkillPoint || (item.tipo && item.tipo.endsWith('_plus'));
                                     if (ehEmpilhavel && item.quantidade > 0) {
                                         badgeEl = document.createElement('span');
-                                        badgeEl.className = item.isXP ? 'badge xp' : 'badge';
+                                        badgeEl.className = item.isSkillPoint ? 'badge skillpoint' : (item.isXP ? 'badge xp' : 'badge');
                                         badgeEl.textContent = item.quantidade;
                                         itemQuadrado.appendChild(badgeEl);
                                     }
@@ -609,7 +628,7 @@
                             const alvo = !slot1.dataset.ocupado ? slot1 : (!slot2.dataset.ocupado ? slot2 : null);
                             if (!alvo) return;
 
-                            const ehEmpilhavel = ['scrap'].includes(itemData.tipo) || itemData.isXP || (itemData.tipo && itemData.tipo.endsWith('_plus'));
+                            const ehEmpilhavel = ['scrap'].includes(itemData.tipo) || itemData.isXP || itemData.isSkillPoint || (itemData.tipo && itemData.tipo.endsWith('_plus'));
                             if (ehEmpilhavel) {
                                 if (itemData.quantidade <= 0) return;
                                 itemData.quantidade--;
@@ -626,8 +645,14 @@
                             alvo.dataset.ocupado = "true";
                             alvo.dataset.itemTipo = itemData.tipo;
                             alvo.dataset.isXP = itemData.isXP ? "true" : "false";
+                            alvo.dataset.isSkillPoint = itemData.isSkillPoint ? "true" : "false";
 
-                            if (itemData.isXP) {
+                            if (itemData.isSkillPoint) {
+                                const skillPointLabel = document.createElement('div');
+                                skillPointLabel.className = 'crafting-slot-xp-label crafting-slot-skillpoint-label';
+                                skillPointLabel.textContent = '1 SP';
+                                alvo.appendChild(skillPointLabel);
+                            } else if (itemData.isXP) {
                                 // Representação visual do XP no slot de crafting
                                 const xpLabel = document.createElement('div');
                                 xpLabel.className = 'crafting-slot-xp-label';
@@ -654,6 +679,7 @@
                                 delete alvo.dataset.ocupado;
                                 delete alvo.dataset.itemTipo;
                                 delete alvo.dataset.isXP;
+                                delete alvo.dataset.isSkillPoint;
                                 btnOrigem.classList.remove('is-disabled');
                                 alvo.onclick = null;
                                 atualizarResultadoCrafting();
@@ -667,19 +693,25 @@
                                 e.stopPropagation();
                                 
                                 // Verifica se as funções necessárias existem para evitar crash
-                                const ganharXP = typeof window.ganharXP === 'function';
                                 const removerItem = typeof window.removerItemDoCorpoSemDropar === 'function';
                                 const tipoResultado = rBtn.dataset.tipoResultado;
 
-                                // 1. Consumir XP real
-                                if (ganharXP && tipoResultado === 'scrap') {
-                                    window.ganharXP(-1);
+                                // Consome um ponto de habilidade ao reciclar um item em sucata.
+                                const custoSkillPoint = [slot1, slot2].some(s => s.dataset.isSkillPoint === "true") ? 1 : 0;
+                                if (custoSkillPoint > 0 && Number(window.skillPoints || 0) < custoSkillPoint) {
+                                    atualizarResultadoCrafting();
+                                    renderizarListaInventario();
+                                    return;
+                                }
+                                if (custoSkillPoint > 0) {
+                                    window.skillPoints = Math.max(0, Number(window.skillPoints || 0) - custoSkillPoint);
+                                    window.salvarProgressoSkills?.();
                                 }
 
                                 // 2. Consumir Item real da mochila/corpo
                                 [slot1, slot2].forEach(s => {
                                     const item = s._itemRef;
-                                   if (item && !item.isXP) {
+                                   if (item && !item.isXP && !item.isSkillPoint) {
                                         const ehEmpilhavel = ['scrap'].includes(item.tipo) || (item.tipo && item.tipo.endsWith('_plus'));
                                         const c = interactor;
 
@@ -737,6 +769,7 @@
                                     delete s.dataset.ocupado;
                                     delete s.dataset.itemTipo;
                                     delete s.dataset.isXP;
+                                    delete s.dataset.isSkillPoint;
                                     s.onclick = null;
                                     delete s._itemRef;
                                 });

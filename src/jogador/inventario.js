@@ -462,6 +462,13 @@
             return def.spriteColetavel || def.spriteEquipado || '';
         }
 
+        // Itens melhorados sem definição própria reutilizam o sprite da versão base.
+        if (tipo?.endsWith('_plus')) {
+            const tipoBase = tipo.slice(0, -'_plus'.length);
+            const spriteBase = obterSpriteItem(tipoBase, config, contexto);
+            if (spriteBase) return spriteBase;
+        }
+
         // Prioridade 3: Fallbacks conhecidos para itens no chão (coletáveis)
         if (contexto !== 'equipado') {
             if (tipo === 'revolver') return config.spriteItemRevolver || '../../assets/personagem/revolver_pegavel.png';

@@ -421,7 +421,7 @@ window.onload = async () => {
 async function carregarItemDefinitions() {
     itemDefinitions = {};
     // Lista dos tipos de itens conhecidos (poderia ser dinâmico via API/FS)
-    const tipos = ["revolver", "escudo", "bota", "jetpack", "garra", "cinto", "colete", "restauracao", "scrap", "capsula", "doze", "municao_plus", "novelo", "bateria"];
+    const tipos = ["revolver", "escudo", "bota", "jetpack", "garra", "cinto", "colete", "restauracao", "scrap", "capsula", "doze", "municao_plus", "airdrop_plus", "novelo", "bateria"];
     for (const tipo of tipos) {
         try {
             const resp = await fetch(`../../config/items/${tipo}.json`);

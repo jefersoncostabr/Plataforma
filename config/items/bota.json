@@ -2,7 +2,7 @@
     "id": "bota",
     "nome": "Botas de Velocidade",
     "spriteColetavel": "../../assets/personagem/bota_pegavel.png",
-    "spriteEquipado": "../../assets/personagem/bota.png",
+    "spriteEquipado": "../../assets/personagem/bota_parado.png",
     "efeitos": {
         "jogador": {
             "temBota": true

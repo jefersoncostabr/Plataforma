@@ -455,9 +455,7 @@
     // Ele ficará em "stand-by" até que uma fase com modoRunner seja detectada.
     document.addEventListener('DOMContentLoaded', () => {
         cicloRunner();
-        console.log("[Runner] Sistema Runner inicializado. Use window.ativarModoRunner(true) para começar.");
     });
 
     // Expõe a função imediatamente após a definição do script
-    console.log("[Runner] Script carregado e comandos de console disponíveis.");
 })();

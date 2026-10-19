@@ -1149,58 +1149,28 @@ async function iniciarJogo() {
     window.config.muzzleFlashHeight = window.config.muzzleFlashHeight ?? 32;
     // This is a valid debug log, keeping it.
 
-    // Monta window.niveis sem depender de index.json.
-    // Obs: listar diretório via fetch(basePath) pode falhar dependendo do servidor/CORS.
-    // Por isso, usamos fallback por convenção (fase\d+.json na pasta nivel_1).
+    // Carrega a lista explícita de fases para não gerar requisições 404 ao sondar lacunas.
     window.niveis = [];
     try {
         const basePathRoot = '../../config/fases/';
-        const folders = ['nivel_1/', 'nivel_2/'];
-        const levelsPerFolder = 50; // Aumentado para suportar até 50 fases por pasta
-        
-        // Descoberta incremental com parada cedo (evita spam de 404)
-        // Estratégia: para cada pasta, testamos fase1..N, e paramos quando houver muitos 404 em sequência.
-        const validar = async (rel) => {
-            try {
-                const resp = await fetch(`${basePathRoot}${rel}`, { cache: 'no-store' });
-                return resp.ok;
-            } catch (_) {
-                return false;
-            }
-        };
+        const respostaIndice = await fetch(`${basePathRoot}manifesto-fases.json`, { cache: 'no-store' });
+        if (!respostaIndice.ok) throw new Error(`Manifesto de fases indisponível (${respostaIndice.status}).`);
 
-        const validados = [];
-        const MAX_CONSEC_404 = 4; // limite menor para reduzir 404 spam
+        const manifesto = await respostaIndice.json();
+        const fases = Array.isArray(manifesto) ? manifesto : manifesto.fases;
+        if (!Array.isArray(fases)) throw new Error('Manifesto de fases inválido.');
 
-
-        for (const folder of folders) {
-            let consec404 = 0;
-            for (let i = 1; i <= levelsPerFolder; i++) {
-                const rel = `${folder}fase${i}.json`;
-                // Se já detectamos que não existe mais sequência nessa pasta, encerramos
-                if (consec404 >= MAX_CONSEC_404) break;
-
-                const ok = await validar(rel);
-                if (ok) {
-                    validados.push(rel);
-                    consec404 = 0;
-                } else {
-                    consec404++;
-                }
-            }
-        }
-
-        // Mantém ordenação numérica pelo nome faseX.json e pasta
-        validados.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-
-        window.niveis = validados.map((rel) => `${basePathRoot}${rel}`);
+        const fasesValidas = fases
+            .filter((rel) => typeof rel === 'string' && /^nivel_\d+\/fase\d+\.json$/i.test(rel))
+            .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+        window.niveis = fasesValidas.map((rel) => `${basePathRoot}${rel}`);
 
     } catch (e) {
         window.niveis = [];
         console.error('Erro ao montar lista de fases:', e);
     }
 
-    // Segurança: se por qualquer motivo a lista vier vazia, impede travamento.
+    // Segurança para instalação incompleta: mantém uma fase inicial conhecida.
     if (!Array.isArray(window.niveis) || window.niveis.length === 0) {
         window.niveis = ['../../config/fases/nivel_1/fase1.json'];
     }

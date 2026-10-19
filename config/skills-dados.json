@@ -34,7 +34,7 @@
         "Dash": "Toque duas vezes para frente para avançar rapidamente. Tem tempo de recarga.",
         "Dropar": "Pra baixo + Pulo para dropar o último item coletado.",
         "Visão": "Ver vida e informações úteis.",
-        "Airdrop": "Pede um suprimento aéreo uma vez por fase. Use o comando Airdrop ou Cima + Tiro.",
+        "Airdrop": "Use o comando Airdrop ou Cima + Tiro. A skill tem prioridade uma vez por fase; depois, ou sem ela, o comando pode consumir um Airdrop Plus guardado.",
         "Vender": "Segure Baixo + Tiro para vender o último item do inventário e ganhar 1 XP. Pular cancela a venda.",
         "Salto": "Permite dar um segundo pulo no ar, se acionado no tempo certo.",
         "Resgate": "Evita a morte ao cair em um buraco e reposiciona o jogador no cenário.",

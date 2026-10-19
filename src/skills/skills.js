@@ -246,7 +246,7 @@ window.ganharXP = (quantidade = 1) => {
 window.carregarDadosSkills = async (forçarReset = false) => {
     try {
 
-        const resposta = await fetch('../../config/skills-dados.json?v=20261015-skill-descriptions');
+        const resposta = await fetch('../../config/skills-dados.json?v=20261019-airdrop-plus');
         const dados = await resposta.json();
         const skillsOriginais = dados.skills || {};
         const skillsNormalizadas = normalizarEstruturaSkills(skillsOriginais);

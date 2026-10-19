@@ -119,6 +119,50 @@
             }, tempoEspera);
         }
 
+        function consumirAirdropPlusArmazenado() {
+            const slotCinto = typeof window.obterSlotCinto === 'function'
+                ? window.obterSlotCinto()
+                : controle.cintoSlot;
+            const slotsColete = typeof window.obterSlotsColete === 'function'
+                ? window.obterSlotsColete()
+                : (Array.isArray(controle.coleteSlots) ? controle.coleteSlots : []);
+
+            let slotConsumido = null;
+            let origem = null;
+            let indiceColete = -1;
+            if (slotCinto?.tipo === 'airdrop_plus') {
+                slotConsumido = slotCinto;
+                origem = 'cinto';
+            } else {
+                indiceColete = slotsColete.findIndex(slot => slot?.tipo === 'airdrop_plus');
+                if (indiceColete >= 0) {
+                    slotConsumido = slotsColete[indiceColete];
+                    origem = 'colete';
+                }
+            }
+
+            if (!slotConsumido) return false;
+
+            const quantidade = Math.max(1, Number(slotConsumido.quantidade || 1));
+            if (quantidade > 1) {
+                slotConsumido.quantidade = quantidade - 1;
+            } else if (origem === 'cinto') {
+                controle.cintoSlot = null;
+            } else {
+                slotsColete[indiceColete] = null;
+            }
+
+            const aindaTemAirdropPlus = controle.cintoSlot?.tipo === 'airdrop_plus'
+                || slotsColete.some(slot => slot?.tipo === 'airdrop_plus');
+            if (!aindaTemAirdropPlus && Array.isArray(controle.inventario)) {
+                controle.inventario = controle.inventario.filter(tipo => tipo !== 'airdrop_plus');
+            }
+
+            salvarInventario();
+            window.atualizarMochilaUI?.(controle);
+            return true;
+        }
+
         function tipoEstaEquipado(tipo) {
             if ((tipo === 'revolver' || tipo === 'doze') && controle.temArma) {
                 return (controle.heldWeaponType || tipo) === tipo;
@@ -325,16 +369,19 @@
                     // console.log(`[AIRDROP] Solicitação recebida. Skill: ${temSkill}, Já usado: ${controle.airdropUsadoNoNivel}`);
                 } // This is a valid debug log, keeping it.
                 
-                if (!temSkill && !isDebug) {
-                    console.warn("[AIRDROP] Bloqueado: Habilidade AIRDROP necessária.");
+                if (isDebug) {
+                    dispararSinalizador();
+                } else if (temSkill && !controle.airdropUsadoNoNivel) {
+                    dispararSinalizador();
+                    controle.airdropUsadoNoNivel = true;
+                    console.log('Skill AirDrop: Suporte aéreo solicitado!');
+                } else if (consumirAirdropPlusArmazenado()) {
+                    dispararSinalizador();
+                    console.log('Airdrop Plus: Suprimento aéreo solicitado!');
+                } else {
+                    console.warn('[AIRDROP] Bloqueado: skill indisponível ou já usada, e sem Airdrop Plus.');
                     return;
                 }
-
-                if (controle.airdropUsadoNoNivel && !isDebug) return;
-
-                dispararSinalizador();
-                if (!isDebug) controle.airdropUsadoNoNivel = true;
-                console.log('Skill AirDrop: Suporte aéreo solicitado!');
                 
                 if (isDebug) {
                     controle.teclas['5'] = false; // Consome o input de debug para evitar disparos contínuos

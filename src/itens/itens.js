@@ -100,7 +100,7 @@ window.removerVisualItemColetavel = function(item) {
  * Carrega as definições de todos os itens a partir dos arquivos JSON.
  */
 window.carregarItemDefinitions = async function() {
-    const tipos = ["revolver", "escudo", "bota", "jetpack", "garra", "cinto", "colete", "restauracao", "scrap", "capsula", "doze", "municao_plus", "novelo", "bateria"];
+    const tipos = ["revolver", "escudo", "bota", "jetpack", "garra", "cinto", "colete", "restauracao", "scrap", "capsula", "doze", "municao_plus", "airdrop_plus", "novelo", "bateria"];
     for (const tipo of tipos) {
         try {
             // Tenta carregar o JSON. O caminho assume que o jogo roda da raiz.

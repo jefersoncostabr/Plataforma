@@ -21,7 +21,7 @@
 | **Alternar Equip** | `E` | Alterna entre Arma e Escudo |
 | **Mochila** | `Enter` | Abre o inventário |
 | **Interagir** | `E` | Agachado = Menu de Crafting |
-| **AirDrop** | `U` ou `W+I` | Chama suprimentos |
+| **AirDrop** | `U` ou `W+I` | Chama suprimentos; usa primeiro a skill e, se indisponível, consome um Airdrop Plus guardado |
 | **Ejetar BB** | `Y` | Abre/Fecha armadura (Ejeta o BB) |
 | **Troca de Pet** | `Q` | Alternar entre pets aliados |
 | **Carregamento** | `T` | Ativa eletricidade temporária |

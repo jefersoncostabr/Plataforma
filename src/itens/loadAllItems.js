@@ -18,6 +18,7 @@ export async function loadAllItems() {
     'capsula',
     'doze',
     'municao_plus',
+    'airdrop_plus',
     'novelo',
     'bateria'
     // Adicione novos ids aqui conforme criar novos arquivos JSON
