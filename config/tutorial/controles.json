@@ -124,6 +124,16 @@
       "nivel": 1,
       "fase": "",
       "ativo": true
+    },
+    {
+      "id": "corpo_robo_nivel2_fase1",
+      "aoEntrarFase": true,
+      "msg": "Encontre um corpo robô e interaja com E",
+      "acaoId": "interagir",
+      "repeticoesNecessarias": 3,
+      "nivel": 2,
+      "fase": 1,
+      "ativo": true
     }
   ]
 }

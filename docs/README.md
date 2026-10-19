@@ -6,6 +6,7 @@
 
 ## Quero jogar / testar
 - `CONTROLES.md` — todos os botoes (jogador, BB, pets, debug). Comece aqui.
+- `TUTORIAIS_CONTROLES.md` — como configurar dicas e mensagens em `config/tutorial/controles.json`.
 - `SKILLS.md` — o que cada skill faz, o que comprar antes, combinacoes boas.
 
 ## Quero criar conteudo (fase, item, bloco, skill, NPC)

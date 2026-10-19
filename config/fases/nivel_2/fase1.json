@@ -13,14 +13,9 @@
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
     "itens": {
-        "bota": [
-            "b15",
-            "b18"
-        ],
-        "colete": "b16",
-        "cinto": "b17",
-        "jetpack": "b19",
-        "garra": "b20"
+        "cinto": "b22",
+        "colete": "b37",
+        "doze": "k40"
     },
     "inimigoAleatorio": [
         1,
@@ -40,11 +35,83 @@
             "type": "plataformaMuroTerra"
         },
         {
+            "coord": "b36",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "b39",
+            "type": "plataformaGramaPico"
+        },
+        {
             "coord": "c13",
             "type": "plataformaMuroTerra"
         },
         {
+            "coord": "c21",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "c25",
+            "type": "plataformaGramaPico"
+        },
+        {
+            "coord": "c36",
+            "type": "plataformaMuroTerra"
+        },
+        {
             "coord": "d13",
+            "type": "plataformaGramaPico"
+        },
+        {
+            "coord": "d21",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "d36",
+            "type": "plataformaGramaPico"
+        },
+        {
+            "coord": "e21",
+            "type": "plataformaGramaPico"
+        },
+        {
+            "coord": "e28",
+            "type": "plataformaGramaPico"
+        },
+        {
+            "coord": "f31",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "g31",
+            "type": "plataformaGramaPico"
+        },
+        {
+            "coord": "h34",
+            "type": "plataformaCantoCanto3"
+        },
+        {
+            "coord": "h35",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "h36",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "h37",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "h38",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "h39",
+            "type": "plataformaGramaPico2"
+        },
+        {
+            "coord": "i34",
             "type": "plataformaGramaPico"
         },
         "a2",
@@ -101,9 +168,22 @@
         "c6"
     ],
     "plataformasPedra": [
-        "b10"
+        "b10",
+        "f21"
     ],
     "plataformasEstacaSup": [
-        "b23"
+        "b23",
+        "i37"
+    ],
+    "plataformasTerraPicoInvertido": [
+        "b21",
+        "b25"
+    ],
+    "plataformasGramaPico4": [
+        "j40"
+    ],
+    "plataformasGramaPico5": [
+        "d28",
+        "e31"
     ]
 }

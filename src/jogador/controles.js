@@ -193,6 +193,7 @@
 
             if (!e.repeat && teclaEhAcao(e.key, 'interagir')) {
                 controle.acoesDiscretas.interagir = true;
+                window.TutorialControles?.registrarAcao?.('interagir');
             }
 
             if (!e.repeat && teclaEhAcao(e.key, 'carregando')) {

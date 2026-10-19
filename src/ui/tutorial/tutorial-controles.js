@@ -20,6 +20,8 @@
     let intervaloVisibilidade = null;
     let mensagensAtivas = new Map();
     let tutoriaisItensExibidos = new Set();
+    let tutoriaisFaseExibidos = new Set();
+    let progressoMensagensFase = new Map();
 
     function ehTutorialInformativo(tutorial) {
         return Object.prototype.hasOwnProperty.call(tutorial, 'pegarItem')
@@ -154,6 +156,17 @@
         let alterouTutoriais = false;
 
         configuracao.tutoriais.forEach((tutorial) => {
+            if (tutorial.aoEntrarFase && tutorial.ativo
+                && !tutoriaisFaseExibidos.has(tutorial.id)
+                && correspondeAoEscopo(tutorial, faseAtual)) {
+                tutoriaisFaseExibidos.add(tutorial.id);
+                const exigeAcoes = Number(tutorial.repeticoesNecessarias) > 0;
+                mostrarMensagem(tutorial.msg, tutorial.duracaoMs, {
+                    id: tutorial.id,
+                    persistente: exigeAcoes
+                });
+                if (exigeAcoes) progressoMensagensFase.set(tutorial.id, 0);
+            }
             if (!ehTutorialDeControle(tutorial) || !tutorial.ativo || tutoriaisAtivados.has(tutorial.id)
                 || (progresso.get(tutorial.id) || 0) >= tutorial.repeticoesNecessarias) return;
             if (tutorial.nivel === null || tutorial.fase === null
@@ -197,8 +210,18 @@
                     if (ehTutorialInformativo(item)) {
                         const pegarItem = String(item?.pegarItem || '').trim().toLowerCase();
                         const msg = String(item?.msg || '').trim();
-                        if (!pegarItem || !msg) return false;
-                        item.pegarItem = pegarItem;
+                        if ((!pegarItem && item?.aoEntrarFase !== true) || !msg) return false;
+                        if (item?.aoEntrarFase === true) {
+                            const repeticoes = Number(item?.repeticoesNecessarias);
+                            const acaoId = String(item?.acaoId || '').trim().toLowerCase();
+                            if ((item.repeticoesNecessarias !== undefined || item.acaoId !== undefined)
+                                && (!acaoId || !Number.isFinite(repeticoes) || repeticoes < 1)) return false;
+                            if (acaoId) item.acaoId = acaoId;
+                            if (Number.isFinite(repeticoes) && repeticoes >= 1) {
+                                item.repeticoesNecessarias = Math.floor(repeticoes);
+                            }
+                        }
+                        if (pegarItem) item.pegarItem = pegarItem;
                         item.msg = msg;
                         const duracao = Number(item.duracaoMs);
                         item.duracaoMs = Number.isFinite(duracao) && duracao > 0 ? duracao : 6000;
@@ -244,6 +267,8 @@
         mensagensAtivas.forEach(({ timeout }) => clearTimeout(timeout));
         mensagensAtivas = new Map();
         tutoriaisItensExibidos = new Set();
+        tutoriaisFaseExibidos = new Set();
+        progressoMensagensFase = new Map();
         progresso = new Map(dados.tutoriais
             .filter(ehTutorialDeControle)
             .map((tutorial) => [tutorial.id, 0]));
@@ -259,6 +284,23 @@
         if (!sessaoIniciada || !configuracao) return;
         const acaoNormalizada = String(id || '').trim().toLowerCase();
         let alterouProgresso = false;
+
+        configuracao.tutoriais.forEach((tutorial) => {
+            if (tutorial.aoEntrarFase !== true || !tutorial.ativo
+                || tutorial.acaoId !== acaoNormalizada
+                || !Number.isFinite(tutorial.repeticoesNecessarias)
+                || !mensagensAtivas.has(tutorial.id)) return;
+
+            const progressoAtual = (progressoMensagensFase.get(tutorial.id) || 0) + 1;
+            progressoMensagensFase.set(tutorial.id, progressoAtual);
+            if (progressoAtual < tutorial.repeticoesNecessarias) return;
+
+            const mensagem = mensagensAtivas.get(tutorial.id);
+            if (mensagem?.timeout) clearTimeout(mensagem.timeout);
+            mensagem?.elemento?.remove();
+            mensagensAtivas.delete(tutorial.id);
+            alterouProgresso = true;
+        });
 
         configuracao.tutoriais.forEach((tutorial) => {
             if (
@@ -284,6 +326,7 @@
 
         configuracao.tutoriais.forEach((tutorial) => {
             if (!ehTutorialInformativo(tutorial) || !tutorial.ativo
+                || !tutorial.pegarItem
                 || tutoriaisItensExibidos.has(tutorial.id)
                 || normalizarTipoItem(tutorial.pegarItem) !== tipoNormalizado
                 || !correspondeAoEscopo(tutorial, faseAtual)) return;
@@ -309,17 +352,22 @@
         });
     }
 
-    function mostrarMensagem(msg, duracaoMs = 6000) {
+    function mostrarMensagem(msg, duracaoMs = 6000, opcoes = {}) {
         const texto = String(msg || '').trim();
         const raiz = obterContainer();
         if (!texto || !raiz) return;
 
-        const id = `mensagem-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const id = String(opcoes.id || `mensagem-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
         const elemento = document.createElement('div');
         elemento.className = 'tutorial-controles-linha tutorial-controles-mensagem';
         elemento.dataset.tutorialId = id;
         elemento.textContent = texto;
         mensagensAtivas.set(id, { elemento, timeout: null });
+
+        if (opcoes.persistente) {
+            renderizar();
+            return;
+        }
 
         const duracao = Number(duracaoMs);
         const timeout = setTimeout(() => {
