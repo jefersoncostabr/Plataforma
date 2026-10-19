@@ -10,6 +10,9 @@
  */
 function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteChute, spriteNoAr) {
     const config = window.config || {}; // Usa as configurações globais
+    // Diagnóstico temporário, ligado por padrão durante a investigação.
+    // Pode ser desligado no console com window.DEBUG_IA_HUMANO_PARADO = false.
+    window.DEBUG_IA_HUMANO_PARADO ??= true;
 
     // Define o novo tipo de NPC Humano se as constantes existirem
     if (window.GAME_CONSTANTS) {
@@ -1088,11 +1091,19 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 }
 
                 let xAnterior = inimigo.x;
+                let yAnterior = inimigo.y;
 
 
                 // Refinamento IA: Detecta itens de interesse (AirDrop, equipamentos vestíveis, restauração/munição se precisar)
                 const itemInteresse = window.itensColetaveis?.find(it => {
                     if (it.coletavel === false || window.itemDefinitions?.[it.tipo]?.coletavel === false) return false;
+                    // A IA terrestre não tem rota para descer de uma plataforma.
+                    // Não prende a perseguição num item abaixo e fora do alcance da hitbox.
+                    // Um jetpack já em voo consegue acompanhar o alvo verticalmente.
+                    if (!inimigo.jetpackAtivo
+                        && Number.isFinite(Number(it.y))
+                        && Number(it.y) + 32 <= Number(inimigo.y)) return false;
+
                     const jaTem = it.tipo !== 'airdrop' && it.tipo !== 'restauracao' && inimigo.inventario.includes(it.tipo);
                     if (jaTem) return false;
 
@@ -2529,6 +2540,88 @@ window.AudioManager.playSFX('chute', 0.4);
 
 
                 // Atualiza a posição no DOM (Sempre, para refletir gravidade, movimento e knockback)
+                if (inimigo.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID) {
+                    const deltaX = inimigo.x - xAnterior;
+                    const deltaY = inimigo.y - yAnterior;
+                    const semDeslocamento = Math.hypot(deltaX, deltaY) < 0.05;
+                    const perseguindoAlvoDistante = !!inimigo.perseguindo && (
+                        Math.abs(xAlvoNavegacao - inimigo.x) > Math.max(12, Math.abs(velAtiva) * 2)
+                        || Math.abs(yAlvo - inimigo.y) > 40
+                    );
+                    const patrulhaDeveriaAndar = !inimigo.perseguindo && inimigo.estadoPatrulha === 'caminhando';
+                    const itemAbaixoProximo = (window.itensColetaveis || []).find((item) => (
+                        item
+                        && item.coletavel !== false
+                        && window.itemDefinitions?.[item.tipo]?.coletavel !== false
+                        && Number(item.y) < inimigo.y - 24
+                        && Math.abs(Number(item.x) - inimigo.x) <= 220
+                        && Math.abs(Number(item.y) - inimigo.y) <= 180
+                    )) || null;
+                    if (window.DEBUG_IA_HUMANO_PARADO && semDeslocamento
+                        && (perseguindoAlvoDistante || patrulhaDeveriaAndar)) {
+                        inimigo._debugHumanoParadoFrames = (inimigo._debugHumanoParadoFrames || 0) + 1;
+                        if (inimigo._debugHumanoParadoFrames === 45 || inimigo._debugHumanoParadoFrames % 60 === 0) {
+                            const direcaoAlvo = xAlvoNavegacao >= inimigo.x ? 1 : -1;
+                            const hitboxAtual = typeof verificarColisaoComTiles === 'function'
+                                ? verificarColisaoComTiles(inimigo.x + (inimigo.offsetX || 0), inimigo.y, inimigo.largura, inimigo.altura, window.plataformas)
+                                : null;
+                            const hitboxFrente = typeof verificarColisaoComTiles === 'function'
+                                ? verificarColisaoComTiles(
+                                    inimigo.x + (inimigo.offsetX || 0) + (direcaoAlvo > 0 ? inimigo.largura : -2),
+                                    inimigo.y + 2,
+                                    2,
+                                    Math.max(1, inimigo.altura - 4),
+                                    window.plataformas
+                                )
+                                : null;
+                            const estacaFrente = analisarPerigoEstacaFrente(
+                                inimigo,
+                                direcaoAlvo,
+                                Math.max(10, Math.ceil(Math.abs(velAtiva)) + 8)
+                            );
+                            console.warn('[IA humano] Sem deslocamento apesar de movimento esperado', {
+                                framesParado: inimigo._debugHumanoParadoFrames,
+                                inimigoId: inimigo.id ?? inimigo.tipo,
+                                posicao: { x: inimigo.x, y: inimigo.y },
+                                deslocamento: { x: deltaX, y: deltaY },
+                                alvo: itemInteresse
+                                    ? { tipo: itemInteresse.tipo, x: xAlvo, y: yAlvo }
+                                    : roboAbertoAlvoBB
+                                        ? { tipo: 'roboAbertoBB', x: xAlvo, y: yAlvo }
+                                    : itemAbaixoProximo
+                                        ? { tipo: itemAbaixoProximo.tipo, x: itemAbaixoProximo.x, y: itemAbaixoProximo.y, abaixoDoHumano: true }
+                                        : { tipo: 'jogador', x: xAlvo, y: yAlvo },
+                                perseguindo: !!inimigo.perseguindo,
+                                perseguindoItem,
+                                itemAbaixoProximo: itemAbaixoProximo ? {
+                                    tipo: itemAbaixoProximo.tipo,
+                                    dx: Number(itemAbaixoProximo.x) - inimigo.x,
+                                    dy: Number(itemAbaixoProximo.y) - inimigo.y,
+                                    selecionadoComoAlvo: itemInteresse === itemAbaixoProximo
+                                } : null,
+                                estadoPatrulha: inimigo.estadoPatrulha,
+                                velocidade: velAtiva,
+                                afastando: !!inimigo.afastando,
+                                agachado: !!inimigo.estaAgachado,
+                                precisaAgacharPassagem: !!inimigo.precisaAgacharPassagem,
+                                noChao: !!inimigo.noChao,
+                                stun: { ativo: !!inimigo.stunned, timer: inimigo.stunTimer, bloqueada: iaBloqueadaPorStun },
+                                coleta: { ativa: !!inimigo.estaColetando, timer: inimigo.timerColeta },
+                                ataque: { tempo: inimigo.tempoChute, impulsoRestante: inimigo.framesImpulsoRestante },
+                                pulo: { pendente: !!inimigo.jumpQueued, timer: inimigo.puloTimer, cooldown: inimigo.cooldownPulo },
+                                garra: inimigo.garraAnimEstado,
+                                colisaoNaPosicao: hitboxAtual ? { tipo: hitboxAtual.tipo, direcao: hitboxAtual.direcao } : null,
+                                colisaoAFrente: hitboxFrente ? { tipo: hitboxFrente.tipo, direcao: hitboxFrente.direcao } : null,
+                                estacaAFrente: estacaFrente,
+                                resgateBB: !!emResgateBB,
+                                jogadorEscondido: !!jogadorEscondido
+                            });
+                        }
+                    } else {
+                        inimigo._debugHumanoParadoFrames = 0;
+                    }
+                }
+
                 inimigo.elemento.style.left = inimigo.x + 'px';
                 inimigo.elemento.style.bottom = inimigo.y + 'px';
                 inimigo.elemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';

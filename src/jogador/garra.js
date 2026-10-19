@@ -149,6 +149,55 @@
             }
         }
 
+        function animarRecompensaAirdrop(item, recompensa) {
+            if (!item || !recompensa) return;
+
+            const ehXP = recompensa === 'xp';
+            const visual = document.createElement(ehXP || recompensa === 'skillpoint' || recompensa === 'skill' ? 'div' : 'img');
+            visual.style.position = 'absolute';
+            visual.style.left = `${Number(item.x || controle.x || 0) - 4}px`;
+            visual.style.bottom = `${Number(item.y || controle.y || 0) + 20}px`;
+            visual.style.zIndex = '999';
+            visual.style.pointerEvents = 'none';
+            visual.style.imageRendering = 'pixelated';
+            if (ehXP) {
+                visual.textContent = 'XP';
+                visual.style.cssText += 'width:48px;height:32px;display:flex;align-items:center;justify-content:center;color:#00ffff;font:900 24px/1 "Segoe UI",sans-serif;text-shadow:0 0 5px #00ffff,0 0 12px rgba(0,255,255,.8);';
+            } else if (recompensa === 'skillpoint' || recompensa === 'skill') {
+                visual.textContent = recompensa === 'skillpoint' ? '+1 SP' : 'SKILL';
+                visual.style.cssText += 'width:64px;height:32px;display:flex;align-items:center;justify-content:center;color:#00ffff;font:900 16px/1 "Segoe UI",sans-serif;text-shadow:0 0 5px #00ffff,0 0 12px rgba(0,255,255,.8);';
+            } else {
+                const sprite = window.obterSpriteItem?.(recompensa, config)
+                    || window.itemDefinitions?.[recompensa]?.spriteColetavel
+                    || window.itemDefinitions?.[recompensa]?.spriteEquipado;
+                if (!sprite) return;
+                visual.src = sprite;
+                visual.alt = recompensa;
+                visual.style.width = '40px';
+                visual.style.height = '40px';
+                visual.style.objectFit = 'contain';
+                visual.style.filter = 'drop-shadow(0 0 6px rgba(0,255,255,.85))';
+            }
+
+            if (typeof window.adicionarAoLayer === 'function' && window.LAYERS?.ITENS) {
+                window.adicionarAoLayer(visual, window.LAYERS.ITENS);
+            } else {
+                (document.getElementById('layer-ui') || document.body).appendChild(visual);
+            }
+
+            if (typeof visual.animate === 'function') {
+                const animacao = visual.animate([
+                    { transform: 'translateY(0) scale(.65)', opacity: 0 },
+                    { transform: 'translateY(-58px) scale(1.18)', opacity: 1, offset: 0.38 },
+                    { transform: 'translateY(-74px) scale(1)', opacity: 1, offset: 0.72 },
+                    { transform: 'translateY(-92px) scale(.9)', opacity: 0 }
+                ], { duration: 1100, easing: 'cubic-bezier(.2,.75,.35,1)', fill: 'forwards' });
+                animacao.onfinish = () => visual.remove();
+            } else {
+                setTimeout(() => visual.remove(), 1100);
+            }
+        }
+
         function coletarItemGarra(item) {
             if (!item) return false;
 
@@ -196,6 +245,7 @@
                 // Se o sorteio não for reconhecido, força cair um item
                 const validos = ['skillpoint', 'xp', 'restauracao', 'skill', 'item'];
                 if (!validos.includes(sorteio)) sorteio = 'item';
+                let recompensaAirdrop = sorteio;
 
                 if (sorteio === 'skillpoint') {
                     // console.log('AirDrop resgatado pela garra! Conteúdo: 1 Ponto de Skill'); // Removido console.log de debug
@@ -223,6 +273,7 @@
                         } else {
                             // console.log('AirDrop resgatado pela garra! Conteúdo: 5 XP (Nenhuma skill disponível)'); // Removido console.log de debug
                             if (typeof window.ganharXP === 'function') window.ganharXP(5);
+                            recompensaAirdrop = 'xp';
                         }
                     }
                 } 
@@ -230,6 +281,7 @@
                 if (sorteio === 'item' || !validos.includes(sorteio)) {
                     const itensDisponiveis = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete', 'doze'];
                     const itemSorteado = itensDisponiveis[Math.floor(Math.random() * itensDisponiveis.length)];
+                    recompensaAirdrop = itemSorteado;
 
                     // console.log('AirDrop resgatado pela garra! Conteúdo: Item (' + itemSorteado + ')'); // Removido console.log de debug
 
@@ -267,6 +319,7 @@
                         cintoElemento.style.display = 'block';
                     }
                 }
+                animarRecompensaAirdrop(item, recompensaAirdrop);
             } else if (item.tipo === 'revolver') {
                 controle.municao = 5;
                 controle.temArma = true;
