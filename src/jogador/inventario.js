@@ -1181,7 +1181,6 @@
             const itens = [];
             const adicionar = (tipo, ativo) => {
                 if (!ativo) return;
-                if (tipo === 'colete' && coleteTemConteudo()) return;
                 const itemData = window.itemDefinitions?.[tipo] || null;
                 itens.push(criarEntradaColete({ tipo, ...obterDadosExtrasDoItemAtivo(tipo) }, itemData));
             };

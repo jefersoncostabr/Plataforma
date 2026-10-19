@@ -307,10 +307,20 @@
         cintoLinhaAtual = [];
     }
 
-    function criarBlocoTitulo(texto) {
+    function criarBlocoTitulo(tipo) {
         const el = document.createElement('div');
-        el.style = 'font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #d8d8d8; text-align: left;';
-        el.textContent = texto;
+        const titulos = {
+            colete: { nome: 'Colete', sprite: window.config?.spriteItemColete || 'assets/personagem/colete_coletavel.png' },
+            cinto: { nome: 'Cinto', sprite: window.config?.spriteItemCinto || 'assets/personagem/cinto_coletavel.png' }
+        };
+        const titulo = titulos[tipo];
+        el.style.cssText = 'display: flex; align-items: center; min-height: 40px;';
+        el.title = titulo.nome;
+        const imagem = document.createElement('img');
+        imagem.src = titulo.sprite;
+        imagem.alt = titulo.nome;
+        imagem.style.cssText = 'width: 52px; height: 40px; object-fit: contain; image-rendering: pixelated;';
+        el.appendChild(imagem);
         return el;
     }
 
@@ -433,7 +443,7 @@
 
         const secaoColete = document.createElement('div');
         secaoColete.style = 'display: flex; flex-direction: column; gap: 8px;';
-        secaoColete.appendChild(criarBlocoTitulo('Colete'));
+        secaoColete.appendChild(criarBlocoTitulo('colete'));
 
         const grid = document.createElement('div');
         grid.style = 'display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;';
@@ -477,7 +487,7 @@
         if (temSecaoCinto(controle)) {
             const secaoCinto = document.createElement('div');
             secaoCinto.style = 'display: flex; flex-direction: column; gap: 8px;';
-            secaoCinto.appendChild(criarBlocoTitulo('Cinto'));
+            secaoCinto.appendChild(criarBlocoTitulo('cinto'));
 
             const linhaCinto = document.createElement('div');
             linhaCinto.style = 'display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px;';
