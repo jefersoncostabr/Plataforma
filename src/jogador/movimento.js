@@ -182,6 +182,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         slideDuracaoAtiva: 0,
         velocidadeSlide: 0,
         slideBufferFalling: false,
+        baixoPressionadoAnterior: false,
         slideHabilitado: false, // Nova flag para a skill Slide
         pesado: false,
         pesadoPorEquipamento: false,
@@ -580,7 +581,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         if (controle.slideFramesRestantes > 0 && !controle.dashFramesRestantes) return;
 
         const duracaoSlide = Math.max(1, Number(config.slideDuracao ?? 22)); // Aumentado de 15 para 22 para percorrer maior distância
-        const velocidadeSlideBase = Math.max(0, Number(config.velocidadeSlide ?? 6)); // Aumentado de 5 para 6 para maior momentum inicial
+        const velocidadeSlideBase = Math.max(0, Number(config.velocidadeSlide ?? 9)); // 50% mais distância que o valor padrão anterior
         
         controle.slideFramesRestantes = duracaoSlide;
         controle.slideDuracaoAtiva = duracaoSlide;
@@ -1304,6 +1305,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
         // --- LÓGICA DE COMBINAÇÕES DE ENTRADA ---
         const segurandoBaixo = acaoAtiva('baixo');
+        const apertouBaixo = segurandoBaixo && !controle.baixoPressionadoAnterior;
+        controle.baixoPressionadoAnterior = segurandoBaixo;
 
         // Debug: loga quando as teclas para construir base são pressionadas
         if (segurandoBaixo && (controle.teclas['e'] || controle.teclas['E'])) {
@@ -1477,6 +1480,11 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             controle.movendoHorizontal = true;
             inputHorizontalAtivo = true;
         }
+
+        // Com a skill Slide, apertar Baixo enquanto há input horizontal inicia o deslize.
+        if (apertouBaixo && inputHorizontalAtivo && controle.slideHabilitado) {
+            iniciarSlide();
+        }
         // Sinaliza inversão para a função de desaceleração
         controle.inputInverterDirecao = inverterDirecao;
 
@@ -1493,7 +1501,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             // Reset flag de air control ao pressionar input
             controle.inputSoltouNoAr = false;
             controle._airControlAplicado = false;
-            controle.x += controle.velocidadeHorizontalAtual;
+            if (controle.slideFramesRestantes <= 0) {
+                controle.x += controle.velocidadeHorizontalAtual;
+            }
         }
         
         if ((controle.dashFramesRestantes || 0) > 0) {
