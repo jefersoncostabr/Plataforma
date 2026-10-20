@@ -200,7 +200,7 @@
         const fenoId = window.GAME_CONSTANTS?.INIMIGO_FENO_ID ?? 5;
         const tiposRobo = new Set([0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11]);
         for (const inimigo of window.inimigos) {
-            if (!inimigo || inimigo.estaMorto || inimigo.estaMorrendo || inimigo.abrindoParaBB || inimigo.bbRobo) continue;
+            if (!inimigo || inimigo.estaMorto || inimigo.estaMorrendo || inimigo.abrindoParaBB || inimigo.bbRobo || inimigo.podeAbrirParaBB === false) continue;
             if (inimigo.tipo === fenoId || !tiposRobo.has(Number(inimigo.tipo))) continue;
 
             const hitboxInimigo = {
@@ -461,7 +461,7 @@
 
 
     function bbAbrirInimigoPreso(bb, inimigo, config, teclas) {
-        if (!bb || !inimigo || inimigo.estaMorto || inimigo.estaMorrendo) {
+        if (!bb || !inimigo || inimigo.estaMorto || inimigo.estaMorrendo || inimigo.podeAbrirParaBB === false) {
             return false;
         }
 

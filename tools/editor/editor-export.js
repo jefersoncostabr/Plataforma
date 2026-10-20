@@ -62,6 +62,9 @@
             faseData.humanoAleatorio = randomConfig.humanoEnabled
                 ? [randomConfig.humanoDiff]
                 : [0];
+            faseData.cabecaoAleatorio = randomConfig.cabecaoEnabled
+                ? [randomConfig.cabecaoDiff]
+                : [0];
 
             COORD_ARRAY_KEYS.forEach((key) => {
                 faseData[key] = (faseData[key] || []).sort(sortCoords);

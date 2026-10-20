@@ -287,6 +287,77 @@
         window.criarInimigoAleatorio(plataformas, tipo);
     }
 
+    function giveAllCheat() {
+        const jogador = window.playerControle;
+        if (!jogador || typeof window.tentarColetarItemJogador !== 'function') return false;
+
+        const inventario = Array.isArray(jogador.inventario) ? jogador.inventario : [];
+        const jaTem = (tipo, flag) => inventario.includes(tipo) || !!jogador[flag];
+        const equipamentos = [
+            ['cinto', 'temCinto'],
+            ['colete', 'temColete'],
+            ['revolver', 'temArma'],
+            ['doze', null],
+            ['escudo', 'temEscudo'],
+            ['bota', 'temBota'],
+            ['jetpack', 'temJetpack'],
+            ['garra', 'temGarra']
+        ];
+
+        // Cinto e colete primeiro: eles permitem guardar a segunda arma e a base.
+        equipamentos.forEach(([tipo, flag]) => {
+            const ehArma = tipo === 'revolver' || tipo === 'doze';
+            const jaTemEsteItem = ehArma
+                ? inventario.includes(tipo) || (jogador.temArma && jogador.heldWeaponType === tipo)
+                : jaTem(tipo, flag);
+            if (jaTemEsteItem) return;
+            window.tentarColetarItemJogador({ tipo, municao: tipo === 'doze' ? 2 : 5 });
+        });
+
+        const slotCinto = typeof window.obterSlotCinto === 'function' ? window.obterSlotCinto() : jogador.cintoSlot;
+        const slotsColete = typeof window.obterSlotsColete === 'function' ? window.obterSlotsColete() : [];
+        const temBaseNivel4 = [slotCinto, ...slotsColete].some((slot) =>
+            slot?.tipo === 'base_portatil' && Number(slot?.dados?.craftNivel) === 4
+        );
+
+        if (!temBaseNivel4) {
+            // A base solicitada fica no slot do cinto. Se ele já estiver ocupado,
+            // preserva o item movendo-o para um espaço livre do colete.
+            if (jogador.cintoSlot) {
+                const indiceLivre = slotsColete.findIndex((slot) => !slot);
+                if (indiceLivre >= 0) {
+                    slotsColete[indiceLivre] = jogador.cintoSlot;
+                    jogador.cintoSlot = null;
+                }
+            }
+
+            if (!jogador.cintoSlot && typeof window.guardarItemNoCinto === 'function') {
+                const spriteBase = typeof window.obterSpriteCraftNivel === 'function'
+                    ? window.obterSpriteCraftNivel(4, 'item')
+                    : '../../assets/craft/craft_nivel3.png';
+                window.guardarItemNoCinto({
+                    tipo: 'base_portatil',
+                    nome: 'Base recolhida Nv 4',
+                    spriteColetavel: spriteBase,
+                    craftNivel: 4,
+                    craftTipoBase: 'item',
+                    craftModoRenascimento: 'ambos',
+                    dados: { craftNivel: 4, craftTipoBase: 'item', craftModoRenascimento: 'ambos' }
+                });
+            }
+
+            const baseFoiGuardada = jogador.cintoSlot?.tipo === 'base_portatil'
+                && Number(jogador.cintoSlot?.dados?.craftNivel) === 4;
+            if (!baseFoiGuardada && !temBaseNivel4) {
+                console.warn('[Cheats] Não foi possível guardar a base Nv 4: o cinto e o colete estão sem espaço disponível.');
+            }
+        }
+
+        window.salvarInventario?.();
+        window.atualizarMochilaUI?.(jogador);
+        return true;
+    }
+
     function abrirSeletorFaseCheat() {
         if (!cheatMenuPhaseInput) return false;
         cheatMenuPhaseInput.closest('.cheat-menu-phase-form').hidden = false;
@@ -328,6 +399,7 @@
     function getCheatOptions() {
         return [
             { label: 'PRÓX. FASE', action: () => window.proximoNivel?.(), closeOnClick: true },
+            { label: 'GIVE ALL', action: giveAllCheat, closeOnClick: true },
             { id: 'go-to-phase', label: 'IR PARA', action: abrirSeletorFaseCheat, closeOnClick: false },
             { label: 'GANHAR XP', action: () => window.ganharXP?.(10), closeOnClick: true },
             { label: 'AIRDROP', action: () => { if(window.playerControle) { window.playerControle.teclas['5'] = true; setTimeout(()=>window.playerControle.teclas['5']=false,100); } }, closeOnClick: true },

@@ -30,10 +30,26 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             tempoChuteCooldown: 160, // Frequência menor: 160 é o certo
             chaveJSON: 'humano'
         };
+        window.GAME_CONSTANTS.INIMIGO_CABECAO_ID = 14;
+        window.GAME_CONSTANTS.TIPOS_INIMIGO[14] = {
+            id: 14, nome: 'Cabeção', vidaMax: 1, velocidade: 0.8, chaveJSON: 'cabecao',
+            spriteParado: '../../assets/personagem/inimigo_bb/inbb_parado.png',
+            spriteAndando: '../../assets/personagem/inimigo_bb/inbb_andando.png',
+            spriteChute: '../../assets/personagem/inimigo_bb/inbb_chutando.png',
+            spriteNoAr: '../../assets/personagem/inimigo_bb/inbb_no_ar.png',
+            spriteParadoAgachado: '../../assets/personagem/inimigo_bb/inbb_agachado.png',
+            spriteAndandoAgachado: '../../assets/personagem/inimigo_bb/inbb_agachado.png',
+            podeAbrirParaBB: false, podeAtacar: true, tempoChuteMax: 18, tempoChuteCooldown: 160
+        };
     }
 
     function iniciarPiscaMudancaFormaBoss(inimigo) {
         if (!inimigo) return;
+
+        // Repete o flash branco curto usado como feedback de dano.
+        if (inimigo.elemento && typeof window.piscaLeve === 'function') {
+            window.piscaLeve(inimigo.elemento);
+        }
 
         const duracaoTotal = Math.max(500, Number(config.bossTrocaFormaPiscaMs ?? 900));
         const intervaloPisca = Math.max(50, Number(config.bossTrocaFormaPiscaIntervaloMs ?? 90));
@@ -164,6 +180,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             if (chave === 'id') return;
             inimigo[chave] = valor;
         });
+        inimigo.podeAbrirParaBB = tipoConfig.podeAbrirParaBB !== false;
 
         inimigo.tipo = tipoNovo;
         inimigo.bossStageIndex = proximaEtapaIndex;
@@ -203,7 +220,14 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             if (tipoNovo === window.GAME_CONSTANTS?.INIMIGO_FENO_ID) {
                 inimigo.elemento.src = window.obterSpriteItem('feno', config, 'equipado');
             } else {
-                inimigo.elemento.src = spriteParado;
+                // Use o sprite da base escolhida para esta etapa. O argumento
+                // spriteParado da IA é o sprite humano e não serve como fallback
+                // para a forma comum do boss.
+                const spriteEtapa = tipoConfig.spriteParado
+                    || (tipoNovo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID
+                        ? '../../assets/personagem/humano/humano.png'
+                        : (config.spriteParadoInimigo || spriteParado));
+                inimigo.elemento.src = spriteEtapa;
             }
             inimigo.spriteBase = inimigo.elemento.src;
             inimigo.elemento.style.filter = 'none';
@@ -682,6 +706,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
     function obterTipoBaseDaEtapaBoss(etapa) {
         const baseNpc = String(etapa?.baseNpc || '').trim().toLowerCase();
         if (baseNpc === 'humano') return Number(window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID ?? 13);
+        if (baseNpc === 'cabecao') return Number(window.GAME_CONSTANTS?.INIMIGO_CABECAO_ID ?? 14);
         return Number(window.GAME_CONSTANTS?.INIMIGO_COMUM_ID ?? 0);
     }
 
@@ -762,6 +787,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
             if (tipo === window.GAME_CONSTANTS.INIMIGO_FENO_ID) {
                 // Tenta pegar da config local, depois da global, e por fim o caminho fixo
                 inimigoImg.src = window.obterSpriteItem('feno', config, 'equipado');
+            } else if (window.GAME_CONSTANTS?.TIPOS_INIMIGO?.[tipo]?.spriteParado) {
+                inimigoImg.src = window.GAME_CONSTANTS.TIPOS_INIMIGO[tipo].spriteParado;
             } else {
                 inimigoImg.src = spriteParado;
             }
@@ -820,10 +847,10 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                 velocidadeDashEsquiva: 0,
                 estaAgachado: false,
                 // Não sobrescrever sprites de agachado do humano
-                spriteParadoAgachado: (tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID)
+                spriteParadoAgachado: window.GAME_CONSTANTS?.TIPOS_INIMIGO?.[tipo]?.spriteParadoAgachado
                     ? window.GAME_CONSTANTS.TIPOS_INIMIGO[tipo].spriteParadoAgachado
                     : window.obterSpriteItem('agachado', config, 'equipado'),
-                spriteAndandoAgachado: (tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID)
+                spriteAndandoAgachado: window.GAME_CONSTANTS?.TIPOS_INIMIGO?.[tipo]?.spriteAndandoAgachado
                     ? window.GAME_CONSTANTS.TIPOS_INIMIGO[tipo].spriteAndandoAgachado
                     : window.obterSpriteItem('agachado2', config, 'equipado'),
                 // temCabecaBB removido, agora partes estão em inimigo.bbPartes (comentário legado)
@@ -846,7 +873,12 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     if (chave === 'id') return;
                     inimigoObj[chave] = valor;
                 });
+                inimigoObj.podeAbrirParaBB = tipoCfgEtapa.podeAbrirParaBB !== false;
                 inimigoObj.tipo = tipoBaseEtapa;
+                if (tipoCfgEtapa.spriteParado) {
+                    inimigoObj.elemento.src = tipoCfgEtapa.spriteParado;
+                    inimigoObj.spriteBase = tipoCfgEtapa.spriteParado;
+                }
                 // inimigoObj.temCabecaBB = tipoBaseEtapa === 12; // Removido, não é mais necessário
                 aplicarEquipamentosEtapaBoss(inimigoObj, etapaInicial);
             }
@@ -2336,6 +2368,7 @@ window.AudioManager.playSFX('chute', 0.4);
                     const spriteAndandoBase = config.spriteAndandoInimigo || spriteAndando;
                     const usarSpriteAgachado = inimigo.estaAgachado;
                     const isHumano = inimigo?.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID;
+                    const tipoConfigVisual = window.GAME_CONSTANTS?.TIPOS_INIMIGO?.[inimigo.tipo] || {};
                     
                     // Correção definitiva: forçar humano a usar sempre sprites em assets/personagem/humano/*.
                     // (O console mostrou elementoSrcDepois trocando para Personagem_parado.png.)
@@ -2343,9 +2376,9 @@ window.AudioManager.playSFX('chute', 0.4);
                     const HUMANO_SPRITE_ANDANDO = '../../assets/personagem/humano/humano_andando.png';
                     const HUMANO_SPRITE_NO_AR = config.spriteNoArInimigoHumano || '../../assets/personagem/humano/humano_pulando.png';
 
-                    const spriteParadoBaseCorrigido = isHumano ? HUMANO_SPRITE_PARADO : spriteParadoBase;
-                    const spriteAndandoBaseCorrigido = isHumano ? HUMANO_SPRITE_ANDANDO : spriteAndandoBase;
-                const spriteNoArUsadoCorrigido = isHumano ? HUMANO_SPRITE_NO_AR : (config.spriteNoArInimigo || spriteNoAr);
+                    const spriteParadoBaseCorrigido = isHumano ? HUMANO_SPRITE_PARADO : (tipoConfigVisual.spriteParado || spriteParadoBase);
+                    const spriteAndandoBaseCorrigido = isHumano ? HUMANO_SPRITE_ANDANDO : (tipoConfigVisual.spriteAndando || spriteAndandoBase);
+                    const spriteNoArUsadoCorrigido = isHumano ? HUMANO_SPRITE_NO_AR : (tipoConfigVisual.spriteNoAr || config.spriteNoArInimigo || spriteNoAr);
 
                     let spriteParadoUsado = usarSpriteAgachado
                         ? inimigo.spriteParadoAgachado
@@ -2393,7 +2426,7 @@ window.AudioManager.playSFX('chute', 0.4);
                     if (!inimigo.bbRobo && estaChutando) {
                         const isHumano = inimigo?.tipo === window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID;
                         const spriteSoco = '../../assets/personagem/humano/humano_soco.png';
-                        inimigo.elemento.src = isHumano ? spriteSoco : (config.spriteChuteInimigo || spriteChute);
+                        inimigo.elemento.src = isHumano ? spriteSoco : (tipoConfigVisual.spriteChute || config.spriteChuteInimigo || spriteChute);
 
                         if (inimigo.framesImpulsoRestante > 0) {
 

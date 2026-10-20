@@ -35,7 +35,8 @@ let itemSelecionado = 'plataforma';
 let gradeVisivel = true;
 const BOSS_BASE_OPTIONS = [
     { value: 'inimigo_comum', label: 'Inimigo comum' },
-    { value: 'humano', label: 'Humano' }
+    { value: 'humano', label: 'Humano' },
+    { value: 'cabecao', label: 'Cabeção' }
     // { value: 'inimigo_bb', label: 'BB' } removido
 ];
 const BOSS_EQUIP_OPTIONS = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete', 'doze', 'bateria'];
@@ -60,6 +61,8 @@ const randomDiffSelect = document.getElementById('random-diff');
 const randomTypeSelect = document.getElementById('random-type');
 const spawnHumanoCheck = document.getElementById('spawn-humano');
 const humanoFreqSelect = document.getElementById('humano-freq');
+const spawnCabecaoCheck = document.getElementById('spawn-cabecao');
+const cabecaoFreqSelect = document.getElementById('cabecao-freq');
 
 let tooltipElement;
 let renderizadorEditor;
@@ -472,6 +475,13 @@ window.onload = async () => {
                 window.EditorConfig.COORD_ARRAY_KEYS?.push('humano');
             }
         }
+        if (!window.EditorConfig.ENEMY_DEFS.find(d => d.type === 'cabecao')) {
+            window.EditorConfig.ENEMY_DEFS.push({
+                type: 'cabecao', label: 'Inimigo: Cabeção', stateKey: 'cabecao',
+                sprite: '../../assets/personagem/inimigo_bb/inbb_parado.png', kind: 'multiple'
+            });
+            if (!window.EditorConfig.COORD_ARRAY_KEYS?.includes('cabecao')) window.EditorConfig.COORD_ARRAY_KEYS?.push('cabecao');
+        }
     }
     await carregarItemDefinitions();
 
@@ -490,6 +500,8 @@ window.onload = async () => {
         randomTypeSelect,
         spawnHumanoCheck,
         humanoFreqSelect,
+        spawnCabecaoCheck,
+        cabecaoFreqSelect,
         getFaseData: () => faseData,
         setFaseData: (novoEstado, opcoes = {}) => { aplicarFaseDataEditor(novoEstado, opcoes); },
         atualizarTamanhoStage,
@@ -519,6 +531,8 @@ window.onload = async () => {
             type: parseInt(document.getElementById('random-type').value)
             ,humanoEnabled: document.getElementById('spawn-humano')?.checked || false,
             humanoDiff: parseInt(document.getElementById('humano-freq')?.value || 1)
+            ,cabecaoEnabled: document.getElementById('spawn-cabecao')?.checked || false,
+            cabecaoDiff: parseInt(document.getElementById('cabecao-freq')?.value || 1)
         }) || {},
         aplicarEstadoUI: (estado) => {
             proportionSelect.value = estado.proporcao;
@@ -532,6 +546,14 @@ window.onload = async () => {
                 if (humanoFreqSelect) humanoFreqSelect.value = estado.humanoAleatorio?.[0] || 1;
                 document.getElementById('humano-config-fields').style.opacity = spawnHumanoCheck.checked ? '1' : '0.3';
                 document.getElementById('humano-config-fields').style.pointerEvents = spawnHumanoCheck.checked ? 'auto' : 'none';
+            }
+            const cabecaoCheckAtual = document.getElementById('spawn-cabecao');
+            if (cabecaoCheckAtual) {
+                cabecaoCheckAtual.checked = Array.isArray(estado.cabecaoAleatorio) && estado.cabecaoAleatorio[0] > 0;
+                const freqAtual = document.getElementById('cabecao-freq');
+                if (freqAtual) freqAtual.value = estado.cabecaoAleatorio?.[0] || 1;
+                const fields = document.getElementById('cabecao-config-fields');
+                if (fields) { fields.style.opacity = cabecaoCheckAtual.checked ? '1' : '0.3'; fields.style.pointerEvents = cabecaoCheckAtual.checked ? 'auto' : 'none'; }
             }
 
             const bonusCheck = document.getElementById('bonus-active');

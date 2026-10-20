@@ -516,6 +516,25 @@
                 };
             }
 
+            let cabecaoFields = document.getElementById('cabecao-config-fields');
+            if (!cabecaoFields) {
+                const parent = document.getElementById('random-config-fields')?.parentElement;
+                if (parent) {
+                    const container = document.createElement('div');
+                    container.style.cssText = 'margin-top:10px;border-top:1px solid #444;padding-top:10px';
+                    container.innerHTML = `<label title="Habilita o surgimento de cabeções aleatórios durante a fase"><input type="checkbox" id="spawn-cabecao"> Cabeção aleatório</label><div id="cabecao-config-fields" style="opacity:.3;transition:opacity .3s;pointer-events:none;margin-left:20px;font-size:11px"><label>Frequência: <select id="cabecao-freq"><option value="1">Baixa (1 min)</option><option value="2">Média (45 seg)</option><option value="3">Alta (30 seg)</option></select></label></div>`;
+                    parent.appendChild(container);
+                }
+            }
+            const cabecaoCheck = document.getElementById('spawn-cabecao');
+            if (cabecaoCheck) cabecaoCheck.onchange = (e) => {
+                const fields = document.getElementById('cabecao-config-fields');
+                if (fields) { fields.style.opacity = e.target.checked ? '1' : '0.3'; fields.style.pointerEvents = e.target.checked ? 'auto' : 'none'; }
+                const freq = parseInt(document.getElementById('cabecao-freq')?.value || 1);
+                getFaseData().cabecaoAleatorio = e.target.checked ? [freq] : [0];
+                setFaseData(getFaseData());
+            };
+
             // Injeta UI para Fase Bônus (Requisito: faseBonus, qual, nivel)
             let bonusFields = document.getElementById('bonus-config-fields');
             if (!bonusFields) {

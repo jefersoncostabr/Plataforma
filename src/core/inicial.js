@@ -13,6 +13,8 @@ window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para ini
 window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro inimigo
 window.intervalHumanoAleatorio = null; // Ciclo para humano aleatório
 window.timeoutPrimeiroHumanoAleatorio = null; // Delay inicial do humano
+window.intervalCabecaoAleatorio = null;
+window.timeoutPrimeiroCabecaoAleatorio = null;
 
 function obterIndiceFaseInicial(valorFaseInicial) {
     if (typeof valorFaseInicial === 'string' && valorFaseInicial.trim()) {
@@ -326,6 +328,10 @@ async function carregarFase(nomeArquivo) {
         clearInterval(window.intervalHumanoAleatorio);
         window.intervalHumanoAleatorio = null;
     }
+    if (window.intervalCabecaoAleatorio !== null) {
+        clearInterval(window.intervalCabecaoAleatorio);
+        window.intervalCabecaoAleatorio = null;
+    }
     
     // Limpa o timeout do primeiro inimigo se existir
     if (window.timeoutPrimeiroInimigoAleatorio !== null) {
@@ -335,6 +341,10 @@ async function carregarFase(nomeArquivo) {
     if (window.timeoutPrimeiroHumanoAleatorio !== null) {
         clearTimeout(window.timeoutPrimeiroHumanoAleatorio);
         window.timeoutPrimeiroHumanoAleatorio = null;
+    }
+    if (window.timeoutPrimeiroCabecaoAleatorio !== null) {
+        clearTimeout(window.timeoutPrimeiroCabecaoAleatorio);
+        window.timeoutPrimeiroCabecaoAleatorio = null;
     }
     
     let fase;
@@ -725,7 +735,7 @@ async function carregarFase(nomeArquivo) {
             if (!coordChefe || !primeiraEtapa) return;
 
             const baseNpc = String(primeiraEtapa.baseNpc || 'inimigo_comum').trim().toLowerCase();
-            const chaveJSON = 'inimigo_comum';
+            const chaveJSON = ({ humano: 'humano', cabecao: 'cabecao' })[baseNpc] || 'inimigo_comum';
             const tipoInicial = Number(tipoPorChave[chaveJSON] ?? window.GAME_CONSTANTS?.INIMIGO_COMUM_ID ?? 0);
 
             inimigosParaReset.push({
@@ -820,6 +830,21 @@ async function carregarFase(nomeArquivo) {
         }, tempoEmMs);
     } else {
         // console.log("[Spawn] Humanos Aleatórios desativados para esta fase.");
+    }
+
+    if (Array.isArray(fase.cabecaoAleatorio) && fase.cabecaoAleatorio[0] > 0) {
+        const dificuldade = Number(fase.cabecaoAleatorio[0]);
+        const tempoEmMs = dificuldade === 3 ? 30000 : dificuldade === 2 ? 45000 : 60000;
+        const criarCabecaoRepetido = () => {
+            if (window.isPaused || typeof criarInimigoAleatorio !== 'function') return;
+            const todasAsPlataformas = [...(fase.plataformas || []), ...(fase.plataformasNeve || [])];
+            criarInimigoAleatorio(todasAsPlataformas, Number(window.GAME_CONSTANTS?.INIMIGO_CABECAO_ID ?? 14));
+        };
+        window.timeoutPrimeiroCabecaoAleatorio = setTimeout(() => {
+            criarCabecaoRepetido();
+            window.intervalCabecaoAleatorio = setInterval(criarCabecaoRepetido, tempoEmMs);
+            window.timeoutPrimeiroCabecaoAleatorio = null;
+        }, tempoEmMs);
     }
 }
 
@@ -1052,6 +1077,10 @@ window.reiniciarJogo = async function(porMorte = true, opcoes = {}) {
         clearInterval(window.intervalHumanoAleatorio);
         window.intervalHumanoAleatorio = null;
     }
+    if (window.intervalCabecaoAleatorio !== null) {
+        clearInterval(window.intervalCabecaoAleatorio);
+        window.intervalCabecaoAleatorio = null;
+    }
     if (window.timeoutPrimeiroInimigoAleatorio !== null) {
         clearTimeout(window.timeoutPrimeiroInimigoAleatorio);
         window.timeoutPrimeiroInimigoAleatorio = null;
@@ -1059,6 +1088,10 @@ window.reiniciarJogo = async function(porMorte = true, opcoes = {}) {
     if (window.timeoutPrimeiroHumanoAleatorio !== null) {
         clearTimeout(window.timeoutPrimeiroHumanoAleatorio);
         window.timeoutPrimeiroHumanoAleatorio = null;
+    }
+    if (window.timeoutPrimeiroCabecaoAleatorio !== null) {
+        clearTimeout(window.timeoutPrimeiroCabecaoAleatorio);
+        window.timeoutPrimeiroCabecaoAleatorio = null;
     }
 
     // Reseta estado do jogador

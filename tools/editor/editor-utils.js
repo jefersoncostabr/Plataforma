@@ -344,7 +344,9 @@
             const etapasRaw = Array.isArray(chefe.etapas) ? chefe.etapas : [];
             const etapas = etapasRaw
                 .map((etapa) => {
-                    const baseNpc = 'inimigo_comum'; // lógica bb removida
+                    const basesValidas = ['inimigo_comum', 'humano', 'cabecao'];
+                    const baseNpc = basesValidas.includes(String(etapa?.baseNpc || '').trim().toLowerCase())
+                        ? String(etapa.baseNpc).trim().toLowerCase() : 'inimigo_comum';
                     const equipamentos = Array.isArray(etapa?.equipamentos)
                         ? [...new Set(etapa.equipamentos.map((it) => String(it || '').trim().toLowerCase()).filter((it) => equipamentosValidos.has(it)))]
                         : [];
