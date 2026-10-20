@@ -1,7 +1,7 @@
 {
-    "proporcao": "2x2",
+    "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
-    "objetivo": "ab23",
+    "objetivo": "f19",
     "posicaoAlavanca": "",
     "posicaoRoboDesativado": "",
     "posicaoRoboAberto": "",
@@ -13,49 +13,62 @@
     "posicaoGato": "",
     "itens": {
         "revolver": [
-            "t15",
-            "x6"
+            "b16",
+            "b18",
+            "n1"
         ],
-        "restauracao": "m38",
+        "restauracao": [
+            "c8",
+            "n4",
+            "n13"
+        ],
         "jetpack": [
             "b14",
-            "ab18"
+            "b17"
         ],
-        "colete": "ab13",
-        "doze": "ab1"
+        "municao_plus": "n10",
+        "escudo": [
+            "g12",
+            "n7"
+        ],
+        "bota": "n16",
+        "doze": "n40",
+        "cinto": "n22",
+        "garra": "n31"
     },
     "inimigoAleatorio": [0, 0],
     "humanoAleatorio": [1],
     "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20", "a21", "a22", "a23", "a24", "a25", "a26", "a27", "a28", "a29", "a30", "a31", "a32", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
-        "c40",
-        "f38",
-        "g4", "g5",
-        "i40",
-        "l9", "l10", "l15", "l38",
-        "o40",
-        "r38",
-        "s14", "s15",
-        "u40",
-        "w5", "w6",
-        "x28", "x29", "x30", "x31", "x32", "x33", "x34", "x35", "x36", "x37", "x39",
-        "y27", "y38",
-        "z27", "z38",
-        "aa1", "aa2", "aa27", "aa38",
-        "ab10", "ab11"
+        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a10", "a11", "a13", "a14", "a16", "a17", "a18", "a19", "a20", "a21", "a25", "a26", "a27", "a28", "a29", "a33", "a34", "a35", "a36", "a37", "a38", "a39", "a40",
+        "b8",
+        "f5",
+        "g10", "g11", "g13", "g14",
+        "m1", "m4", "m7", "m10", "m13", "m16", "m19", "m22", "m25", "m31", "m37", "m40"
+    ],
+    "plataformasEstacaSup": [
+        "a9", "a15"
+    ],
+    "plataformasTerraInferior2": [
+        "h9", "h15"
     ],
     "plataformasEstacaBaixo": [
-        "f4",
-        "k9",
-        "r14",
-        "v5",
-        "z1",
-        "aa10"
+        "l4", "l10", "l13", "l19", "l31", "l40"
+    ],
+    "plataformasTerraInferior": [
+        "c15"
+    ],
+    "plataformasTerraSuperior": [
+        "e23", "e31",
+        "f12"
     ],
     "humano": [
-        "b9", "b12", "b16", "b18", "b20",
-        "y28", "y29", "y30", "y31", "y32", "y33", "y34", "y35", "y36", "y37",
-        "z14",
-        "aa5"
+        "b7", "b10", "b13", "b19", "b20",
+        "h10", "h11", "h12", "h13", "h14"
+    ],
+    "plataformasEstacaDir": [
+        "m32"
+    ],
+    "plataformasEstacaEsq": [
+        "m30"
     ]
 }

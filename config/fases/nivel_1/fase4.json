@@ -2,506 +2,6 @@
     "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
     "objetivo": "e40",
-    "fundoFrente": [
-        {
-            "idSprite": "funil.png",
-            "x": 320,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 352,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 352,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 416,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 448,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 384,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 384,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 416,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 416,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 448,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 448,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 480,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 480,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 512,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 544,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 512,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 512,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 480,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 480,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 512,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 544,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 544,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 576,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 576,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 608,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 608,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 640,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 640,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 608,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 640,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 576,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 544,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 576,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 640,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 608,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 672,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 672,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 672,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 672,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 704,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 704,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 704,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 704,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 736,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 736,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 768,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 768,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 800,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 832,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 832,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 800,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 768,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 736,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 736,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 768,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 800,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 800,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 832,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 832,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 864,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 864,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 864,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 896,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 896,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 928,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 928,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 928,
-            "y": 96,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 960,
-            "y": 64,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 960,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 992,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "borda2.png",
-            "x": 1024,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "borda3.png",
-            "x": 448,
-            "y": 160,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 512,
-            "y": 160,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 576,
-            "y": 160,
-            "escala": 1
-        },
-        {
-            "idSprite": "fundo.png",
-            "x": 640,
-            "y": 160,
-            "escala": 1
-        },
-        {
-            "idSprite": "funil2.png",
-            "x": 384,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "funil.png",
-            "x": 448,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "funil.png",
-            "x": 896,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "funil2.png",
-            "x": 864,
-            "y": 32,
-            "escala": 1
-        },
-        {
-            "idSprite": "arbusto_pequenoClaro.png",
-            "x": 96,
-            "y": 192,
-            "escala": 1
-        },
-        {
-            "idSprite": "arbusto_pequenoClaro.png",
-            "x": 672,
-            "y": 192,
-            "escala": 1
-        },
-        {
-            "idSprite": "arbusto_pequenoClaro.png",
-            "x": 768,
-            "y": 192,
-            "escala": 1
-        },
-        {
-            "idSprite": "arbusto_pequenoClaro.png",
-            "x": 992,
-            "y": 352,
-            "escala": 1
-        }
-    ],
     "posicaoAlavanca": "",
     "posicaoRoboDesativado": "",
     "posicaoRoboAberto": "",
@@ -509,74 +9,40 @@
     "posicaoMusgoRoboDesativado": "",
     "posicaoGaiola": "",
     "posicaoCachorro": "",
-    "posicaoGaiolaGato": "",
+    "posicaoGaiolaGato": "h39",
     "posicaoGato": "",
     "itens": {
-        "restauracao": [
-            "g14",
-            "n40"
-        ],
-        "municao_plus": "g1",
-        "revolver": [
-            "b36",
-            "g18"
-        ]
+        "revolver": "o3",
+        "restauracao": "l4",
+        "municao_plus": "b17"
     },
     "inimigoAleatorio": [0, 0],
     "humanoAleatorio": [1],
     "plataformas": [
         "a1",
         {
-            "coord": "c11",
-            "type": "plataformaCanto"
-        },
-        {
-            "coord": "c12",
-            "type": "plataforma"
-        },
-        {
-            "coord": "c31",
-            "type": "plataforma"
-        },
-        {
-            "coord": "c32",
+            "coord": "a17",
             "type": "plataformaCanto2"
         },
         {
-            "coord": "d12",
+            "coord": "a22",
             "type": "plataformaCanto"
         },
         {
-            "coord": "d13",
-            "type": "plataforma"
+            "coord": "k28",
+            "type": "plataformaMuro"
         },
         {
-            "coord": "d30",
-            "type": "plataforma"
+            "coord": "k29",
+            "type": "plataformaMuro"
         },
         {
-            "coord": "d31",
-            "type": "plataformaCanto2"
+            "coord": "k30",
+            "type": "plataformaMuro"
         },
         {
-            "coord": "e13",
-            "type": "plataformaCanto"
-        },
-        {
-            "coord": "e14",
-            "type": "plataforma"
-        },
-        {
-            "coord": "f29",
-            "type": "plataforma"
-        },
-        {
-            "coord": "f30",
-            "type": "plataformaCanto2"
-        },
-        {
-            "coord": "j30",
-            "type": "plataformaGramaPico2"
+            "coord": "k31",
+            "type": "plataformaMuro"
         },
         {
             "coord": "k32",
@@ -585,26 +51,6 @@
         {
             "coord": "k33",
             "type": "plataformaGramaPico2"
-        },
-        {
-            "coord": "l36",
-            "type": "plataformaCantoCanto4"
-        },
-        {
-            "coord": "m36",
-            "type": "plataformaCantoCanto2"
-        },
-        {
-            "coord": "m37",
-            "type": "plataformaMuro"
-        },
-        {
-            "coord": "m39",
-            "type": "plataformaMuro"
-        },
-        {
-            "coord": "m40",
-            "type": "plataformaMuro"
         },
         "a2",
         "a3",
@@ -621,12 +67,6 @@
         "a14",
         "a15",
         "a16",
-        "a17",
-        "a18",
-        "a19",
-        "a20",
-        "a21",
-        "a22",
         "a23",
         "a24",
         "a25",
@@ -645,58 +85,257 @@
         "a38",
         "a39",
         "a40",
-        "e30",
-        "f1",
-        "f4",
-        "f5",
-        "f14",
-        "f16",
-        "f18",
-        "f20",
-        "f22",
-        "f23",
-        "f24",
-        "f25",
-        "f26",
-        "f27",
-        "f28",
-        "h26",
-        "i27",
-        "i28"
-    ],
-    "inimigo_feno": [
-        "b11",
-        "b23"
+        "b20",
+        "c17",
+        "c18",
+        "c19",
+        "c32",
+        "c33",
+        "c34",
+        "c35",
+        "c36",
+        "c37",
+        "c38",
+        "h17",
+        "i13",
+        "j7",
+        "k4",
+        "m9",
+        "m12",
+        "m15",
+        "m18",
+        "m21",
+        "n3",
+        "n6"
     ],
     "plataformasTerraSuperior": [
-        "b33"
-    ],
-    "plataformasEstacaBaixo": [
-        "e29",
+        "b16",
+        "g39",
         "l38"
     ],
-    "plataformasTerraSuperior2": [
-        "e28",
-        "l37",
-        "l39"
-    ],
-    "plataformasEstacaSup": [
-        "m38"
-    ],
     "plataformasTerraInferior2": [
-        "e7",
-        "e8"
+        "a18",
+        "a19",
+        "a20",
+        "a21",
+        "f35",
+        "j40",
+        "j41",
+        "j42"
+    ],
+    "inimigo_feno": [
+        "b7"
+    ],
+    "plataformasEstacaBaixo": [
+        "b19"
+    ],
+    "bbNPCs": [
+        "coord",
+        "b15",
+        "d18"
     ],
     "humano": [
-        "b18",
-        "b32",
-        "b37",
-        "g27",
-        "h18"
+        "b31",
+        "d18",
+        "m29"
     ],
     "plataformasGramaPico4": [
-        "j29",
-        "k31",
-        "l35"
+        "k27"
+    ],
+    "plataformasTerraPico": [
+        "m24"
+    ],
+    "plataformasTerraPicoInvertido": [
+        "l24"
+    ],
+    "plataformasArbustoFrente": [
+        "b11",
+        "b28",
+        "n21"
+    ],
+    "plataformasPedra": [
+        "b24"
+    ],
+    "fundoFrente": [
+        {
+            "idSprite": "meia_pedra.png",
+            "x": 928,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil.png",
+            "x": 992,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "borda2.png",
+            "x": 1184,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1024,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1088,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1120,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1152,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo_irregular_vertical.png",
+            "x": 640,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 544,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 512,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1056,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 96,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 224,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 320,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 448,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 544,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 1024,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 1120,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 864,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "meia_pedra.png",
+            "x": 736,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "meia_pedra.png",
+            "x": 896,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 160,
+            "y": 448,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 352,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 544,
+            "y": 416,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequenoClaro.png",
+            "x": 1184,
+            "y": 384,
+            "escala": 1
+        }
     ]
 }

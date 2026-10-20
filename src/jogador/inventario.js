@@ -252,10 +252,11 @@
     }
 
     function baseComPersistenciaAtiva() {
-        if (typeof window.obterConfigRenascimentoBase !== 'function') return false;
-        const craft = window.obterConfigRenascimentoBase();
-        const modo = String(craft?.modoRenascimento || '').trim().toLowerCase();
-        return !!(craft && (modo === 'spawnpoint' || modo === 'memoria' || modo === 'ambos'));
+        // Salvar o loadout na base é independente dos modos de renascimento,
+        // que só são desbloqueados em níveis superiores. O checkpoint explícito
+        // da base já deve valer no nível 1.
+        return typeof window.obterCraftPersistido === 'function'
+            && !!window.obterCraftPersistido();
     }
 
     function carregarInventarioSalvo() {

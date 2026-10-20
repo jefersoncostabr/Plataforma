@@ -1149,13 +1149,27 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     return Math.abs(it.x - inimigo.x) <= 220 && Math.abs(it.y - inimigo.y) <= 160;
                 });
                 
+                const jogadorPertoDuranteBuscaItem = !!(
+                    itemInteresse
+                    && alvoPerseguicao
+                    && Math.abs(alvoPerseguicaoX - inimigo.x) <= distanciaAtivacao
+                    && Math.abs(alvoPerseguicaoY - inimigo.y) <= distanciaAtivacao
+                );
+                const perseguindoItem = !!itemInteresse && !jogadorPertoDuranteBuscaItem;
+
+                // Interrompe a coleta para responder ao jogador que chegou perto.
+                if (jogadorPertoDuranteBuscaItem && inimigo.estaColetando) {
+                    inimigo.estaColetando = false;
+                    inimigo.timerColeta = 0;
+                    inimigo.itemSendoColetado = null;
+                }
+
                 const xAlvo = inimigo.bbRobo && roboAbertoAlvoBB
                     ? roboAbertoAlvoBB.spawnX
-                    : (itemInteresse ? itemInteresse.x : alvoPerseguicaoX);
+                    : (perseguindoItem ? itemInteresse.x : alvoPerseguicaoX);
                 const yAlvo = inimigo.bbRobo && roboAbertoAlvoBB
                     ? roboAbertoAlvoBB.spawnY
-                    : (itemInteresse ? itemInteresse.y : alvoPerseguicaoY);
-                const perseguindoItem = !!itemInteresse;
+                    : (perseguindoItem ? itemInteresse.y : alvoPerseguicaoY);
 
                 // O BB usa hitbox menor que o inimigo original; considerar a área
                 // ocupada pelo casco evita que ele ultrapasse o ponto de entrada.
@@ -2010,7 +2024,7 @@ window.AudioManager.playSFX('chute', 0.4);
                 }
 
                 // Lógica de Coleta de Itens pelos Inimigos
-                if (!inimigo.estaColetando && !inimigo.afastando && !estaChutando && window.itensColetaveis) {
+                if (!jogadorPertoDuranteBuscaItem && !inimigo.estaColetando && !inimigo.afastando && !estaChutando && window.itensColetaveis) {
                     for (let j = window.itensColetaveis.length - 1; j >= 0; j--) {
                         const item = window.itensColetaveis[j];
                         if (item.coletavel === false || window.itemDefinitions?.[item.tipo]?.coletavel === false) continue;
