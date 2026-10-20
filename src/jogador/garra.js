@@ -661,10 +661,9 @@
                         inimigoAtingido.vida = (inimigoAtingido.vida || 0) + 1;
 
                         // Garante que o dano da garra respeite o limite do NPC
-                        const limiteVidaInimigo = inimigoAtingido.vidaMax ?? (
-                            typeof window.obterLimiteVidaInimigo === 'function'
-                                ? window.obterLimiteVidaInimigo(config)
-                                : 3);
+                        const limiteVidaInimigo = typeof window.obterLimiteVidaInimigo === 'function'
+                            ? window.obterLimiteVidaInimigo(config, inimigoAtingido.vidaMax)
+                            : Number(inimigoAtingido.vidaMax ?? config.inimigoVidaMax ?? 3);
 
                         if (inimigoAtingido.vida < limiteVidaInimigo) animarDanoAlvo(inimigoAtingido);
 

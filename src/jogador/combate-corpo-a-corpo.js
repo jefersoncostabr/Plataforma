@@ -154,10 +154,9 @@
             window.AudioManager?.playSFX('impacto', 0.6);
 
             // Respeita a vida máxima definida no tipo do inimigo
-            const limiteVidaInimigo = inimigo.vidaMax ?? (
-                typeof window.obterLimiteVidaInimigo === 'function'
-                    ? window.obterLimiteVidaInimigo(config)
-                    : 3);
+            const limiteVidaInimigo = typeof window.obterLimiteVidaInimigo === 'function'
+                ? window.obterLimiteVidaInimigo(config, inimigo.vidaMax)
+                : Number(inimigo.vidaMax ?? config.inimigoVidaMax ?? 3);
 
             if (inimigo.vida < limiteVidaInimigo) {
                 animarDanoAlvo(inimigo);

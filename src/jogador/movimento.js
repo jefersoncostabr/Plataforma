@@ -2307,10 +2307,9 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                                 }
                             }
 
-                            const limiteVidaInimigo = inimigo.vidaMax ?? (
-                                typeof window.obterLimiteVidaInimigo === 'function'
-                                    ? window.obterLimiteVidaInimigo(config)
-                                    : 3);
+                            const limiteVidaInimigo = typeof window.obterLimiteVidaInimigo === 'function'
+                                ? window.obterLimiteVidaInimigo(config, inimigo.vidaMax)
+                                : Number(inimigo.vidaMax ?? config.inimigoVidaMax ?? 3);
 
                             if (!bloqueouEscudoInimigo) {
                                 const danoTomado = (controle.danoProjetil || 1);

@@ -32,7 +32,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         };
         window.GAME_CONSTANTS.INIMIGO_CABECAO_ID = 14;
         window.GAME_CONSTANTS.TIPOS_INIMIGO[14] = {
-            id: 14, nome: 'Cabeção', vidaMax: 1, velocidade: 0.8, chaveJSON: 'cabecao',
+            id: 14, nome: 'Cabeção', vidaMax: 5, velocidade: 0.8, chaveJSON: 'cabecao',
             spriteParado: '../../assets/personagem/inimigo_bb/inbb_parado.png',
             spriteAndando: '../../assets/personagem/inimigo_bb/inbb_andando.png',
             spriteChute: '../../assets/personagem/inimigo_bb/inbb_chutando.png',
@@ -682,10 +682,9 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         }
 
         // Prioriza a vida máxima definida no tipo do NPC, senão usa a global
-        const limiteVida = inimigo.vidaMax ?? (
-            typeof window.obterLimiteVidaInimigo === 'function'
-                ? window.obterLimiteVidaInimigo(config)
-                : Number(config.inimigoVidaMax ?? 3));
+        const limiteVida = typeof window.obterLimiteVidaInimigo === 'function'
+            ? window.obterLimiteVidaInimigo(config, inimigo.vidaMax)
+            : Number(inimigo.vidaMax ?? config.inimigoVidaMax ?? 3);
         return inimigo.vida >= limiteVida;
     }
 
