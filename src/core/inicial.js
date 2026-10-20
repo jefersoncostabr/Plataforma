@@ -937,6 +937,35 @@ window.proximoNivel = async function() {
     } else {
         alert("FIM DE JOGO! Você completou todos os níveis.");
         if (typeof window.reiniciarJogo === 'function') {
+            const dificuldadeFim = String(window.gameDifficulty || 'normal').trim().toLowerCase();
+            const reiniciarPreservandoSkills = dificuldadeFim === 'normal' || dificuldadeFim === 'easy';
+
+            if (reiniciarPreservandoSkills) {
+                const proximaDificuldade = dificuldadeFim === 'easy' ? 'normal' : 'hard';
+                window.gameDifficulty = proximaDificuldade;
+                const slotAtivo = window.SaveSlots?.getActiveSlotId?.() || window.slotAtualID;
+                if (slotAtivo && typeof window.SaveSlots?.setSlotDifficulty === 'function') {
+                    window.SaveSlots.setSlotDifficulty(slotAtivo, proximaDificuldade);
+                }
+
+                // Nova campanha: limpa a run anterior e conserva apenas as skills adquiridas.
+                window.__basePendenteAutoSpawn = null;
+                window.removerTodosCrafts?.();
+                window.limparCraftPersistido?.();
+                window.limparCheckpointEquipamentoSalvo?.();
+                window.limparInventarioSalvo?.();
+                window.resetarResgatePets?.();
+                window.playerXP = 0;
+                window.skillPoints = 0;
+                if (typeof window.salvarProgressoSkills === 'function') window.salvarProgressoSkills();
+                if (window.playerControle) resetarJogadorParaZeroMantendoSkills({ preservarEstadoSalvo: false });
+                const indiceFaseInicial = obterIndiceFaseInicial(window.config?.faseInicial);
+                const indiceReinicio = Math.min(indiceFaseInicial + 1, window.niveis.length - 1);
+                window.nivelAtual = Math.max(0, indiceReinicio);
+                salvarFaseAtual(window.niveis[window.nivelAtual]);
+                await window.reiniciarJogo(false, { indiceFaseInicialSlot: window.nivelAtual });
+                return;
+            }
             // Suporte para Novo Jogo+: Busca a base no inventário antes de reiniciar a campanha
             const slotsNG = [window.playerControle?.cintoSlot, ...(window.playerControle?.coleteSlots || [])];
             const baseNoBolsoNG = slotsNG.find(s => s === 'base_portatil' || s?.tipo === 'base_portatil');

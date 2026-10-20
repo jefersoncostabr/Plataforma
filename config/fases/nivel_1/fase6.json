@@ -21,10 +21,8 @@
         "municao_plus": "n1",
         "cinto": "m23"
     },
-    "inimigoAleatorio": [
-        1,
-        0
-    ],
+    "inimigoAleatorio": [0, 0],
+    "humanoAleatorio": [1],
     "plataformas": [
         "a1",
         {

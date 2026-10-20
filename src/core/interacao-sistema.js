@@ -514,7 +514,9 @@
                                 
                                 const img = document.createElement('img');
                                 img.src = sprite;
-                                img.className = 'crafting-result-icon';
+                                img.className = tipoResultado === 'airdrop_plus'
+                                    ? 'crafting-result-icon crafting-airdrop-plus-icon'
+                                    : 'crafting-result-icon';
                                 rSlot.appendChild(img);
 
                                 if (receita.id === 'upgrade_plus') {
@@ -589,7 +591,9 @@
                                         itemQuadrado.appendChild(xpLabel);
                                     } else {
                                         const img = document.createElement('img');
-                                        img.className = 'crafting-item-icon';
+                                        img.className = item.tipo === 'airdrop_plus'
+                                            ? 'crafting-item-icon crafting-airdrop-plus-icon'
+                                            : 'crafting-item-icon';
                                         const spriteResolvido = typeof window.obterSpriteItem === 'function'
                                             ? window.obterSpriteItem(item.tipo, window.config)
                                             : '';
@@ -611,7 +615,9 @@
                                     const ehEmpilhavel = ['scrap'].includes(item.tipo) || item.isXP || item.isSkillPoint || (item.tipo && item.tipo.endsWith('_plus'));
                                     if (ehEmpilhavel && item.quantidade > 0) {
                                         badgeEl = document.createElement('span');
-                                        badgeEl.className = item.isSkillPoint ? 'badge skillpoint' : (item.isXP ? 'badge xp' : 'badge');
+                                        badgeEl.className = item.isSkillPoint
+                                            ? 'badge skillpoint'
+                                            : (item.isXP ? 'badge xp' : (item.tipo?.endsWith('_plus') ? 'badge plus-quantity' : 'badge'));
                                         badgeEl.textContent = item.quantidade;
                                         itemQuadrado.appendChild(badgeEl);
                                     }

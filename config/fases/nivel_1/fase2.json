@@ -413,7 +413,7 @@
         "cinto": "l1"
     },
     "inimigoAleatorio": [
-        1,
+        0,
         0
     ],
     "plataformas": [
@@ -592,6 +592,6 @@
         "b15"
     ],
     "humanoAleatorio": [
-        0
+        1
     ]
 }

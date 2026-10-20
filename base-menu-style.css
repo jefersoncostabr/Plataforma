@@ -175,6 +175,11 @@
     height: 32px;
     image-rendering: pixelated;
 }
+.crafting-airdrop-plus-icon {
+    width: 20px !important;
+    height: 20px !important;
+    object-fit: contain;
+}
 .crafting-result-plus {
     position: absolute;
     top: -2px;
@@ -184,6 +189,7 @@
     font-size: 16px;
     text-shadow: 0 0 2px #000;
     pointer-events: none;
+    z-index: 4;
 }
 
 .interaction-empty-inventory-msg {
@@ -326,6 +332,7 @@
     font-size: 14px;
     text-shadow: 0 0 2px #000;
     pointer-events: none;
+    z-index: 4;
 }
 .crafting-inv-item .badge {
     position: absolute;
@@ -347,6 +354,10 @@
 .crafting-inv-item .badge.skillpoint {
     background: #00e5ff;
     color: #001014;
+}
+.crafting-inv-item .badge.plus-quantity {
+    background: #0088ff;
+    color: #fff;
 }
 
 /* Botão de abrir crafting */

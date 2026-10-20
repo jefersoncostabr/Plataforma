@@ -16,10 +16,8 @@
         "restauracao": "l4",
         "municao_plus": "b17"
     },
-    "inimigoAleatorio": [
-        1,
-        0
-    ],
+    "inimigoAleatorio": [0, 0],
+    "humanoAleatorio": [1],
     "plataformas": [
         "a1",
         {
