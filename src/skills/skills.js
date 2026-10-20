@@ -221,9 +221,76 @@ function normalizarSkillsAdquiridas(acquired = [], skillsNormalizadas = {}, skil
 }
 
 // Funções globais de gerenciamento
+function exibirAnimacaoXP(quantidade) {
+    const jogador = document.getElementById('player');
+    const camada = document.getElementById('layer-efeitos') || document.getElementById('game-stage');
+    if (!jogador || !camada || typeof jogador.animate !== 'function') return;
+
+    const popup = document.createElement('div');
+    popup.textContent = `+${quantidade} XP`;
+    popup.setAttribute('aria-hidden', 'true');
+    popup.style.cssText = [
+        'position:absolute',
+        `left:${(Number.parseFloat(jogador.style.left) || 0) + jogador.offsetWidth / 2}px`,
+        `bottom:${(Number.parseFloat(jogador.style.bottom) || 0) + jogador.offsetHeight + 4}px`,
+        'transform:translateX(-50%)',
+        'color:#48d1cc',
+        'font:900 14px/1 "Segoe UI",sans-serif',
+        'letter-spacing:.5px',
+        'white-space:nowrap',
+        'text-shadow:0 1px 2px #002b2a,0 0 7px rgba(72,209,204,.9)',
+        'pointer-events:none',
+        'z-index:1'
+    ].join(';');
+    camada.appendChild(popup);
+
+    const animacao = popup.animate([
+        { opacity: 1, transform: 'translate(-50%, 2px) scale(1.08)' },
+        { opacity: 1, transform: 'translate(-50%, -3px) scale(1)', offset: 0.15 },
+        { opacity: 1, transform: 'translate(-50%, -25px) scale(1)' },
+        { opacity: 0, transform: 'translate(-50%, -38px) scale(.96)' }
+    ], { duration: 800, easing: 'ease-out', fill: 'forwards' });
+    animacao.onfinish = () => popup.remove();
+}
+
+window.exibirPerdaVida = () => {
+    const jogador = document.getElementById('player');
+    const camada = document.getElementById('layer-efeitos') || document.getElementById('game-stage');
+    if (!jogador || !camada || typeof jogador.animate !== 'function') return;
+
+    const popup = document.createElement('div');
+    popup.textContent = '-♥';
+    popup.setAttribute('aria-hidden', 'true');
+    popup.style.cssText = [
+        'position:absolute',
+        `left:${(Number.parseFloat(jogador.style.left) || 0) + jogador.offsetWidth / 2}px`,
+        `bottom:${(Number.parseFloat(jogador.style.bottom) || 0) + jogador.offsetHeight + 4}px`,
+        'transform:translateX(-50%)',
+        'color:#ff3b4d',
+        'font:900 21px/1 "Segoe UI",sans-serif',
+        'white-space:nowrap',
+        'text-shadow:0 1px 2px #300,0 0 7px rgba(255,59,77,.8)',
+        'pointer-events:none',
+        'z-index:1'
+    ].join(';');
+    camada.appendChild(popup);
+
+    const animacao = popup.animate([
+        { opacity: 0, transform: 'translate(-50%, 5px) scale(.75)' },
+        { opacity: 1, transform: 'translate(-50%, -3px) scale(1.15)', offset: 0.2 },
+        { opacity: 1, transform: 'translate(-50%, -25px) scale(1)' },
+        { opacity: 0, transform: 'translate(-50%, -38px) scale(.95)' }
+    ], { duration: 900, easing: 'ease-out', fill: 'forwards' });
+    animacao.onfinish = () => popup.remove();
+};
+
 window.ganharXP = (quantidade = 1) => {
+    quantidade = Number(quantidade) || 0;
+    if (quantidade <= 0) return;
+
     const xpAnterior = window.playerXP;
     window.playerXP += quantidade;
+    exibirAnimacaoXP(quantidade);
 
     // Calcula se o jogador atingiu um novo patamar de 5 XP
     const novosPontos = Math.floor(window.playerXP / 5) - Math.floor(xpAnterior / 5);

@@ -90,6 +90,7 @@
 
             const dano = Number(config.danoEspinho ?? 1);
             controle.dano = (controle.dano || 0) + dano;
+            window.exibirPerdaVida?.();
 
             if (typeof window.criarAnimacaoImpacto2Frames === 'function') {
                 let impactoX = xBase + (largura / 2);

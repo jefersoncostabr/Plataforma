@@ -156,7 +156,8 @@
                 droparItensInimigo(inimigo);
             }
 
-            if (darXP && typeof window.ganharXP === 'function') {
+            if (darXP && !inimigo.xpConcedido && typeof window.ganharXP === 'function') {
+                inimigo.xpConcedido = true;
                 window.ganharXP(1);
             }
 

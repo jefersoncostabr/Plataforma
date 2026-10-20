@@ -107,14 +107,9 @@
         if (!controle) throw new Error('Controle do jogador é obrigatório para inicializar os controles.');
 
         window.debugInimigoTeclas = window.debugInimigoTeclas || {};
-        const toquesRapidosCimaCinto = new Map();
         const obterAgoraMs = () => (typeof performance !== 'undefined' && typeof performance.now === 'function')
             ? performance.now()
             : Date.now();
-
-        function obterIdTecla(e) {
-            return String(e.code || e.key || '').toLowerCase();
-        }
 
         const handleKeyDown = (e) => {
             // Bloqueia comandos se o jogo está pausado, exceto teclas de menu/pause
@@ -163,21 +158,6 @@
 
             controle.teclas[e.key] = !teclaAbertura;
             controle.acoesDiscretas = controle.acoesDiscretas || {};
-
-            if (!e.repeat) {
-                const idTecla = obterIdTecla(e);
-                const apertouPuloOuTiro = teclaEhAcao(e.key, 'pulo') || teclaEhAcao(e.key, 'tiro');
-                if (apertouPuloOuTiro) {
-                    toquesRapidosCimaCinto.forEach((toque) => { toque.usouCombo = true; });
-                }
-
-                if (controle.temCinto && teclaEhAcao(e.key, 'cima')) {
-                    toquesRapidosCimaCinto.set(idTecla, {
-                        inicioMs: obterAgoraMs(),
-                        usouCombo: acaoAtiva(controle, 'pulo') || acaoAtiva(controle, 'tiro')
-                    });
-                }
-            }
 
             if (!e.repeat && teclaEhAcao(e.key, 'direita')) {
                 window.TutorialControles?.registrarAcao?.('direita');
@@ -249,6 +229,19 @@
                 const apertouCima = teclaEhAcao(e.key, 'cima');
 
                 if (apertouBaixo) {
+                    const temEquipamentoParaAlternar = !!(
+                        controle.itensGuardadosNoCinto
+                        || controle.temArma
+                        || controle.temEscudo
+                        || controle.escudoVermelho
+                        || controle.temBota
+                        || controle.temJetpack
+                        || controle.temGarra
+                        || controle.temColete
+                    );
+                    if (controle.temCinto && temEquipamentoParaAlternar) {
+                        callbacks.onAlternarCinto?.({ preservarAgachado: true });
+                    }
                     callbacks.onAgachar?.();
                 } else if (apertouCima) {
                     callbacks.onLevantar?.();
@@ -315,19 +308,6 @@
         };
 
         const handleKeyUp = (e) => {
-            const idTecla = obterIdTecla(e);
-            const toqueCima = toquesRapidosCimaCinto.get(idTecla);
-            if (toqueCima) {
-                toquesRapidosCimaCinto.delete(idTecla);
-                const limiteMs = Number(window.config?.cintoAtalhoCimaToqueRapidoMs ?? 200);
-                const duracaoMs = obterAgoraMs() - toqueCima.inicioMs;
-                const menuAberto = window.isPaused || window.isMenuOpen || window.isSkillMenuOpen
-                    || window.isMochilaMenuOpen || window.isInteractionMenuOpen;
-                if (controle.temCinto && !toqueCima.usouCombo && !menuAberto
-                    && limiteMs > 0 && duracaoMs >= 0 && duracaoMs <= limiteMs) {
-                    callbacks.onAlternarCinto?.();
-                }
-            }
             controle.teclas[e.key] = false;
             if (e.key === '8') {
                 window.debugInimigoTeclas[' '] = false;
@@ -356,7 +336,6 @@
             destruir() {
                 window.removeEventListener('keydown', handleKeyDown);
                 window.removeEventListener('keyup', handleKeyUp);
-                toquesRapidosCimaCinto.clear();
                 if (window.__playerControlsHandlers?.keydown === handleKeyDown) {
                     delete window.__playerControlsHandlers;
                 }

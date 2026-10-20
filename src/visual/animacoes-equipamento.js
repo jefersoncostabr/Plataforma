@@ -595,7 +595,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
         return clone;
     }
 
-    function alternarItensNoCinto() {
+    function alternarItensNoCinto(opcoes = {}) {
         if (controle.estaoAberto || controle.abrindo || controle.fechando) return;
         if (!controle.temCinto || controle.cintoAnimando || controle.vendaEmCurso || controle.stunned) return;
         if ((controle.garraAnimEstado && controle.garraAnimEstado !== 'idle') || controle.garraItemCarregado) return;
@@ -605,7 +605,7 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
 
         const guardando = !controle.itensGuardadosNoCinto;
 
-        if (!guardando && controle.estaAgachado) {
+        if (!guardando && controle.estaAgachado && !opcoes.preservarAgachado) {
             const conseguiuLevantar = tentarLevantarJogador();
             if (!conseguiuLevantar) {
                 if (typeof flashElement === 'function') {

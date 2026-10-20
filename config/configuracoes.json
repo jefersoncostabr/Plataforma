@@ -107,7 +107,6 @@
     "inimigoKnockbackPassoMax": 1,
     "distanciaTiroInimigo": 300,
     "cooldownTiro": 45,
-    "cintoAtalhoCimaToqueRapidoMs": 200,
     "inimigoDistanciaMinimaAtaque": 20,
     "inimigoTempoAfastamento": 22,
     "inimigoVelocidadeAfastamento": 3,

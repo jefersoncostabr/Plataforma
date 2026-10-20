@@ -24,6 +24,12 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
     window.prepararMorteInimigo = (inimigo, direcaoX) => {
         if (inimigo.estaMorrendo || inimigo.estaMorto) return;
 
+        // Concede XP no início da derrota, enquanto o inimigo ainda está visível.
+        if (!inimigo.xpConcedido) {
+            inimigo.xpConcedido = true;
+            window.ganharXP?.(1);
+        }
+
         // Dropa os itens que o inimigo possui no chão antes de iniciar a animação de voo
         if (typeof window.droparItensInimigo === 'function') {
             window.droparItensInimigo(inimigo);
@@ -1600,6 +1606,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                         
                         if (!window.temEscudoAtivoPadrao(window.playerControle)) {
                             window.playerControle.dano = (window.playerControle.dano || 0) + 1;
+                            window.exibirPerdaVida?.();
                             
                             if (typeof flashComVibacao === 'function') {
                                 flashComVibacao(document.getElementById('player'));

@@ -37,10 +37,10 @@
 
             const vidaAtual = (controle.maxVida || 3) - (controle.dano || 0);
             for (let i = 0; i < (controle.maxVida || 3); i++) {
-                const circulo = document.createElement('div');
-                circulo.className = 'hud-circle';
-                circulo.style.backgroundColor = i < vidaAtual ? 'red' : 'white';
-                hudElemento.appendChild(circulo);
+                const coracao = document.createElement('span');
+                coracao.textContent = '♥';
+                coracao.className = i < vidaAtual ? 'hud-heart' : 'hud-heart hud-heart-lost';
+                hudElemento.appendChild(coracao);
             }
 
             if (temEscudoAtivo()) {

@@ -638,16 +638,13 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             onAgachar: () => {
                 if (window.controlandoCao || window.controlandoBB) return; // Bloqueia agachar enquanto controla o cão/bb
                 if (controle.estaoAberto || controle.abrindo || controle.fechando) return;
-                if (controle.estaAgachado) {
-                    tentarLevantarJogador();
-                } else {
-                    const descartouEquipamentosVermelhos = descartarEquipamentosVermelhosAoAgachar();
-                    if (descartouEquipamentosVermelhos || podeAgacharSemBloqueio()) {
-                        controle.estaAgachado = true;
-                        window.TutorialControles?.registrarAcao?.('agachar');
-                    } else if (typeof flashElement === 'function') {
-                        flashElement(elemento, 120, 4);
-                    }
+                if (controle.estaAgachado) return;
+                const descartouEquipamentosVermelhos = descartarEquipamentosVermelhosAoAgachar();
+                if (descartouEquipamentosVermelhos || podeAgacharSemBloqueio()) {
+                    controle.estaAgachado = true;
+                    window.TutorialControles?.registrarAcao?.('agachar');
+                } else if (typeof flashElement === 'function') {
+                    flashElement(elemento, 120, 4);
                 }
             },
             onLevantar: () => {
@@ -699,7 +696,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             },
             onAlternarCinto: () => {
                 if (controle.estaoAberto || controle.abrindo || controle.fechando) return;
-                alternarItensNoCinto();
+                alternarItensNoCinto({ preservarAgachado: true });
             },
             onToggleMochila: () => {
                 if (typeof window.toggleMochilaMenu !== 'function') return;
@@ -2419,6 +2416,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                             }
                         } else {
                             controle.dano = (controle.dano || 0) + 1;
+                            window.exibirPerdaVida?.();
                             // console.log(`Dano: Jogador atingido por projétil! Total: ${controle.dano}/3`);
 
                             // Efeito visual no jogador ao receber dano

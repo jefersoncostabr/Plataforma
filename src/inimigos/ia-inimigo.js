@@ -289,6 +289,12 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
         const cutsceneChefeAtiva = ativarBooleanoDerrotaChefe(inimigo);
 
+        // Concede XP no início da derrota, enquanto o inimigo ainda está visível.
+        if (!inimigo.xpConcedido) {
+            inimigo.xpConcedido = true;
+            window.ganharXP?.(1);
+        }
+
         if (cutsceneChefeAtiva) {
             inimigo.cutsceneDerrotaChefeAtiva = true;
             inimigo.perseguindo = false;
@@ -2490,6 +2496,7 @@ window.AudioManager.playSFX('chute', 0.4);
                         
                         if (!window.temEscudoAtivoPadrao(window.playerControle)) {
                             window.playerControle.dano = (window.playerControle.dano || 0) + 1;
+                            window.exibirPerdaVida?.();
 
                             if (typeof window.criarAnimacaoImpacto2Frames === 'function') {
                                 const pontoImpacto = (typeof window.calcularCentroColisaoHitboxes === 'function')
