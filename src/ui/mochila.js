@@ -285,6 +285,88 @@
         cintoSlotSelecionado = primeiroItemCorpo >= 0 ? primeiroItemCorpo : INDICE_SLOT_CINTO;
     }
 
+    // Guarda a origem do item enquanto o usuário está arrastando.
+    let itemEmArraste = null;
+
+    function obterItemArmazenado(referencia, controle) {
+        if (!referencia || !controle) return null;
+
+        if (referencia.area === 'colete') {
+            return garantirSlotsColete(controle)[referencia.indice] || null;
+        }
+
+        if (referencia.area === 'cinto' && referencia.indice === INDICE_SLOT_CINTO) {
+            return controle.cintoSlot || null;
+        }
+
+        return null;
+    }
+
+    function configurarDragAndDropArmazenamento(elemento, referencia) {
+        elemento.addEventListener('dragstart', (evento) => {
+            const controle = window.playerControle;
+            if (!obterItemArmazenado(referencia, controle)) {
+                evento.preventDefault();
+                return;
+            }
+
+            itemEmArraste = referencia;
+            evento.dataTransfer.effectAllowed = 'move';
+            evento.dataTransfer.setData('text/plain', 'item-armazenado');
+        });
+
+        elemento.addEventListener('dragover', (evento) => {
+            if (!itemEmArraste) return;
+            evento.preventDefault();
+            evento.dataTransfer.dropEffect = 'move';
+        });
+
+        elemento.addEventListener('drop', (evento) => {
+            evento.preventDefault();
+            evento.stopPropagation();
+
+            const controle = window.playerControle;
+            if (!itemEmArraste || !controle) return;
+
+            const origem = itemEmArraste;
+            const itemOrigem = obterItemArmazenado(origem, controle);
+            if (!itemOrigem) {
+                itemEmArraste = null;
+                return;
+            }
+
+            const mesmaPosicao = origem.area === referencia.area
+                && origem.indice === referencia.indice;
+            if (mesmaPosicao) {
+                itemEmArraste = null;
+                return;
+            }
+
+            const itemDestino = obterItemArmazenado(referencia, controle);
+
+            // Soltar em um item ocupado troca os itens; em um slot vazio, move.
+            if (origem.area === 'colete') {
+                controle.coleteSlots[origem.indice] = itemDestino;
+            } else {
+                controle.cintoSlot = itemDestino;
+            }
+
+            if (referencia.area === 'colete') {
+                controle.coleteSlots[referencia.indice] = itemOrigem;
+            } else {
+                controle.cintoSlot = itemOrigem;
+            }
+
+            itemEmArraste = null;
+            window.salvarInventario?.();
+            renderizarSlotsMochila(controle);
+        });
+
+        elemento.addEventListener('dragend', () => {
+            itemEmArraste = null;
+        });
+    }
+
     function renderizarSlotsMochila(controle = window.playerControle) {
         const slots = garantirSlotsColete(controle);
 
@@ -297,6 +379,7 @@
         cintoSlotElements.forEach((slotEl, indice) => {
             if (!slotEl) return;
             const celula = cintoLinhaAtual[indice];
+            slotEl.draggable = celula?.tipoUI === 'slot-cinto' && !!celula.item;
             const info = formatarCelulaCinto(celula);
             const ehPlaceholder = celula?.tipoUI === 'placeholder';
             
@@ -543,6 +626,10 @@
 
         mochilaSlotElements = Array.from({ length: capacidadeColete() }, (_, indice) => {
             const slot = criarCelulaPadrao();
+            configurarDragAndDropArmazenamento(slot, {
+                area: 'colete',
+                indice
+            });
             
             // Evento de clique para selecionar o slot
             slot.addEventListener('click', (e) => {
@@ -588,6 +675,13 @@
             cintoSlotElements = Array.from({ length: TOTAL_CELULAS_CINTO }, (_, indice) => {
                 const celula = criarCelulaPadrao();
                 celula.style.minHeight = '84px';
+
+                if (indice === INDICE_SLOT_CINTO) {
+                    configurarDragAndDropArmazenamento(celula, {
+                        area: 'cinto',
+                        indice
+                    });
+                }
                 
                 // Evento de clique para selecionar o slot do cinto
                 celula.addEventListener('click', (e) => {
