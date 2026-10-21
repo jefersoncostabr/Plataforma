@@ -285,38 +285,66 @@
         cintoSlotSelecionado = primeiroItemCorpo >= 0 ? primeiroItemCorpo : INDICE_SLOT_CINTO;
     }
 
-    // Guarda a origem do item enquanto o usuário está arrastando.
+    // Guarda a origem do item enquanto o usuário arrasta.
     let itemEmArraste = null;
 
-    function obterItemArmazenado(referencia, controle) {
-        if (!referencia || !controle) return null;
+    function resolverReferenciaDrag(referencia) {
+        if (!referencia) return null;
 
-        if (referencia.area === 'colete') {
-            return garantirSlotsColete(controle)[referencia.indice] || null;
+        if (referencia.area === 'corpo') {
+            // A referência pode chegar como índice da célula ou já normalizada
+            // como tipo. Aceitar ambos evita cancelar o dragstart ao validar a origem.
+            const tipo = referencia.tipo || cintoLinhaAtual[referencia.indice]?.item?.tipo;
+            return tipo
+                ? { area: 'corpo', tipo }
+                : null;
         }
 
-        if (referencia.area === 'cinto' && referencia.indice === INDICE_SLOT_CINTO) {
+        return referencia;
+    }
+
+    function obterItemDrag(referencia, controle) {
+        const ref = resolverReferenciaDrag(referencia);
+        if (!ref || !controle) return null;
+
+        if (ref.area === 'corpo') {
+            return obterItensCinto(controle).find(item => item?.tipo === ref.tipo) || null;
+        }
+
+        if (ref.area === 'colete') {
+            return garantirSlotsColete(controle)[ref.indice] || null;
+        }
+
+        if (ref.area === 'cinto' && ref.indice === INDICE_SLOT_CINTO) {
             return controle.cintoSlot || null;
         }
 
         return null;
     }
 
+    function referenciaPodeReceber(referencia) {
+        return referencia?.area === 'corpo'
+            || referencia?.area === 'colete'
+            || (referencia?.area === 'cinto' && referencia.indice === INDICE_SLOT_CINTO);
+    }
+
     function configurarDragAndDropArmazenamento(elemento, referencia) {
         elemento.addEventListener('dragstart', (evento) => {
             const controle = window.playerControle;
-            if (!obterItemArmazenado(referencia, controle)) {
+            const refResolvida = resolverReferenciaDrag(referencia);
+
+            if (!refResolvida || !obterItemDrag(refResolvida, controle)) {
                 evento.preventDefault();
                 return;
             }
 
-            itemEmArraste = referencia;
+            itemEmArraste = refResolvida;
             evento.dataTransfer.effectAllowed = 'move';
-            evento.dataTransfer.setData('text/plain', 'item-armazenado');
+            evento.dataTransfer.setData('text/plain', 'item-mochila');
         });
 
         elemento.addEventListener('dragover', (evento) => {
-            if (!itemEmArraste) return;
+            if (!itemEmArraste || !referenciaPodeReceber(referencia)) return;
             evento.preventDefault();
             evento.dataTransfer.dropEffect = 'move';
         });
@@ -326,33 +354,42 @@
             evento.stopPropagation();
 
             const controle = window.playerControle;
-            if (!itemEmArraste || !controle) return;
-
             const origem = itemEmArraste;
-            const itemOrigem = obterItemArmazenado(origem, controle);
+            const destino = resolverReferenciaDrag(referencia);
+
+            if (!origem || !destino || !controle) return;
+
+            if (origem.area === 'corpo' || destino.area === 'corpo') {
+                window.transferirEquipamentoMochila?.(origem, destino);
+                itemEmArraste = null;
+                renderizarSlotsMochila(controle);
+                return;
+            }
+
+            const itemOrigem = obterItemDrag(origem, controle);
             if (!itemOrigem) {
                 itemEmArraste = null;
                 return;
             }
 
-            const mesmaPosicao = origem.area === referencia.area
-                && origem.indice === referencia.indice;
+            const mesmaPosicao = origem.area === destino.area
+                && origem.indice === destino.indice;
+
             if (mesmaPosicao) {
                 itemEmArraste = null;
                 return;
             }
 
-            const itemDestino = obterItemArmazenado(referencia, controle);
+            const itemDestino = obterItemDrag(destino, controle);
 
-            // Soltar em um item ocupado troca os itens; em um slot vazio, move.
             if (origem.area === 'colete') {
                 controle.coleteSlots[origem.indice] = itemDestino;
             } else {
                 controle.cintoSlot = itemDestino;
             }
 
-            if (referencia.area === 'colete') {
-                controle.coleteSlots[referencia.indice] = itemOrigem;
+            if (destino.area === 'colete') {
+                controle.coleteSlots[destino.indice] = itemOrigem;
             } else {
                 controle.cintoSlot = itemOrigem;
             }
@@ -379,7 +416,8 @@
         cintoSlotElements.forEach((slotEl, indice) => {
             if (!slotEl) return;
             const celula = cintoLinhaAtual[indice];
-            slotEl.draggable = celula?.tipoUI === 'slot-cinto' && !!celula.item;
+            slotEl.draggable = celula?.tipoUI === 'item-corpo'
+                || (celula?.tipoUI === 'slot-cinto' && !!celula.item);
             const info = formatarCelulaCinto(celula);
             const ehPlaceholder = celula?.tipoUI === 'placeholder';
             
@@ -403,11 +441,16 @@
                 <div style="font-size: 10px; color: ${info.cor}; margin-top: 6px; text-align: center;">${info.subtitulo}</div>
                 <div style="font-size: 9px; color: #a8a8a8; margin-top: 4px; text-align: center;">${info.dica}</div>
             `;
+            // O arraste é controlado pela célula; a imagem não deve iniciar
+            // um arraste nativo separado do navegador.
+            slotEl.querySelectorAll('img').forEach((img) => { img.draggable = false; });
         });
 
         mochilaSlotElements.forEach((slotEl, indice) => {
             if (!slotEl) return;
             const slotData = slots[indice];
+            // O arraste parte da célula (as imagens internas não são draggable).
+            slotEl.draggable = !!slotData;
             const info = formatarSlotColete(slotData, indice);
             
             // Empilhamento (Stacking): Canto superior direito, fundo verde
@@ -429,6 +472,7 @@
                 <div style="font-size: 11px; color: ${info.cor}; margin-top: 8px; text-align: center;">${info.subtitulo}</div>
                 <div style="font-size: 10px; color: #a8a8a8; margin-top: 6px; text-align: center;">${info.dica}</div>
             `;
+            slotEl.querySelectorAll('img').forEach((img) => { img.draggable = false; });
         });
 
         atualizarSelecaoSlots();
@@ -679,6 +723,11 @@
                 if (indice === INDICE_SLOT_CINTO) {
                     configurarDragAndDropArmazenamento(celula, {
                         area: 'cinto',
+                        indice
+                    });
+                } else {
+                    configurarDragAndDropArmazenamento(celula, {
+                        area: 'corpo',
                         indice
                     });
                 }

@@ -774,7 +774,14 @@
             }
             if (tipo === 'revolver' || tipo === 'doze') {
                 const maxMunicao = (tipo === 'doze') ? 2 : 5;
-                return !controle.temArma || Number(controle.municao || 0) < maxMunicao;
+                const armaAtiva = obterTipoArmaAtivaDoControle();
+                const trocarTipoDeArma = !!controle.temArma && armaAtiva !== tipo;
+
+                // Permite trocar entre revólver e doze, mesmo que a arma atual
+                // esteja carregada. A arma anterior será guardada pelo sistema.
+                return !controle.temArma
+                    || trocarTipoDeArma
+                    || Number(controle.municao || 0) < maxMunicao;
             }
             if (tipo === 'escudo') {
                 return !controle.temEscudo || !!controle.escudoVermelho || Number(controle.escudoProtegido || 0) > 0;
@@ -1260,6 +1267,131 @@
             if (!dropou) return false;
 
             controle.cintoSlot = null;
+            salvarInventario();
+            atualizarMochilaUI();
+            return true;
+        }
+
+        function categoriaEquipamentoMochila(tipo) {
+            if (tipo === 'revolver' || tipo === 'doze') return 'arma';
+
+            if (['escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete'].includes(tipo)) {
+                return tipo;
+            }
+
+            return null;
+        }
+
+        function lerSlotArmazenamentoMochila(referencia) {
+            if (!referencia) return null;
+
+            if (referencia.area === 'colete') {
+                controle.coleteSlots = normalizarSlotsColete(controle.coleteSlots);
+                return controle.coleteSlots[referencia.indice] || null;
+            }
+
+            if (referencia.area === 'cinto' && referencia.indice === 3) {
+                return obterSlotCinto();
+            }
+
+            return null;
+        }
+
+        function gravarSlotArmazenamentoMochila(referencia, item) {
+            if (!referencia) return false;
+
+            if (referencia.area === 'colete') {
+                controle.coleteSlots = normalizarSlotsColete(controle.coleteSlots);
+                controle.coleteSlots[referencia.indice] = item || null;
+                return true;
+            }
+
+            if (referencia.area === 'cinto' && referencia.indice === 3) {
+                controle.cintoSlot = item || null;
+                return true;
+            }
+
+            return false;
+        }
+
+        function transferirEquipamentoMochila(origem, destino) {
+            if (!controle || !origem || !destino) return false;
+
+            const origemEhCorpo = origem.area === 'corpo';
+            const destinoEhCorpo = destino.area === 'corpo';
+
+            // Esta operação só trata transferências que envolvem o corpo.
+            // Trocas entre slots de armazenamento continuam no código da mochila.
+            if (origemEhCorpo === destinoEhCorpo) return false;
+
+            const referenciaArmazenamento = origemEhCorpo ? destino : origem;
+            const equipamentoCorpo = origemEhCorpo ? origem : destino;
+
+            if (!['colete', 'cinto'].includes(referenciaArmazenamento.area)) return false;
+            if (referenciaArmazenamento.area === 'cinto' && referenciaArmazenamento.indice !== 3) return false;
+
+            const tipoCorpo = equipamentoCorpo.tipo;
+            const categoriaCorpo = categoriaEquipamentoMochila(tipoCorpo);
+
+            if (!tipoCorpo || !categoriaCorpo || !itemJaAtivoNoCorpo(tipoCorpo)) return false;
+            if (!itemPodeIrParaColete(tipoCorpo)) return false;
+
+            const itemArmazenado = lerSlotArmazenamentoMochila(referenciaArmazenamento);
+
+            // Soltar o item equipado em um espaço vazio apenas o guarda.
+            if (!itemArmazenado) {
+                const dadosCorpo = obterDadosExtrasDoItemAtivo(tipoCorpo);
+                const itemDataCorpo = window.itemDefinitions?.[tipoCorpo] || null;
+
+                if (!removerItemDoCorpoSemDropar(tipoCorpo)) return false;
+
+                gravarSlotArmazenamentoMochila(
+                    referenciaArmazenamento,
+                    criarEntradaColete({ tipo: tipoCorpo, ...dadosCorpo }, itemDataCorpo)
+                );
+
+                salvarInventario();
+                atualizarMochilaUI();
+                return true;
+            }
+
+            // Um slot ocupado só pode trocar com um equipamento válido.
+            const tipoArmazenado = normalizarTipoArmaDoSlot(itemArmazenado);
+            const categoriaArmazenada = categoriaEquipamentoMochila(tipoArmazenado);
+
+            if (!categoriaArmazenada || tipoArmazenado === tipoCorpo) return false;
+            if (!itemPodeIrParaColete(tipoArmazenado)) return false;
+
+            // Se for outra categoria já equipada, rejeita para impedir duplicação.
+            // Revólver e doze compartilham a categoria "arma" e podem ser trocados.
+            if (
+                categoriaArmazenada !== categoriaCorpo
+                && itemJaAtivoNoCorpo(tipoArmazenado)
+            ) {
+                return false;
+            }
+
+            if (!precisaDeItemAgora(tipoArmazenado)) return false;
+
+            const dadosCorpo = obterDadosExtrasDoItemAtivo(tipoCorpo);
+            const dadosArmazenados = itemArmazenado.dados || {};
+            const itemDataCorpo = window.itemDefinitions?.[tipoCorpo] || null;
+            const itemDataArmazenado = window.itemDefinitions?.[tipoArmazenado] || null;
+
+            if (!removerItemDoCorpoSemDropar(tipoCorpo)) return false;
+
+            // Equipa o item guardado. Se falhar, tenta restaurar o equipamento original.
+            if (!aplicarItemNoCorpo(tipoArmazenado, itemDataArmazenado, dadosArmazenados)) {
+                aplicarItemNoCorpo(tipoCorpo, itemDataCorpo, dadosCorpo);
+                return false;
+            }
+
+            // Guarda no mesmo slot o equipamento que estava no corpo.
+            gravarSlotArmazenamentoMochila(
+                referenciaArmazenamento,
+                criarEntradaColete({ tipo: tipoCorpo, ...dadosCorpo }, itemDataCorpo)
+            );
+
             salvarInventario();
             atualizarMochilaUI();
             return true;
@@ -1900,6 +2032,7 @@
         window.obterItensDisponiveisNoCinto = obterItensDisponiveisNoCinto;
         window.guardarItemNoCinto = guardarItemNoCinto;
         window.guardarEquipamentoNoCinto = guardarEquipamentoNoCinto;
+        window.transferirEquipamentoMochila = transferirEquipamentoMochila;
         window.usarOuDroparItemCinto = usarOuDroparItemDoCinto;
         window.droparItemCinto = droparItemDoCinto;
         window.itemColetePodeSerUsadoAgora = (slotOuIndice) => {
