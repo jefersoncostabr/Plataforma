@@ -1052,8 +1052,18 @@ inventarioContainer.addEventListener('dragover', (evento) => {
                                     window.salvarInventario();
                                 }
                                 // 3. Entregar o resultado
-                                const coletado = typeof window.tentarColetarItemJogador === 'function' 
-                                    ? window.tentarColetarItemJogador({ tipo: tipoResultado }) 
+                                const definicaoResultado = window.itemDefinitions?.[tipoResultado] || {};
+                                const itemResultado = {
+                                    ...definicaoResultado,
+                                    tipo: tipoResultado,
+                                    quantidade: 1,
+                                    spriteColetavel: definicaoResultado.spriteColetavel
+                                        || (typeof window.obterSpriteItem === 'function'
+                                            ? window.obterSpriteItem(tipoResultado, window.config)
+                                            : '')
+                                };
+                                const coletado = typeof window.tentarColetarItemJogador === 'function'
+                                    ? window.tentarColetarItemJogador(itemResultado)
                                     : false;
 
                                 if (!coletado) {

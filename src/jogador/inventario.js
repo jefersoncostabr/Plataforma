@@ -16,6 +16,7 @@
             restauracao: { permitidoNoColete: true, consumivel: true, usarSoSePrecisar: true },
             base_portatil: { permitidoNoColete: true, consumivel: true, usarSoSePrecisar: true },
             scrap: { permitidoNoColete: true, consumivel: false, usarSoSePrecisar: false },
+            airdrop_plus: { permitidoNoColete: true, equipavel: false, consumivel: true, usarSoSePrecisar: false },
             novelo: { permitidoNoColete: true, consumivel: false, usarSoSePrecisar: false },
             bateria: { permitidoNoColete: true, consumivel: false, usarSoSePrecisar: false }
         }

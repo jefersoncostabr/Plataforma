@@ -985,10 +985,9 @@ window.proximoNivel = async function() {
                 if (typeof window.salvarProgressoSkills === 'function') window.salvarProgressoSkills();
                 if (window.playerControle) resetarJogadorParaZeroMantendoSkills({ preservarEstadoSalvo: false });
                 const indiceFaseInicial = obterIndiceFaseInicial(window.config?.faseInicial);
-                const indiceReinicio = Math.min(indiceFaseInicial + 1, window.niveis.length - 1);
-                window.nivelAtual = Math.max(0, indiceReinicio);
+                window.nivelAtual = indiceFaseInicial;
                 salvarFaseAtual(window.niveis[window.nivelAtual]);
-                await window.reiniciarJogo(false, { indiceFaseInicialSlot: window.nivelAtual });
+                await window.reiniciarJogo(false, { indiceFaseInicialSlot: indiceFaseInicial });
                 return;
             }
             // Suporte para Novo Jogo+: Busca a base no inventário antes de reiniciar a campanha
@@ -997,7 +996,8 @@ window.proximoNivel = async function() {
             
             if (baseNoBolsoNG) window.__basePendenteAutoSpawn = JSON.parse(JSON.stringify(baseNoBolsoNG));
 
-            window.nivelAtual = 0;
+            const indiceFaseInicial = obterIndiceFaseInicial(window.config?.faseInicial);
+            window.nivelAtual = indiceFaseInicial;
             // Ao reiniciar, garantir todos os equipamentos
             if (window.playerControle) {
                 // Lista de todos os equipamentos possíveis
@@ -1030,7 +1030,8 @@ window.proximoNivel = async function() {
                     window.salvarInventarioDoControle(window.playerControle);
                 }
             }
-            await window.reiniciarJogo(false);
+            salvarFaseAtual(window.niveis[indiceFaseInicial]);
+            await window.reiniciarJogo(false, { indiceFaseInicialSlot: indiceFaseInicial });
         }
     }
 };

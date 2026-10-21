@@ -366,7 +366,8 @@
                     </select>
                 </label>
             `;
-            palette.appendChild(toolsContainer);
+            const categoriaTamanho = proportionSelect.closest('.category');
+            categoriaTamanho.insertAdjacentElement('afterend', toolsContainer);
 
             fillBottomCheckbox = document.getElementById('fill-bottom-checkbox');
             blockTypeSelect = document.getElementById('block-type-select');

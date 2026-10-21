@@ -58,6 +58,12 @@
       "equipavel": false,
       "consumivel": false,
       "usarSoSePrecisar": false
+    },
+    "airdrop_plus": {
+      "permitidoNoColete": true,
+      "equipavel": false,
+      "consumivel": true,
+      "usarSoSePrecisar": false
     }
   }
 }

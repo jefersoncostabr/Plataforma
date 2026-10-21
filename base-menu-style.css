@@ -270,11 +270,12 @@
     flex-wrap: wrap;
     justify-content: center;
     gap: 8px;
-    padding: 0 10px;
+    /* Folga interna para os brilhos externos não encostarem no recorte do scroll. */
+    padding: 20px 22px 26px;
     max-height: 200px;
     overflow-y: auto;
     border-top: 1px solid rgba(255, 255, 255, 0.12);
-    padding-top: 15px;
+    scroll-padding: 20px;
 }
 
 .interaction-footer--crafting {
