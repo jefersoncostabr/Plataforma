@@ -605,14 +605,8 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
 
         const guardando = !controle.itensGuardadosNoCinto;
 
-        if (!guardando && controle.estaAgachado && !opcoes.preservarAgachado) {
-            const conseguiuLevantar = tentarLevantarJogador();
-            if (!conseguiuLevantar) {
-                if (typeof flashElement === 'function') {
-                    flashElement(cintoElemento, 140, 5);
-                }
-                return;
-            }
+        if (!guardando && controle.estaAgachado) {
+            return;
         }
 
         controle.cintoAnimando = true;

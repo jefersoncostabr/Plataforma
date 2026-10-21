@@ -46,9 +46,11 @@
             if (temEscudoAtivo()) {
                 const slotsRestantes = (config.escudoTirosProtegidos || 3) - (controle.escudoProtegido || 0);
                 for (let i = 0; i < slotsRestantes; i++) {
-                    const quadrado = document.createElement('div');
-                    quadrado.className = 'hud-square';
-                    hudElemento.appendChild(quadrado);
+                    const iconeEscudo = document.createElement('img');
+                    iconeEscudo.className = 'hud-shield';
+                    iconeEscudo.src = config.spriteEscudoPlayer || 'assets/personagem/escudo.png';
+                    iconeEscudo.alt = 'Escudo';
+                    hudElemento.appendChild(iconeEscudo);
                 }
             }
 

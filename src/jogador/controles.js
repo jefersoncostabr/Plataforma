@@ -239,7 +239,8 @@
                         || controle.temGarra
                         || controle.temColete
                     );
-                    if (controle.temCinto && temEquipamentoParaAlternar) {
+                    // if (controle.temCinto && temEquipamentoParaAlternar) {
+                    if (controle.temCinto && temEquipamentoParaAlternar && !controle.itensGuardadosNoCinto) {
                         callbacks.onAlternarCinto?.({ preservarAgachado: true });
                     }
                     callbacks.onAgachar?.();
