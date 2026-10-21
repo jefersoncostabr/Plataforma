@@ -1556,6 +1556,55 @@
             return true;
         }
 
+        function droparItemArrastadoMochila(referencia) {
+            if (!referencia) return false;
+
+            // Itens que já estão guardados usam as rotinas existentes.
+            if (referencia.area === 'colete') {
+                return droparItemDoColete(referencia.indice);
+            }
+
+            if (referencia.area === 'cinto' && referencia.indice === 3) {
+                return droparItemDoCinto();
+            }
+
+            if (referencia.area !== 'corpo' || !referencia.tipo) return false;
+
+            const tipo = referencia.tipo;
+
+            // O cinto não aparece entre os itens da faixa do corpo.
+            // Ele é acessível pelo ícone indicativo do cinto na mochila.
+            const itemEstaEquipado = tipo === 'cinto'
+                ? !!controle.temCinto
+                : obterItensDisponiveisNoCinto().some(item => item?.tipo === tipo);
+
+            if (!itemEstaEquipado) return false;
+
+            const dadosExtras = obterDadosExtrasDoItemAtivo(tipo);
+            const itemData = window.itemDefinitions?.[tipo] || null;
+
+            // Esta rotina já impede remover um cinto com item guardado
+            // ou um colete que ainda contenha itens.
+            if (!removerItemDoCorpoSemDropar(tipo)) return false;
+
+            if (!droparTipoNoMundo(tipo, dadosExtras)) {
+                // Restaura o equipamento se o jogo não conseguiu criá-lo no mundo.
+                aplicarItemNoCorpo(tipo, itemData, dadosExtras);
+                return false;
+            }
+
+            const aindaGuardado = (controle.coleteSlots || []).some(slot => slot?.tipo === tipo)
+                || controle.cintoSlot?.tipo === tipo;
+
+            if (!aindaGuardado && !itemJaAtivoNoCorpo(tipo)) {
+                removerTipoDoInventario(tipo);
+            }
+
+            salvarInventario();
+            atualizarMochilaUI();
+            return true;
+        }
+
         function usarItemDoColete(indice) {
             controle.coleteSlots = normalizarSlotsColete(controle.coleteSlots);
             const slot = controle.coleteSlots[indice];
@@ -2055,6 +2104,7 @@
         window.descartarEquipamentosVermelhosAoAgachar = descartarEquipamentosVermelhosAoAgachar;
         window.usarOuDroparItemColete = usarOuDroparItemDoColete;
         window.droparItemColete = droparItemDoColete;
+        window.droparItemArrastadoMochila = droparItemArrastadoMochila;
         window.obterSlotsColete = obterSlotsColete;
         window.obterSlotCinto = obterSlotCinto;
         window.obterItensDisponiveisNoCinto = obterItensDisponiveisNoCinto;

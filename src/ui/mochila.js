@@ -306,6 +306,10 @@
         if (!ref || !controle) return null;
 
         if (ref.area === 'corpo') {
+            if (ref.tipo === 'cinto') {
+                return controle.temCinto ? { tipo: 'cinto' } : null;
+            }
+
             return obterItensCinto(controle).find(item => item?.tipo === ref.tipo) || null;
         }
 
@@ -502,6 +506,19 @@
         imagem.alt = titulo.nome;
         imagem.style.cssText = 'width: 104px; height: 80px; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 0 12px rgba(72, 209, 204, 0.9));';
         el.appendChild(imagem);
+
+        // O ícone do cinto também serve como origem de arraste quando
+        // o cinto está equipado. A validação do inventário impede largá-lo
+        // se o slot de armazenamento do cinto ainda estiver ocupado.
+        if (tipo === 'cinto' && window.playerControle?.temCinto) {
+            el.draggable = true;
+            imagem.draggable = false;
+            configurarDragAndDropArmazenamento(el, {
+                area: 'corpo',
+                tipo: 'cinto'
+            });
+        }
+
         return el;
     }
 
@@ -784,6 +801,33 @@
         container.appendChild(header);
         container.appendChild(body);
         overlay.appendChild(container);
+
+        overlay.addEventListener('dragover', (evento) => {
+            // Permite a soltura no fundo escuro do overlay, fora do painel.
+            // Dentro do painel, os próprios slots tratam as trocas.
+            if (!itemEmArraste || container.contains(evento.target)) return;
+            evento.preventDefault();
+            evento.dataTransfer.dropEffect = 'move';
+        });
+
+        overlay.addEventListener('drop', (evento) => {
+            // Não interfere nos drops que acontecem nos slots do menu.
+            if (container.contains(evento.target)) return;
+
+            evento.preventDefault();
+            evento.stopPropagation();
+
+            const origem = itemEmArraste;
+            if (!origem) return;
+
+            const dropou = window.droparItemArrastadoMochila?.(origem);
+            itemEmArraste = null;
+
+            if (dropou) {
+                renderizarSlotsMochila(controle);
+            }
+        });
+
         document.body.appendChild(overlay);
 
         renderizarSlotsMochila(controle);
