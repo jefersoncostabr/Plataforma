@@ -48,7 +48,7 @@
                 for (let i = 0; i < slotsRestantes; i++) {
                     const iconeEscudo = document.createElement('img');
                     iconeEscudo.className = 'hud-shield';
-                    iconeEscudo.src = config.spriteEscudoPlayer || 'assets/personagem/escudo.png';
+                    iconeEscudo.src = window.itemDefinitions?.escudo?.spriteColetavel || '../../assets/personagem/escudo_pegavel.png';
                     iconeEscudo.alt = 'Escudo';
                     hudElemento.appendChild(iconeEscudo);
                 }
