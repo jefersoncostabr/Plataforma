@@ -451,6 +451,8 @@
                 if (interactor) {
                     const slot1 = overlay.querySelector('#craft-slot-1');
                     const slot2 = overlay.querySelector('#craft-slot-2');
+                    let arrasteCrafting = null;
+                    const origemCrafting = new WeakMap();
                     
                     // Definição de Receitas (Fácil de expandir)
                     const RECEITAS = [
@@ -543,10 +545,17 @@
 
                             // 1. Coleta itens do cinto e colete
                             const slotCinto = interactor.cintoSlot;
-                            if (slotCinto) itensParaMostrar.push(slotCinto);
+                            if (slotCinto) {
+                                origemCrafting.set(slotCinto, { area: 'cinto', indice: 3 });
+                                itensParaMostrar.push(slotCinto);
+                            }
 
                             const slotsColete = interactor.coleteSlots || [];
-                            slotsColete.forEach(slot => { if (slot) itensParaMostrar.push(slot); });
+                            slotsColete.forEach((slot, indice) => {
+                                if (!slot) return;
+                                origemCrafting.set(slot, { area: 'colete', indice });
+                                itensParaMostrar.push(slot);
+                            });
 
                             // 2. Garante que o Scrap apareça se estiver no inventário lógico
                             if (Array.isArray(interactor.inventario) && interactor.inventario.includes('scrap')) {
@@ -577,6 +586,28 @@
                                     const itemQuadrado = document.createElement('button');
                                     itemQuadrado.type = 'button';
                                     itemQuadrado.className = 'crafting-inv-item img-button retro-grid';
+                                    itemQuadrado.draggable = true;
+                                    itemQuadrado._craftItemRef = item;
+                                    itemQuadrado._craftBadgeRef = null;
+                                    itemQuadrado.addEventListener('dragstart', (evento) => {
+                                        if (itemQuadrado.classList.contains('is-disabled')) {
+                                            evento.preventDefault();
+                                            return;
+                                        }
+                                        arrasteCrafting = {
+                                            origem: 'inventario',
+                                            item,
+                                            botao: itemQuadrado,
+                                            badge: itemQuadrado._craftBadgeRef
+                                        };
+                                        itemQuadrado.classList.add('is-dragging');
+                                        evento.dataTransfer.effectAllowed = 'move';
+                                        evento.dataTransfer.setData('text/plain', 'crafting-item');
+                                    });
+                                    itemQuadrado.addEventListener('dragend', () => {
+                                        itemQuadrado.classList.remove('is-dragging');
+                                        arrasteCrafting = null;
+                                    });
                                     // console.log('[Interacao] Aplicando Retro Grid ao item do inventário no Crafting');
 
                                     if (item.isSkillPoint) {
@@ -621,6 +652,7 @@
                                         badgeEl.textContent = item.quantidade;
                                         itemQuadrado.appendChild(badgeEl);
                                     }
+                                    itemQuadrado._craftBadgeRef = badgeEl;
 
                                     inventarioContainer.appendChild(itemQuadrado);
                                     itemQuadrado.addEventListener('click', () => {
@@ -630,9 +662,15 @@
                             }
                         };
 
-                        const adicionarAoSlotLivre = (itemData, btnOrigem, badgeEl) => {
-                            const alvo = !slot1.dataset.ocupado ? slot1 : (!slot2.dataset.ocupado ? slot2 : null);
+                        const adicionarAoSlotLivre = (itemData, btnOrigem, badgeEl, slotForcado = null) => {
+                            const alvo = slotForcado || (!slot1.dataset.ocupado ? slot1 : (!slot2.dataset.ocupado ? slot2 : null));
                             if (!alvo) return;
+
+                            // Se o destino já tem ingrediente, devolve esse ingrediente
+                            // à lista antes de colocar o novo item no mesmo slot.
+                            if (alvo.dataset.ocupado === 'true') {
+                                alvo.onclick?.();
+                            }
 
                             const ehEmpilhavel = ['scrap'].includes(itemData.tipo) || itemData.isXP || itemData.isSkillPoint || (itemData.tipo && itemData.tipo.endsWith('_plus'));
                             if (ehEmpilhavel) {
@@ -646,6 +684,8 @@
                                 btnOrigem.classList.add('is-disabled');
                             }
                             alvo._itemRef = itemData; // Guarda referência para o item sendo usado
+                            alvo._origemBotaoCraft = btnOrigem;
+                            alvo._origemBadgeCraft = badgeEl;
 
                             alvo.innerHTML = '';
                             alvo.dataset.ocupado = "true";
@@ -686,11 +726,128 @@
                                 delete alvo.dataset.itemTipo;
                                 delete alvo.dataset.isXP;
                                 delete alvo.dataset.isSkillPoint;
+                                delete alvo._itemRef;
+                                delete alvo._origemBotaoCraft;
+                                delete alvo._origemBadgeCraft;
                                 btnOrigem.classList.remove('is-disabled');
                                 alvo.onclick = null;
                                 atualizarResultadoCrafting();
                             };
                         };
+
+                        // O HTML nativo de drag and drop precisa de dragover preventDefault
+                        // nos alvos; sem isso o evento drop não dispara em vários navegadores.
+                        [slot1, slot2].forEach((slot) => {
+                            slot.draggable = true;
+                            slot.addEventListener('dragstart', (evento) => {
+                                if (slot.dataset.ocupado !== 'true' || !slot._itemRef) {
+                                    evento.preventDefault();
+                                    return;
+                                }
+                                arrasteCrafting = { origem: 'slot', slot };
+                                evento.dataTransfer.effectAllowed = 'move';
+                                evento.dataTransfer.setData('text/plain', 'crafting-slot');
+                            });
+                            slot.addEventListener('dragover', (evento) => {
+                                if (!arrasteCrafting) return;
+                                evento.preventDefault();
+                                evento.dataTransfer.dropEffect = 'move';
+                            });
+                            slot.addEventListener('drop', (evento) => {
+                                if (!arrasteCrafting) return;
+                                evento.preventDefault();
+                                evento.stopPropagation();
+
+                                if (arrasteCrafting.origem === 'inventario') {
+                                    adicionarAoSlotLivre(
+                                        arrasteCrafting.item,
+                                        arrasteCrafting.botao,
+                                        arrasteCrafting.badge,
+                                        slot
+                                    );
+                                } else if (arrasteCrafting.origem === 'slot' && arrasteCrafting.slot !== slot) {
+                                    const origem = arrasteCrafting.slot;
+                                    const destino = slot;
+                                    const salvarEstado = (el) => ({
+                                        html: el.innerHTML,
+                                        dataset: { ...el.dataset },
+                                        item: el._itemRef,
+                                        botao: el._origemBotaoCraft,
+                                        badge: el._origemBadgeCraft,
+                                        onclick: el.onclick
+                                    });
+                                    const estadoOrigem = salvarEstado(origem);
+                                    const estadoDestino = salvarEstado(destino);
+                                    const aplicarEstado = (el, estado) => {
+                                        el.innerHTML = estado.html;
+                                        ['ocupado', 'itemTipo', 'isXP', 'isSkillPoint'].forEach(chave => delete el.dataset[chave]);
+                                        Object.assign(el.dataset, estado.dataset);
+                                        el._itemRef = estado.item;
+                                        el._origemBotaoCraft = estado.botao;
+                                        el._origemBadgeCraft = estado.badge;
+                                        el.onclick = estado.onclick;
+                                    };
+                                    aplicarEstado(origem, estadoDestino);
+                                    aplicarEstado(destino, estadoOrigem);
+                                    atualizarResultadoCrafting();
+                                }
+                                arrasteCrafting = null;
+                            });
+                        });
+
+                        inventarioContainer.addEventListener('dragover', (evento) => {
+                            if (arrasteCrafting?.origem !== 'slot') return;
+                            evento.preventDefault();
+                            evento.dataTransfer.dropEffect = 'move';
+                        });
+                        inventarioContainer.addEventListener('drop', (evento) => {
+                            if (arrasteCrafting?.origem !== 'slot') return;
+                            evento.preventDefault();
+                            evento.stopPropagation();
+                            arrasteCrafting.slot.onclick?.();
+                            arrasteCrafting = null;
+                        });
+
+                        // Soltar sobre o fundo escuro (fora do modal) descarta apenas
+                        // itens físicos que vieram do cinto/colete. SP e scrap sintético
+                        // não têm origem física e, portanto, não são descartados aqui.
+                        overlay.addEventListener('dragover', (evento) => {
+                            if (!arrasteCrafting || evento.target.closest('.interaction-modal')) return;
+                            evento.preventDefault();
+                            evento.dataTransfer.dropEffect = 'move';
+                        });
+                        overlay.addEventListener('drop', (evento) => {
+                            if (!arrasteCrafting || evento.target.closest('.interaction-modal')) return;
+                            evento.preventDefault();
+                            evento.stopPropagation();
+
+                            let item = null;
+                            let slotOrigem = null;
+                            if (arrasteCrafting.origem === 'inventario') {
+                                item = arrasteCrafting.item;
+                            } else {
+                                slotOrigem = arrasteCrafting.slot;
+                                item = slotOrigem?._itemRef;
+                            }
+
+                            const referencia = item && origemCrafting.get(item);
+                            const podeDescartar = interactor === window.playerControle
+                                && referencia
+                                && typeof window.droparItemArrastadoMochila === 'function';
+                            if (podeDescartar && window.droparItemArrastadoMochila(referencia)) {
+                                if (slotOrigem) {
+                                    slotOrigem.innerHTML = '?';
+                                    ['ocupado', 'itemTipo', 'isXP', 'isSkillPoint'].forEach(chave => delete slotOrigem.dataset[chave]);
+                                    delete slotOrigem._itemRef;
+                                    delete slotOrigem._origemBotaoCraft;
+                                    delete slotOrigem._origemBadgeCraft;
+                                    slotOrigem.onclick = null;
+                                    atualizarResultadoCrafting();
+                                }
+                                renderizarListaInventario();
+                            }
+                            arrasteCrafting = null;
+                        });
 
                         // Adiciona o evento de clique no resultado dinamicamente
                         overlay.addEventListener('click', (e) => {
