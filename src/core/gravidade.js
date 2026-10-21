@@ -58,7 +58,13 @@ window.aplicarSnapColisao = window.aplicarSnapColisaoPadrao;
 
 function temEscudoAtivoPadrao(entidade) {
     if (entidade?.eletricidadeTemporariaAtiva) return true;
-    return !!(entidade?.temEscudo && !entidade?.escudoVermelho && !entidade?.itensGuardadosNoCinto);
+    const escudoSelecionado = !entidade?.temCinto || entidade?.selecaoCinto === 'escudo';
+    return !!(
+        entidade?.temEscudo
+        && !entidade?.escudoVermelho
+        && !entidade?.itensGuardadosNoCinto
+        && escudoSelecionado
+    );
 }
 
 function obterCapacidadeEscudoPadrao(config = {}) {
