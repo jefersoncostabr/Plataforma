@@ -145,6 +145,50 @@
         navegaveis[proximoIndice]?.focus();
     }
 
+    function moverFocoVerticalCrafting(overlay, direcao) {
+        const ativo = document.activeElement;
+        const estaNaLista = !!ativo?.closest('.player-inventory-for-crafting');
+        const estaNaReceita = !!ativo?.matches('#craft-slot-1, #craft-slot-2, #craft-result-slot, #craft-result, .craft-result');
+
+        // Seta para cima: da lista de itens para o slot de receita mais próximo.
+        // Seta para baixo: dos slots/resultado para o item mais próximo na lista.
+        if (direcao < 0 && estaNaLista) {
+            const origem = ativo.getBoundingClientRect();
+            const centroOrigem = origem.left + origem.width / 2;
+            const alvos = Array.from(overlay.querySelectorAll(
+                '#craft-slot-1, #craft-slot-2, #craft-result-slot, #craft-result, .craft-result'
+            )).filter(el => !el.disabled && el.getAttribute('aria-hidden') !== 'true');
+
+            const alvo = alvos
+                .map(el => ({ el, distancia: Math.abs((el.getBoundingClientRect().left + el.getBoundingClientRect().width / 2) - centroOrigem) }))
+                .sort((a, b) => a.distancia - b.distancia)[0]?.el;
+
+            if (alvo) {
+                alvo.focus();
+                return true;
+            }
+        }
+
+        if (direcao > 0 && estaNaReceita) {
+            const origem = ativo.getBoundingClientRect();
+            const centroOrigem = origem.left + origem.width / 2;
+            const alvos = Array.from(overlay.querySelectorAll(
+                '.player-inventory-for-crafting .crafting-inv-item:not(.is-disabled)'
+            )).filter(el => !el.disabled && el.getAttribute('aria-hidden') !== 'true');
+
+            const alvo = alvos
+                .map(el => ({ el, distancia: Math.abs((el.getBoundingClientRect().left + el.getBoundingClientRect().width / 2) - centroOrigem) }))
+                .sort((a, b) => a.distancia - b.distancia)[0]?.el;
+
+            if (alvo) {
+                alvo.focus();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     function obterResumoEquipamentoSalvo() {
         const checkpoint = typeof window.carregarCheckpointEquipamentoSalvo === 'function'
             ? window.carregarCheckpointEquipamentoSalvo()
@@ -543,37 +587,53 @@
                             inventarioContainer.innerHTML = '';
                             const itensParaMostrar = [];
 
-                            // 1. Coleta itens do cinto e colete
+// Cada item recebe uma referência à origem física quando veio do cinto ou colete.
+    // Essa referência será usada para permitir o descarte para fora do menu.
                             const slotCinto = interactor.cintoSlot;
+
                             if (slotCinto) {
+                                slotCinto._craftOrigem = {
+                                    area: 'cinto',
+                                    indice: 3
+                                };
                                 origemCrafting.set(slotCinto, { area: 'cinto', indice: 3 });
                                 itensParaMostrar.push(slotCinto);
                             }
 
                             const slotsColete = interactor.coleteSlots || [];
+
                             slotsColete.forEach((slot, indice) => {
                                 if (!slot) return;
+
+                                slot._craftOrigem = {
+                                    area: 'colete',
+                                    indice
+                                };
                                 origemCrafting.set(slot, { area: 'colete', indice });
+
                                 itensParaMostrar.push(slot);
                             });
 
-                            // 2. Garante que o Scrap apareça se estiver no inventário lógico
+                            // Scrap aparece como recurso lógico. Ele não é um slot físico
+                            // do cinto ou colete, então não recebe referência de descarte.
                             if (Array.isArray(interactor.inventario) && interactor.inventario.includes('scrap')) {
-                                if (!itensParaMostrar.some(it => it.tipo === 'scrap')) {
+                                if (!itensParaMostrar.some(item => item.tipo === 'scrap')) {
                                     itensParaMostrar.push({
                                         tipo: 'scrap',
                                         nome: 'Sucata (Scrap)',
-                                        spriteColetavel: window.obterSpriteItem('scrap', window.config)
+                                        spriteColetavel: window.obterSpriteItem('scrap', window.config),
+                                        _craftOrigem: null
                                     });
                                 }
                             }
 
-                            // 3. Adiciona os pontos de habilidade como recurso de crafting.
+                            // Pontos de habilidade são recursos de receita, não itens descartáveis.
                             itensParaMostrar.unshift({
                                 tipo: 'skillpoint_display',
                                 nome: 'Pontos de habilidade (SP)',
                                 quantidade: Number(window.skillPoints || 0),
-                                isSkillPoint: true
+                                isSkillPoint: true,
+                                _craftOrigem: null
                             });
 
                             if (itensParaMostrar.length === 0) {
@@ -583,17 +643,23 @@
                                 inventarioContainer.appendChild(vazio);
                             } else {
                                 itensParaMostrar.forEach(item => {
-                                    const itemQuadrado = document.createElement('button');
+const itemQuadrado = document.createElement('button');
                                     itemQuadrado.type = 'button';
                                     itemQuadrado.className = 'crafting-inv-item img-button retro-grid';
-                                    itemQuadrado.draggable = true;
+
+                                    // Guarda o item associado ao botão para os eventos de drag and drop.
                                     itemQuadrado._craftItemRef = item;
-                                    itemQuadrado._craftBadgeRef = null;
+
+                                    // Recursos sem origem física, como SP e scrap sintético,
+                                    // podem ser usados nas receitas, mas não podem ser descartados no mundo.
+                                    itemQuadrado.draggable = !item.isSkillPoint && !!item._craftOrigem;
+
                                     itemQuadrado.addEventListener('dragstart', (evento) => {
-                                        if (itemQuadrado.classList.contains('is-disabled')) {
+                                        if (!itemQuadrado.draggable) {
                                             evento.preventDefault();
                                             return;
                                         }
+
                                         arrasteCrafting = {
                                             origem: 'inventario',
                                             item,
@@ -602,8 +668,9 @@
                                         };
                                         itemQuadrado.classList.add('is-dragging');
                                         evento.dataTransfer.effectAllowed = 'move';
-                                        evento.dataTransfer.setData('text/plain', 'crafting-item');
+                                        evento.dataTransfer.setData('text/plain', 'craft-inventory-item');
                                     });
+
                                     itemQuadrado.addEventListener('dragend', () => {
                                         itemQuadrado.classList.remove('is-dragging');
                                         arrasteCrafting = null;
@@ -735,125 +802,206 @@
                             };
                         };
 
-                        // O HTML nativo de drag and drop precisa de dragover preventDefault
+// O HTML nativo de drag and drop precisa de dragover preventDefault
                         // nos alvos; sem isso o evento drop não dispara em vários navegadores.
+                        const trocarConteudoSlotsCrafting = (origem, destino) => {
+                            if (!origem || !destino || origem === destino) return;
+
+                            const guardar = (slot) => ({
+                                html: slot.innerHTML,
+                                dataset: { ...slot.dataset },
+                                itemRef: slot._itemRef,
+                                onclick: slot.onclick
+                            });
+
+                            const estadoOrigem = guardar(origem);
+                            const estadoDestino = guardar(destino);
+
+                            origem.innerHTML = estadoDestino.html;
+                            destino.innerHTML = estadoOrigem.html;
+
+                            // Limpa os dados antigos antes de aplicar os novos.
+                            ['ocupado', 'itemTipo', 'isXP', 'isSkillPoint'].forEach((chave) => {
+                                delete origem.dataset[chave];
+                                delete destino.dataset[chave];
+                            });
+
+                            Object.assign(origem.dataset, estadoDestino.dataset);
+                            Object.assign(destino.dataset, estadoOrigem.dataset);
+
+                            origem._itemRef = estadoDestino.itemRef;
+                            destino._itemRef = estadoOrigem.itemRef;
+
+                            origem.onclick = estadoDestino.onclick;
+                            destino.onclick = estadoOrigem.onclick;
+
+                            atualizarResultadoCrafting();
+                        };
+
+                        const devolverItemDoSlotCrafting = (slot) => {
+                            const item = slot?._itemRef;
+                            if (!item) return;
+
+                            const ehEmpilhavel =
+                                item.tipo === 'scrap' ||
+                                item.isXP ||
+                                item.isSkillPoint ||
+                                (item.tipo && item.tipo.endsWith('_plus'));
+
+                            if (ehEmpilhavel) {
+                                item.quantidade = Number(item.quantidade || 0) + 1;
+                            }
+
+                            slot.innerHTML = '?';
+                            delete slot.dataset.ocupado;
+                            delete slot.dataset.itemTipo;
+                            delete slot.dataset.isXP;
+                            delete slot.dataset.isSkillPoint;
+                            delete slot._itemRef;
+                            slot.onclick = null;
+
+                            atualizarResultadoCrafting();
+                            renderizarListaInventario();
+                        };
+
                         [slot1, slot2].forEach((slot) => {
-                            slot.draggable = true;
+slot.draggable = true;
                             slot.addEventListener('dragstart', (evento) => {
                                 if (slot.dataset.ocupado !== 'true' || !slot._itemRef) {
                                     evento.preventDefault();
                                     return;
                                 }
-                                arrasteCrafting = { origem: 'slot', slot };
+                                window._craftSlotEmArraste = slot;
                                 evento.dataTransfer.effectAllowed = 'move';
-                                evento.dataTransfer.setData('text/plain', 'crafting-slot');
+                                evento.dataTransfer.setData('text/plain', 'craft-input-slot');
                             });
                             slot.addEventListener('dragover', (evento) => {
-                                if (!arrasteCrafting) return;
+                                if (!window._craftSlotEmArraste) return;
                                 evento.preventDefault();
                                 evento.dataTransfer.dropEffect = 'move';
                             });
                             slot.addEventListener('drop', (evento) => {
-                                if (!arrasteCrafting) return;
-                                evento.preventDefault();
-                                evento.stopPropagation();
+                                const slotOrigem = window._craftSlotEmArraste;
+                                if (!slotOrigem) {
+                                    if (arrasteCrafting?.origem === 'inventario') {
+                                        adicionarAoSlotLivre(
+                                            arrasteCrafting.item,
+                                            arrasteCrafting.botao,
+                                            arrasteCrafting.badge,
+                                            slot
+                                        );
+                                        arrasteCrafting = null;
+                                    }
+                                    return;
+                                }
 
-                                if (arrasteCrafting.origem === 'inventario') {
+                                if (slotOrigem === slot) {
+                                    window._craftSlotEmArraste = null;
+                                    return;
+                                }
+
+                                if (arrasteCrafting?.origem === 'inventario') {
                                     adicionarAoSlotLivre(
                                         arrasteCrafting.item,
                                         arrasteCrafting.botao,
                                         arrasteCrafting.badge,
                                         slot
                                     );
-                                } else if (arrasteCrafting.origem === 'slot' && arrasteCrafting.slot !== slot) {
-                                    const origem = arrasteCrafting.slot;
-                                    const destino = slot;
-                                    const salvarEstado = (el) => ({
-                                        html: el.innerHTML,
-                                        dataset: { ...el.dataset },
-                                        item: el._itemRef,
-                                        botao: el._origemBotaoCraft,
-                                        badge: el._origemBadgeCraft,
-                                        onclick: el.onclick
-                                    });
-                                    const estadoOrigem = salvarEstado(origem);
-                                    const estadoDestino = salvarEstado(destino);
-                                    const aplicarEstado = (el, estado) => {
-                                        el.innerHTML = estado.html;
-                                        ['ocupado', 'itemTipo', 'isXP', 'isSkillPoint'].forEach(chave => delete el.dataset[chave]);
-                                        Object.assign(el.dataset, estado.dataset);
-                                        el._itemRef = estado.item;
-                                        el._origemBotaoCraft = estado.botao;
-                                        el._origemBadgeCraft = estado.badge;
-                                        el.onclick = estado.onclick;
-                                    };
-                                    aplicarEstado(origem, estadoDestino);
-                                    aplicarEstado(destino, estadoOrigem);
-                                    atualizarResultadoCrafting();
+                                    arrasteCrafting = null;
+                                } else {
+                                    trocarConteudoSlotsCrafting(slotOrigem, slot);
                                 }
-                                arrasteCrafting = null;
+
+                                window._craftSlotEmArraste = null;
                             });
                         });
 
-                        inventarioContainer.addEventListener('dragover', (evento) => {
-                            if (arrasteCrafting?.origem !== 'slot') return;
+inventarioContainer.addEventListener('dragover', (evento) => {
                             evento.preventDefault();
                             evento.dataTransfer.dropEffect = 'move';
                         });
+
                         inventarioContainer.addEventListener('drop', (evento) => {
-                            if (arrasteCrafting?.origem !== 'slot') return;
                             evento.preventDefault();
                             evento.stopPropagation();
-                            arrasteCrafting.slot.onclick?.();
-                            arrasteCrafting = null;
+
+                            // Se o resultado está sendo arrastado, executa o crafting.
+                            if (arrasteCrafting?.origem === 'resultado') {
+                                executarCrafting();
+                                arrasteCrafting = null;
+                                return;
+                            }
+
+                            const slotOrigem = window._craftSlotEmArraste;
+                            if (!slotOrigem || !slotOrigem._itemRef) return;
+
+                            devolverItemDoSlotCrafting(slotOrigem);
+                            window._craftSlotEmArraste = null;
                         });
 
-                        // Soltar sobre o fundo escuro (fora do modal) descarta apenas
+// Soltar sobre o fundo escuro (fora do modal) descarta apenas
                         // itens físicos que vieram do cinto/colete. SP e scrap sintético
                         // não têm origem física e, portanto, não são descartados aqui.
                         overlay.addEventListener('dragover', (evento) => {
                             if (!arrasteCrafting || evento.target.closest('.interaction-modal')) return;
+
+                            const dentroDoPainel = evento.target.closest(
+                                '.player-inventory-for-crafting, #craft-slot-1, #craft-slot-2, #craft-result, #craft-result-slot, .craft-result'
+                            );
+
+                            if (dentroDoPainel) return;
+
                             evento.preventDefault();
                             evento.dataTransfer.dropEffect = 'move';
                         });
+
                         overlay.addEventListener('drop', (evento) => {
-                            if (!arrasteCrafting || evento.target.closest('.interaction-modal')) return;
+                            const dentroDoPainel = evento.target.closest(
+                                '.player-inventory-for-crafting, #craft-slot-1, #craft-slot-2, #craft-result, #craft-result-slot, .craft-result'
+                            );
+
+                            if (dentroDoPainel) return;
+
+                            const itemArrastado = overlay.querySelector('.crafting-inv-item.is-dragging');
+                            const item = itemArrastado?._craftItemRef;
+                            const origem = item?._craftOrigem;
+
+                            if (!origem || typeof window.droparItemArrastadoMochila !== 'function') return;
+
                             evento.preventDefault();
                             evento.stopPropagation();
 
-                            let item = null;
-                            let slotOrigem = null;
-                            if (arrasteCrafting.origem === 'inventario') {
-                                item = arrasteCrafting.item;
-                            } else {
-                                slotOrigem = arrasteCrafting.slot;
-                                item = slotOrigem?._itemRef;
-                            }
+                            const descartou = window.droparItemArrastadoMochila(origem);
 
-                            const referencia = item && origemCrafting.get(item);
-                            const podeDescartar = interactor === window.playerControle
-                                && referencia
-                                && typeof window.droparItemArrastadoMochila === 'function';
-                            if (podeDescartar && window.droparItemArrastadoMochila(referencia)) {
-                                if (slotOrigem) {
-                                    slotOrigem.innerHTML = '?';
-                                    ['ocupado', 'itemTipo', 'isXP', 'isSkillPoint'].forEach(chave => delete slotOrigem.dataset[chave]);
-                                    delete slotOrigem._itemRef;
-                                    delete slotOrigem._origemBotaoCraft;
-                                    delete slotOrigem._origemBadgeCraft;
-                                    slotOrigem.onclick = null;
-                                    atualizarResultadoCrafting();
-                                }
+                            if (descartou) {
                                 renderizarListaInventario();
                             }
+
                             arrasteCrafting = null;
                         });
 
-                        // Adiciona o evento de clique no resultado dinamicamente
-                        overlay.addEventListener('click', (e) => {
-                            const rBtn = e.target.closest('#craft-result, #craft-result-slot, .craft-result');
-                            if (rBtn && rBtn.dataset.podeCraftar === "true") {
-                                e.stopPropagation();
+                        const resultadoCrafting = overlay.querySelector('#craft-result, #craft-result-slot, .craft-result');
+                        if (resultadoCrafting) {
+                            // O resultado só pode ser arrastado quando há receita válida.
+                            resultadoCrafting.draggable = true;
+                            resultadoCrafting.addEventListener('dragstart', (evento) => {
+                                if (resultadoCrafting.dataset.podeCraftar !== 'true') {
+                                    evento.preventDefault();
+                                    return;
+                                }
+                                arrasteCrafting = { origem: 'resultado' };
+                                evento.dataTransfer.effectAllowed = 'move';
+                                evento.dataTransfer.setData('text/plain', 'crafting-result');
+                            });
+                            resultadoCrafting.addEventListener('dragend', () => {
+                                if (arrasteCrafting?.origem === 'resultado') arrasteCrafting = null;
+                            });
+                        }
+
+                        // Clique no resultado e drop do resultado usam a mesma ação.
+                        const executarCrafting = () => {
+                            const rBtn = resultadoCrafting;
+                            if (!rBtn || rBtn.dataset.podeCraftar !== 'true') return;
                                 
                                 // Verifica se as funções necessárias existem para evitar crash
                                 const removerItem = typeof window.removerItemDoCorpoSemDropar === 'function';
@@ -939,7 +1087,14 @@
                                 atualizarResultadoCrafting();
                                 renderizarListaInventario();
                                 window.AudioManager?.playSFX('recarga', 0.8);
-                            }
+                        };
+
+                        overlay.addEventListener('click', (e) => {
+                            const rBtn = e.target.closest('#craft-result, #craft-result-slot, .craft-result');
+                            if (!rBtn || rBtn.dataset.podeCraftar !== 'true') return;
+                            e.preventDefault();
+                            e.stopPropagation();
+                            executarCrafting();
                         });
 
                         renderizarListaInventario();
@@ -1104,13 +1259,27 @@
 
             const lowKey = event.key.toLowerCase();
 
-            if (event.key === 'ArrowRight' || event.key === 'ArrowDown' || lowKey === 'd' || lowKey === 's') {
+            if (event.key === 'ArrowDown' || lowKey === 's') {
+                event.preventDefault();
+                if (id === 'menu_crafting' && moverFocoVerticalCrafting(overlay, 1)) return;
+                moverFocoNavegacao(overlay, 1);
+                return;
+            }
+
+            if (event.key === 'ArrowUp' || lowKey === 'w') {
+                event.preventDefault();
+                if (id === 'menu_crafting' && moverFocoVerticalCrafting(overlay, -1)) return;
+                moverFocoNavegacao(overlay, -1);
+                return;
+            }
+
+            if (event.key === 'ArrowRight' || lowKey === 'd') {
                 event.preventDefault();
                 moverFocoNavegacao(overlay, 1);
                 return;
             }
 
-            if (event.key === 'ArrowLeft' || event.key === 'ArrowUp' || lowKey === 'a' || lowKey === 'w') {
+            if (event.key === 'ArrowLeft' || lowKey === 'a') {
                 event.preventDefault();
                 moverFocoNavegacao(overlay, -1);
                 return;
@@ -1139,7 +1308,16 @@
         };
         document.addEventListener('keydown', onKeyDownAtual);
 
-        const focoInicial = overlay.querySelector('[data-primary-action]') || obterElementosNavegaveis(overlay)[0];
+        const focoInicial = id === 'menu_crafting'
+            ? (
+                overlay.querySelector('.player-inventory-for-crafting .crafting-inv-item:not(.is-disabled)') ||
+                overlay.querySelector('#craft-slot-1') ||
+                overlay.querySelector('#craft-result-slot')
+            )
+            : (
+                overlay.querySelector('[data-primary-action]') ||
+                obterElementosNavegaveis(overlay)[0]
+            );
         if (focoInicial?.focus) {
             requestAnimationFrame(() => focoInicial.focus());
         }

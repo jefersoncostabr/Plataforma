@@ -278,6 +278,15 @@
     box-shadow: 0 0 0 3px rgba(72, 209, 204, 0.24);
 }
 
+/* Foco visível para navegação por teclado no menu de crafting. */
+.interaction-content--crafting .crafting-inv-item:focus-visible,
+.interaction-content--crafting .crafting-slot:focus-visible {
+    outline: 3px solid #48d1cc;
+    outline-offset: 3px;
+    box-shadow: 0 0 12px rgba(72, 209, 204, 0.75);
+    z-index: 2;
+}
+
 .base-saved-list {
     display: flex;
     align-items: center;
