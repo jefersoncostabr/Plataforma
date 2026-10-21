@@ -8,6 +8,26 @@
     let cheatMenuBtns = [];
     let cheatMenuPhaseInput = null;
     let cheatMenuPhaseFeedback = null;
+    let fundoEscuroCheatAtivo = false;
+    let corFundoOriginalCheat = null;
+
+    // Alterna temporariamente a cor do céu para facilitar a inspeção do halo
+    // Tiffany dos coletáveis. Restaura o valor inline anterior ao desativar.
+    function alternarFundoEscuroCheat() {
+        const container = document.getElementById('jogo-container');
+        if (!container) return false;
+
+        if (!fundoEscuroCheatAtivo) {
+            corFundoOriginalCheat = container.style.backgroundColor;
+            container.style.backgroundColor = '#18212b';
+            fundoEscuroCheatAtivo = true;
+        } else {
+            container.style.backgroundColor = corFundoOriginalCheat || '';
+            corFundoOriginalCheat = null;
+            fundoEscuroCheatAtivo = false;
+        }
+        return true;
+    }
 
     // Utilitário: verifica se todos do combo estão pressionados
     function comboAtivo() {
@@ -407,6 +427,7 @@
             { label: 'SPAWN ROBÔ', action: () => spawnInimigoCheat('robo'), closeOnClick: true },
             { label: 'SPAWN HUMANO', action: () => spawnInimigoCheat('humano'), closeOnClick: true },
             { label: `VOO INFINITO: ${window.playerControle?.vooInfinitoCheat ? 'DESATIVAR' : 'ATIVAR'}`, action: () => window.alternarVooInfinitoTeste?.(), closeOnClick: true },
+            { label: `FUNDO ESCURO: ${fundoEscuroCheatAtivo ? 'DESATIVAR' : 'ATIVAR'}`, action: alternarFundoEscuroCheat, closeOnClick: true },
             { label: 'MATAR INIMIGOS', action: () => { if(window.inimigos && window.removerInimigoDerrotado) { for(const i of window.inimigos) window.removerInimigoDerrotado(i); } }, closeOnClick: true },
             { label: 'RESET SKILLS', action: () => { window.playerSkills?.resetarSkills?.(); window.playerXP=0; window.salvarProgressoSkills?.(); }, closeOnClick: true },
             { label: 'APAGAR SAVE', action: () => window.apagarBasePersistidaDev?.(), closeOnClick: true },

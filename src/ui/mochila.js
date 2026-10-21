@@ -316,8 +316,7 @@
             slotEl.style.position = 'relative'; // Garante posicionamento do badge
             slotEl.innerHTML = `
                 ${badgeStack}${badgePlus}
-                ${info.sprite ? `<img src="${info.sprite}" alt="${info.titulo}" style="width: 28px; height: 28px; image-rendering: pixelated; margin-bottom: 6px;">` : ''}
-                <div style="font-size: 11px; font-weight: bold; letter-spacing: 1px; color: #f2f2f2; text-transform: uppercase; text-align: center;">${info.titulo}</div>
+                ${info.sprite ? `<img src="${info.sprite}" alt="${info.titulo}" style="width: 56px; height: 56px; image-rendering: pixelated; margin-bottom: 6px; filter: drop-shadow(0 0 12px rgba(72, 209, 204, 0.9));">` : ''}
                 <div style="font-size: 10px; color: ${info.cor}; margin-top: 6px; text-align: center;">${info.subtitulo}</div>
                 <div style="font-size: 9px; color: #a8a8a8; margin-top: 4px; text-align: center;">${info.dica}</div>
             `;
@@ -343,8 +342,7 @@
             slotEl.style.position = 'relative';
             slotEl.innerHTML = `
                 ${badgeStack}${badgePlus}
-                ${info.sprite ? `<img src="${info.sprite}" alt="${info.titulo}" style="width: 30px; height: 30px; image-rendering: pixelated; margin-bottom: 6px;">` : ''}
-                <div style="font-size: 12px; font-weight: bold; letter-spacing: 1px; color: #f2f2f2; text-transform: uppercase; text-align: center;">${info.titulo}</div>
+                ${info.sprite ? `<img src="${info.sprite}" alt="${info.titulo}" style="width: 60px; height: 60px; image-rendering: pixelated; margin-bottom: 6px; filter: drop-shadow(0 0 12px rgba(72, 209, 204, 0.9));">` : ''}
                 <div style="font-size: 11px; color: ${info.cor}; margin-top: 8px; text-align: center;">${info.subtitulo}</div>
                 <div style="font-size: 10px; color: #a8a8a8; margin-top: 6px; text-align: center;">${info.dica}</div>
             `;
@@ -377,7 +375,7 @@
         const imagem = document.createElement('img');
         imagem.src = titulo.sprite;
         imagem.alt = titulo.nome;
-        imagem.style.cssText = 'width: 52px; height: 40px; object-fit: contain; image-rendering: pixelated;';
+        imagem.style.cssText = 'width: 104px; height: 80px; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 0 12px rgba(72, 209, 204, 0.9));';
         el.appendChild(imagem);
         return el;
     }

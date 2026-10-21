@@ -237,16 +237,31 @@ window.criarItemColetavel = function(itemData, x, y, extras = {}) {
         return itemCapsula;
     }
 
+    // const itemImg = document.createElement('img');
+    // itemImg.src = itemData.spriteColetavel;
+    // itemImg.style.position = 'absolute';
+    // itemImg.style.width = '32px'; // Assumindo tamanho padrão de tile
+    // itemImg.style.height = '32px'; // Assumindo tamanho padrão de tile
+    // itemImg.style.left = x + 'px';
+    // itemImg.style.bottom = y + 'px';
+    // itemImg.style.zIndex = String(itemData.zIndex ?? 5); // Z-index padrão, pode ser sobrescrito
+    // itemImg.style.imageRendering = 'pixelated';
+    // itemImg.style.pointerEvents = 'none'; // Itens não devem bloquear eventos do mouse
+
     const itemImg = document.createElement('img');
     itemImg.src = itemData.spriteColetavel;
     itemImg.style.position = 'absolute';
-    itemImg.style.width = '32px'; // Assumindo tamanho padrão de tile
-    itemImg.style.height = '32px'; // Assumindo tamanho padrão de tile
+    itemImg.style.width = '32px'; // Tamanho padrão do tile
+    itemImg.style.height = '32px';
     itemImg.style.left = x + 'px';
     itemImg.style.bottom = y + 'px';
-    itemImg.style.zIndex = String(itemData.zIndex ?? 5); // Z-index padrão, pode ser sobrescrito
+    itemImg.style.zIndex = String(itemData.zIndex ?? 5);
     itemImg.style.imageRendering = 'pixelated';
-    itemImg.style.pointerEvents = 'none'; // Itens não devem bloquear eventos do mouse
+    itemImg.style.pointerEvents = 'none';
+
+    // Realça a silhueta do sprite com um halo Tiffany para destacar coletáveis
+    // sobre fundos claros. O drop-shadow respeita a transparência do PNG.
+    itemImg.style.filter = 'drop-shadow(0 0 12px rgba(72, 209, 204, 0.9))';
 
     // Adiciona ao layer de itens, se disponível, ou diretamente ao body/game-stage
     if (window.LAYERS && window.LAYERS.ITENS && typeof adicionarAoLayer === 'function') {
