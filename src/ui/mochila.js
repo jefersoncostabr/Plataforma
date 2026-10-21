@@ -293,11 +293,9 @@
 
         if (referencia.area === 'corpo') {
             // A referência pode chegar como índice da célula ou já normalizada
-            // como tipo. Aceitar ambos evita cancelar o dragstart ao validar a origem.
+            // como tipo. Uma célula vazia também é um destino válido para equipar.
             const tipo = referencia.tipo || cintoLinhaAtual[referencia.indice]?.item?.tipo;
-            return tipo
-                ? { area: 'corpo', tipo }
-                : null;
+            return { area: 'corpo', tipo: tipo || null, indice: referencia.indice };
         }
 
         return referencia;

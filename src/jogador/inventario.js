@@ -1331,6 +1331,34 @@
             if (referenciaArmazenamento.area === 'cinto' && referenciaArmazenamento.indice !== 3) return false;
 
             const tipoCorpo = equipamentoCorpo.tipo;
+
+            // Arrastar um item guardado para uma célula corporal vazia equipa-o
+            // sem retirar outro item. Não permite duplicar categoria já ativa.
+            if (!origemEhCorpo && destinoEhCorpo && !tipoCorpo) {
+                const itemArmazenado = lerSlotArmazenamentoMochila(referenciaArmazenamento);
+                const tipoArmazenado = normalizarTipoArmaDoSlot(itemArmazenado);
+                const categoriaArmazenada = categoriaEquipamentoMochila(tipoArmazenado);
+
+                if (
+                    !categoriaArmazenada
+                    || !itemPodeIrParaColete(tipoArmazenado)
+                    || itemJaAtivoNoCorpo(tipoArmazenado)
+                    || !precisaDeItemAgora(tipoArmazenado)
+                ) {
+                    return false;
+                }
+
+                const itemData = window.itemDefinitions?.[tipoArmazenado] || null;
+                if (!aplicarItemNoCorpo(tipoArmazenado, itemData, itemArmazenado.dados || {})) {
+                    return false;
+                }
+
+                gravarSlotArmazenamentoMochila(referenciaArmazenamento, null);
+                salvarInventario();
+                atualizarMochilaUI();
+                return true;
+            }
+
             const categoriaCorpo = categoriaEquipamentoMochila(tipoCorpo);
 
             if (!tipoCorpo || !categoriaCorpo || !itemJaAtivoNoCorpo(tipoCorpo)) return false;
