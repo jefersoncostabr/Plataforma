@@ -71,8 +71,13 @@
 
         function processarEntradaChute(inimigos = window.inimigos) {
             // Ataque combinado: baixo + chute (verificado antes do cancelamento por agachar)
-            if (acaoAtiva('baixo') && acaoAtiva('chute') && (controle.cooldownChute || 0) === 0) {
+            const agoraMs = (typeof performance !== 'undefined' && typeof performance.now === 'function') ? performance.now() : Date.now();
+            if (acaoAtiva('baixo') && acaoAtiva('chute') && (controle.cooldownChute || 0) === 0 && !controle.chuteDuploAtivo && !(controle.chuteDuploCooldownAte && agoraMs < controle.chuteDuploCooldownAte)) {
                 console.log('[ATAQUE] Novo ataque (baixo + chute) ativado');
+                controle.estaAgachado = false;
+                controle.chuteDuploAtivo = true;
+                controle.sequenciaChuteDuplo = true;
+                controle.chuteDuploCooldownAte = agoraMs + 800;
                 return iniciarChute(inimigos);
             }
 
@@ -188,6 +193,23 @@
 
             if ((controle.tempoChute || 0) > 0) {
                 controle.tempoChute--;
+            }
+
+            // Sequência: após o chute normal, inicia chute para o lado contrário
+            if ((controle.tempoChute || 0) === 0 && controle.sequenciaChuteDuplo) {
+                controle.sequenciaChuteDuplo = false;
+                controle.estaAgachado = false;
+                controle.direcao = controle.direcao === 'd' ? 'e' : 'd';
+                iniciarChute(window.inimigos);
+                // libera novo gatilho após o segundo chute terminar
+                const liberar = () => {
+                    if ((controle.tempoChute || 0) === 0) {
+                        controle.chuteDuploAtivo = false;
+                    } else {
+                        requestAnimationFrame(liberar);
+                    }
+                };
+                requestAnimationFrame(liberar);
             }
 
             atualizarEstadoChute();
