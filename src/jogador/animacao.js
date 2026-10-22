@@ -217,7 +217,8 @@ const __debugIdle = false;
 
     // No Runner, mantém os frames de corrida também durante o salto.
     const runnerAtivo = !!window.faseAtualData?.modoRunner;
-    if (runnerAtivo || (controle.movendoHorizontal && controle.noChao)) {
+    const ehPet = controle?.tipo === 'cao' || controle?.tipo === 'gato';
+    if (runnerAtivo || (controle.movendoHorizontal && (controle.noChao || ehPet))) {
         resetIdleTimers();
         controle.contadorAnimacao++;
 
@@ -239,7 +240,7 @@ const __debugIdle = false;
         controle.contadorAnimacao = 0;
         controle.frameAtual = 0;
     } else {
-        if (desativarRespiracaoOciosaPet) {
+        if (desativarRespiracaoOciosaPet && !controle.movendoHorizontal) {
             resetIdleTimers();
             definirSpriteSeValido(elemento, spriteParado);
             controle.contadorAnimacao = 0;
