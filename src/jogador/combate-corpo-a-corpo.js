@@ -76,7 +76,7 @@
                 console.log('[ATAQUE] Novo ataque (baixo + chute) ativado');
                 controle.estaAgachado = false;
                 controle.chuteDuploAtivo = true;
-                controle.sequenciaChuteDuplo = true;
+                controle.chutesRestantes = 2;
                 controle.chuteDuploCooldownAte = agoraMs + 800;
                 return iniciarChute(inimigos);
             }
@@ -195,21 +195,17 @@
                 controle.tempoChute--;
             }
 
-            // Sequência: após o chute normal, inicia chute para o lado contrário
-            if ((controle.tempoChute || 0) === 0 && controle.sequenciaChuteDuplo) {
-                controle.sequenciaChuteDuplo = false;
+            // Sequência de 3 chutes: normal, oposto, normal
+            if ((controle.tempoChute || 0) === 0 && (controle.chutesRestantes || 0) > 0) {
+                controle.chutesRestantes--;
                 controle.estaAgachado = false;
                 controle.direcao = controle.direcao === 'd' ? 'e' : 'd';
                 iniciarChute(window.inimigos);
-                // libera novo gatilho após o segundo chute terminar
-                const liberar = () => {
-                    if ((controle.tempoChute || 0) === 0) {
-                        controle.chuteDuploAtivo = false;
-                    } else {
-                        requestAnimationFrame(liberar);
-                    }
-                };
-                requestAnimationFrame(liberar);
+            }
+
+            // Finaliza sequência após o último chute
+            if ((controle.tempoChute || 0) === 0 && controle.chuteDuploAtivo && (controle.chutesRestantes || 0) === 0) {
+                controle.chuteDuploAtivo = false;
             }
 
             atualizarEstadoChute();
