@@ -500,6 +500,78 @@
             "x": 992,
             "y": 352,
             "escala": 1
+        },
+        {
+            "idSprite": "canto3.png",
+            "x": 0,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto4.png",
+            "x": 1152,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto4.png",
+            "x": 1184,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto4.png",
+            "x": 1216,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto4.png",
+            "x": 1248,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1184,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1216,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1248,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1248,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1216,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1248,
+            "y": 288,
+            "escala": 1
+        },
+        {
+            "idSprite": "meia_pedra.png",
+            "x": 1120,
+            "y": 416,
+            "escala": 1
         }
     ],
     "posicaoAlavanca": "",
@@ -522,8 +594,13 @@
             "g18"
         ]
     },
-    "inimigoAleatorio": [0, 0],
-    "humanoAleatorio": [1],
+    "inimigoAleatorio": [
+        0,
+        0
+    ],
+    "humanoAleatorio": [
+        1
+    ],
     "plataformas": [
         "a1",
         {

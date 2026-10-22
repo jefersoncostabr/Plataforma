@@ -21,8 +21,13 @@
         "municao_plus": "n1",
         "cinto": "m23"
     },
-    "inimigoAleatorio": [0, 0],
-    "humanoAleatorio": [1],
+    "inimigoAleatorio": [
+        0,
+        0
+    ],
+    "humanoAleatorio": [
+        1
+    ],
     "plataformas": [
         "a1",
         {
@@ -373,6 +378,42 @@
             "idSprite": "meia_pedra.png",
             "x": 1088,
             "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 224,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 256,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto3.png",
+            "x": 32,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto3.png",
+            "x": 0,
+            "y": 320,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 0,
+            "y": 352,
             "escala": 1
         }
     ]

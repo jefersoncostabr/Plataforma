@@ -29,7 +29,11 @@
         "a1",
         {
             "coord": "b21",
-            "type": "plataforma"
+            "type": "plataformaCanto"
+        },
+        {
+            "coord": "b22",
+            "type": "plataformaGramaVertical"
         },
         {
             "coord": "c3",
@@ -37,7 +41,15 @@
         },
         {
             "coord": "c22",
-            "type": "plataforma"
+            "type": "plataformaCanto"
+        },
+        {
+            "coord": "c23",
+            "type": "plataformaGramaVertical"
+        },
+        {
+            "coord": "c31",
+            "type": "plataformaVertical2"
         },
         {
             "coord": "c32",
@@ -61,11 +73,19 @@
         },
         {
             "coord": "d2",
-            "type": "plataforma"
+            "type": "plataformaVertical2"
         },
         {
             "coord": "d23",
-            "type": "plataforma"
+            "type": "plataformaCanto"
+        },
+        {
+            "coord": "d24",
+            "type": "plataformaGramaVertical"
+        },
+        {
+            "coord": "d29",
+            "type": "plataformaVertical2"
         },
         {
             "coord": "d30",
@@ -73,15 +93,19 @@
         },
         {
             "coord": "d31",
-            "type": "plataforma"
+            "type": "plataformaCanto2"
+        },
+        {
+            "coord": "e1",
+            "type": "plataformaVertical2"
         },
         {
             "coord": "e2",
-            "type": "plataforma"
+            "type": "plataformaCanto2"
         },
         {
             "coord": "e24",
-            "type": "plataforma"
+            "type": "plataformaCanto"
         },
         {
             "coord": "e25",
@@ -93,11 +117,11 @@
         },
         {
             "coord": "e29",
-            "type": "plataforma"
+            "type": "plataformaCanto2"
         },
         {
             "coord": "f1",
-            "type": "plataforma"
+            "type": "plataformaCanto2"
         },
         "a2",
         "a3",
@@ -153,5 +177,228 @@
         "d3",
         "f24",
         "f25"
+    ],
+    "plataformasArbustoFrente": [
+        "b12",
+        "b17",
+        "b36"
+    ],
+    "fundoFrente": [
+        {
+            "idSprite": "meia_pedra.png",
+            "x": 608,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil3.png",
+            "x": 32,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequeno.png",
+            "x": 992,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequeno.png",
+            "x": 1056,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequeno.png",
+            "x": 1216,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 0,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 0,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 0,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 32,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 32,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil2.png",
+            "x": 64,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil2.png",
+            "x": 1088,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil_pilar.png",
+            "x": 1216,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1056,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1024,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 992,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 960,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 928,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 928,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 896,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 896,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 800,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 736,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto.png",
+            "x": 832,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto2.png",
+            "x": 800,
+            "y": 96,
+            "escala": 1
+        }
     ]
 }

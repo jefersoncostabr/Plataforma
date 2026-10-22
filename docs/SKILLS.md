@@ -96,8 +96,9 @@ Guia pratico para usar as Skills do personagem: **o que fazer**, **quais botoes/
 - **Dependência:** **Vida**.
 
 ### Adestramento
-- **Como usa:** Pressione **Q** próximo a um Pet agachado.
-- **Efeito:** Permite assumir o controle manual do Cão ou Gato aliado.
+- **Como usa:** Agache-se, encoste em um Cão ou Gato aliado e pressione **Q** para assumir o controle.
+- **Para voltar ao jogador:** Pressione **Q** duas vezes rapidamente enquanto controla o pet.
+- **Efeito:** Permite controlar manualmente o Cão ou Gato aliado.
 - **Dependência:** **Vida**.
 
 ### Vender

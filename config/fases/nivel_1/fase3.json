@@ -58,18 +58,6 @@
             "escala": 1
         },
         {
-            "idSprite": "funil.png",
-            "x": 1056,
-            "y": 128,
-            "escala": 1
-        },
-        {
-            "idSprite": "borda.png",
-            "x": 1056,
-            "y": 96,
-            "escala": 1
-        },
-        {
             "idSprite": "borda.png",
             "x": 1056,
             "y": 64,
@@ -397,6 +385,36 @@
             "idSprite": "canto3.png",
             "x": 1184,
             "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1056,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil.png",
+            "x": 1056,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto4.png",
+            "x": 1024,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto3.png",
+            "x": 32,
+            "y": 352,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto.png",
+            "x": 0,
+            "y": 352,
             "escala": 1
         }
     ],

@@ -27,7 +27,7 @@
     "descricoes": {
         "Vida": "Aumenta a vida máxima do jogador em 1 ponto.",
         "Atirador": "Aumenta o dano de cada projétil em 1 ponto.",
-        "Adestramento": "Libera o controle manual dos pets.",
+        "Adestramento": "Agache-se e encoste em um Cão ou Gato aliado; pressione Q para assumir o controle. Enquanto controla o pet, pressione Q duas vezes rapidamente para voltar ao jogador.",
         "Saltitar": "Segure o botão de pulo ao tocar o chão para saltar repetidamente.",
         "Slide": "Libera o movimento de deslizar enquanto estiver agachado.",
         "kickboxing": "Reduz o tempo de espera entre chutes.",
