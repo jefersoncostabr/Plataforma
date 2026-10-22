@@ -1,8 +1,8 @@
 {
-    "proporcao": "1x1",
+    "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
     "posicaoInicialBB": "",
-    "objetivo": "f19",
+    "objetivo": "f39",
     "posicaoAlavanca": "",
     "posicaoRoboDesativado": "",
     "posicaoRoboAberto": "",
@@ -12,6 +12,9 @@
     "posicaoCachorro": "",
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
+    "itens": {
+        "restauracao": "b40"
+    },
     "inimigoAleatorio": [
         1,
         0
@@ -24,5 +27,153 @@
     ],
     "faseBonus": false,
     "qualBonus": 0,
-    "nivelBonus": "a"
+    "nivelBonus": "a",
+    "plataformas": [
+        "a1",
+        {
+            "coord": "a28",
+            "type": "plataforma"
+        },
+        {
+            "coord": "b10",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "b16",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "b22",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "b25",
+            "type": "plataformaGramaPico"
+        },
+        {
+            "coord": "b28",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "c10",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "c16",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "c22",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "c28",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "d28",
+            "type": "plataformaGramaPico"
+        },
+        {
+            "coord": "e13",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "e19",
+            "type": "plataformaMuroTerra"
+        },
+        {
+            "coord": "f13",
+            "type": "plataformaGramaPico"
+        },
+        {
+            "coord": "f19",
+            "type": "plataformaGramaPico"
+        },
+        {
+            "coord": "f25",
+            "type": "plataformaGramaPico"
+        },
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8",
+        "a9",
+        "a10",
+        "a11",
+        "a12",
+        "a13",
+        "a14",
+        "a15",
+        "a16",
+        "a17",
+        "a18",
+        "a19",
+        "a20",
+        "a21",
+        "a22",
+        "a23",
+        "a24",
+        "a25",
+        "a26",
+        "a27",
+        "a29",
+        "a30",
+        "a31",
+        "a32",
+        "a33",
+        "a34",
+        "a35",
+        "a36",
+        "a37",
+        "a38",
+        "a39",
+        "a40"
+    ],
+    "plataformasTerraSuperior": [
+        "b7",
+        "b13",
+        "b19",
+        "e32",
+        "e36",
+        "l11",
+        "l12",
+        "l13",
+        "l14",
+        "l15",
+        "l16",
+        "l17",
+        "l18",
+        "l19",
+        "l20",
+        "l21",
+        "l22"
+    ],
+    "plataformasTerraPico": [
+        "d10",
+        "d16",
+        "d22"
+    ],
+    "plataformasEstacaSup": [
+        "b39"
+    ],
+    "plataformasGramaPico5": [
+        "d13",
+        "d19"
+    ],
+    "plataformasTerraPicoInvertido": [
+        "e25"
+    ],
+    "plataformasPedra": [
+        "m16"
+    ],
+    "plataformasArbustoFrente": [
+        "b11",
+        "b17",
+        "b23",
+        "b29"
+    ]
 }
