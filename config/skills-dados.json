@@ -22,7 +22,8 @@
         "Precisão": "Dash",
         "SuperDash": "Dash",
         "Garra": "Dash",
-        "Garra 2": "Garra"
+        "Garra 2": "Garra",
+        "Tatsumaki Senpukyaku": "Saltitar"
     },
     "descricoes": {
         "Vida": "Aumenta a vida máxima do jogador em 1 ponto.",
@@ -42,6 +43,7 @@
         "Precisão": "Aumenta o dano do projétil em 1 ponto, acumulando com Atirador.",
         "SuperDash": "O Dash atordoa os inimigos atingidos durante o avanço.",
         "Garra": "Puxa o próprio personagem, passagem por espaços estreitos.",
-        "Garra 2": "Segure o comando da garra para prender e eletrocutar inimigos agarrados."
+        "Garra 2": "Segure o comando da garra para prender e eletrocutar inimigos agarrados.",
+        "Tatsumaki Senpukyaku": "Baixo + Chute executa três chutes alternando de lado."
     }
 }

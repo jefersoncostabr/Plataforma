@@ -46,6 +46,7 @@ window.SKILLS = Object.freeze({
     SUPERDASH: 'SuperDash',
     ADESTRAMENTO: 'Adestramento',
     SALTITAR: 'Saltitar',
+    TATSUMAKI_SENPUKYAKU: 'Tatsumaki Senpukyaku',
     GARRA: 'Garra',
     GARRA2: 'Garra 2'
 });

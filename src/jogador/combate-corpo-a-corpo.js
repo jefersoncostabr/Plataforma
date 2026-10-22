@@ -72,13 +72,16 @@
         function processarEntradaChute(inimigos = window.inimigos) {
             // Ataque combinado: baixo + chute (verificado antes do cancelamento por agachar)
             const agoraMs = (typeof performance !== 'undefined' && typeof performance.now === 'function') ? performance.now() : Date.now();
-            if (acaoAtiva('baixo') && acaoAtiva('chute') && (controle.cooldownChute || 0) === 0 && !controle.chuteDuploAtivo && !(controle.chuteDuploCooldownAte && agoraMs < controle.chuteDuploCooldownAte)) {
+            const temTatsumaki = Array.isArray(window.playerSkills) && window.playerSkills.includes('Tatsumaki Senpukyaku');
+            if (temTatsumaki && acaoAtiva('baixo') && acaoAtiva('chute') && (controle.cooldownChute || 0) === 0 && !controle.chuteDuploAtivo && !(controle.chuteDuploCooldownAte && agoraMs < controle.chuteDuploCooldownAte)) {
                 console.log('[ATAQUE] Novo ataque (baixo + chute) ativado');
                 controle.estaAgachado = false;
                 controle.chuteDuploAtivo = true;
                 controle.chutesRestantes = 2;
                 controle.chuteDuploCooldownAte = agoraMs + 800;
-                return iniciarChute(inimigos);
+                iniciarChute(inimigos);
+                controle.tempoChute = Math.max(1, Math.round((controle.tempoChute || 0) * 0.3));
+                return true;
             }
 
             if (controle.estaAgachado) {
@@ -201,6 +204,7 @@
                 controle.estaAgachado = false;
                 controle.direcao = controle.direcao === 'd' ? 'e' : 'd';
                 iniciarChute(window.inimigos);
+                controle.tempoChute = Math.max(1, Math.round((controle.tempoChute || 0) * 0.5));
             }
 
             // Finaliza sequência após o último chute
