@@ -38,7 +38,6 @@
 
         let saveServerUrl = SAVE_SERVER_CANDIDATES[0] || 'http://127.0.0.1:3210';
         let arquivoFaseAtual = '';
-        let handleArquivoAtual = null;
         let autoSaveTimeoutId = null;
         let ultimoJSONSalvo = '';
         let servidorLocalDisponivel = null;
@@ -175,7 +174,6 @@
             const arquivoNormalizado = String(arquivo || '').trim();
             if (arquivoNormalizado !== arquivoFaseAtual) {
                 arquivoFaseAtual = arquivoNormalizado;
-                handleArquivoAtual = null;
                 ultimoJSONSalvo = '';
             }
 
@@ -190,68 +188,6 @@
             return arquivoFaseAtual;
         }
 
-        function suportaSalvamentoNativo() {
-            return typeof window.showSaveFilePicker === 'function' || typeof window.showOpenFilePicker === 'function';
-        }
-
-        async function vincularArquivoAtual() {
-            if (!arquivoFaseAtual) {
-                alert('Carregue uma fase antes de ativar o auto-save.');
-                return null;
-            }
-
-            const servidorAtivo = await verificarServidorLocal(true);
-            if (servidorAtivo) {
-                atualizarStatus(`auto-save local ativo para ${arquivoFaseAtual}.`, 'success');
-                return { tipo: 'server', arquivo: arquivoFaseAtual };
-            }
-
-            if (!suportaSalvamentoNativo()) {
-                atualizarStatus('serviço local indisponível; usando rascunho no navegador.', 'warning');
-                alert('O serviço local de auto-save não está ativo ainda. O editor seguirá com rascunho no navegador até o serviço ser iniciado.');
-                return null;
-            }
-
-            const pickerOptions = {
-                suggestedName: arquivoFaseAtual,
-                excludeAcceptAllOption: false,
-                types: [{
-                    description: 'Arquivo JSON da fase',
-                    accept: { 'application/json': ['.json'] }
-                }]
-            };
-
-            try {
-                atualizarStatus('vinculando arquivo para auto-save...', 'info');
-
-                if (typeof window.showSaveFilePicker === 'function') {
-                    handleArquivoAtual = await window.showSaveFilePicker(pickerOptions);
-                } else {
-                    const handles = await window.showOpenFilePicker({
-                        multiple: false,
-                        types: pickerOptions.types
-                    });
-                    handleArquivoAtual = handles?.[0] || null;
-                }
-
-                if (handleArquivoAtual) {
-                    arquivoFaseAtual = handleArquivoAtual.name || arquivoFaseAtual;
-                    atualizarStatus(`arquivo vinculado: ${arquivoFaseAtual}`, 'success');
-                }
-
-                return handleArquivoAtual;
-            } catch (erro) {
-                if (erro?.name === 'AbortError') {
-                    atualizarStatus('vinculação cancelada.', 'warning');
-                    return null;
-                }
-
-                atualizarStatus('erro ao vincular arquivo.', 'error');
-                alert('Não foi possível vincular o arquivo para auto-save.\n' + erro.message);
-                return null;
-            }
-        }
-
         function salvarRascunhoLocal(jsonStr) {
             const chave = arquivoFaseAtual ? `editor-fase-autosave:${arquivoFaseAtual}` : 'editor-fase-autosave:rascunho';
             try {
@@ -260,17 +196,6 @@
             } catch (erro) {
                 atualizarStatus('não foi possível salvar o rascunho local.', 'error');
             }
-        }
-
-        async function salvarEmArquivo(jsonStr) {
-            if (!handleArquivoAtual) return false;
-
-            const writable = await handleArquivoAtual.createWritable();
-            await writable.write(jsonStr);
-            await writable.close();
-            ultimoJSONSalvo = jsonStr;
-            atualizarStatus(`salvo automaticamente em ${arquivoFaseAtual || handleArquivoAtual.name}.`, 'success');
-            return true;
         }
 
         async function salvarAutomaticamenteAgora() {
@@ -291,16 +216,6 @@
                         saved: true,
                         mode: 'server',
                         arquivo: arquivoFaseAtual
-                    };
-                }
-
-                if (arquivoFaseAtual && handleArquivoAtual) {
-                    atualizarStatus('salvando alterações...', 'info');
-                    await salvarEmArquivo(jsonStr);
-                    return {
-                        saved: true,
-                        mode: 'file',
-                        arquivo: arquivoFaseAtual || handleArquivoAtual.name || ''
                     };
                 }
 
@@ -338,10 +253,8 @@
             definirArquivoFaseAtual,
             setArquivoFaseAtual: definirArquivoFaseAtual,
             getArquivoFaseAtual,
-            vincularArquivoAtual,
             salvarAutomaticamenteAgora,
-            agendarAutoSave,
-            suportaSalvamentoNativo
+            agendarAutoSave
         };
     }
 

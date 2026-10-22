@@ -82,7 +82,6 @@
             carregarJSONTexto,
             setArquivoFaseAtual: (arquivo) => exportador?.setArquivoFaseAtual?.(arquivo),
             getArquivoFaseAtual: () => exportador?.getArquivoFaseAtual?.() || '',
-            vincularArquivoAtual: () => exportador?.vincularArquivoAtual?.(),
             salvarAutomaticamenteAgora: () => exportador?.salvarAutomaticamenteAgora?.(),
             agendarAutoSave: (delay) => exportador?.agendarAutoSave?.(delay)
         };

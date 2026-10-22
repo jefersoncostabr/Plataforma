@@ -31,6 +31,7 @@
         let fillBottomCheckbox = null;
         let funcaoDetectarFases = null; // Referência interna
         let blockTypeSelect = null;
+        let arquivosFasesDetectados = [];
 
         function configurarPaleta() {
             const items = palette.querySelectorAll('.palette-item');
@@ -647,6 +648,7 @@
             };
 
             const renderizarListaFases = (arquivos = []) => {
+                arquivosFasesDetectados = [...arquivos];
                 phaseList.innerHTML = '';
 
                 if (arquivos.length === 0) {
@@ -654,33 +656,65 @@
                     return [];
                 }
 
-                    // Agrupar por pastas
-                const grupos = {};
-                arquivos.forEach(arq => {
-                    const pasta = arq.includes('/') ? arq.split('/')[0] : 'Raiz';
-                    if (!grupos[pasta]) grupos[pasta] = [];
-                    grupos[pasta].push(arq);
-                });
+                    // Agrupar as fases por pasta
+const grupos = {};
 
-                Object.keys(grupos).sort().forEach(grupo => {
-                    const header = document.createElement('div');
-                    header.className = 'phase-group-header';
-                    header.textContent = grupo.toUpperCase().replace('_', ' ');
-                    header.style.cssText = "padding: 5px; background: #333; color: #eee; font-size: 10px; margin-top: 5px;";
-                    phaseList.appendChild(header);
+arquivos.forEach((arquivo) => {
+    const pasta = arquivo.includes('/')
+        ? arquivo.split('/')[0]
+        : 'Raiz';
 
-                    grupos[grupo].forEach((arquivo) => {
-                    const botao = document.createElement('button');
-                    botao.type = 'button';
-                    botao.className = 'phase-entry';
-                    botao.dataset.phaseFile = arquivo;
-                    botao.textContent = formatarNome(arquivo);
-                    botao.onclick = () => carregarFaseArquivo(arquivo);
-                    phaseList.appendChild(botao);
-                    });
-                });
+    if (!grupos[pasta]) {
+        grupos[pasta] = [];
+    }
 
-                return arquivos;
+    grupos[pasta].push(arquivo);
+});
+
+Object.keys(grupos).sort().forEach((grupo) => {
+    grupos[grupo].sort((a, b) => a.localeCompare(b, 'pt-BR', {
+        numeric: true,
+        sensitivity: 'base'
+    }));
+
+    const secao = document.createElement('div');
+
+    const botaoNivel = document.createElement('button');
+    botaoNivel.type = 'button';
+    botaoNivel.className = 'phase-group-header';
+    botaoNivel.textContent = grupo.toUpperCase().replace('_', ' ');
+    botaoNivel.setAttribute('aria-expanded', 'false');
+    botaoNivel.style.cssText =
+        'width:100%; padding:8px; background:#333; color:#eee; ' +
+        'font-size:12px; text-align:left; margin:5px 0 0 0;';
+
+    const listaDoNivel = document.createElement('div');
+    listaDoNivel.style.display = 'none';
+
+    grupos[grupo].forEach((arquivo) => {
+        const botaoFase = document.createElement('button');
+        botaoFase.type = 'button';
+        botaoFase.className = 'phase-entry';
+        botaoFase.dataset.phaseFile = arquivo;
+        botaoFase.textContent = formatarNome(arquivo);
+        botaoFase.onclick = () => carregarFaseArquivo(arquivo);
+
+        listaDoNivel.appendChild(botaoFase);
+    });
+
+    botaoNivel.onclick = () => {
+        const estaAberto = listaDoNivel.style.display !== 'none';
+
+        listaDoNivel.style.display = estaAberto ? 'none' : 'block';
+        botaoNivel.setAttribute('aria-expanded', String(!estaAberto));
+    };
+
+    secao.appendChild(botaoNivel);
+    secao.appendChild(listaDoNivel);
+    phaseList.appendChild(secao);
+});
+
+
             };
 
             const carregarManifestoFases = async () => {
@@ -711,13 +745,33 @@
             };
 
             const detectarExistentes = async () => {
-                phaseList.innerHTML = '<div class="phase-list-empty">Detectando fases existentes...</div>';
-
                 // Tenta carregar o que está no index.json
-                let arquivosEncontrados = await carregarManifestoFases();
+                let arquivosEncontrados = null;
+                let listagemViaServidor = false;
+                try {
+                    const resposta = await fetch('/editor-phase-list', { cache: 'no-store' });
+                    if (resposta.ok) {
+                        const dados = await resposta.json();
+                        if (Array.isArray(dados?.fases)) {
+                            arquivosEncontrados = dados.fases;
+                            listagemViaServidor = true;
+                        }
+                    }
+                } catch (e) {
+                    // Fallback para o manifesto e a busca pelos arquivos candidatos.
+                }
+
+                if (arquivosEncontrados === null) {
+                    arquivosEncontrados = await carregarManifestoFases();
+                }
 
                 // Varre os candidatos para encontrar arquivos que existam na pasta mas não no index.json
-                for (const arquivo of arquivosCandidatos) {
+                const candidatos = listagemViaServidor
+                    ? arquivosCandidatos.filter((arquivo) => !arquivo.includes('/'))
+                    : arquivosCandidatos;
+                if (arquivosEncontrados === null) arquivosEncontrados = [];
+
+                for (const arquivo of candidatos) {
                     if (arquivosEncontrados.includes(arquivo)) continue;
 
                     const existe = await verificarArquivoExiste(arquivo);
@@ -753,6 +807,7 @@
             configurarSpawnAleatorio,
             configurarSeletorFases,
             detectarExistentes: () => (typeof funcaoDetectarFases === 'function' ? funcaoDetectarFases() : []),
+            getArquivosFasesDetectados: () => [...arquivosFasesDetectados],
             fillBottomLayer
         };
     }

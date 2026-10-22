@@ -18,7 +18,7 @@ let COLS = 20;
 let ROWS = 15; 
 // LOCALIZAÇÃO: Define o diretório base para leitura e gravação das fases (relativo ao editor.html)
 const PHASES_BASE_PATH = '../../config/fases/';
-const PHASES_MANIFEST_PATH = `${PHASES_BASE_PATH}index.json`;
+const PHASES_MANIFEST_PATH = `${PHASES_BASE_PATH}manifesto-fases.json`;
 const PHASE_DISCOVERY_CANDIDATES = [
     'treino.json',
     ...Array.from({ length: 50 }, (_, i) => `nivel_1/fase${i + 1}.json`),
@@ -46,7 +46,7 @@ let chefeRascunhoPosicionamento = null;
 const stage = document.getElementById('game-stage');
 const stageArea = document.getElementById('stage-area');
 const btnExport = document.getElementById('btn-export');
-const btnLinkSave = document.getElementById('btn-link-save');
+const btnReorderThis = document.getElementById('btn-reorder-this');
 const btnNewPhase = document.getElementById('btn-new-phase');
 const btnSavePhase = document.getElementById('btn-save-phase');
 const btnImport = document.getElementById('btn-import');
@@ -129,11 +129,6 @@ function definirArquivoFaseAtual(arquivo = '') {
         persistenciaEditor.setArquivoFaseAtual(arquivoFaseAtual);
     }
 
-    if (btnLinkSave) {
-        btnLinkSave.textContent = arquivoFaseAtual
-            ? `Vincular Arquivo (${arquivoFaseAtual.replace(/\.json$/i, '')})`
-            : 'Vincular Arquivo';
-    }
 }
 
 function aplicarFaseDataEditor(novoEstado, opcoes = {}) {
@@ -578,13 +573,6 @@ window.onload = async () => {
     definirArquivoFaseAtual('');
     atualizarStatusSalvamento({ mensagem: 'aguardando fase ativa.', tipo: 'info' });
 
-    if (btnLinkSave) {
-        btnLinkSave.onclick = async () => {
-            if (!persistenciaEditor) return;
-            await persistenciaEditor.vincularArquivoAtual();
-        };
-    }
-
     if (btnNewPhase) {
         btnNewPhase.onclick = async () => {
             // 1. Escolher nível
@@ -609,9 +597,13 @@ window.onload = async () => {
                 "1"
             );
             if (modo === null) return;
+            if (modo !== "1" && modo !== "2") {
+                alert("Opção inválida.");
+                return;
+            }
 
-            // Detecta arquivos existentes para calcular limites
-            const arquivos = await uiEditor.detectarExistentes();
+            // Usa a lista já carregada; não limpa nem pisca o menu antes da criação.
+            const arquivos = uiEditor?.getArquivosFasesDetectados?.() || [];
             let maxNum = 0;
             const numsExistentes = [];
             arquivos.forEach(arq => {
@@ -629,24 +621,19 @@ window.onload = async () => {
             let novoNome = "";
             let N = null;
             if (modo === "2") {
-                // Inserção por número
-                const nStr = prompt(`Informe o número da posição desejada (1 a ${maxNum}):`, "1");
+                // Pergunta o número antes de iniciar qualquer operação assíncrona.
+                const limiteFim = maxNum + 1;
+                const nStr = prompt(`Informe a posição (1 a ${limiteFim}). Para inserir no fim, use ${limiteFim}:`, "1");
                 if (nStr === null) return;
                 N = parseInt(nStr);
-                if (isNaN(N) || N <= 0) {
+                if (isNaN(N) || N <= 0 || N > limiteFim) {
                     alert("Número inválido.");
                     return;
                 }
-                if (N >= maxNum + 1) {
-                    alert("Número igual ou maior que a quantidade de fases. Será criada no fim.");
-                    N = maxNum + 1;
-                }
-                novoNome = `${prefixo}fase${N}.json`;
             } else {
-                // Criar no fim (padrão)
                 N = maxNum + 1;
-                novoNome = `${prefixo}fase${N}.json`;
             }
+            novoNome = `${prefixo}fase${N}.json`;
 
             // Checa se já existe faseN.json
             const existeFaseN = numsExistentes.includes(N);
@@ -672,74 +659,36 @@ window.onload = async () => {
                     });
                     const data = await resp.json();
                     if (!data.ok) {
-                        alert('Erro ao renomear fases: ' + (data.error || 'Erro desconhecido.'));
+                        atualizarStatusSalvamento({ mensagem: 'Erro ao renumerar fases: ' + (data.error || 'Erro desconhecido.'), tipo: 'error' });
                         return;
                     }
                 } catch (e) {
-                    alert('Erro técnico ao renomear fases: ' + e.message);
+                    atualizarStatusSalvamento({ mensagem: 'Erro ao renumerar fases: ' + e.message, tipo: 'error' });
                     return;
                 }
             }
 
-            // Criação normal (fim ou posição livre)
-            if (confirm(`Deseja criar a "${novoNome}" do zero?`)) {
-                aplicarFaseDataEditor(createEmptyFaseData({
-                    proporcao: "1x1"
-                }), { arquivoFaseAtual: novoNome });
+            // A escolha do modo já confirma a criação. Evita abrir outro diálogo
+            // depois das operações assíncronas, quando o navegador pode bloqueá-lo.
+            aplicarFaseDataEditor(createEmptyFaseData({
+                proporcao: "1x1"
+            }), { arquivoFaseAtual: novoNome });
 
-                atualizarTamanhoStage();
-                if (persistenciaEditor) {
-                    await persistenciaEditor.salvarAutomaticamenteAgora();
-                    // Atualiza o manifesto index.json automaticamente
-                    try {
-                        const resp = await fetch(PHASES_MANIFEST_PATH, { cache: 'no-store' });
-                        if (resp.ok) {
-                            const manifesto = await resp.json();
-                            let lista = manifesto.fases || manifesto;
-                            if (!Array.isArray(lista)) lista = [];
+            atualizarTamanhoStage();
+            if (persistenciaEditor) {
+                const resultadoSalvamento = await persistenciaEditor.salvarAutomaticamenteAgora();
+                if (!resultadoSalvamento?.saved) {
+                    const motivo = resultadoSalvamento?.error?.message ||
+                        'O servidor local do editor não confirmou a gravação.';
+                    atualizarStatusSalvamento({
+                        mensagem: `A fase ${novoNome} não foi gravada em config/fases/${novoNome}: ${motivo}`,
+                        tipo: 'error'
+                    });
+                    return;
+                }
 
-                            // Remove todas as fases do escopo afetado
-                            let escopoPrefix = prefixo;
-                            const isFaseDoEscopo = (f) => escopoPrefix ? f.startsWith(escopoPrefix) : !f.includes('/');
-                            lista = lista.filter(f => !isFaseDoEscopo(f));
-
-                            // Detecta arquivos reais do escopo após shift
-                            let escopoDir = 'config/fases/';
-                            if (prefixo === 'nivel_1/') escopoDir += 'nivel_1/';
-                            else if (prefixo === 'nivel_2/') escopoDir += 'nivel_2/';
-                            // Busca todos os fase{k}.json do escopo
-                            let faseFiles = [];
-                            try {
-                                const req = await fetch(escopoDir);
-                                if (req.ok) {
-                                    const html = await req.text();
-                                    // Extrai nomes de arquivos fase{k}.json do HTML de listagem
-                                    faseFiles = Array.from(html.matchAll(/fase(\d+)\.json/g)).map(m => `${escopoPrefix}fase${m[1]}.json`);
-                                }
-                            } catch (e) {}
-                            // Garante que a nova fase está presente
-                            if (!faseFiles.includes(novoNome)) faseFiles.push(novoNome);
-                            // Ordena numericamente
-                            faseFiles.sort((a, b) => {
-                                const numA = parseInt(a.match(/fase(\d+)\.json/)?.[1] || 0);
-                                const numB = parseInt(b.match(/fase(\d+)\.json/)?.[1] || 0);
-                                return numA - numB;
-                            });
-                            // Junta com as fases de outros escopos
-                            lista = [...lista, ...faseFiles];
-                            if (manifesto.fases) manifesto.fases = lista;
-                            else manifesto = lista;
-                            await fetch('/save-phase', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ 
-                                    fileName: 'index.json', 
-                                    content: JSON.stringify(manifesto, null, 4) 
-                                })
-                            });
-                            if (uiEditor && uiEditor.detectarExistentes) await uiEditor.detectarExistentes();
-                        }
-                    } catch (e) { console.error("Erro ao atualizar index.json:", e); }
+                if (uiEditor && uiEditor.detectarExistentes) {
+                    await uiEditor.detectarExistentes();
                 }
             }
         };
@@ -783,10 +732,10 @@ window.onload = async () => {
         if (btnImport) row2.appendChild(btnImport);
         if (btnExport) row2.appendChild(btnExport);
 
-        // Linha 3: Vincular Arquivo e Limpar Tudo
+        // Linha 3: Reordenar esta fase e Limpar Tudo
         const row3 = document.createElement('div');
         row3.style.cssText = 'display: flex; gap: 5px;';
-        if (btnLinkSave) row3.appendChild(btnLinkSave);
+        if (btnReorderThis) row3.appendChild(btnReorderThis);
         if (btnClear) row3.appendChild(btnClear);
 
         group.appendChild(row1);
@@ -807,13 +756,15 @@ window.onload = async () => {
     uiEditor.configurarSpawnAleatorio();
     uiEditor.configurarTooltip();
     uiEditor.configurarTeclasGlobais();
-    uiEditor.configurarSeletorFases({
+    if (btnNewPhase) btnNewPhase.disabled = true;
+    await uiEditor.configurarSeletorFases({
         persistencia: persistenciaEditor,
         basePath: PHASES_BASE_PATH,
         manifestPath: PHASES_MANIFEST_PATH,
         arquivosCandidatos: PHASE_DISCOVERY_CANDIDATES,
         aoCarregarFase: (arquivo) => definirArquivoFaseAtual(arquivo)
     });
+    if (btnNewPhase) btnNewPhase.disabled = false;
 
     btnExport.onclick = () => persistenciaEditor.exportarJSON();
     btnImport.onclick = () => persistenciaEditor.importarJSON();

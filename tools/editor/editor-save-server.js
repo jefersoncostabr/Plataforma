@@ -138,16 +138,18 @@ async function handleSavePhase(req, res) {
         JSON.parse(content);
 
         // Usa o nome do arquivo normalizado diretamente para incluir subpastas
-        const destino = path.join(PHASES_DIR, normalizedFileName);
+        const destino = path.resolve(PHASES_DIR, normalizedFileName);
 
         // Verifica se o caminho final ainda está dentro do diretório permitido
-        if (!destino.startsWith(PHASES_DIR)) {
+        const caminhoRelativo = path.relative(PHASES_DIR, destino);
+        if (caminhoRelativo.startsWith('..') || path.isAbsolute(caminhoRelativo)) {
             console.error(`[Server] ERRO: Tentativa de salvar arquivo fora do diretório permitido: "${destino}" (PHASES_DIR: "${PHASES_DIR}")`);
             return sendJson(res, 400, { ok: false, error: 'Tentativa de salvar arquivo fora do diretório permitido.' });
         }
         
         console.log(`[Server] DEBUG: Caminho final de destino no servidor: "${destino}"`);
 
+        await fs.promises.mkdir(path.dirname(destino), { recursive: true });
         await fs.promises.writeFile(destino, content.endsWith('\n') ? content : `${content}\n`, 'utf8');
         await atualizarManifestoFases();
 
@@ -318,7 +320,7 @@ async function handleListarFases(req, res) {
 
         const fases = (await listarArquivosJsonFaseRecursivo(PHASES_DIR))
             .filter(arquivo => /^nivel_\d+\/fase\d+\.json$/i.test(arquivo))
-            .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+            .sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true, sensitivity: 'base' }));
 
         return sendJson(res, 200, {
             ok: true,

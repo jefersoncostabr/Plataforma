@@ -1,0 +1,28 @@
+{
+    "proporcao": "1x1",
+    "posicaoInicialJogador": "b2",
+    "posicaoInicialBB": "",
+    "objetivo": "f19",
+    "posicaoAlavanca": "",
+    "posicaoRoboDesativado": "",
+    "posicaoRoboAberto": "",
+    "posicaoMusgoRoboAberto": "",
+    "posicaoMusgoRoboDesativado": "",
+    "posicaoGaiola": "",
+    "posicaoCachorro": "",
+    "posicaoGaiolaGato": "",
+    "posicaoGato": "",
+    "inimigoAleatorio": [
+        1,
+        0
+    ],
+    "humanoAleatorio": [
+        0
+    ],
+    "cabecaoAleatorio": [
+        0
+    ],
+    "faseBonus": false,
+    "qualBonus": 0,
+    "nivelBonus": "a"
+}
