@@ -86,9 +86,16 @@
         return normalizeDifficulty(safeGetItem(getSlotDifficultyKey(slotId)));
     }
 
-    function setSlotDifficulty(slotId, difficulty) {
-        return safeSetItem(getSlotDifficultyKey(slotId), normalizeDifficulty(difficulty));
+function setSlotDifficulty(slotId, difficulty, force) {
+    const normalized = normalizeSlotId(slotId);
+    const locked = isDifficultyLocked(normalized);
+    console.log('[SAVE] setSlotDifficulty', normalized, 'difficulty=', difficulty, 'locked=', locked, 'force=', !!force, 'occupied=', isSlotOccupied(normalized));
+    if (locked && !force) {
+        console.log('[SAVE] bloqueado por lock', normalized);
+        return false;
     }
+    return safeSetItem(getSlotDifficultyKey(normalized), normalizeDifficulty(difficulty));
+}
 
     function getSlotDifficultyLockKey(slotId) {
         return SLOT_DIFFICULTY_LOCK_PREFIX + normalizeSlotId(slotId);

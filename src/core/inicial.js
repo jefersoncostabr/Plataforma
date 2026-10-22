@@ -969,8 +969,9 @@ window.proximoNivel = async function() {
                 const proximaDificuldade = dificuldadeFim === 'easy' ? 'normal' : 'hard';
                 window.gameDifficulty = proximaDificuldade;
                 const slotAtivo = window.SaveSlots?.getActiveSlotId?.() || window.slotAtualID;
+                console.log('[ZERAR] dificuldadeFim=', dificuldadeFim, 'proxima=', proximaDificuldade, 'slotAtivo=', slotAtivo);
                 if (slotAtivo && typeof window.SaveSlots?.setSlotDifficulty === 'function') {
-                    window.SaveSlots.setSlotDifficulty(slotAtivo, proximaDificuldade);
+                    window.SaveSlots.setSlotDifficulty(slotAtivo, proximaDificuldade, true);
                 }
 
                 // Nova campanha: limpa a run anterior e conserva apenas as skills adquiridas.

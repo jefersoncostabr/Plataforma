@@ -109,20 +109,26 @@ function alternarDificuldadeDraftSlot(slotId, direcao = 1) {
 }
 
 function alternarDificuldadeDoSlotMenu(slotId) {
-    if (!window.isFirstStart) return;
+    if (!window.isFirstStart) {
+        console.log('[DIFICULDADE] bloqueado: !isFirstStart', slotId);
+        return;
+    }
 
     const id = normalizarSlotId(slotId);
-    const atual = slotTemSave(id)
-        ? getSlotDifficultyPersistida(id)
-        : getDificuldadeDraftSlot(id);
+    const ocupado = slotTemSave(id);
+    const travado = slotDificuldadeTravada(id);
+    console.log('[DIFICULDADE] alternar', id, 'ocupado=', ocupado, 'travado=', travado);
+
+    if (ocupado || travado) {
+        console.log('[DIFICULDADE] bloqueado: slot ocupado/travado', id);
+        return;
+    }
+
+    const atual = getDificuldadeDraftSlot(id);
     const indiceAtual = Math.max(0, DIFFICULTY_LEVELS.indexOf(atual));
     const proxima = DIFFICULTY_LEVELS[(indiceAtual + 1) % DIFFICULTY_LEVELS.length];
 
-    if (slotTemSave(id)) {
-        window.SaveSlots?.setSlotDifficulty?.(id, proxima);
-    } else {
-        menuDraftDifficultyBySlot[id] = proxima;
-    }
+    menuDraftDifficultyBySlot[id] = proxima;
 
     selecionarSlotMenu(id);
     window.gameDifficulty = proxima;

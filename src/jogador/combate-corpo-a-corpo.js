@@ -80,6 +80,7 @@
                 controle.chutesRestantes = 2;
                 controle.chuteDuploCooldownAte = agoraMs + 800;
                 iniciarChute(inimigos);
+                // Reduz o tempo do chute para permitir a sequência de chutes mais rápidas o que é 0.3 que deve ser usado para regular
                 controle.tempoChute = Math.max(1, Math.round((controle.tempoChute || 0) * 0.3));
                 return true;
             }
