@@ -713,6 +713,142 @@ window.onload = async () => {
         };
     }
 
+    if (btnReorderThis) {
+        btnReorderThis.onclick = async () => {
+            const arquivoOrigem = String(arquivoFaseAtual || '').replace(/\\/g, '/');
+
+            if (!arquivoOrigem) {
+                alert('Carregue uma fase antes de reordená-la.');
+                return;
+            }
+
+            const partesOrigem = arquivoOrigem.match(
+                /^(?:(nivel_\d+)\/)?(fase\d+\.json)$/i
+            );
+
+            if (!partesOrigem) {
+                alert('O arquivo carregado não tem o formato de uma fase reconhecida.');
+                return;
+            }
+
+            const pastaNivel = partesOrigem[1] || '';
+            const prefixo = pastaNivel ? `${pastaNivel}/` : '';
+            const arquivosDetectados = uiEditor?.getArquivosFasesDetectados?.() || [];
+
+            const fasesDoNivel = arquivosDetectados
+                .filter((arquivo) => {
+                    const caminho = String(arquivo).replace(/\\/g, '/');
+                    const pertenceAoNivel = prefixo
+                        ? caminho.startsWith(prefixo)
+                        : !caminho.includes('/');
+
+                    return pertenceAoNivel && /fase\d+\.json$/i.test(caminho);
+                })
+                .sort((a, b) => {
+                    const numeroA = Number(a.match(/fase(\d+)\.json$/i)?.[1] || 0);
+                    const numeroB = Number(b.match(/fase(\d+)\.json$/i)?.[1] || 0);
+                    return numeroA - numeroB;
+                });
+
+            const indiceAtual = fasesDoNivel.findIndex(
+                (arquivo) =>
+                    String(arquivo).replace(/\\/g, '/').toLowerCase() ===
+                    arquivoOrigem.toLowerCase()
+            );
+
+            if (indiceAtual < 0) {
+                alert('A fase carregada não está na lista detectada. Atualize a lista e tente novamente.');
+                return;
+            }
+
+            const ordemAtual = indiceAtual + 1;
+            const totalFases = fasesDoNivel.length;
+
+            const resposta = prompt(
+                `A fase carregada está na posição ${ordemAtual} de ${totalFases}.\n` +
+                `Informe a nova posição, de 1 a ${totalFases}:`,
+                String(ordemAtual)
+            );
+
+            if (resposta === null) return;
+
+            const novaOrdem = Number(resposta.trim());
+
+            if (!Number.isInteger(novaOrdem) || novaOrdem < 1 || novaOrdem > totalFases) {
+                alert(`Digite um número inteiro entre 1 e ${totalFases}.`);
+                return;
+            }
+
+            const nomeDestino = `${prefixo}fase${novaOrdem}.json`;
+            const destinoJaExiste = fasesDoNivel.some(
+                (arquivo) =>
+                    String(arquivo).replace(/\\/g, '/').toLowerCase() ===
+                    nomeDestino.toLowerCase()
+            );
+
+            let confirmado = false;
+
+            if (destinoJaExiste && nomeDestino.toLowerCase() !== arquivoOrigem.toLowerCase()) {
+                confirmado = confirm(
+                    `Já existe ${nomeDestino}.\n\n` +
+                    `Se continuar, essa fase e as demais serão renumeradas. Deseja continuar?`
+                );
+
+                if (!confirmado) return;
+            }
+
+            try {
+                if (!persistenciaEditor) {
+                    throw new Error('A persistência do editor não foi inicializada.');
+                }
+
+                const resultadoSalvar = await persistenciaEditor.salvarAutomaticamenteAgora();
+
+                if (!resultadoSalvar?.saved && resultadoSalvar?.mode !== 'noop') {
+                    const motivo = resultadoSalvar?.error?.message ||
+                        'O servidor local não confirmou o salvamento.';
+                    throw new Error(motivo);
+                }
+
+                const respostaServidor = await fetch('/reorder-phase', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sourceFile: arquivoOrigem,
+                        targetPosition: novaOrdem,
+                        confirmed: confirmado
+                    })
+                });
+
+                const dadosServidor = await respostaServidor.json();
+
+                if (!respostaServidor.ok || !dadosServidor.ok) {
+                    throw new Error(dadosServidor.error || 'O servidor não conseguiu reordenar as fases.');
+                }
+
+                definirArquivoFaseAtual(dadosServidor.fileName);
+
+                if (uiEditor?.detectarExistentes) {
+                    await uiEditor.detectarExistentes();
+                }
+
+                atualizarStatusSalvamento({
+                    mensagem: `Fase reordenada para ${dadosServidor.fileName}.`,
+                    tipo: 'success'
+                });
+            } catch (erro) {
+                console.error('[Editor] Erro ao reordenar fase:', erro);
+
+                atualizarStatusSalvamento({
+                    mensagem: `Não foi possível reordenar a fase: ${erro.message}`,
+                    tipo: 'error'
+                });
+            }
+        };
+    }
+
     // --- Organização dos botões para economia de espaço (3 linhas) ---
     const parentContainer = btnNewPhase?.parentElement;
     if (parentContainer) {

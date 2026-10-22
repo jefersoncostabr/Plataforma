@@ -113,6 +113,197 @@ async function atualizarManifestoFases() {
     await fs.promises.writeFile(PHASE_MANIFEST_PATH, `${JSON.stringify(fases, null, 2)}\n`, 'utf8');
 }
 
+async function handleReorderPhase(req, res) {
+    const arquivosTemporarios = [];
+    const arquivosFinalizados = [];
+
+    try {
+        const body = await readRequestBody(req);
+        const payload = JSON.parse(body || '{}');
+
+        const sourceFile = String(payload.sourceFile || '').replace(/\\/g, '/').trim();
+        const partesOrigem = sourceFile.match(
+            /^(?:(nivel_\d+)\/)?(fase\d+\.json)$/i
+        );
+
+        const targetPosition = Number(payload.targetPosition);
+
+        if (!partesOrigem) {
+            return sendJson(res, 400, {
+                ok: false,
+                error: 'O arquivo de origem não tem o formato de uma fase reconhecida.'
+            });
+        }
+
+        if (!Number.isInteger(targetPosition) || targetPosition < 1) {
+            return sendJson(res, 400, {
+                ok: false,
+                error: 'A nova posição deve ser um número inteiro positivo.'
+            });
+        }
+
+        const pastaNivel = partesOrigem[1] || '';
+        const nomeOrigem = partesOrigem[2];
+        const diretorioNivel = path.resolve(PHASES_DIR, pastaNivel);
+        const caminhoRelativo = path.relative(PHASES_DIR, diretorioNivel);
+
+        if (caminhoRelativo.startsWith('..') || path.isAbsolute(caminhoRelativo)) {
+            return sendJson(res, 400, {
+                ok: false,
+                error: 'O nível informado está fora da pasta de fases.'
+            });
+        }
+
+        const entradas = await fs.promises.readdir(diretorioNivel, {
+            withFileTypes: true
+        });
+
+        const fases = entradas
+            .filter((entrada) => entrada.isFile() && /^fase\d+\.json$/i.test(entrada.name))
+            .map((entrada) => ({
+                nome: entrada.name,
+                numero: Number(entrada.name.match(/^fase(\d+)\.json$/i)[1])
+            }))
+            .sort((a, b) => a.numero - b.numero);
+
+        const indiceOrigem = fases.findIndex(
+            (fase) => fase.nome.toLowerCase() === nomeOrigem.toLowerCase()
+        );
+
+        if (indiceOrigem < 0) {
+            return sendJson(res, 404, {
+                ok: false,
+                error: `A fase ${sourceFile} não existe.`
+            });
+        }
+
+        if (targetPosition > fases.length) {
+            return sendJson(res, 400, {
+                ok: false,
+                error: `A posição precisa estar entre 1 e ${fases.length}.`
+            });
+        }
+
+        const nomeDestino = `fase${targetPosition}.json`;
+        const destinoOcupado = fases.some(
+            (fase) => fase.nome.toLowerCase() === nomeDestino.toLowerCase()
+        );
+
+        if (
+            destinoOcupado &&
+            nomeDestino.toLowerCase() !== nomeOrigem.toLowerCase() &&
+            payload.confirmed !== true
+        ) {
+            return sendJson(res, 409, {
+                ok: false,
+                error: `Já existe ${nomeDestino}. É necessária confirmação para continuar.`
+            });
+        }
+
+        const ordemOriginalContinua = fases.every(
+            (fase, indice) => fase.numero === indice + 1
+        );
+
+        if (ordemOriginalContinua && indiceOrigem + 1 === targetPosition) {
+            const fileName = pastaNivel
+                ? `${pastaNivel}/${nomeDestino}`
+                : nomeDestino;
+
+            return sendJson(res, 200, {
+                ok: true,
+                fileName,
+                total: fases.length,
+                unchanged: true
+            });
+        }
+
+        const fasesReordenadas = [...fases];
+        const [faseSelecionada] = fasesReordenadas.splice(indiceOrigem, 1);
+        fasesReordenadas.splice(targetPosition - 1, 0, faseSelecionada);
+
+        const identificadorTemporario = `${Date.now()}-${process.pid}`;
+
+        for (let indice = 0; indice < fases.length; indice += 1) {
+            const fase = fases[indice];
+            const caminhoOriginal = path.join(diretorioNivel, fase.nome);
+            const caminhoTemporario = path.join(
+                diretorioNivel,
+                `.reorder-${identificadorTemporario}-${indice}.tmp`
+            );
+
+            await fs.promises.rename(caminhoOriginal, caminhoTemporario);
+
+            arquivosTemporarios.push({
+                caminhoOriginal,
+                caminhoTemporario
+            });
+        }
+
+        for (let indice = 0; indice < fasesReordenadas.length; indice += 1) {
+            const fase = fasesReordenadas[indice];
+            const arquivoTemporario = arquivosTemporarios.find(
+                (item) => item.caminhoOriginal.endsWith(path.sep + fase.nome)
+            );
+            const caminhoDestino = path.join(
+                diretorioNivel,
+                `fase${indice + 1}.json`
+            );
+
+            await fs.promises.rename(
+                arquivoTemporario.caminhoTemporario,
+                caminhoDestino
+            );
+
+            arquivosFinalizados.push({
+                caminhoTemporario: arquivoTemporario.caminhoTemporario,
+                caminhoDestino
+            });
+        }
+
+        await atualizarManifestoFases();
+
+        const fileName = pastaNivel
+            ? `${pastaNivel}/fase${targetPosition}.json`
+            : `fase${targetPosition}.json`;
+
+        return sendJson(res, 200, {
+            ok: true,
+            fileName,
+            total: fases.length
+        });
+    } catch (error) {
+        try {
+            for (const item of arquivosFinalizados.reverse()) {
+                await fs.promises.rename(
+                    item.caminhoDestino,
+                    item.caminhoTemporario
+                );
+            }
+
+            for (const item of arquivosTemporarios.reverse()) {
+                try {
+                    await fs.promises.access(item.caminhoTemporario);
+                    await fs.promises.rename(
+                        item.caminhoTemporario,
+                        item.caminhoOriginal
+                    );
+                } catch (erroRollback) {
+                    if (erroRollback.code !== 'ENOENT') throw erroRollback;
+                }
+            }
+        } catch (erroRollback) {
+            console.error('[Server] Falha ao reverter renumeração:', erroRollback);
+        }
+
+        console.error('[Server] ERRO ao reordenar fase:', error.message);
+
+        return sendJson(res, 500, {
+            ok: false,
+            error: error.message
+        });
+    }
+}
+
 async function handleSavePhase(req, res) {
     try {
         const body = await readRequestBody(req);
@@ -366,6 +557,10 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'POST' && url.pathname === '/shift-phases') {
         return handleShiftPhases(req, res);
+    }
+
+    if (req.method === 'POST' && url.pathname === '/reorder-phase') {
+        return handleReorderPhase(req, res);
     }
 
     return handleStatic(req, res, url.pathname);
