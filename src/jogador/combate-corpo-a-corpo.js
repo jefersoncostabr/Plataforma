@@ -70,6 +70,12 @@
         }
 
         function processarEntradaChute(inimigos = window.inimigos) {
+            // Ataque combinado: baixo + chute (verificado antes do cancelamento por agachar)
+            if (acaoAtiva('baixo') && acaoAtiva('chute') && (controle.cooldownChute || 0) === 0) {
+                console.log('[ATAQUE] Novo ataque (baixo + chute) ativado');
+                return iniciarChute(inimigos);
+            }
+
             if (controle.estaAgachado) {
                 cancelarChuteSeAgachado();
                 return false;
