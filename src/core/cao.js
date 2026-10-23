@@ -80,7 +80,9 @@
             qPressionadoAnterior: false, // Restaurado para Double Tap
             itemArrastado: null,   // NOVO: Referência ao item segurado (para gato)
             inimigoPreso: null,    // NOVO: Referência ao inimigo segurado
-            latidoPressionadoAnterior: false // NOVO: Controle discreto para detecção de clique do latido
+            latidoPressionadoAnterior: false, // NOVO: Controle discreto para detecção de clique do latido
+            inimigoAlvo: null,              // Referência ao inimigo em perseguição
+            cooldownAtaqueInimigo: 0        // Cooldown após colidir antes de caçar de novo
         };
 
         // REGISTRO GLOBAL
@@ -250,69 +252,182 @@
                 }
                 pet.qPressionadoAnterior = apertouQ;
             } else {
-            pet.mordendo = !!pet.inimigoPreso || !!pet.itemArrastado; // Mantém o visual de segurando mesmo em modo NPC
+                pet.mordendo = !!pet.inimigoPreso || !!pet.itemArrastado;
 
-            // Re-ativa o seguimento se o alvo atual encostar (player normal ou BB em modo resgate)
-            const colidindoComPlayer = typeof window.detectarColisaoHitbox === 'function' && 
-                                      window.detectarColisaoHitbox(pet, alvoSeguimento, 0, 0, 0);
-            if (colidindoComPlayer) pet.estaSeguindo = true;
+                // Re-ativa o seguimento se o jogador encostar no pet
+                const colidindoComPlayer = typeof window.detectarColisaoHitbox === 'function' && 
+                                          window.detectarColisaoHitbox(pet, alvoSeguimento, 0, 0, 0);
+                if (colidindoComPlayer) pet.estaSeguindo = true;
 
-            let xAlvoPet = alvoSeguimento ? alvoSeguimento.x : pet.x;
-            const yAlvoPet = alvoSeguimento ? alvoSeguimento.y : pet.y;
-            const alvoAcimaPet = yAlvoPet > pet.y + 40;
+                // Decrementa o cooldown de ataque do pet
+                if (pet.cooldownAtaqueInimigo > 0) {
+                    pet.cooldownAtaqueInimigo--;
+                }
 
-            // Navegação inteligente para Pets: Desvio de obstáculos superiores
-            if (alvoAcimaPet && pet.noChao && typeof window.IAUtils !== 'undefined') {
-                if (window.IAUtils.estaSobTeto(pet)) {
-                    const saidaX = window.IAUtils.encontrarSaidaTeto(pet, xAlvoPet > pet.x ? 1 : -1);
-                    if (saidaX !== null) {
-                        xAlvoPet = saidaX;
+                // --- 1. BUSCA DE INIMIGO NA ÁREA DE PROXIMIDADE DO JOGADOR ---
+                const raioDetecaoX = Number(config.petRaioDetecaoInimigoX ?? 250);
+                const raioDetecaoY = Number(config.petRaioDetecaoInimigoY ?? 120);
+
+                // Valida se o inimigo que ele já estava perseguindo continua válido
+                if (pet.inimigoAlvo) {
+                    const inimigoExiste = window.inimigos && window.inimigos.includes(pet.inimigoAlvo);
+                    const inimigoVivo = pet.inimigoAlvo && !pet.inimigoAlvo.estaMorto && !pet.inimigoAlvo.estaMorrendo;
+                    const pertoDoPlayer = alvoSeguimento && (Math.abs(pet.inimigoAlvo.x - alvoSeguimento.x) <= (raioDetecaoX * 1.5));
+
+                    if (!inimigoExiste || !inimigoVivo || !pertoDoPlayer) {
+                        pet.inimigoAlvo = null; // Alvo inválido ou fugiu para muito longe: desiste
                     }
                 }
-            }
 
-            const deltaX = xAlvoPet - pet.x;
-            const distSeguir = (pet.tipo === 'cao' ? config.distanciaMinimaCaoSeguir : config.distanciaMinimaGatoSeguir) || 45;
-            pet.movendoHorizontal = false;
+                // Se não tem alvo e está liberado para caçar (sem cooldown e sem segurar itens)
+                if (!pet.inimigoAlvo && pet.cooldownAtaqueInimigo === 0 && !pet.inimigoPreso && !pet.itemArrastado &&
+                    alvoSeguimento && !alvoSeguimento.estaMorrendo && window.inimigos && Array.isArray(window.inimigos)) {
 
-            // Inteligência de Seguimento e Movimento Horizontal com Colisão
-            if (pet.estaSeguindo && alvoSeguimento && !alvoSeguimento.estaMorrendo && Math.abs(deltaX) > distSeguir) {
-                const direcaoX = Math.sign(deltaX);
-                const deslocX = direcaoX * velocidadeFinal;
-                
-                // Usa o sistema global de movimento para evitar atravessar paredes
-                window.aplicarDeslocamentoHorizontalComColisaoPadrao(pet, deslocX, window.plataformas, {
-                    maxPasso: 1,
-                    cancelarKnockbackAoColidir: true
-                });
+                    let menorDistancia = Infinity;
+                    let inimigoMaisProximo = null;
+                    const fenoId = window.GAME_CONSTANTS?.INIMIGO_FENO_ID ?? 5;
 
-                pet.direcao = direcaoX > 0 ? 'd' : 'e';
-                pet.movendoHorizontal = true;
+                    for (let i = 0; i < window.inimigos.length; i++) {
+                        const inim = window.inimigos[i];
+                        if (!inim || inim.estaMorto || inim.estaMorrendo || inim.tipo === fenoId) continue;
 
-                // Salto de Obstrução (Se bater em algo e estiver no chão, tenta pular)
-                const margemCheck = direcaoX > 0 ? 25 : -5;
-                const bloqueioFrente = window.verificarColisaoComTiles(pet.x + margemCheck, pet.y + 5, 5, 5, window.plataformas);
-                if (bloqueioFrente && pet.noChao && pet.cooldownPulo === 0) {
+                        // Distância do inimigo em relação ao JOGADOR
+                        const distDoPlayerX = Math.abs(inim.x - alvoSeguimento.x);
+                        const distDoPlayerY = Math.abs(inim.y - alvoSeguimento.y);
+
+                        // Está dentro da área de proximidade com o jogador?
+                        if (distDoPlayerX <= raioDetecaoX && distDoPlayerY <= raioDetecaoY) {
+                            // Escolhe o mais próximo em relação ao pet
+                            const distDoPet = Math.hypot(inim.x - pet.x, inim.y - pet.y);
+                            if (distDoPet < menorDistancia) {
+                                menorDistancia = distDoPet;
+                                inimigoMaisProximo = inim;
+                            }
+                        }
+                    }
+
+                    if (inimigoMaisProximo) {
+                        pet.inimigoAlvo = inimigoMaisProximo;
+                    }
+                }
+
+                // --- 2. DEFINIÇÃO DO ALVO DE MOVIMENTO (INIMIGO OU JOGADOR) ---
+                const perseguindoInimigo = !!pet.inimigoAlvo;
+                let xAlvoPet;
+                let yAlvoPet;
+                let distSeguir;
+
+                if (perseguindoInimigo) {
+                    xAlvoPet = pet.inimigoAlvo.x;
+                    yAlvoPet = pet.inimigoAlvo.y;
+                    distSeguir = 0; // Corre até encostar no inimigo
+                } else {
+                    xAlvoPet = alvoSeguimento ? alvoSeguimento.x : pet.x;
+                    yAlvoPet = alvoSeguimento ? alvoSeguimento.y : pet.y;
+                    distSeguir = (pet.tipo === 'cao' ? config.distanciaMinimaCaoSeguir : config.distanciaMinimaGatoSeguir) || 45;
+                }
+
+                const alvoAcimaPet = yAlvoPet > pet.y + 40;
+
+                // Desvio de teto (apenas ao seguir o jogador)
+                if (!perseguindoInimigo && alvoAcimaPet && pet.noChao && typeof window.IAUtils !== 'undefined') {
+                    if (window.IAUtils.estaSobTeto(pet)) {
+                        const saidaX = window.IAUtils.encontrarSaidaTeto(pet, xAlvoPet > pet.x ? 1 : -1);
+                        if (saidaX !== null) {
+                            xAlvoPet = saidaX;
+                        }
+                    }
+                }
+
+                const deltaX = xAlvoPet - pet.x;
+                pet.movendoHorizontal = false;
+
+                // --- 3. MOVIMENTO HORIZONTAL COM FÍSICA E COLISÃO ---
+                const deveMover = perseguindoInimigo
+                    ? Math.abs(deltaX) > 4
+                    : (pet.estaSeguindo && alvoSeguimento && !alvoSeguimento.estaMorrendo && Math.abs(deltaX) > distSeguir);
+
+                if (deveMover) {
+                    const direcaoX = Math.sign(deltaX);
+                    // Corre com velocidade levemente ampliada no ataque
+                    const velMovimento = perseguindoInimigo ? (velocidadeFinal * 1.15) : velocidadeFinal;
+                    const deslocX = direcaoX * velMovimento;
+
+                    window.aplicarDeslocamentoHorizontalComColisaoPadrao(pet, deslocX, window.plataformas, {
+                        maxPasso: 1,
+                        cancelarKnockbackAoColidir: true
+                    });
+
+                    pet.direcao = direcaoX > 0 ? 'd' : 'e';
+                    pet.movendoHorizontal = true;
+
+                    // Salto de obstáculo se encontrar parede à frente
+                    const margemCheck = direcaoX > 0 ? 25 : -5;
+                    const bloqueioFrente = window.verificarColisaoComTiles(pet.x + margemCheck, pet.y + 5, 5, 5, window.plataformas);
+                    if (bloqueioFrente && pet.noChao && pet.cooldownPulo === 0) {
+                        pet.velocidadeY = forcaPulo;
+                        pet.cooldownPulo = 45;
+                    }
+                }
+
+                // Salto se o alvo estiver no alto
+                const alcancePuloY = config.caoAlcancePuloY || 32;
+                if (pet.noChao && pet.cooldownPulo === 0 && (yAlvoPet > pet.y + alcancePuloY) && Math.abs(deltaX) < (config.caoAlcancePuloX || 80)) {
                     pet.velocidadeY = forcaPulo;
-                    pet.cooldownPulo = 45; // Aumentado para evitar pulos repetitivos (kikando)
+                    pet.cooldownPulo = 45;
                 }
-            }
 
-            // Salta se o jogador estiver acima (em plataformas altas)
-            const alcancePuloY = config.caoAlcancePuloY || 32;
-            if (pet.estaSeguindo && alvoSeguimento && pet.noChao && pet.cooldownPulo === 0 && (alvoSeguimento.y > pet.y + alcancePuloY) && Math.abs(deltaX) < (config.caoAlcancePuloX || 80)) {
-                pet.velocidadeY = forcaPulo;
-                pet.cooldownPulo = 45; // Sincronizado com o cooldown de obstrução
-            }
-            // Segurança: Teleporte se estiver muito longe ou caiu em buraco
-            const distMax = config.distanciaMaxTeleporteCao || 600;
-            if (!pet.inimigoPreso && (pet.y < -128 || (alvoSeguimento && Math.abs(alvoSeguimento.x - pet.x) > distMax))) {
-                if (alvoSeguimento && alvoSeguimento.noChao) {
-                    pet.x = alvoSeguimento.x - (alvoSeguimento.direcao === 'd' ? 32 : -32);
-                    pet.y = alvoSeguimento.y;
-                    pet.velocidadeY = 0;
+                // --- 4. VERIFICAÇÃO DE COLISÃO COM O INIMIGO ---
+                if (perseguindoInimigo && pet.inimigoAlvo) {
+                    const hitboxPet = {
+                        x: pet.x + (pet.offsetX || 0),
+                        y: pet.y,
+                        largura: pet.largura,
+                        altura: pet.altura
+                    };
+                    const hitboxInimigo = {
+                        x: pet.inimigoAlvo.x + (pet.inimigoAlvo.offsetX || 0),
+                        y: pet.inimigoAlvo.y,
+                        largura: pet.inimigoAlvo.largura || 20,
+                        altura: pet.inimigoAlvo.altura || 20
+                    };
+
+                    const colidiuComInimigo = typeof window.detectarColisaoHitbox === 'function' &&
+                        window.detectarColisaoHitbox(hitboxPet, hitboxInimigo, 0, 0, 0);
+
+                    if (colidiuComInimigo) {
+                        const inimigo = pet.inimigoAlvo;
+
+                        // Aplica efeito no inimigo atingido: Atordoamento (1 segundo) e recuo
+                        inimigo.stunned = true;
+                        inimigo.stunTimer = Number(config.petStunDuracaoInimigo ?? 60);
+                        inimigo.velocidadeKnockback = (pet.direcao === 'd' ? 4 : -4);
+                        inimigo.framesKnockbackRestante = 8;
+
+                        // Efeito sonoro do impacto
+                        window.AudioManager?.playSFX('madeiraQuebrando', 0.6);
+
+                        // Pequeno pulo de recuo no pet
+                        pet.velocidadeY = 4;
+
+                        // Finaliza perseguição e volta a acompanhar o jogador:
+                        pet.inimigoAlvo = null;
+
+                        // Cooldown de ~2.5 segundos (150 frames a 60fps) antes de caçar outro
+                        pet.cooldownAtaqueInimigo = Number(config.petCooldownAtaque ?? 150);
+                    }
                 }
-            }
+
+                // --- 5. SEGURANÇA: TELEPORTE SE CAIR OU FICAR MUITO LONGE ---
+                const distMax = config.distanciaMaxTeleporteCao || 600;
+                if (!pet.inimigoPreso && (pet.y < -128 || (alvoSeguimento && Math.abs(alvoSeguimento.x - pet.x) > distMax))) {
+                    if (alvoSeguimento && alvoSeguimento.noChao) {
+                        pet.x = alvoSeguimento.x - (alvoSeguimento.direcao === 'd' ? 32 : -32);
+                        pet.y = alvoSeguimento.y;
+                        pet.velocidadeY = 0;
+                        pet.inimigoAlvo = null;
+                    }
+                }
             }
 
             // No modo Runner, pets sempre animam andando se estiverem no chão
