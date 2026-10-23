@@ -2497,13 +2497,8 @@ window.AudioManager.playSFX('chute', 0.4);
                         const player = window.playerControle;
                         const temEscudoAtivo = typeof window.temEscudoAtivoPadrao === 'function' && window.temEscudoAtivoPadrao(player);
 
-                        // REGRA 2: O ataque veio pela frente do jogador?
-                        const ataqueVeioPelaFrente = (player.direcao === 'd')
-                            ? (inimigo.x >= player.x - 8)
-                            : (inimigo.x <= player.x + 8);
-
-                        // Bloqueia apenas se tiver escudo E o golpe vier de frente
-                        const bloqueouComEscudo = temEscudoAtivo && ataqueVeioPelaFrente;
+                        // Escudo funciona contra ataques corpo-a-corpo em qualquer direção (inclusive pelas costas)
+                        const bloqueouComEscudo = temEscudoAtivo;
 
                         if (bloqueouComEscudo) {
                             // REGRA 1: A cada 3 golpes físicos bloqueados, perde 1 carga de escudo
