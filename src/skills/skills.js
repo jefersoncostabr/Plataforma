@@ -508,6 +508,34 @@ function atualizarVisualSelecaoSkills() {
         }
     });
 
+    // Remove o brilho azul das linhas anteriores
+    const todasLinhas = document.querySelectorAll('.skill-tree-line');
+    todasLinhas.forEach(l => l.classList.remove('highlight-next'));
+
+    // Acende em azul as próximas linhas hierárquicas que ainda não foram compradas
+    if (!closeButtonFocused && selectedSkillId && window.skillsData) {
+        function destacarProximasLinhas(idPai) {
+            Object.keys(window.skillsData).forEach(idFilho => {
+                const skillFilha = window.skillsData[idFilho];
+                if (skillFilha && skillFilha.parent === idPai) {
+                    const filhoComprado = Array.isArray(window.playerSkills) && window.playerSkills.includes(idFilho);
+
+                    // Só ilumina se a habilidade filha ainda NÃO foi comprada
+                    if (!filhoComprado) {
+                        const seletor = `.skill-tree-line[data-parent="${CSS.escape(idPai)}"][data-child="${CSS.escape(idFilho)}"]`;
+                        const linha = document.querySelector(seletor);
+                        if (linha) {
+                            linha.classList.add('highlight-next');
+                        }
+                        // Desce na hierarquia destacando os próximos nós não comprados
+                        destacarProximasLinhas(idFilho);
+                    }
+                }
+            });
+        }
+        destacarProximasLinhas(selectedSkillId);
+    }
+
     const closeButton = document.querySelector('#skill-tree-overlay .menu-close-button');
     closeButton?.classList.toggle('selected', closeButtonFocused);
 
@@ -740,6 +768,8 @@ function abrirMenuSkillsUI() {
 
                 const line = document.createElement('div');
                 line.className = 'skill-tree-line';
+                line.dataset.parent = skill.parent;
+                line.dataset.child = skillId;
 
                 // Se AMBAS as habilidades conectadas já foram compradas, ativa o brilho verde
                 const paiComprado = Array.isArray(window.playerSkills) && window.playerSkills.includes(skill.parent);

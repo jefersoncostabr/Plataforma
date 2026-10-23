@@ -216,3 +216,22 @@
         opacity: 1;
     }
 }
+
+/* Linha com brilho azul neon para a sequência de skills não compradas a partir do foco */
+.skill-tree-line.highlight-next {
+    background-color: #00bfff;
+    height: 2px;
+    z-index: 1;
+    animation: linhaBrilhoAzul 1.8s ease-in-out infinite;
+}
+
+@keyframes linhaBrilhoAzul {
+    0%, 100% {
+        box-shadow: 0 0 4px #00bfff, 0 0 8px rgba(0, 191, 255, 0.6);
+        opacity: 0.85;
+    }
+    50% {
+        box-shadow: 0 0 8px #00bfff, 0 0 16px rgba(0, 191, 255, 0.95);
+        opacity: 1;
+    }
+}
