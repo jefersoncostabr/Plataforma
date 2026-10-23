@@ -657,10 +657,10 @@ function abrirMenuSkillsUI() {
     }
 
     const containerWidth = 800;
-    const vGap = 110; // Espaço vertical entre níveis aumentado para melhor clareza
+    const vGap = 125; // Espaço vertical aumentado para acomodar o zigue-zague
     const startY = 70; // Reduz o espaço entre o cabeçalho e a primeira fileira
     const maxDepth = Math.max(...Object.keys(levels).map(Number));
-    canvas.style.height = `${startY + (maxDepth * vGap) + 100}px`;
+    canvas.style.height = `${startY + (maxDepth * vGap) + 120}px`;
 
     Object.keys(window.skillsData).forEach(skillId => {
         const skill = window.skillsData[skillId];
@@ -675,15 +675,20 @@ function abrirMenuSkillsUI() {
 
         const custo = 1 + depth;
 
-        // Distribui os botões proporcionalmente à nova largura de 800px
+        // Efeito Zigue-Zague: em fileiras cheias (4 ou mais skills), alterna a altura
+        const offsetZigueZague = (siblings.length >= 4 && (indexInLevel % 2 !== 0)) ? 30 : 0;
+
+        // Distribui os botões proporcionalmente à largura de 800px
         const x = (containerWidth / (siblings.length + 1)) * (indexInLevel + 1);
-        const y = startY + (depth * vGap);
-        buttonPositions[skillId] = { x: x, y: y, width: 90, height: 50 };
+        const y = startY + (depth * vGap) + offsetZigueZague;
+        buttonPositions[skillId] = { x: x, y: y, width: 86, height: 46 };
 
         // Disponível se o pai estiver liberado e o jogador tiver pontos
         const disponivel = paiPossui && window.skillPoints >= custo;
 
-        btn.innerText = `${skill.nome}\n${custo} SP`;
+        // Formatação limpa com Nome destacado e Badge de Custo
+        const textoBadge = jaPossui ? '✓' : `${custo} SP`;
+        btn.innerHTML = `<span class="skill-name">${skill.nome}</span><span class="skill-cost-badge">${textoBadge}</span>`;
         btn.className = 'skill-tree-btn';
         btn.style.position = 'absolute';
         btn.style.left = `${x}px`;
