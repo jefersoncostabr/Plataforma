@@ -283,36 +283,40 @@
                     }
                 }
 
-                // Se não tem alvo e está liberado para caçar (somente cão com skill Cãobatente, sem cooldown e sem segurar itens)
-                if (podeCacarInimigos && !pet.inimigoAlvo && pet.cooldownAtaqueInimigo === 0 && !pet.inimigoPreso && !pet.itemArrastado &&
+                // Busca ou atualiza dinamicamente o alvo caso apareça um inimigo mais próximo
+                if (podeCacarInimigos && pet.cooldownAtaqueInimigo === 0 && !pet.inimigoPreso && !pet.itemArrastado &&
                     alvoSeguimento && !alvoSeguimento.estaMorrendo && window.inimigos && Array.isArray(window.inimigos)) {
 
-                    let menorDistancia = Infinity;
-                    let inimigoMaisProximo = null;
+                    // Se já estiver perseguindo um alvo, calcula a distância atual dele menos 10px 
+                    // (margem de estabilidade para só trocar se o novo inimigo for claramente mais próximo)
+                    let distReferencia = pet.inimigoAlvo 
+                        ? (Math.hypot(pet.inimigoAlvo.x - pet.x, pet.inimigoAlvo.y - pet.y) - 10)
+                        : Infinity;
+
+                    let melhorAlvo = pet.inimigoAlvo;
                     const fenoId = window.GAME_CONSTANTS?.INIMIGO_FENO_ID ?? 5;
 
                     for (let i = 0; i < window.inimigos.length; i++) {
                         const inim = window.inimigos[i];
                         if (!inim || inim.estaMorto || inim.estaMorrendo || inim.tipo === fenoId) continue;
 
-                        // Distância do inimigo em relação ao JOGADOR
+                        // Verifica se o inimigo está dentro da área de proximidade do JOGADOR
                         const distDoPlayerX = Math.abs(inim.x - alvoSeguimento.x);
                         const distDoPlayerY = Math.abs(inim.y - alvoSeguimento.y);
 
-                        // Está dentro da área de proximidade com o jogador?
                         if (distDoPlayerX <= raioDetecaoX && distDoPlayerY <= raioDetecaoY) {
-                            // Escolhe o mais próximo em relação ao pet
+                            // Mede a distância entre este inimigo e o CÃO
                             const distDoPet = Math.hypot(inim.x - pet.x, inim.y - pet.y);
-                            if (distDoPet < menorDistancia) {
-                                menorDistancia = distDoPet;
-                                inimigoMaisProximo = inim;
+
+                            // Se este inimigo estiver mais perto do Cão que o alvo atual, assume como novo alvo
+                            if (distDoPet < distReferencia) {
+                                distReferencia = distDoPet;
+                                melhorAlvo = inim;
                             }
                         }
                     }
 
-                    if (inimigoMaisProximo) {
-                        pet.inimigoAlvo = inimigoMaisProximo;
-                    }
+                    pet.inimigoAlvo = melhorAlvo;
                 }
 
                 // --- 2. DEFINIÇÃO DO ALVO DE MOVIMENTO (INIMIGO OU JOGADOR) ---
