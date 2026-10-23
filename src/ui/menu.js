@@ -109,20 +109,13 @@ function alternarDificuldadeDraftSlot(slotId, direcao = 1) {
 }
 
 function alternarDificuldadeDoSlotMenu(slotId) {
-    if (!window.isFirstStart) {
-        console.log('[DIFICULDADE] bloqueado: !isFirstStart', slotId);
-        return;
-    }
+    if (!window.isFirstStart) return;
 
     const id = normalizarSlotId(slotId);
     const ocupado = slotTemSave(id);
     const travado = slotDificuldadeTravada(id);
-    console.log('[DIFICULDADE] alternar', id, 'ocupado=', ocupado, 'travado=', travado);
 
-    if (ocupado || travado) {
-        console.log('[DIFICULDADE] bloqueado: slot ocupado/travado', id);
-        return;
-    }
+    if (ocupado || travado) return;
 
     const atual = getDificuldadeDraftSlot(id);
     const indiceAtual = Math.max(0, DIFFICULTY_LEVELS.indexOf(atual));
