@@ -268,19 +268,23 @@
                 const raioDetecaoX = Number(config.petRaioDetecaoInimigoX ?? 250);
                 const raioDetecaoY = Number(config.petRaioDetecaoInimigoY ?? 120);
 
+                // Verifica se a mecânica está habilitada: APENAS CÃO + SKILL CÃOBATENTE
+                const temSkillCaobatente = !!(typeof window.temSkill === 'function' && window.temSkill('Cãobatente'));
+                const podeCacarInimigos = pet.tipo === 'cao' && temSkillCaobatente;
+
                 // Valida se o inimigo que ele já estava perseguindo continua válido
                 if (pet.inimigoAlvo) {
                     const inimigoExiste = window.inimigos && window.inimigos.includes(pet.inimigoAlvo);
                     const inimigoVivo = pet.inimigoAlvo && !pet.inimigoAlvo.estaMorto && !pet.inimigoAlvo.estaMorrendo;
                     const pertoDoPlayer = alvoSeguimento && (Math.abs(pet.inimigoAlvo.x - alvoSeguimento.x) <= (raioDetecaoX * 1.5));
 
-                    if (!inimigoExiste || !inimigoVivo || !pertoDoPlayer) {
-                        pet.inimigoAlvo = null; // Alvo inválido ou fugiu para muito longe: desiste
+                    if (!podeCacarInimigos || !inimigoExiste || !inimigoVivo || !pertoDoPlayer) {
+                        pet.inimigoAlvo = null; // Alvo inválido, sem skill ou fugiu para muito longe: desiste
                     }
                 }
 
-                // Se não tem alvo e está liberado para caçar (sem cooldown e sem segurar itens)
-                if (!pet.inimigoAlvo && pet.cooldownAtaqueInimigo === 0 && !pet.inimigoPreso && !pet.itemArrastado &&
+                // Se não tem alvo e está liberado para caçar (somente cão com skill Cãobatente, sem cooldown e sem segurar itens)
+                if (podeCacarInimigos && !pet.inimigoAlvo && pet.cooldownAtaqueInimigo === 0 && !pet.inimigoPreso && !pet.itemArrastado &&
                     alvoSeguimento && !alvoSeguimento.estaMorrendo && window.inimigos && Array.isArray(window.inimigos)) {
 
                     let menorDistancia = Infinity;
@@ -312,7 +316,7 @@
                 }
 
                 // --- 2. DEFINIÇÃO DO ALVO DE MOVIMENTO (INIMIGO OU JOGADOR) ---
-                const perseguindoInimigo = !!pet.inimigoAlvo;
+                const perseguindoInimigo = !!(podeCacarInimigos && pet.inimigoAlvo);
                 let xAlvoPet;
                 let yAlvoPet;
                 let distSeguir;
@@ -447,23 +451,46 @@
                             window.flashRapido(inimigo.elemento);
                         }
 
-                        // Aplica efeito no inimigo atingido: Atordoamento (1 segundo) e recuo
-                        inimigo.stunned = true;
-                        inimigo.stunTimer = Number(config.petStunDuracaoInimigo ?? 60);
-                        inimigo.velocidadeKnockback = (pet.direcao === 'd' ? 4 : -4);
-                        inimigo.framesKnockbackRestante = 8;
+                        // 1. APLICA 1 PONTO DE DANO AO INIMIGO
+                        const danoAtaquePet = Number(config.petDanoAtaque ?? 1);
+                        inimigo.vida = (inimigo.vida || 0) + danoAtaquePet;
 
                         // Efeito sonoro do impacto
                         window.AudioManager?.playSFX('madeiraQuebrando', 0.6);
 
-                        // Pequeno pulo de recuo no pet
+                        // Pequeno salto de recuo no pet
                         pet.velocidadeY = 4;
 
-                        // Finaliza perseguição e volta a acompanhar o jogador:
+                        // Direção do empurrão do inimigo
+                        const direcaoKnockback = pet.direcao === 'd' ? 1 : -1;
+
+                        // Obtém o limite de vida máxima do inimigo
+                        const limiteVidaInimigo = typeof window.obterLimiteVidaInimigo === 'function'
+                            ? window.obterLimiteVidaInimigo(config, inimigo.vidaMax)
+                            : Number(inimigo.vidaMax ?? config.inimigoVidaMax ?? 3);
+
+                        // Se o dano atingir a vida limite, derrota o inimigo
+                        if (inimigo.vida >= limiteVidaInimigo) {
+                            if (typeof window.prepararMorteInimigo === 'function') {
+                                window.prepararMorteInimigo(inimigo, direcaoKnockback);
+                            } else if (typeof window.removerInimigoDerrotado === 'function') {
+                                window.removerInimigoDerrotado(inimigo);
+                            }
+                        } else {
+                            // Se ainda sobreviveu, aplica atordoamento (1s) e empurrão
+                            inimigo.stunned = true;
+                            inimigo.stunTimer = Number(config.petStunDuracaoInimigo ?? 60);
+                            inimigo.velocidadeKnockback = direcaoKnockback * 4;
+                            inimigo.framesKnockbackRestante = 8;
+                        }
+
+                        // 2. FINALIZA A PERSEGUIÇÃO E ATIVA O COOLDOWN DO CÃO
                         pet.inimigoAlvo = null;
 
-                        // Cooldown de ~2.5 segundos (150 frames a 60fps) antes de caçar outro
-                        pet.cooldownAtaqueInimigo = Number(config.petCooldownAtaque ?? 150);
+                        // Tempo de recarga do cão para usar a skill novamente:
+                        // Padrão: 4 segundos (240 frames a 60fps)
+                        const segundosCooldown = Number(config.petCooldownAtaqueSegundos ?? 10);
+                        pet.cooldownAtaqueInimigo = Number(config.petCooldownAtaque ?? Math.round(segundosCooldown * 60));
                     }
                 }
 
