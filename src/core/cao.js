@@ -398,6 +398,55 @@
                     if (colidiuComInimigo) {
                         const inimigo = pet.inimigoAlvo;
 
+                        // --- ANIMAÇÃO VISUAL: Efeito de Garra (ataque_pet.png) ---
+                        const palco = document.getElementById('game-stage') || document.getElementById('jogo-container') || document.body;
+                        if (palco) {
+                            const vfxGarra = document.createElement('img');
+                            vfxGarra.src = config.spriteAtaquePet || 'assets/vfx/ataque_pet.png';
+                            vfxGarra.className = 'vfx-ataque-garra-pet';
+                            const tam = 32;
+                            const flipFator = pet.direcao === 'e' ? -1 : 1;
+                            const centroInimigoX = inimigo.x + ((inimigo.largura || 20) / 2);
+                            const centroInimigoY = inimigo.y + ((inimigo.altura || 20) / 2);
+
+                            vfxGarra.style.cssText = `
+                                position: absolute;
+                                width: ${tam}px;
+                                height: ${tam}px;
+                                left: ${Math.round(centroInimigoX - (tam / 2))}px;
+                                bottom: ${Math.round(centroInimigoY - (tam / 2))}px;
+                                image-rendering: pixelated;
+                                pointer-events: none;
+                                z-index: 120;
+                                transform-origin: center center;
+                                transform: scale(0.6) scaleX(${flipFator});
+                                opacity: 1;
+                                transition: transform 0.12s ease-out, opacity 0.15s ease-out;
+                            `;
+
+                            if (typeof window.adicionarAoLayer === 'function' && window.LAYERS?.EFEITOS) {
+                                window.adicionarAoLayer(vfxGarra, window.LAYERS.EFEITOS);
+                            } else {
+                                palco.appendChild(vfxGarra);
+                            }
+
+                            // Dispara a expansão e o fade-out do golpe de garra
+                            requestAnimationFrame(() => {
+                                vfxGarra.style.transform = `scale(1.25) scaleX(${flipFator})`;
+                                vfxGarra.style.opacity = '0';
+                            });
+
+                            // Remove o elemento após o término da animação
+                            setTimeout(() => {
+                                if (vfxGarra.isConnected) vfxGarra.remove();
+                            }, 160);
+                        }
+
+                        // Pisca o inimigo atingido (flash rápido de dano)
+                        if (typeof window.flashRapido === 'function' && inimigo.elemento) {
+                            window.flashRapido(inimigo.elemento);
+                        }
+
                         // Aplica efeito no inimigo atingido: Atordoamento (1 segundo) e recuo
                         inimigo.stunned = true;
                         inimigo.stunTimer = Number(config.petStunDuracaoInimigo ?? 60);
