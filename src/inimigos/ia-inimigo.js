@@ -2494,8 +2494,51 @@ window.AudioManager.playSFX('chute', 0.4);
                         window.AudioManager?.playSFX('impacto', 0.7);
                         inimigo.jaAtacouNesteChute = true;
                         
-                        if (!window.temEscudoAtivoPadrao(window.playerControle)) {
-                            window.playerControle.dano = (window.playerControle.dano || 0) + 1;
+                        const player = window.playerControle;
+                        const temEscudoAtivo = typeof window.temEscudoAtivoPadrao === 'function' && window.temEscudoAtivoPadrao(player);
+
+                        // REGRA 2: O ataque veio pela frente do jogador?
+                        const ataqueVeioPelaFrente = (player.direcao === 'd')
+                            ? (inimigo.x >= player.x - 8)
+                            : (inimigo.x <= player.x + 8);
+
+                        // Bloqueia apenas se tiver escudo E o golpe vier de frente
+                        const bloqueouComEscudo = temEscudoAtivo && ataqueVeioPelaFrente;
+
+                        if (bloqueouComEscudo) {
+                            // REGRA 1: A cada 3 golpes físicos bloqueados, perde 1 carga de escudo
+                            player.golpesFisicosNoEscudo = (player.golpesFisicosNoEscudo || 0) + 1;
+
+                            if (player.golpesFisicosNoEscudo >= 3) {
+                                player.golpesFisicosNoEscudo = 0; // Reinicia a contagem dos 3 golpes
+
+                                // Aplica a perda de 1 carga no escudo
+                                if (typeof window.aplicarImpactoEscudoPadrao === 'function') {
+                                    window.aplicarImpactoEscudoPadrao(player, config, {
+                                        alvoVisual: window.escudoElemento,
+                                        flashElement: typeof flashElement === 'function' ? flashElement : null,
+                                        atualizarVisualEscudo: window.atualizarVisualEscudo,
+                                        salvarInventario: window.salvarInventario,
+                                        duracaoFlash: 150,
+                                        intensidadeFlash: 6
+                                    });
+                                } else {
+                                    player.escudoProtegido = (player.escudoProtegido || 0) + 1;
+                                    const tirosProtegidos = Number(config.escudoTirosProtegidos ?? 3);
+                                    if (player.escudoProtegido >= tirosProtegidos) {
+                                        player.escudoVermelho = true;
+                                    }
+                                    if (typeof window.atualizarVisualEscudo === 'function') window.atualizarVisualEscudo();
+                                }
+                            } else {
+                                // Feedback visual de bloqueio físico normal (ainda não perdeu a carga inteira)
+                                if (typeof piscaLeve === 'function' && window.escudoElemento) {
+                                    piscaLeve(window.escudoElemento);
+                                }
+                            }
+                        } else {
+                            // Não tem escudo OU tomou o golpe pelas costas: sofre dano na vida!
+                            player.dano = (player.dano || 0) + 1;
                             window.exibirPerdaVida?.();
 
                             if (typeof window.criarAnimacaoImpacto2Frames === 'function') {
@@ -2513,13 +2556,9 @@ window.AudioManager.playSFX('chute', 0.4);
                                     frameDurationMs: 130
                                 });
                             }
-                            
+
                             if (typeof flashComVibacao === 'function') {
                                 flashComVibacao(document.getElementById('player'));
-                            }
-                        } else {
-                            if (typeof piscaLeve === 'function' && window.escudoElemento) {
-                                piscaLeve(window.escudoElemento);
                             }
                         }
                         

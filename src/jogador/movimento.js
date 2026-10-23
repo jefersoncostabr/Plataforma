@@ -2389,7 +2389,11 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                             });
                         }
 
-                        if (window.temEscudoAtivoPadrao(controle)) {
+                        // Projétil só é defendido se vier pela frente do personagem
+                        const tiroVeioPelaFrente = (controle.direcao === 'd' && proj.direcao < 0) ||
+                                                   (controle.direcao === 'e' && proj.direcao > 0);
+
+                        if (window.temEscudoAtivoPadrao(controle) && tiroVeioPelaFrente) {
                             if (typeof window.aplicarImpactoEscudoPadrao === 'function') {
                                 window.aplicarImpactoEscudoPadrao(controle, config, {
                                     alvoVisual: escudoElemento,
