@@ -740,6 +740,14 @@ function abrirMenuSkillsUI() {
 
                 const line = document.createElement('div');
                 line.className = 'skill-tree-line';
+
+                // Se AMBAS as habilidades conectadas já foram compradas, ativa o brilho verde
+                const paiComprado = Array.isArray(window.playerSkills) && window.playerSkills.includes(skill.parent);
+                const filhoComprado = Array.isArray(window.playerSkills) && window.playerSkills.includes(skillId);
+                if (paiComprado && filhoComprado) {
+                    line.classList.add('active');
+                }
+
                 line.style.width = `${distance}px`;
                 line.style.left = `${parentCenterX}px`;
                 line.style.top = `${parentCenterY}px`;

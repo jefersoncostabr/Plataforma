@@ -195,4 +195,24 @@
     background-color: #444;
     height: 2px;
     z-index: 0;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+/* Linha com brilho verde neon quando ambas as skills estão compradas */
+.skill-tree-line.active {
+    background-color: #00ff00;
+    height: 2px;
+    z-index: 0;
+    animation: linhaBrilhoVerde 1.8s ease-in-out infinite;
+}
+
+@keyframes linhaBrilhoVerde {
+    0%, 100% {
+        box-shadow: 0 0 4px #00ff00, 0 0 8px rgba(0, 255, 0, 0.6);
+        opacity: 0.85;
+    }
+    50% {
+        box-shadow: 0 0 8px #00ff00, 0 0 16px rgba(0, 255, 0, 0.95);
+        opacity: 1;
+    }
 }
