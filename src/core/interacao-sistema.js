@@ -563,9 +563,15 @@
                                 img.className = tipoResultado === 'airdrop_plus'
                                     ? 'crafting-result-icon crafting-airdrop-plus-icon'
                                     : 'crafting-result-icon';
+                                rSlot.style.position = 'relative';
                                 rSlot.appendChild(img);
 
-                                if (receita.id === 'upgrade_plus') {
+                                if (receita.id === 'upgrade_plus' || (tipoResultado && tipoResultado.endsWith('_plus'))) {
+                                    const plus = document.createElement('span');
+                                    plus.style.cssText = 'position: absolute; top: 3px; left: 5px; color: #0088ff; font-weight: 900; font-size: 18px; text-shadow: 0 0 2px #000; z-index: 2;';
+                                    plus.textContent = '+';
+                                    rSlot.appendChild(plus);
+                                } else if (receita.id === 'upgrade_plus') {
                                     const plus = document.createElement('span');
                                     plus.className = 'crafting-result-plus';
                                     plus.textContent = '+';
@@ -701,13 +707,16 @@ const itemQuadrado = document.createElement('button');
                                         itemQuadrado.appendChild(img);
                                     }
                                     
-                                    // Adiciona o sinal azul de "+" se for item melhorado
-                                    if (item.tipo && item.tipo.endsWith('_plus')) {
-                                        const plusLabel = document.createElement('span');
-                                        plusLabel.className = 'plus-label';
-                                        plusLabel.textContent = '+';
-                                        itemQuadrado.appendChild(plusLabel);
-                                    }
+                                // Adiciona o sinal azul de "+" se for item melhorado (igual à mochila)
+                                if (item.tipo && item.tipo.endsWith('_plus')) {
+                                    const plusLabel = document.createElement('span');
+                                    plusLabel.style.cssText = 'position: absolute; top: 3px; left: 5px; color: #0088ff; font-weight: 900; font-size: 16px; text-shadow: 0 0 2px #000; z-index: 2;';
+                                    plusLabel.textContent = '+';
+                                    itemQuadrado.style.position = 'relative';
+                                    itemQuadrado.appendChild(plusLabel);
+                                } else {
+                                    itemQuadrado.style.position = 'relative';
+                                }
 
                                     let badgeEl = null;
                                     const ehEmpilhavel = ['scrap'].includes(item.tipo) || item.isXP || item.isSkillPoint || (item.tipo && item.tipo.endsWith('_plus'));
@@ -774,6 +783,14 @@ const itemQuadrado = document.createElement('button');
                             } else {
                                 const imgClone = btnOrigem.querySelector('img').cloneNode();
                                 imgClone.className = 'crafting-item-icon';
+                                alvo.style.position = 'relative';
+                                // Adiciona badge + azul se o item for *_plus
+                                if (itemData.tipo && itemData.tipo.endsWith('_plus')) {
+                                    const plusLabel = document.createElement('span');
+                                    plusLabel.style.cssText = 'position: absolute; top: 3px; left: 5px; color: #0088ff; font-weight: 900; font-size: 16px; text-shadow: 0 0 2px #000; z-index: 2;';
+                                    plusLabel.textContent = '+';
+                                    alvo.appendChild(plusLabel);
+                                }
                                 alvo.appendChild(imgClone);
                             }
 
