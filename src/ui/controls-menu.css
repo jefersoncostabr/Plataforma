@@ -1,0 +1,204 @@
+.menu-controls-container {
+    width: 100%;
+    max-height: 96vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-color: #00ffff rgba(255, 255, 255, 0.1);
+    scrollbar-width: thin;
+}
+
+.menu-controls-help {
+    margin-bottom: 20px;
+    color: #00ffff;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    text-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+}
+
+.menu-controls-options {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-items: stretch;
+    gap: 12px;
+    width: min(720px, calc(100vw - 32px));
+    height: min(60vh, 560px);
+    max-height: min(60vh, 560px);
+    overflow: hidden;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+.menu-controls-column {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.menu-controls-column[hidden] {
+    display: none;
+}
+
+.menu-controls-section-title {
+    margin: 0 0 8px;
+    color: #fff;
+    font-size: 13px;
+    text-align: center;
+}
+
+.menu-controls-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 4px 10px 4px 4px;
+    scrollbar-color: #00ffff rgba(255, 255, 255, 0.1);
+    scrollbar-width: thin;
+}
+
+.menu-controls-list-container::-webkit-scrollbar {
+    width: 10px;
+}
+
+.menu-controls-list-container::-webkit-scrollbar-thumb {
+    background: #00ffff;
+    border-radius: 8px;
+}
+
+.menu-controls-list-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#controls-list-container {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    align-items: start;
+    justify-items: center;
+    column-gap: 8px;
+    row-gap: 3px;
+}
+
+.menu-controls-line {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1px;
+    width: 220px;
+    max-width: 100%;
+    height: 30px;
+    min-height: 30px;
+    max-height: 30px;
+    margin-bottom: 0;
+    padding: 2px 3px;
+    overflow: hidden;
+    border-radius: 6px;
+    box-sizing: border-box;
+    transition: all 0.1s ease;
+}
+
+.menu-controls-label {
+    flex: 0 0 84px;
+    width: 84px;
+    min-width: 0;
+    overflow: hidden;
+    color: inherit;
+    font-size: 9px;
+    line-height: 1;
+    opacity: 0.85;
+    pointer-events: none;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.menu-controls-key {
+    display: inline-flex;
+    flex: 0 0 104px;
+    align-items: center;
+    justify-content: center;
+    width: 104px;
+    min-width: 0;
+    max-width: 104px;
+    height: 18px;
+    padding: 1px 3px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    color: inherit;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1;
+    pointer-events: none;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+#special-controls-list-container {
+    align-items: center;
+}
+
+.menu-controls-actions {
+    display: flex;
+    grid-column: 1 / -1;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin-top: 6px;
+    padding-bottom: 4px;
+}
+
+.menu-controls-action-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.menu-controls-action-btn img {
+    width: 28px;
+    height: 28px;
+    image-rendering: pixelated;
+}
+
+.menu-option.menu-option--control.selected,
+.menu-option.menu-option--action.menu-controls-action-btn.selected {
+    transform: scale(1.05);
+    background: #00ffff !important;
+    color: #000;
+    font-weight: bold;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+}
+
+@media (max-width: 640px) {
+    .menu-controls-options {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) auto;
+        width: calc(100vw - 20px);
+        height: min(60vh, 520px);
+        max-height: min(60vh, 520px);
+        gap: 6px;
+        padding: 8px;
+    }
+
+    .menu-controls-label {
+        font-size: 8px;
+    }
+
+    .menu-controls-key {
+        font-size: 9px;
+    }
+}
