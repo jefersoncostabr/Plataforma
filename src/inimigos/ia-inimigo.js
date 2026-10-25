@@ -2124,7 +2124,9 @@ window.AudioManager.playSFX('chute', 0.4);
 
                     if (!perseguindoItem && !inimigo.bbRobo && podeChutar && !inimigo.estaAgachado && distanciaAtual <= distAtaqueEfetiva && pertoVerticalmente && inimigo.cooldownChute === 0) {
                         inimigo.tempoChute = config.tempoChute;
-                        inimigo.cooldownChute = config.cooldownChute;
+                        inimigo.cooldownChute = inimigo.tipo === 15
+    ? Number(inimigo.tempoChuteCooldown ?? config.cooldownChute)
+    : config.cooldownChute;
                         window.AudioManager?.playSFX('chute', 0.3);
                         inimigo.jaAtacouNesteChute = false;
 

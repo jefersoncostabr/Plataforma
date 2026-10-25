@@ -50,7 +50,12 @@ test('exportação preserva configuração independente de inimigos aleatórios'
         inimigoAleatorio: [3, 8],
         humanoAleatorio: [2],
         cabecaoAleatorio: [1],
-        ninjaAleatorio: [3]
+        ninjaAleatorio: [3],
+        chefes: [{
+            id: 'chefe-ninja',
+            coord: 'f9',
+            etapas: [{ baseNpc: 'ninja', equipamentos: [] }]
+        }]
     });
     const output = { value: '' };
     const exportador = window.criarExportadorEditor({
@@ -76,6 +81,7 @@ test('exportação preserva configuração independente de inimigos aleatórios'
     assert.deepEqual(faseExportada.humanoAleatorio, [1]);
     assert.deepEqual(faseExportada.cabecaoAleatorio, [0]);
     assert.deepEqual(faseExportada.ninjaAleatorio, [3]);
+    assert.equal(faseExportada.chefes[0].etapas[0].baseNpc, 'ninja');
 });
 
 test('o controle separado de Ninja é ligado à fase e ao spawn do jogo', () => {
@@ -98,4 +104,36 @@ test('o Ninja aleatório não fica listado como equipamento', () => {
 
     assert.ok(seletor, 'Seletor de equipamento aleatório não encontrado');
     assert.doesNotMatch(seletor[1], /Ninja|value="15"/);
+});
+
+test('o editor oferece Ninja como base de uma etapa de chefe', () => {
+    const editor = ler('tools/editor/editor.js');
+    const opcoesBoss = editor.match(/const BOSS_BASE_OPTIONS\s*=\s*\[([\s\S]*?)\];/);
+
+    assert.ok(opcoesBoss, 'Lista de bases de chefe não encontrada no editor');
+    assert.match(opcoesBoss[1], /value:\s*'ninja'\s*,\s*label:\s*'Ninja'/);
+});
+
+test('normalização da fase preserva Ninja nas etapas do chefe', () => {
+    const window = carregarEditorDados();
+    const faseNormalizada = window.EditorUtils.normalizeFaseData({
+        chefes: [{
+            id: 'chefe-teste',
+            coord: 'd8',
+            etapas: [{ baseNpc: 'ninja', equipamentos: [] }]
+        }]
+    });
+
+    assert.equal(faseNormalizada.chefes[0].etapas[0].baseNpc, 'ninja');
+});
+
+test('criação e troca de etapa de chefe mapeiam Ninja para o tipo 15', () => {
+    const inicial = ler('src/core/inicial.js');
+    const iaInimigos = ler('src/inimigos/ia-inimigo.js');
+
+    assert.match(inicial, /ninja:\s*'ninja'/);
+    assert.match(
+        iaInimigos,
+        /if\s*\(baseNpc\s*===\s*'ninja'\)\s*\{\s*return\s+Number\(window\.GAME_CONSTANTS\?\.TIPOS_INIMIGO\?\.\[15\]\?\.id\s*\?\?\s*15\);\s*\}/
+    );
 });
