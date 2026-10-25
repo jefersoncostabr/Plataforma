@@ -710,8 +710,19 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
     function obterTipoBaseDaEtapaBoss(etapa) {
         const baseNpc = String(etapa?.baseNpc || '').trim().toLowerCase();
-        if (baseNpc === 'humano') return Number(window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID ?? 13);
-        if (baseNpc === 'cabecao') return Number(window.GAME_CONSTANTS?.INIMIGO_CABECAO_ID ?? 14);
+
+        if (baseNpc === 'humano') {
+            return Number(window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID ?? 13);
+        }
+
+        if (baseNpc === 'cabecao') {
+            return Number(window.GAME_CONSTANTS?.INIMIGO_CABECAO_ID ?? 14);
+        }
+
+        if (baseNpc === 'ninja') {
+            return Number(window.GAME_CONSTANTS?.TIPOS_INIMIGO?.[15]?.id ?? 15);
+        }
+
         return Number(window.GAME_CONSTANTS?.INIMIGO_COMUM_ID ?? 0);
     }
 

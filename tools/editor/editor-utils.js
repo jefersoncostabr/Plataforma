@@ -344,7 +344,7 @@
             const etapasRaw = Array.isArray(chefe.etapas) ? chefe.etapas : [];
             const etapas = etapasRaw
                 .map((etapa) => {
-                    const basesValidas = ['inimigo_comum', 'humano', 'cabecao'];
+                    const basesValidas = ['inimigo_comum', 'humano', 'cabecao', 'ninja'];
                     const baseNpc = basesValidas.includes(String(etapa?.baseNpc || '').trim().toLowerCase())
                         ? String(etapa.baseNpc).trim().toLowerCase() : 'inimigo_comum';
                     const equipamentos = Array.isArray(etapa?.equipamentos)

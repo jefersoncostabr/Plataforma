@@ -36,8 +36,8 @@ let gradeVisivel = true;
 const BOSS_BASE_OPTIONS = [
     { value: 'inimigo_comum', label: 'Inimigo comum' },
     { value: 'humano', label: 'Humano' },
-    { value: 'cabecao', label: 'Cabeção' }
-    // { value: 'inimigo_bb', label: 'BB' } removido
+    { value: 'cabecao', label: 'Cabeção' },
+    { value: 'ninja', label: 'Ninja' }
 ];
 const BOSS_EQUIP_OPTIONS = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete', 'doze', 'bateria'];
 const BOSS_MAX_STAGES = Math.max(1, Number(window.EditorConfig?.BOSS_MAX_STAGES ?? 5));

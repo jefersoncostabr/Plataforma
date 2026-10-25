@@ -745,7 +745,11 @@ async function carregarFase(nomeArquivo) {
             if (!coordChefe || !primeiraEtapa) return;
 
             const baseNpc = String(primeiraEtapa.baseNpc || 'inimigo_comum').trim().toLowerCase();
-            const chaveJSON = ({ humano: 'humano', cabecao: 'cabecao' })[baseNpc] || 'inimigo_comum';
+            const chaveJSON = ({
+                humano: 'humano',
+                cabecao: 'cabecao',
+                ninja: 'ninja'
+            })[baseNpc] || 'inimigo_comum';
             const tipoInicial = Number(tipoPorChave[chaveJSON] ?? window.GAME_CONSTANTS?.INIMIGO_COMUM_ID ?? 0);
 
             inimigosParaReset.push({
