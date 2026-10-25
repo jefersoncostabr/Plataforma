@@ -64,6 +64,9 @@
             faseData.cabecaoAleatorio = randomConfig.cabecaoEnabled
                 ? [randomConfig.cabecaoDiff]
                 : [0];
+            faseData.ninjaAleatorio = randomConfig.ninjaEnabled
+                ? [randomConfig.ninjaDiff]
+                : [0];
 
             COORD_ARRAY_KEYS.forEach((key) => {
                 faseData[key] = (faseData[key] || []).sort(sortCoords);

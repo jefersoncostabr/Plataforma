@@ -469,6 +469,7 @@
 
         function configurarSpawnAleatorio() {
             if (!spawnRandomCheck) return;
+
             spawnRandomCheck.onchange = (e) => {
                 document.getElementById('random-config-fields').style.opacity = e.target.checked ? '1' : '0.3';
                 document.getElementById('random-config-fields').style.pointerEvents = e.target.checked ? 'auto' : 'none';
@@ -534,6 +535,26 @@
                 if (fields) { fields.style.opacity = e.target.checked ? '1' : '0.3'; fields.style.pointerEvents = e.target.checked ? 'auto' : 'none'; }
                 const freq = parseInt(document.getElementById('cabecao-freq')?.value || 1);
                 getFaseData().cabecaoAleatorio = e.target.checked ? [freq] : [0];
+                setFaseData(getFaseData());
+            };
+
+            let ninjaFields = document.getElementById('ninja-config-fields');
+            if (!ninjaFields) {
+                const parent = document.getElementById('random-config-fields')?.parentElement;
+                if (parent) {
+                    const container = document.createElement('div');
+                    container.style.cssText = 'margin-top:10px;border-top:1px solid #444;padding-top:10px';
+                    container.innerHTML = `<label title="Habilita o surgimento de ninjas aleatórios durante a fase"><input type="checkbox" id="spawn-ninja"> Ninja aleatório</label><div id="ninja-config-fields" style="opacity:.3;transition:opacity .3s;pointer-events:none;margin-left:20px;font-size:11px"><label>Frequência: <select id="ninja-freq"><option value="1">Baixa (1 min)</option><option value="2">Média (45 seg)</option><option value="3">Alta (30 seg)</option></select></label></div>`;
+                    parent.appendChild(container);
+                    ninjaFields = container.querySelector('#ninja-config-fields');
+                }
+            }
+            const ninjaCheck = document.getElementById('spawn-ninja');
+            if (ninjaCheck) ninjaCheck.onchange = (e) => {
+                const fields = document.getElementById('ninja-config-fields');
+                if (fields) { fields.style.opacity = e.target.checked ? '1' : '0.3'; fields.style.pointerEvents = e.target.checked ? 'auto' : 'none'; }
+                const freq = parseInt(document.getElementById('ninja-freq')?.value || 1);
+                getFaseData().ninjaAleatorio = e.target.checked ? [freq] : [0];
                 setFaseData(getFaseData());
             };
 

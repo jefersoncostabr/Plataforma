@@ -216,7 +216,10 @@ function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
     const tamanhoTile = 32;
     // Define a imagem base: se for tipo 5 (feno), usa o sprite específico
     let imagemInimigo = window.config?.spriteParadoInimigo || '../../assets/personagem/Personagem_parado.png';
-    if (tipoEquipamento === 13) {
+    const spriteTipoInimigo = window.GAME_CONSTANTS?.TIPOS_INIMIGO?.[tipoEquipamento]?.spriteParado;
+    if (spriteTipoInimigo) {
+        imagemInimigo = spriteTipoInimigo;
+    } else if (tipoEquipamento === 13) {
         imagemInimigo = '../../assets/personagem/humano/humano.png';
     } else if (tipoEquipamento === Number(window.GAME_CONSTANTS?.INIMIGO_CABECAO_ID ?? 14)) {
         imagemInimigo = '../../assets/personagem/inimigo_bb/inbb_parado.png';

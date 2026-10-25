@@ -198,6 +198,20 @@ window.GAME_CONSTANTS = {
             ehFeno: false,
             temBateria: true,
         },
+        15: {
+            id: 15,
+            nome: 'ninja',
+            chaveJSON: 'ninja',
+            vidaMax: 2,
+            velocidade: 1,
+            podeAtacar: false,
+            spriteParado: '../../assets/personagem/ninja/ninja.png',
+            spriteAndando: '../../assets/personagem/ninja/ninja_andando.png',
+            spriteChute: '../../assets/personagem/ninja/ninja_soco.png',
+            spriteNoAr: '../../assets/personagem/ninja/ninja_pulando.png',
+            spriteParadoAgachado: '../../assets/personagem/ninja/ninja_agachado.png',
+            spriteAndandoAgachado: '../../assets/personagem/ninja/ninja_agachado_andando.png',
+        },
     },
 
     // ⭐ IDs especiais de tipos de inimigo

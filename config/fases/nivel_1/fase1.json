@@ -3,186 +3,6 @@
     "posicaoInicialJogador": "b2",
     "posicaoInicialBB": "",
     "objetivo": "e19",
-    "posicaoAlavanca": "",
-    "posicaoRoboDesativado": "",
-    "posicaoRoboAberto": "",
-    "posicaoMusgoRoboAberto": "",
-    "posicaoMusgoRoboDesativado": "",
-    "posicaoGaiola": "",
-    "posicaoCachorro": "",
-    "posicaoGaiolaGato": "",
-    "posicaoGato": "",
-    "inimigoAleatorio": [
-        0,
-        0
-    ],
-    "humanoAleatorio": [
-        0
-    ],
-    "cabecaoAleatorio": [
-        0
-    ],
-    "faseBonus": false,
-    "qualBonus": 0,
-    "nivelBonus": "a",
-    "plataformas": [
-        "a1",
-        {
-            "coord": "b21",
-            "type": "plataformaCanto"
-        },
-        {
-            "coord": "b22",
-            "type": "plataformaGramaVertical"
-        },
-        {
-            "coord": "c3",
-            "type": "plataforma"
-        },
-        {
-            "coord": "c22",
-            "type": "plataformaCanto"
-        },
-        {
-            "coord": "c23",
-            "type": "plataformaGramaVertical"
-        },
-        {
-            "coord": "c31",
-            "type": "plataformaVertical2"
-        },
-        {
-            "coord": "c32",
-            "type": "plataforma"
-        },
-        {
-            "coord": "c33",
-            "type": "plataforma"
-        },
-        {
-            "coord": "c34",
-            "type": "plataforma"
-        },
-        {
-            "coord": "c35",
-            "type": "plataforma"
-        },
-        {
-            "coord": "c39",
-            "type": "plataforma"
-        },
-        {
-            "coord": "d2",
-            "type": "plataformaVertical2"
-        },
-        {
-            "coord": "d23",
-            "type": "plataformaCanto"
-        },
-        {
-            "coord": "d24",
-            "type": "plataformaGramaVertical"
-        },
-        {
-            "coord": "d29",
-            "type": "plataformaVertical2"
-        },
-        {
-            "coord": "d30",
-            "type": "plataforma"
-        },
-        {
-            "coord": "d31",
-            "type": "plataformaCanto2"
-        },
-        {
-            "coord": "e1",
-            "type": "plataformaVertical2"
-        },
-        {
-            "coord": "e2",
-            "type": "plataformaCanto2"
-        },
-        {
-            "coord": "e24",
-            "type": "plataformaCanto"
-        },
-        {
-            "coord": "e25",
-            "type": "plataforma"
-        },
-        {
-            "coord": "e28",
-            "type": "plataforma"
-        },
-        {
-            "coord": "e29",
-            "type": "plataformaCanto2"
-        },
-        {
-            "coord": "f1",
-            "type": "plataformaCanto2"
-        },
-        "a2",
-        "a3",
-        "a4",
-        "a5",
-        "a6",
-        "a7",
-        "a8",
-        "a9",
-        "a10",
-        "a11",
-        "a12",
-        "a13",
-        "a14",
-        "a15",
-        "a16",
-        "a17",
-        "a18",
-        "a19",
-        "a20",
-        "a21",
-        "a22",
-        "a23",
-        "a24",
-        "a25",
-        "a26",
-        "a27",
-        "a28",
-        "a29",
-        "a30",
-        "a31",
-        "a32",
-        "a33",
-        "a34",
-        "a35",
-        "a36",
-        "a37",
-        "a38",
-        "a39",
-        "a40"
-    ],
-    "humano": [
-        {
-            "coord": "b26",
-            "type": "humano"
-        }
-    ],
-    "inimigo_feno": [
-        "b6",
-        "b7",
-        "b8",
-        "b9",
-        "d3",
-        "f24",
-        "f25"
-    ],
-    "plataformasArbustoFrente": [
-        "b12",
-        "b17",
-        "b36"
-    ],
     "fundoFrente": [
         {
             "idSprite": "meia_pedra.png",
@@ -399,6 +219,195 @@
             "x": 800,
             "y": 96,
             "escala": 1
+        }
+    ],
+    "posicaoAlavanca": "",
+    "posicaoRoboDesativado": "",
+    "posicaoRoboAberto": "",
+    "posicaoMusgoRoboAberto": "",
+    "posicaoMusgoRoboDesativado": "",
+    "posicaoGaiola": "",
+    "posicaoCachorro": "",
+    "posicaoGaiolaGato": "",
+    "posicaoGato": "",
+    "inimigoAleatorio": [
+        0,
+        0
+    ],
+    "humanoAleatorio": [
+        0
+    ],
+    "cabecaoAleatorio": [
+        0
+    ],
+    "ninjaAleatorio": [
+        3
+    ],
+    "faseBonus": false,
+    "qualBonus": 0,
+    "nivelBonus": "a",
+    "plataformas": [
+        "a1",
+        {
+            "coord": "b21",
+            "type": "plataformaCanto"
+        },
+        {
+            "coord": "b22",
+            "type": "plataformaGramaVertical"
+        },
+        {
+            "coord": "c3",
+            "type": "plataforma"
+        },
+        {
+            "coord": "c22",
+            "type": "plataformaCanto"
+        },
+        {
+            "coord": "c23",
+            "type": "plataformaGramaVertical"
+        },
+        {
+            "coord": "c31",
+            "type": "plataformaVertical2"
+        },
+        {
+            "coord": "c32",
+            "type": "plataforma"
+        },
+        {
+            "coord": "c33",
+            "type": "plataforma"
+        },
+        {
+            "coord": "c34",
+            "type": "plataforma"
+        },
+        {
+            "coord": "c35",
+            "type": "plataforma"
+        },
+        {
+            "coord": "c39",
+            "type": "plataforma"
+        },
+        {
+            "coord": "d2",
+            "type": "plataformaVertical2"
+        },
+        {
+            "coord": "d23",
+            "type": "plataformaCanto"
+        },
+        {
+            "coord": "d24",
+            "type": "plataformaGramaVertical"
+        },
+        {
+            "coord": "d29",
+            "type": "plataformaVertical2"
+        },
+        {
+            "coord": "d30",
+            "type": "plataforma"
+        },
+        {
+            "coord": "d31",
+            "type": "plataformaCanto2"
+        },
+        {
+            "coord": "e1",
+            "type": "plataformaVertical2"
+        },
+        {
+            "coord": "e2",
+            "type": "plataformaCanto2"
+        },
+        {
+            "coord": "e24",
+            "type": "plataformaCanto"
+        },
+        {
+            "coord": "e25",
+            "type": "plataforma"
+        },
+        {
+            "coord": "e28",
+            "type": "plataforma"
+        },
+        {
+            "coord": "e29",
+            "type": "plataformaCanto2"
+        },
+        {
+            "coord": "f1",
+            "type": "plataformaCanto2"
+        },
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8",
+        "a9",
+        "a10",
+        "a11",
+        "a12",
+        "a13",
+        "a14",
+        "a15",
+        "a16",
+        "a17",
+        "a18",
+        "a19",
+        "a20",
+        "a21",
+        "a22",
+        "a23",
+        "a24",
+        "a25",
+        "a26",
+        "a27",
+        "a28",
+        "a29",
+        "a30",
+        "a31",
+        "a32",
+        "a33",
+        "a34",
+        "a35",
+        "a36",
+        "a37",
+        "a38",
+        "a39",
+        "a40"
+    ],
+    "humano": [
+        {
+            "coord": "b26",
+            "type": "humano"
+        }
+    ],
+    "inimigo_feno": [
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "d3",
+        "f24",
+        "f25"
+    ],
+    "plataformasArbustoFrente": [
+        "b12",
+        "b17",
+        "b36"
+    ],
+    "ninja": [
+        {
+            "coord": "g22",
+            "type": "ninja"
         }
     ]
 }

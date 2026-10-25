@@ -15,6 +15,8 @@ window.intervalHumanoAleatorio = null; // Ciclo para humano aleatório
 window.timeoutPrimeiroHumanoAleatorio = null; // Delay inicial do humano
 window.intervalCabecaoAleatorio = null;
 window.timeoutPrimeiroCabecaoAleatorio = null;
+window.intervalNinjaAleatorio = null;
+window.timeoutPrimeiroNinjaAleatorio = null;
 
 function obterIndiceFaseInicial(valorFaseInicial) {
     if (typeof valorFaseInicial === 'string' && valorFaseInicial.trim()) {
@@ -332,6 +334,10 @@ async function carregarFase(nomeArquivo) {
         clearInterval(window.intervalCabecaoAleatorio);
         window.intervalCabecaoAleatorio = null;
     }
+    if (window.intervalNinjaAleatorio !== null) {
+        clearInterval(window.intervalNinjaAleatorio);
+        window.intervalNinjaAleatorio = null;
+    }
     
     // Limpa o timeout do primeiro inimigo se existir
     if (window.timeoutPrimeiroInimigoAleatorio !== null) {
@@ -345,6 +351,10 @@ async function carregarFase(nomeArquivo) {
     if (window.timeoutPrimeiroCabecaoAleatorio !== null) {
         clearTimeout(window.timeoutPrimeiroCabecaoAleatorio);
         window.timeoutPrimeiroCabecaoAleatorio = null;
+    }
+    if (window.timeoutPrimeiroNinjaAleatorio !== null) {
+        clearTimeout(window.timeoutPrimeiroNinjaAleatorio);
+        window.timeoutPrimeiroNinjaAleatorio = null;
     }
     
     let fase;
@@ -846,6 +856,21 @@ async function carregarFase(nomeArquivo) {
             window.timeoutPrimeiroCabecaoAleatorio = null;
         }, tempoEmMs);
     }
+
+    if (Array.isArray(fase.ninjaAleatorio) && Number(fase.ninjaAleatorio[0]) > 0) {
+        const dificuldade = Number(fase.ninjaAleatorio[0]);
+        const tempoEmMs = dificuldade === 3 ? 30000 : dificuldade === 2 ? 45000 : 60000;
+        const criarNinjaRepetido = () => {
+            if (window.isPaused || typeof criarInimigoAleatorio !== 'function') return;
+            const todasAsPlataformas = [...(fase.plataformas || []), ...(fase.plataformasNeve || [])];
+            criarInimigoAleatorio(todasAsPlataformas, 15);
+        };
+        window.timeoutPrimeiroNinjaAleatorio = setTimeout(() => {
+            criarNinjaRepetido();
+            window.intervalNinjaAleatorio = setInterval(criarNinjaRepetido, tempoEmMs);
+            window.timeoutPrimeiroNinjaAleatorio = null;
+        }, tempoEmMs);
+    }
 }
 
 // Avança para próxima fase
@@ -1082,6 +1107,10 @@ window.reiniciarJogo = async function(porMorte = true, opcoes = {}) {
         clearInterval(window.intervalCabecaoAleatorio);
         window.intervalCabecaoAleatorio = null;
     }
+    if (window.intervalNinjaAleatorio !== null) {
+        clearInterval(window.intervalNinjaAleatorio);
+        window.intervalNinjaAleatorio = null;
+    }
     if (window.timeoutPrimeiroInimigoAleatorio !== null) {
         clearTimeout(window.timeoutPrimeiroInimigoAleatorio);
         window.timeoutPrimeiroInimigoAleatorio = null;
@@ -1093,6 +1122,10 @@ window.reiniciarJogo = async function(porMorte = true, opcoes = {}) {
     if (window.timeoutPrimeiroCabecaoAleatorio !== null) {
         clearTimeout(window.timeoutPrimeiroCabecaoAleatorio);
         window.timeoutPrimeiroCabecaoAleatorio = null;
+    }
+    if (window.timeoutPrimeiroNinjaAleatorio !== null) {
+        clearTimeout(window.timeoutPrimeiroNinjaAleatorio);
+        window.timeoutPrimeiroNinjaAleatorio = null;
     }
 
     // Reseta estado do jogador

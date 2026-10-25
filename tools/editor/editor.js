@@ -477,6 +477,20 @@ window.onload = async () => {
             });
             if (!window.EditorConfig.COORD_ARRAY_KEYS?.includes('cabecao')) window.EditorConfig.COORD_ARRAY_KEYS?.push('cabecao');
         }
+        if (!window.EditorConfig.ENEMY_DEFS.find(d => d.type === 'ninja')) {
+            window.EditorConfig.ENEMY_DEFS.push({
+                type: 'ninja',
+                label: 'Inimigo: Ninja',
+                stateKey: 'ninja',
+                sprite: '../../assets/personagem/ninja/ninja.png',
+                spriteAndando: '../../assets/personagem/ninja/ninja_andando.png',
+                kind: 'multiple'
+            });
+
+            if (!window.EditorConfig.COORD_ARRAY_KEYS?.includes('ninja')) {
+                window.EditorConfig.COORD_ARRAY_KEYS?.push('ninja');
+            }
+        }
     }
     await carregarItemDefinitions();
 
@@ -527,7 +541,9 @@ window.onload = async () => {
             ,humanoEnabled: document.getElementById('spawn-humano')?.checked || false,
             humanoDiff: parseInt(document.getElementById('humano-freq')?.value || 1)
             ,cabecaoEnabled: document.getElementById('spawn-cabecao')?.checked || false,
-            cabecaoDiff: parseInt(document.getElementById('cabecao-freq')?.value || 1)
+            cabecaoDiff: parseInt(document.getElementById('cabecao-freq')?.value || 1),
+            ninjaEnabled: document.getElementById('spawn-ninja')?.checked || false,
+            ninjaDiff: parseInt(document.getElementById('ninja-freq')?.value || 1)
         }) || {},
         aplicarEstadoUI: (estado) => {
             proportionSelect.value = estado.proporcao;
@@ -549,6 +565,14 @@ window.onload = async () => {
                 if (freqAtual) freqAtual.value = estado.cabecaoAleatorio?.[0] || 1;
                 const fields = document.getElementById('cabecao-config-fields');
                 if (fields) { fields.style.opacity = cabecaoCheckAtual.checked ? '1' : '0.3'; fields.style.pointerEvents = cabecaoCheckAtual.checked ? 'auto' : 'none'; }
+            }
+            const ninjaCheckAtual = document.getElementById('spawn-ninja');
+            if (ninjaCheckAtual) {
+                ninjaCheckAtual.checked = Array.isArray(estado.ninjaAleatorio) && estado.ninjaAleatorio[0] > 0;
+                const freqAtual = document.getElementById('ninja-freq');
+                if (freqAtual) freqAtual.value = estado.ninjaAleatorio?.[0] || 1;
+                const fields = document.getElementById('ninja-config-fields');
+                if (fields) { fields.style.opacity = ninjaCheckAtual.checked ? '1' : '0.3'; fields.style.pointerEvents = ninjaCheckAtual.checked ? 'auto' : 'none'; }
             }
 
             const bonusCheck = document.getElementById('bonus-active');

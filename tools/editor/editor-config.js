@@ -79,7 +79,8 @@
         { type: 'inimigo_completo', stateKey: 'inimigo_completo', sprite: '../../assets/personagem/Personagem_parado.png', label: 'Inimigo Completo', className: 'enemy-marker golden-bg', kind: 'array' },
         { type: 'inimigo_com_doze', stateKey: 'inimigo_com_doze', sprite: '../../assets/personagem/doze_coletavel.png', label: 'Inimigo com Doze', className: 'enemy-marker', kind: 'array' },
         { type: 'inimigo_com_bateria', stateKey: 'inimigo_com_bateria', sprite: '../../assets/personagem/objetos/bateria_coletavel.png', label: 'Inimigo com Bateria', className: 'enemy-marker', kind: 'array' }
-        ,{ type: 'cabecao', stateKey: 'cabecao', sprite: '../../assets/personagem/inimigo_bb/inbb_parado.png', label: 'Cabeção', className: 'enemy-marker', kind: 'multiple' }
+        ,{ type: 'cabecao', stateKey: 'cabecao', sprite: '../../assets/personagem/inimigo_bb/inbb_parado.png', label: 'Cabeção', className: 'enemy-marker', kind: 'multiple' },
+        { type: 'ninja', stateKey: 'ninja', sprite: '../../assets/personagem/ninja/ninja.png', label: 'Inimigo: Ninja', className: 'enemy-marker', kind: 'multiple' }
         // { type: 'inimigo_bb', ... } removido
     ];
 
@@ -120,6 +121,7 @@
             inimigoAleatorio: [1, 0],
             humanoAleatorio: [0],
             cabecaoAleatorio: [0],
+            ninjaAleatorio: [0],
             faseBonus: false,
             qualBonus: 0,
             nivelBonus: 'a'
