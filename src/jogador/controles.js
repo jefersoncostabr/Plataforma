@@ -15,22 +15,27 @@
         mochila: ['Enter'],
         interagir: ['e', 'E'],
         abertura: ['y', 'Y'],
-        troca_pet: ['q', 'Q'],
-        carregando: ['t', 'T']
-    };
+    troca_pet: ['q', 'Q'],
+    carregando: ['t', 'T']
+};
 
     function normalizarControles(raw) {
         const base = { ...CONTROLES_PADRAO };
         if (!raw || typeof raw !== 'object') return base;
 
-        Object.keys(raw).forEach((acao) => {
-            const valor = raw[acao];
-            if (Array.isArray(valor) && valor.length > 0) {
+    Object.keys(raw).forEach((acao) => {
+            if (acao === 'dashEspecial') return;
+        const valor = raw[acao];
+        if (Array.isArray(valor) && valor.length > 0) {
+            if (Array.isArray(valor[0])) {
+                base[acao] = valor
+                    .filter(c => Array.isArray(c) && c.length > 0)
+                    .map(c => c.map(t => String(t)));
+            } else {
                 base[acao] = valor.map(v => String(v));
-            } else if (typeof valor === 'object' && valor !== null) {
-                // ...
             }
-        });
+        }
+    });
 
         return base;
     }
@@ -67,6 +72,17 @@
         if (!tecla) return false;
         const key = String(tecla);
         return getBinds(acao).some(k => key === k || key.toLowerCase() === String(k).toLowerCase());
+    }
+
+    function combinacaoAtiva(controle, combinacao) {
+        if (!controle?.teclas || !Array.isArray(combinacao)) return false;
+        return combinacao.every(codigo => controle.teclas[codigo] === true);
+    }
+
+    function comandoEspecialAtivo(controle, acao) {
+        const combinacoes = window.controlesConfig?.[acao];
+        if (!Array.isArray(combinacoes)) return false;
+        return combinacoes.some(combinacao => combinacaoAtiva(controle, combinacao));
     }
 
     function acaoAtiva(controle, acao) {
@@ -112,6 +128,8 @@
             : Date.now();
 
         const handleKeyDown = (e) => {
+            controle.teclas = controle.teclas || {};
+            controle.teclas[e.code] = true;
             // Bloqueia comandos se o jogo está pausado, exceto teclas de menu/pause
             const ehTeclaMenu = e.key === '6' || e.key === 'Escape' || e.key === 'Esc' || 
                                 e.key === 'Pause' || teclaEhAcao(e.key, 'mochila');
@@ -309,6 +327,8 @@
         };
 
         const handleKeyUp = (e) => {
+            controle.teclas = controle.teclas || {};
+            controle.teclas[e.code] = false;
             controle.teclas[e.key] = false;
             if (e.key === '8') {
                 window.debugInimigoTeclas[' '] = false;

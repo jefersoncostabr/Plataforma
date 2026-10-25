@@ -8,6 +8,7 @@ let menuMode = 'main'; // main | controls
 let controlsSelectedIndex = -1;
 let settingsSelectedIndex = -1;
 let controlsBindingAction = null;
+let teclasCombinacaoEmCaptura = new Set();
 let controlsMenuHtmlContent = ''; // Para armazenar o conteúdo HTML carregado
 let settingsMenuHtmlContent = ''; // Para armazenar o conteúdo HTML carregado
 let menuSelectedSlotId = null;
@@ -203,14 +204,24 @@ const CONTROLES_MENU_ITEMS = [
     { id: 'debugGrade', label: 'Grade' }
 ];
 
+const COMANDOS_ESPECIAIS_ITEMS = [
+];
+
 function normalizarControles(raw) {
     const base = { ...CONTROLES_PADRAO };
     if (!raw || typeof raw !== 'object') return base;
 
     Object.keys(base).forEach((acao) => {
         const valor = raw[acao];
-        if (Array.isArray(valor) && valor.length > 0) {
-            base[acao] = valor.map(v => String(v));
+
+        if (!Array.isArray(valor) || valor.length === 0) return;
+
+        if (Array.isArray(valor[0])) {
+            base[acao] = valor
+                .filter(combinacao => Array.isArray(combinacao) && combinacao.length > 0)
+                .map(combinacao => combinacao.map(tecla => String(tecla)));
+        } else {
+            base[acao] = valor.map(tecla => String(tecla));
         }
     });
 
@@ -262,6 +273,27 @@ function definirTeclaAcao(acao, tecla) {
 }
 
 carregarControlesDoStorage();
+
+window.addEventListener('keyup', (e) => {
+    if (!controlsBindingAction) return;
+    const ehEspecial = COMANDOS_ESPECIAIS_ITEMS.some(i => i.id === controlsBindingAction);
+    if (!ehEspecial) return;
+    if (teclasCombinacaoEmCaptura.size === 0) return;
+    // Se todas as teclas soltas, salva
+    if (teclasCombinacaoEmCaptura.has(e.code)) {
+        // remove released
+    }
+    // Check if any still pressed: we can't easily know, so save on first keyup after capture
+    const combinacao = [...teclasCombinacaoEmCaptura];
+    if (combinacao.length > 0) {
+        window.controlesConfig = window.controlesConfig || {};
+        window.controlesConfig[controlsBindingAction] = [combinacao];
+        salvarControlesNoStorage();
+        controlsBindingAction = null;
+        teclasCombinacaoEmCaptura.clear();
+        renderMenuUI();
+    }
+});
 
 const EQUIPAMENTOS_RESUMO = [
     { tipo: 'revolver', label: 'Revólver', configKey: 'spriteItemRevolver', fallback: 'assets/personagem/revolver_pegavel.png' },
@@ -1228,15 +1260,28 @@ function handleControlsInput(e) {
     const key = e.key.toLowerCase();
 
     if (controlsBindingAction) {
+        const ehEspecial = COMANDOS_ESPECIAIS_ITEMS.some(i => i.id === controlsBindingAction);
+        if (ehEspecial) {
+            e.preventDefault();
+            if (e.key === 'Escape') {
+                controlsBindingAction = null;
+                teclasCombinacaoEmCaptura.clear();
+                renderMenuUI();
+                return;
+            }
+            teclasCombinacaoEmCaptura.add(e.code);
+            // Atualiza texto enquanto digita
+            renderMenuUI();
+            return;
+        }
         e.preventDefault();
-    if (key === 'escape') {
+        if (key === 'escape') {
             controlsBindingAction = null;
             e.preventDefault();
             e.stopPropagation();
             renderMenuUI();
             return;
         }
-
         definirTeclaAcao(controlsBindingAction, e.key);
         controlsBindingAction = null;
         renderMenuUI();
@@ -1780,6 +1825,63 @@ async function renderControlsContent(overlay) {
             hasList: !!listContainer,
             hasTemplate: !!template,
             hasItems: !!CONTROLES_MENU_ITEMS
+        });
+    }
+
+    const specialListContainer = container.querySelector('#special-controls-list-container');
+    const specialColumn = specialListContainer?.closest('.menu-controls-column');
+    const basicColumn = container.querySelector('#controls-list-container')?.closest('.menu-controls-column');
+    const hasSpecialCommands = Array.isArray(COMANDOS_ESPECIAIS_ITEMS)
+        && COMANDOS_ESPECIAIS_ITEMS.length > 0;
+    if (specialColumn) specialColumn.hidden = !hasSpecialCommands;
+    if (basicColumn) basicColumn.style.gridColumn = hasSpecialCommands ? '' : '1 / -1';
+
+    if (specialListContainer && Array.isArray(COMANDOS_ESPECIAIS_ITEMS) && COMANDOS_ESPECIAIS_ITEMS.length > 0) {
+        specialListContainer.innerHTML = '';
+        function formatarCombinacoes(combinacoes) {
+            if (!Array.isArray(combinacoes) || combinacoes.length === 0) return '-';
+            return combinacoes
+                .map(combinacao => combinacao.map(tecla => {
+                    if (tecla === 'ShiftLeft') return 'Shift';
+                    if (tecla === 'ControlLeft') return 'Ctrl';
+                    if (tecla === 'AltLeft') return 'Alt';
+                    if (tecla === 'Space') return 'Espaço';
+                    return tecla.replace(/^Key/, '').replace(/^Digit/, '');
+                }).join(' + '))
+                .join(' / ');
+        }
+        COMANDOS_ESPECIAIS_ITEMS.forEach((item, index) => {
+            let linha;
+            if (template?.content?.firstElementChild) {
+                linha = template.content.firstElementChild.cloneNode(true);
+            } else {
+                linha = document.createElement('div');
+                linha.className = 'menu-option menu-option--control menu-controls-line';
+                linha.innerHTML = '<span class="menu-controls-label"></span><span class="menu-controls-key"></span>';
+            }
+            const combinacoes = window.controlesConfig?.[item.id];
+            const aguardando = controlsBindingAction === item.id ? '  <AGUARDANDO...>' : '';
+            const label = linha.querySelector('.menu-controls-label');
+            const keyDisplay = linha.querySelector('.menu-controls-key');
+            if (!label || !keyDisplay) return;
+            label.textContent = item.label;
+            keyDisplay.textContent = `${formatarCombinacoes(combinacoes)}${aguardando}`;
+            linha.onmouseenter = () => {
+                const items = getControlsNavItems();
+                controlsSelectedIndex = items.indexOf(linha);
+                updateMenuVisuals();
+            };
+            linha.onmouseleave = () => {
+                controlsSelectedIndex = -1;
+                updateMenuVisuals();
+            };
+            linha.onclick = () => {
+                controlsSelectedIndex = index;
+                controlsBindingAction = item.id;
+                teclasCombinacaoEmCaptura.clear();
+                renderMenuUI();
+            };
+            specialListContainer.appendChild(linha);
         });
     }
 
