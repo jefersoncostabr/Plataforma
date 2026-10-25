@@ -49,7 +49,8 @@ window.SKILLS = Object.freeze({
     TATSUMAKI_SENPUKYAKU: 'Tatsumaki Senpukyaku',
     GARRA: 'Garra',
     GARRA2: 'Garra 2',
-    CAOBATENTE: 'Cãobatente'
+    CAOBATENTE: 'Cãobatente',
+    GATOBATENTE: 'Gatobatente'
 });
 window.temSkill = (nomeSkill) => Array.isArray(window.playerSkills) && window.playerSkills.includes(String(nomeSkill || ''));
 const SKILLS_STORAGE_KEY = 'plataformaSkills';

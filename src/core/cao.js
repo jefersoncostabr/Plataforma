@@ -268,9 +268,20 @@
                 const raioDetecaoX = Number(config.petRaioDetecaoInimigoX ?? 250);
                 const raioDetecaoY = Number(config.petRaioDetecaoInimigoY ?? 120);
 
-                // Verifica se a mecânica está habilitada: APENAS CÃO + SKILL CÃOBATENTE
-                const temSkillCaobatente = !!(typeof window.temSkill === 'function' && window.temSkill('Cãobatente'));
-                const podeCacarInimigos = pet.tipo === 'cao' && temSkillCaobatente;
+                // Verifica se a mecânica está habilitada: CÃO + SKILL CÃOBATENTE ou GATO + SKILL GATOBATENTE
+                const temSkillCaobatente = !!(typeof window.temSkill === 'function' && (window.temSkill('Cãobatente') || window.temSkill('Caobatente')));
+                const temSkillGatobatente = !!(typeof window.temSkill === 'function' && (window.temSkill('Gatobatente') || window.temSkill('Gatinho Batente')));
+                const podeCacarInimigos = (pet.tipo === 'cao' && temSkillCaobatente) || (pet.tipo === 'gato' && temSkillGatobatente);
+                if (pet.tipo === 'gato') {
+                    console.log('[GATOBATENTE][CHECK]', {
+                        temSkillGatobatente,
+                        podeCacarInimigos,
+                        controlandoGato: window.controlandoGato,
+                        playerSkills: Array.isArray(window.playerSkills) ? window.playerSkills : [],
+                        inimigoAlvo: !!pet.inimigoAlvo,
+                        cooldown: pet.cooldownAtaqueInimigo
+                    });
+                }
 
                 // Valida se o inimigo que ele já estava perseguindo continua válido
                 if (pet.inimigoAlvo) {
@@ -286,6 +297,14 @@
                 // Busca ou atualiza dinamicamente o alvo caso apareça um inimigo mais próximo
                 if (podeCacarInimigos && pet.cooldownAtaqueInimigo === 0 && !pet.inimigoPreso && !pet.itemArrastado &&
                     alvoSeguimento && !alvoSeguimento.estaMorrendo && window.inimigos && Array.isArray(window.inimigos)) {
+                    if (pet.tipo === 'gato' && podeCacarInimigos) {
+                        console.log('[GATOBATENTE][BUSCA]', {
+                            raioX: raioDetecaoX,
+                            raioY: raioDetecaoY,
+                            qtdInimigos: Array.isArray(window.inimigos) ? window.inimigos.length : 0,
+                            inimigoAlvoAtual: pet.inimigoAlvo?.nome || pet.inimigoAlvo?.tipo
+                        });
+                    }
 
                     // Se já estiver perseguindo um alvo, calcula a distância atual dele menos 10px 
                     // (margem de estabilidade para só trocar se o novo inimigo for claramente mais próximo)
@@ -405,6 +424,14 @@
 
                     if (colidiuComInimigo) {
                         const inimigo = pet.inimigoAlvo;
+                        if (pet.tipo === 'gato' && temSkillGatobatente) {
+                            console.log('[GATOBATENTE][ATAQUE]', {
+                                inimigo: inimigo.nome || inimigo.tipo,
+                                vidaAntes: inimigo.vida,
+                                cooldownAplicado: pet.cooldownAtaqueInimigo,
+                                vaiDarDano: false
+                            });
+                        }
 
                         // --- ANIMAÇÃO VISUAL: Efeito de Garra (ataque_pet.png) ---
                         const palco = document.getElementById('game-stage') || document.getElementById('jogo-container') || document.body;
@@ -455,9 +482,11 @@
                             window.flashRapido(inimigo.elemento);
                         }
 
-                        // 1. APLICA 1 PONTO DE DANO AO INIMIGO
+                        // 1. APLICA 1 PONTO DE DANO AO INIMIGO (só para Cãobatente, não para Gatobatente)
                         const danoAtaquePet = Number(config.petDanoAtaque ?? 1);
-                        inimigo.vida = (inimigo.vida || 0) + danoAtaquePet;
+                        if (!(pet.tipo === 'gato' && temSkillGatobatente)) {
+                            inimigo.vida = (inimigo.vida || 0) + danoAtaquePet;
+                        }
 
                         // Efeito sonoro do impacto
                         window.AudioManager?.playSFX('madeiraQuebrando', 0.6);
@@ -474,27 +503,40 @@
                             : Number(inimigo.vidaMax ?? config.inimigoVidaMax ?? 3);
 
                         // Se o dano atingir a vida limite, derrota o inimigo
-                        if (inimigo.vida >= limiteVidaInimigo) {
-                            if (typeof window.prepararMorteInimigo === 'function') {
-                                window.prepararMorteInimigo(inimigo, direcaoKnockback);
-                            } else if (typeof window.removerInimigoDerrotado === 'function') {
-                                window.removerInimigoDerrotado(inimigo);
+                        if (!(pet.tipo === 'gato' && temSkillGatobatente)) {
+                            if (inimigo.vida >= limiteVidaInimigo) {
+                                if (typeof window.prepararMorteInimigo === 'function') {
+                                    window.prepararMorteInimigo(inimigo, direcaoKnockback);
+                                } else if (typeof window.removerInimigoDerrotado === 'function') {
+                                    window.removerInimigoDerrotado(inimigo);
+                                }
+                            } else {
+                                // Se ainda sobreviveu, aplica atordoamento (1s) e empurrão
+                                inimigo.stunned = true;
+                                inimigo.stunTimer = Number(config.petStunDuracaoInimigo ?? 60);
+                                inimigo.velocidadeKnockback = direcaoKnockback * 4;
+                                inimigo.framesKnockbackRestante = 8;
                             }
                         } else {
-                            // Se ainda sobreviveu, aplica atordoamento (1s) e empurrão
+                            // Gatobatente: sem dano, mas mantém pequeno efeito de stun/empurrão para parecer igual ao Caobatente
                             inimigo.stunned = true;
-                            inimigo.stunTimer = Number(config.petStunDuracaoInimigo ?? 60);
-                            inimigo.velocidadeKnockback = direcaoKnockback * 4;
-                            inimigo.framesKnockbackRestante = 8;
+                            inimigo.stunTimer = Number(config.petStunDuracaoInimigo ?? 40);
+                            inimigo.velocidadeKnockback = direcaoKnockback * 3;
+                            inimigo.framesKnockbackRestante = 6;
                         }
 
                         // 2. FINALIZA A PERSEGUIÇÃO E ATIVA O COOLDOWN DO CÃO
                         pet.inimigoAlvo = null;
 
-                        // Tempo de recarga do cão para usar a skill novamente:
+                        // Tempo de recarga do cão/gato para usar a skill novamente:
                         // Padrão: 4 segundos (240 frames a 60fps)
                         const segundosCooldown = Number(config.petCooldownAtaqueSegundos ?? 10);
-                        pet.cooldownAtaqueInimigo = Number(config.petCooldownAtaque ?? Math.round(segundosCooldown * 60));
+                        let cooldownBase = Number(config.petCooldownAtaque ?? Math.round(segundosCooldown * 60));
+                        // Gatobatente tem cooldown pela metade
+                        if (pet.tipo === 'gato' && temSkillGatobatente) {
+                            cooldownBase = Math.max(1, Math.round(cooldownBase / 2));
+                        }
+                        pet.cooldownAtaqueInimigo = cooldownBase;
                     }
                 }
 
