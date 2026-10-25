@@ -270,18 +270,8 @@
 
                 // Verifica se a mecânica está habilitada: CÃO + SKILL CÃOBATENTE ou GATO + SKILL GATOBATENTE
                 const temSkillCaobatente = !!(typeof window.temSkill === 'function' && (window.temSkill('Cãobatente') || window.temSkill('Caobatente')));
-                const temSkillGatobatente = !!(typeof window.temSkill === 'function' && (window.temSkill('Gatobatente') || window.temSkill('Gatinho Batente')));
+                const temSkillGatobatente = !!(typeof window.temSkill === 'function' && (window.temSkill('Gato de bolas') || window.temSkill('Gatobatente') || window.temSkill('Gatinho Batente')));
                 const podeCacarInimigos = (pet.tipo === 'cao' && temSkillCaobatente) || (pet.tipo === 'gato' && temSkillGatobatente);
-                if (pet.tipo === 'gato') {
-                    console.log('[GATOBATENTE][CHECK]', {
-                        temSkillGatobatente,
-                        podeCacarInimigos,
-                        controlandoGato: window.controlandoGato,
-                        playerSkills: Array.isArray(window.playerSkills) ? window.playerSkills : [],
-                        inimigoAlvo: !!pet.inimigoAlvo,
-                        cooldown: pet.cooldownAtaqueInimigo
-                    });
-                }
 
                 // Valida se o inimigo que ele já estava perseguindo continua válido
                 if (pet.inimigoAlvo) {
@@ -297,14 +287,6 @@
                 // Busca ou atualiza dinamicamente o alvo caso apareça um inimigo mais próximo
                 if (podeCacarInimigos && pet.cooldownAtaqueInimigo === 0 && !pet.inimigoPreso && !pet.itemArrastado &&
                     alvoSeguimento && !alvoSeguimento.estaMorrendo && window.inimigos && Array.isArray(window.inimigos)) {
-                    if (pet.tipo === 'gato' && podeCacarInimigos) {
-                        console.log('[GATOBATENTE][BUSCA]', {
-                            raioX: raioDetecaoX,
-                            raioY: raioDetecaoY,
-                            qtdInimigos: Array.isArray(window.inimigos) ? window.inimigos.length : 0,
-                            inimigoAlvoAtual: pet.inimigoAlvo?.nome || pet.inimigoAlvo?.tipo
-                        });
-                    }
 
                     // Se já estiver perseguindo um alvo, calcula a distância atual dele menos 10px 
                     // (margem de estabilidade para só trocar se o novo inimigo for claramente mais próximo)
@@ -424,14 +406,6 @@
 
                     if (colidiuComInimigo) {
                         const inimigo = pet.inimigoAlvo;
-                        if (pet.tipo === 'gato' && temSkillGatobatente) {
-                            console.log('[GATOBATENTE][ATAQUE]', {
-                                inimigo: inimigo.nome || inimigo.tipo,
-                                vidaAntes: inimigo.vida,
-                                cooldownAplicado: pet.cooldownAtaqueInimigo,
-                                vaiDarDano: false
-                            });
-                        }
 
                         // --- ANIMAÇÃO VISUAL: Efeito de Garra (ataque_pet.png) ---
                         const palco = document.getElementById('game-stage') || document.getElementById('jogo-container') || document.body;

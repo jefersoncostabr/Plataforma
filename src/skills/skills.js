@@ -50,7 +50,7 @@ window.SKILLS = Object.freeze({
     GARRA: 'Garra',
     GARRA2: 'Garra 2',
     CAOBATENTE: 'Cãobatente',
-    GATOBATENTE: 'Gatobatente'
+    GATOBATENTE: 'Gato de bolas'
 });
 window.temSkill = (nomeSkill) => Array.isArray(window.playerSkills) && window.playerSkills.includes(String(nomeSkill || ''));
 const SKILLS_STORAGE_KEY = 'plataformaSkills';
