@@ -160,11 +160,41 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
                 }
 
                 // Se for um bloco com propriedades especiais (ex: estaca em várias direções)
-                if (bloco.tipo === 'estaca') {
+                if (bloco.tipo === 'estaca' || bloco.tipo === 'tronco') {
                     const tileEsquerda = c * 32;
                     const tileDireita = (c + 1) * 32;
                     const tileBaixo = r * 32;
                     const tileTopo = (r + 1) * 32;
+
+                    if (bloco.tipo === 'tronco') {
+                        // A superfície de pouso segue a hitbox principal; a lateral é mais estreita
+                        // para não travar o jogador antes de ele realmente alcançar o tronco.
+                        const esquerdaReal = tileEsquerda + (bloco.xOffset || 0);
+                        const direitaReal = esquerdaReal + (bloco.width || 20);
+                        const esquerdaLateral = tileEsquerda + (bloco.sideXOffset ?? bloco.xOffset ?? 0);
+                        const direitaLateral = esquerdaLateral + (bloco.sideWidth || bloco.width || 20);
+                        const topoReal = tileTopo - (bloco.yOffset || 0);
+                        const baseReal = topoReal - (bloco.height || 32);
+
+                        const colisaoY = (y + altura > baseReal && y < topoReal);
+                        const colisaoXVertical = (x + largura > esquerdaReal && x < direitaReal);
+                        const colisaoXHorizontal = (x + largura > esquerdaLateral && x < direitaLateral);
+                        const colisaoVertical = colisaoXVertical && colisaoY;
+                        const colisaoLateral = colisaoXHorizontal && colisaoY;
+
+                        if (colisaoVertical || colisaoLateral) {
+                            return {
+                                tipo: 'tronco',
+                                esquerdaReal: esquerdaLateral,
+                                direitaReal: direitaLateral,
+                                topoReal: topoReal,
+                                baseReal: baseReal,
+                                temColisaoVertical: colisaoVertical,
+                                temColisaoLateral: colisaoLateral
+                            };
+                        }
+                        continue;
+                    }
 
                     // ESTACA PARA CIMA
                     if (bloco.direcao === 'cima') {
@@ -467,7 +497,7 @@ function aplicarSnapColisao(posicaoAtual, offsetObjeto, tamanhoObjeto, colisao, 
     if (!colisao) return posicaoAtual;
     
     // Se for ESTACA, usa as coordenadas precisas retornadas por verificarColisaoComTiles
-    if (colisao.tipo === 'estaca' || colisao.tipo === 'meio') {
+                if (colisao.tipo === 'estaca' || colisao.tipo === 'meio' || colisao.tipo === 'tronco') {
         switch(direcao) {
             case 'direita':
                 // Vindo pela esquerda, para na borda esquerda da colisão

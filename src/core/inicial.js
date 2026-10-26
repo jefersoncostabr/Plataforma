@@ -433,10 +433,24 @@ async function carregarFase(nomeArquivo) {
             ...(fase.plataformasEspinhos || []),
             ...(fase.plataformasGramaPico4 || []),
             ...(fase.plataformasGramaPico5 || []),
-            ...(fase.plataformasPedra || []), // New: Pedra
-            ...(fase.plataformasTroncoVertical || [])
+            ...(fase.plataformasPedra || []) // New: Pedra
         ];
         blocosPadrao.forEach(registrarColisao);
+
+        (fase.plataformasTroncoVertical || []).forEach(entrada => {
+            const coord = obterCoordEntradaPlataforma(entrada);
+            if (!coord) return;
+
+            window.plataformas[coord] = {
+                tipo: 'tronco',
+                xOffset: 6,
+                width: 20,
+                sideXOffset: 9,
+                sideWidth: 14,
+                yOffset: 0,
+                height: 32
+            };
+        });
 
         // Meio-blocos de terra (sem dano)
         if (fase.plataformasTerraInferior) {
