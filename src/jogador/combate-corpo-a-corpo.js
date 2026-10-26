@@ -50,15 +50,6 @@
                 ? Math.max(1, Math.round(cooldownBaseChute * multiplicadorCooldownChute))
                 : 0;
 
-            if (controle.chuteDuploAtivo && typeof window.criarVfxAtaqueForte === 'function') {
-                const hitboxAtaque = criarHitboxAtaque();
-                window.criarVfxAtaqueForte({
-                    x: hitboxAtaque.x + (hitboxAtaque.largura / 2) + (controle.direcao === 'd' ? 16 : -16),
-                    y: hitboxAtaque.y + (hitboxAtaque.altura / 2),
-                    direcao: controle.direcao
-                });
-            }
-
             window.AudioManager?.playSFX('chute', 0.4);
 
             const duracaoDash = 10;
@@ -66,6 +57,10 @@
             const multiplicadorChute = botaAtivaNoChute ? 2 : 1;
             controle.framesImpulsoRestante = duracaoDash;
             controle.velocidadeDash = (Number(config.impulsoChute ?? 0) * multiplicadorChute) / duracaoDash;
+
+            // A função é chamada em cada chute da sequência; consulta posição e direção atuais.
+            mostrarVfxTatsumakiNoChuteAtual();
+
             window.TutorialControles?.registrarAcao?.('chute');
 
             if (Array.isArray(inimigos)) {
@@ -118,16 +113,34 @@
             const larguraPlayer = Number(controle.largura || 32);
             const offsetX = Number(config.ATAQUE_OFFSET_X ?? 0);
             const larguraAtaque = Number(config.ATAQUE_LARGURA ?? 0);
+            const extensaoTatsumaki = controle.chuteDuploAtivo && Number(controle.tempoChute || 0) > 0
+                ? 16
+                : 0;
+            const larguraAtaqueAtual = larguraAtaque + extensaoTatsumaki;
             const ataqueX = controle.direcao === 'd'
                 ? controle.x + offsetX
-                : controle.x + (larguraPlayer - offsetX - larguraAtaque);
+                : controle.x + (larguraPlayer - offsetX - larguraAtaqueAtual);
 
             return {
                 x: ataqueX,
                 y: controle.y + Number(config.ATAQUE_OFFSET_Y ?? 0),
-                largura: larguraAtaque,
+                largura: larguraAtaqueAtual,
                 altura: Number(config.ATAQUE_ALTURA ?? 0)
             };
+        }
+
+        function mostrarVfxTatsumakiNoChuteAtual() {
+            if (!controle.chuteDuploAtivo || typeof window.criarVfxAtaqueForte !== 'function') return;
+
+            const hitboxAtual = criarHitboxAtaque();
+            const direcaoAtual = controle.direcao;
+            const deslocamentoFrontal = direcaoAtual === 'd' ? 16 : -16;
+
+            window.criarVfxAtaqueForte({
+                x: hitboxAtual.x + (hitboxAtual.largura / 2) + deslocamentoFrontal,
+                y: hitboxAtual.y + (hitboxAtual.altura / 2),
+                direcao: direcaoAtual
+            });
         }
 
         function processarAcertoChuteEmInimigo(inimigo) {
