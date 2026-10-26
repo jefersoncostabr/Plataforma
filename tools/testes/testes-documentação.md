@@ -22,7 +22,7 @@ Os testes automatizados usam o próprio Node.js; não precisam de instalação d
 Abra o terminal na pasta principal do projeto e execute:
 
 ```powershell
-node --test tools/testes/controls-menu-css.test.cjs tools/testes/phase-editor-random-enemies.test.cjs tools/testes/combat-tatsumaki-vfx.test.cjs tools/testes/bonus-phase.test.cjs
+node --test tools/testes/controls-menu-css.test.cjs tools/testes/phase-editor-random-enemies.test.cjs tools/testes/combat-tatsumaki-vfx.test.cjs tools/testes/bonus-phase.test.cjs tools/testes/player-jump-tilt.test.cjs tools/testes/enemy-jump-tilt.test.cjs
 ```
 
 O Node.js mostra o resultado de cada teste:
@@ -58,6 +58,22 @@ node --test tools/testes/bonus-phase.test.cjs
 ```
 
 Verifica as recompensas de XP por dificuldade, o atraso de 1 segundo, a animação da recompensa, a restauração de vida, escudo e munição, e o comportamento quando o jogador morre.
+
+### Inclinação de jogador, pets e inimigos durante o pulo
+
+```powershell
+node --test tools/testes/player-jump-tilt.test.cjs
+```
+
+Verifica a função compartilhada usada pelo jogador, pelos pets e pelos inimigos: inclinação ao subir e cair, direção do giro, espelhamento para a esquerda, rotação zero no chão, limite de 20 graus e desativação durante o jetpack. Também verifica que entradas sem entidade ou elemento não causam erro.
+
+### Inclinação dos inimigos durante o pulo
+
+```powershell
+node --test tools/testes/enemy-jump-tilt.test.cjs
+```
+
+Executa o trecho real de atualização visual da IA dos inimigos com a função compartilhada. Verifica a inclinação ao subir e cair, o sentido corrigido, o espelhamento para a esquerda, a rotação zero no chão e a desativação durante o jetpack.
 
 ---
 

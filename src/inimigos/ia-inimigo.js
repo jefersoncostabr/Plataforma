@@ -2637,7 +2637,10 @@ window.AudioManager.playSFX('chute', 0.4);
                 // Atualiza a posição no DOM (Sempre, para refletir gravidade, movimento e knockback)
                 inimigo.elemento.style.left = inimigo.x + 'px';
                 inimigo.elemento.style.bottom = inimigo.y + 'px';
-                inimigo.elemento.style.transform = inimigo.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+                window.aplicarInclinacaoVertical(inimigo, {
+                    sentido: -1,
+                    habilitado: !inimigo.jetpackAtivo
+                });
 
                 // Prepara transforms e offsets específicos antes da sincronização global
                 const direcaoFator = inimigo.direcao === 'e' ? 1 : -1;
