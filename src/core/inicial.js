@@ -1041,11 +1041,24 @@ window.proximoNivel = async function() {
             animacaoRecompensaXP = Promise.resolve(window.ganharXP(recompensaXP));
         }
 
-        // Vitória e morte aguardam o mesmo segundo antes de avançar.
-        await Promise.all([
-            animacaoRecompensaXP,
-            new Promise(resolve => setTimeout(resolve, 1000))
-        ]);
+        // Ao sobreviver, congela o jogo enquanto a recompensa de XP é exibida.
+        const donoPausaXPBonus = 'animacao-xp-fase-bonus';
+        if (sobreviveu && typeof window.setPausado === 'function') {
+            window.setPausado(true, donoPausaXPBonus);
+        }
+
+        try {
+            // Vitória e morte aguardam 1 segundo antes de avançar.
+            await Promise.all([
+                animacaoRecompensaXP,
+                new Promise(resolve => setTimeout(resolve, 1000))
+            ]);
+        } finally {
+            // Libera somente a pausa criada para a animação de XP.
+            if (sobreviveu && typeof window.setPausado === 'function') {
+                window.setPausado(false, donoPausaXPBonus);
+            }
+        }
     }
 
     const proximoIndice = window.nivelAtual + 1;
