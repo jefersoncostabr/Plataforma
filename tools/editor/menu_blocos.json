@@ -10,6 +10,7 @@
             { "type": "plataforma", "label": "Grama", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_horizontal.png" },
             { "type": "plataformaHorizontal2", "label": "Horizontal 2", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_horizontal2.png" },
             { "type": "plataformaGramaVertical", "label": "Grama Vertical", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_vertical.png" },
+            { "type": "troncoVertical", "label": "Tronco Vertical", "stateKey": "plataformasTroncoVertical", "sprite": "../../assets/tronco/tronco_vertica.png" },
             { "type": "plataformaVertical2", "label": "Vertical 2", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_vertical2.png" },
             { "type": "plataformaCantoMinimo", "label": "Canto minimo", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_canto_minimo.png" },
             { "type": "plataformaMuroTerra", "label": "Muro", "stateKey": "plataformas", "sprite": "../../assets/bloco terra/terra_muro.png" },
@@ -35,6 +36,8 @@
             { "type": "terraSuperior", "label": "Terra Superior", "stateKey": "plataformasTerraSuperior", "sprite": "../../assets/personagem/terra_superior.png" },
             { "type": "terraInferior2", "label": "Terra Inferior 2", "stateKey": "plataformasTerraInferior2", "sprite": "../../assets/personagem/terra_inferior2.png" },
             { "type": "terraSuperior2", "label": "Terra Superior 2", "stateKey": "plataformasTerraSuperior2", "sprite": "../../assets/personagem/terra_superior2.png" },
+            { "type": "troncoBaixo", "label": "Tronco Baixo", "stateKey": "plataformasTroncoBaixo", "sprite": "../../assets/tronco/tronco_baixo.png" },
+            { "type": "troncoCima", "label": "Tronco Cima", "stateKey": "plataformasTroncoCima", "sprite": "../../assets/tronco/tronco_cima.png" },
             { "type": "terraPico", "label": "Terra Pico", "stateKey": "plataformasTerraPico", "sprite": "../../assets/meio_bloco/meiograma_pico.png" },
             { "type": "terraPicoInvertido", "label": "Terra Pico Invertido", "stateKey": "plataformasTerraPicoInvertido", "sprite": "../../assets/meio_bloco/meiograma_pico_inv.png" }
           ]

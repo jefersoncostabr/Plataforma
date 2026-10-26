@@ -409,5 +409,43 @@
             "coord": "g22",
             "type": "ninja"
         }
+    ],
+    "plataformasTroncoVertical": [
+        {
+            "coord": "b11",
+            "type": "troncoVertical"
+        },
+        {
+            "coord": "b14",
+            "type": "troncoVertical"
+        },
+        {
+            "coord": "c11",
+            "type": "troncoVertical"
+        }
+    ],
+    "plataformasTroncoCima": [
+        {
+            "coord": "c4",
+            "type": "troncoCima"
+        },
+        {
+            "coord": "c5",
+            "type": "troncoCima"
+        }
+    ],
+    "plataformasTroncoBaixo": [
+        {
+            "coord": "c13",
+            "type": "troncoBaixo"
+        },
+        {
+            "coord": "c14",
+            "type": "troncoBaixo"
+        },
+        {
+            "coord": "c15",
+            "type": "troncoBaixo"
+        }
     ]
 }
