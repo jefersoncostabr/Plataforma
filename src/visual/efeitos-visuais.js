@@ -382,3 +382,37 @@ window.criarAnimacaoImpacto2Frames = function(opcoes = {}) {
 
     return impacto;
 };
+
+window.criarVfxAtaqueForte = function({ x, y, largura = 56, altura = 56 } = {}) {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+
+    const vfx = document.createElement('img');
+    vfx.src = 'assets/vfx/golpe_forte.png';
+    vfx.className = 'vfx-ataque-forte';
+    vfx.alt = '';
+    vfx.draggable = false;
+
+    vfx.style.left = `${Math.round(x - largura / 2)}px`;
+    vfx.style.bottom = `${Math.round(y - altura / 2)}px`;
+    vfx.style.width = `${largura}px`;
+    vfx.style.height = `${altura}px`;
+
+    const palco = document.getElementById('game-stage')
+        || document.getElementById('jogo-container')
+        || document.body;
+
+    if (typeof window.adicionarAoLayer === 'function' && window.LAYERS?.EFEITOS) {
+        window.adicionarAoLayer(vfx, window.LAYERS.EFEITOS);
+    } else {
+        palco.appendChild(vfx);
+    }
+
+    const removerVfx = () => {
+        if (vfx.isConnected) vfx.remove();
+    };
+
+    vfx.addEventListener('animationend', removerVfx, { once: true });
+    setTimeout(removerVfx, 250);
+
+    return vfx;
+};

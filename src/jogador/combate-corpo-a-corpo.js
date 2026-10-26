@@ -50,6 +50,14 @@
                 ? Math.max(1, Math.round(cooldownBaseChute * multiplicadorCooldownChute))
                 : 0;
 
+            if (controle.chuteDuploAtivo && typeof window.criarVfxAtaqueForte === 'function') {
+                const hitboxAtaque = criarHitboxAtaque();
+                window.criarVfxAtaqueForte({
+                    x: hitboxAtaque.x + (hitboxAtaque.largura / 2),
+                    y: hitboxAtaque.y + (hitboxAtaque.altura / 2)
+                });
+            }
+
             window.AudioManager?.playSFX('chute', 0.4);
 
             const duracaoDash = 10;
@@ -155,7 +163,7 @@
                     frameDurationMs: 130
                 });
             } else {
-                console.warn('[VFX] criarAnimacaoImpacto2Frames indisponivel no chute contra inimigo.');
+                console.warn('[VFX] Nenhum efeito de impacto está disponível.');
             }
 
             inimigo.foiAtingidoNesteChute = true;

@@ -1,7 +1,8 @@
 {
-    "proporcao": "1x1",
+    "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
-    "objetivo": "f19",
+    "posicaoInicialBB": "",
+    "objetivo": "o2",
     "posicaoAlavanca": "",
     "posicaoRoboDesativado": "",
     "posicaoRoboAberto": "",
@@ -11,33 +12,396 @@
     "posicaoCachorro": "",
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
-    "chefes": [
+    "inimigoAleatorio": [
+        0,
+        0
+    ],
+    "humanoAleatorio": [
+        0
+    ],
+    "cabecaoAleatorio": [
+        0
+    ],
+    "ninjaAleatorio": [
+        0
+    ],
+    "faseBonus": false,
+    "qualBonus": 0,
+    "nivelBonus": "a",
+    "plataformas": [
+        "a1",
         {
-            "id": "chefe-1779303734679-872",
-            "coord": "b13",
-            "etapas": [
-                {
-                    "baseNpc": "inimigo_comum"
-                },
-                {
-                    "baseNpc": "inimigo_comum",
-                    "equipamentos": [
-                        "escudo"
-                    ]
-                },
-                {
-                    "baseNpc": "inimigo_comum",
-                    "equipamentos": [
-                        "bota",
-                        "revolver"
-                    ]
-                }
-            ],
-            "ativaBooleanoAoDerrotar": false
+            "coord": "c31",
+            "type": "plataforma"
+        },
+        {
+            "coord": "c32",
+            "type": "plataforma"
+        },
+        {
+            "coord": "c33",
+            "type": "plataforma"
+        },
+        {
+            "coord": "c34",
+            "type": "plataforma"
+        },
+        {
+            "coord": "c35",
+            "type": "plataforma"
+        },
+        {
+            "coord": "c36",
+            "type": "plataforma"
+        },
+        {
+            "coord": "c37",
+            "type": "plataforma"
+        },
+        {
+            "coord": "d18",
+            "type": "plataforma"
+        },
+        {
+            "coord": "d19",
+            "type": "plataforma"
+        },
+        {
+            "coord": "d20",
+            "type": "plataforma"
+        },
+        {
+            "coord": "d21",
+            "type": "plataforma"
+        },
+        {
+            "coord": "d22",
+            "type": "plataforma"
+        },
+        {
+            "coord": "d23",
+            "type": "plataforma"
+        },
+        {
+            "coord": "d24",
+            "type": "plataforma"
+        },
+        {
+            "coord": "d25",
+            "type": "plataforma"
+        },
+        {
+            "coord": "d26",
+            "type": "plataforma"
+        },
+        {
+            "coord": "d30",
+            "type": "plataforma"
+        },
+        {
+            "coord": "d38",
+            "type": "plataforma"
+        },
+        {
+            "coord": "e8",
+            "type": "plataforma"
+        },
+        {
+            "coord": "e9",
+            "type": "plataforma"
+        },
+        {
+            "coord": "e10",
+            "type": "plataforma"
+        },
+        {
+            "coord": "e11",
+            "type": "plataforma"
+        },
+        {
+            "coord": "e12",
+            "type": "plataforma"
+        },
+        {
+            "coord": "e17",
+            "type": "plataforma"
+        },
+        {
+            "coord": "e27",
+            "type": "plataforma"
+        },
+        {
+            "coord": "e38",
+            "type": "plataforma"
+        },
+        {
+            "coord": "f7",
+            "type": "plataforma"
+        },
+        {
+            "coord": "f13",
+            "type": "plataforma"
+        },
+        {
+            "coord": "f17",
+            "type": "plataforma"
+        },
+        {
+            "coord": "f27",
+            "type": "plataforma"
+        },
+        {
+            "coord": "f40",
+            "type": "plataforma"
+        },
+        {
+            "coord": "g7",
+            "type": "plataforma"
+        },
+        {
+            "coord": "g13",
+            "type": "plataforma"
+        },
+        {
+            "coord": "g40",
+            "type": "plataforma"
+        },
+        {
+            "coord": "h35",
+            "type": "plataforma"
+        },
+        {
+            "coord": "i35",
+            "type": "plataforma"
+        },
+        {
+            "coord": "i37",
+            "type": "plataforma"
+        },
+        {
+            "coord": "i38",
+            "type": "plataforma"
+        },
+        {
+            "coord": "j33",
+            "type": "plataforma"
+        },
+        {
+            "coord": "k1",
+            "type": "plataforma"
+        },
+        {
+            "coord": "k2",
+            "type": "plataforma"
+        },
+        {
+            "coord": "k3",
+            "type": "plataforma"
+        },
+        {
+            "coord": "k4",
+            "type": "plataforma"
+        },
+        {
+            "coord": "k5",
+            "type": "plataforma"
+        },
+        {
+            "coord": "k33",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m2",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m3",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m4",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m5",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m6",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m7",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m8",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m9",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m10",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m11",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m12",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m14",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m15",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m16",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m17",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m18",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m19",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m20",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m21",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m24",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m25",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m26",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m27",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m28",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m29",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m30",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m31",
+            "type": "plataforma"
+        },
+        {
+            "coord": "m32",
+            "type": "plataforma"
+        },
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8",
+        "a9",
+        "a10",
+        "a11",
+        "a12",
+        "a13",
+        "a14",
+        "a15",
+        "a16",
+        "a17",
+        "a18",
+        "a19",
+        "a20",
+        "a21",
+        "a22",
+        "a23",
+        "a24",
+        "a25",
+        "a26",
+        "a27",
+        "a28",
+        "a29",
+        "a30",
+        "a31",
+        "a32",
+        "a33",
+        "a34",
+        "a35",
+        "a36",
+        "a37",
+        "a38",
+        "a39",
+        "a40"
+    ],
+    "plataformasTerraSuperior": [
+        "b16",
+        "b17",
+        "b18",
+        "b19",
+        "b20",
+        "b21",
+        "b22",
+        "b23",
+        "b24",
+        "b25",
+        "b26",
+        "b27",
+        "b28"
+    ],
+    "plataformasEstacaSup": [
+        "d34",
+        "e22",
+        "e23"
+    ],
+    "inimigo_feno": [
+        "l5"
+    ],
+    "ninja": [
+        {
+            "coord": "c13",
+            "type": "ninja"
+        },
+        {
+            "coord": "k38",
+            "type": "ninja"
+        },
+        {
+            "coord": "n6",
+            "type": "ninja"
         }
     ],
-    "inimigoAleatorio": [1, 0],
-    "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20"
+    "plataformasArbustoFrente": [
+        "b14",
+        "b39",
+        "n17"
     ]
 }
