@@ -1,161 +1,8 @@
 {
     "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
+    "posicaoInicialBB": "",
     "objetivo": "e40",
-    "posicaoAlavanca": "",
-    "posicaoRoboDesativado": "",
-    "posicaoRoboAberto": "",
-    "posicaoMusgoRoboAberto": "",
-    "posicaoMusgoRoboDesativado": "",
-    "posicaoGaiola": "",
-    "posicaoCachorro": "",
-    "posicaoGaiolaGato": "h39",
-    "posicaoGato": "",
-    "itens": {
-        "revolver": "o3",
-        "restauracao": "l4",
-        "municao_plus": "b17"
-    },
-    "inimigoAleatorio": [0, 0],
-    "humanoAleatorio": [1],
-    "plataformas": [
-        "a1",
-        {
-            "coord": "a17",
-            "type": "plataformaCanto2"
-        },
-        {
-            "coord": "a22",
-            "type": "plataformaCanto"
-        },
-        {
-            "coord": "k28",
-            "type": "plataformaMuro"
-        },
-        {
-            "coord": "k29",
-            "type": "plataformaMuro"
-        },
-        {
-            "coord": "k30",
-            "type": "plataformaMuro"
-        },
-        {
-            "coord": "k31",
-            "type": "plataformaMuro"
-        },
-        {
-            "coord": "k32",
-            "type": "plataformaMuro"
-        },
-        {
-            "coord": "k33",
-            "type": "plataformaGramaPico2"
-        },
-        "a2",
-        "a3",
-        "a4",
-        "a5",
-        "a6",
-        "a7",
-        "a8",
-        "a9",
-        "a10",
-        "a11",
-        "a12",
-        "a13",
-        "a14",
-        "a15",
-        "a16",
-        "a23",
-        "a24",
-        "a25",
-        "a26",
-        "a27",
-        "a28",
-        "a29",
-        "a30",
-        "a31",
-        "a32",
-        "a33",
-        "a34",
-        "a35",
-        "a36",
-        "a37",
-        "a38",
-        "a39",
-        "a40",
-        "b20",
-        "c17",
-        "c18",
-        "c19",
-        "c32",
-        "c33",
-        "c34",
-        "c35",
-        "c36",
-        "c37",
-        "c38",
-        "h17",
-        "i13",
-        "j7",
-        "k4",
-        "m9",
-        "m12",
-        "m15",
-        "m18",
-        "m21",
-        "n3",
-        "n6"
-    ],
-    "plataformasTerraSuperior": [
-        "b16",
-        "g39",
-        "l38"
-    ],
-    "plataformasTerraInferior2": [
-        "a18",
-        "a19",
-        "a20",
-        "a21",
-        "f35",
-        "j40",
-        "j41",
-        "j42"
-    ],
-    "inimigo_feno": [
-        "b7"
-    ],
-    "plataformasEstacaBaixo": [
-        "b19"
-    ],
-    "bbNPCs": [
-        "coord",
-        "b15",
-        "d18"
-    ],
-    "humano": [
-        "b31",
-        "d18",
-        "m29"
-    ],
-    "plataformasGramaPico4": [
-        "k27"
-    ],
-    "plataformasTerraPico": [
-        "m24"
-    ],
-    "plataformasTerraPicoInvertido": [
-        "l24"
-    ],
-    "plataformasArbustoFrente": [
-        "b11",
-        "b28",
-        "n21"
-    ],
-    "plataformasPedra": [
-        "b24"
-    ],
     "fundoFrente": [
         {
             "idSprite": "meia_pedra.png",
@@ -337,5 +184,173 @@
             "y": 384,
             "escala": 1
         }
+    ],
+    "posicaoAlavanca": "",
+    "posicaoRoboDesativado": "",
+    "posicaoRoboAberto": "",
+    "posicaoMusgoRoboAberto": "",
+    "posicaoMusgoRoboDesativado": "",
+    "posicaoGaiola": "",
+    "posicaoCachorro": "",
+    "posicaoGaiolaGato": "m38",
+    "posicaoGato": "",
+    "itens": {
+        "revolver": "o3",
+        "restauracao": "l4",
+        "municao_plus": "b17"
+    },
+    "inimigoAleatorio": [
+        0,
+        0
+    ],
+    "humanoAleatorio": [
+        0
+    ],
+    "cabecaoAleatorio": [
+        0
+    ],
+    "ninjaAleatorio": [
+        0
+    ],
+    "faseBonus": false,
+    "qualBonus": 0,
+    "nivelBonus": "a",
+    "plataformas": [
+        "a1",
+        {
+            "coord": "a17",
+            "type": "plataformaCanto2"
+        },
+        {
+            "coord": "a22",
+            "type": "plataformaCanto"
+        },
+        {
+            "coord": "k28",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "k29",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "k30",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "k31",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "k32",
+            "type": "plataformaMuro"
+        },
+        {
+            "coord": "k33",
+            "type": "plataformaGramaPico2"
+        },
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8",
+        "a9",
+        "a10",
+        "a11",
+        "a12",
+        "a13",
+        "a14",
+        "a15",
+        "a16",
+        "a23",
+        "a24",
+        "a25",
+        "a26",
+        "a27",
+        "a28",
+        "a29",
+        "a30",
+        "a31",
+        "a32",
+        "a33",
+        "a34",
+        "a35",
+        "a36",
+        "a37",
+        "a38",
+        "a39",
+        "a40",
+        "b20",
+        "c17",
+        "c18",
+        "c19",
+        "c32",
+        "c33",
+        "c34",
+        "c35",
+        "c36",
+        "c37",
+        "c38",
+        "h17",
+        "i13",
+        "j7",
+        "k4",
+        "m9",
+        "m12",
+        "m15",
+        "m18",
+        "m21",
+        "n3",
+        "n6"
+    ],
+    "plataformasTerraSuperior": [
+        "b16",
+        "g39",
+        "l38"
+    ],
+    "plataformasTerraInferior2": [
+        "a18",
+        "a19",
+        "a20",
+        "a21",
+        "f35",
+        "j40",
+        "j41",
+        "j42"
+    ],
+    "inimigo_feno": [
+        "b7"
+    ],
+    "plataformasEstacaBaixo": [
+        "b19"
+    ],
+    "bbNPCs": [
+        "coord",
+        "b15",
+        "d18"
+    ],
+    "humano": [
+        "b31",
+        "d18",
+        "m29"
+    ],
+    "plataformasGramaPico4": [
+        "k27"
+    ],
+    "plataformasTerraPico": [
+        "m24"
+    ],
+    "plataformasTerraPicoInvertido": [
+        "l24"
+    ],
+    "plataformasArbustoFrente": [
+        "b11",
+        "b28",
+        "n21"
+    ],
+    "plataformasPedra": [
+        "b24"
     ]
 }

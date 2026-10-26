@@ -572,6 +572,24 @@
             "x": 1120,
             "y": 416,
             "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 896,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1184,
+            "y": 384,
+            "escala": 1
+        },
+        {
+            "idSprite": "meia_pedra.png",
+            "x": 192,
+            "y": 32,
+            "escala": 1
         }
     ],
     "posicaoAlavanca": "",
