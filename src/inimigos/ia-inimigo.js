@@ -1391,8 +1391,11 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
                     
                     // Inicializa sprites de agachado (NÃO sobrescreve para humano)
                     if (inimigo.tipo !== window.GAME_CONSTANTS?.INIMIGO_HUMANO_ID) {
-                        inimigo.spriteParadoAgachado = window.obterSpriteItem('agachado', config, 'equipado');
-                        inimigo.spriteAndandoAgachado = window.obterSpriteItem('agachado2', config, 'equipado');
+                        const spritesAgachadoTipo = window.GAME_CONSTANTS?.TIPOS_INIMIGO?.[inimigo.tipo] || {};
+                        inimigo.spriteParadoAgachado = spritesAgachadoTipo.spriteParadoAgachado
+                            || window.obterSpriteItem('agachado', config, 'equipado');
+                        inimigo.spriteAndandoAgachado = spritesAgachadoTipo.spriteAndandoAgachado
+                            || window.obterSpriteItem('agachado2', config, 'equipado');
                     }
                     
                     // Preenche inventário inicial baseado no tipo

@@ -502,8 +502,8 @@ async function carregarFase(nomeArquivo) {
                 window.plataformas[chave] = {
                     tipo: 'meio',
                     direcao: 'inferior',
-                    yOffset: 16,
-                    height: 16
+                    yOffset: 20,
+                    height: 12
                 };
             });
         }
