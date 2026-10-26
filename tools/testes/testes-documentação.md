@@ -22,7 +22,7 @@ Os testes automatizados usam o próprio Node.js; não precisam de instalação d
 Abra o terminal na pasta principal do projeto e execute:
 
 ```powershell
-node --test tools/testes/controls-menu-css.test.cjs tools/testes/phase-editor-random-enemies.test.cjs
+node --test tools/testes/controls-menu-css.test.cjs tools/testes/phase-editor-random-enemies.test.cjs tools/testes/combat-tatsumaki-vfx.test.cjs
 ```
 
 O Node.js mostra o resultado de cada teste:
@@ -43,6 +43,12 @@ node --test tools/testes/controls-menu-css.test.cjs
 
 ```powershell
 node --test tools/testes/phase-editor-random-enemies.test.cjs
+```
+
+### Combate e VFX da Tatsumaki
+
+```powershell
+node --test tools/testes/combat-tatsumaki-vfx.test.cjs
 ```
 
 ---

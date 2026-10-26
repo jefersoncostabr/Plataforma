@@ -227,7 +227,7 @@ function normalizarSkillsAdquiridas(acquired = [], skillsNormalizadas = {}, skil
 function exibirAnimacaoXP(quantidade) {
     const jogador = document.getElementById('player');
     const camada = document.getElementById('layer-efeitos') || document.getElementById('game-stage');
-    if (!jogador || !camada || typeof jogador.animate !== 'function') return;
+    if (!jogador || !camada || typeof jogador.animate !== 'function') return Promise.resolve();
 
     const popup = document.createElement('div');
     popup.textContent = `+${quantidade} XP`;
@@ -253,7 +253,14 @@ function exibirAnimacaoXP(quantidade) {
         { opacity: 1, transform: 'translate(-50%, -25px) scale(1)' },
         { opacity: 0, transform: 'translate(-50%, -38px) scale(.96)' }
     ], { duration: 800, easing: 'ease-out', fill: 'forwards' });
-    animacao.onfinish = () => popup.remove();
+    return new Promise(resolve => {
+        const finalizar = () => {
+            popup.remove();
+            resolve();
+        };
+        animacao.onfinish = finalizar;
+        animacao.oncancel = finalizar;
+    });
 }
 
 window.exibirPerdaVida = () => {
@@ -289,11 +296,11 @@ window.exibirPerdaVida = () => {
 
 window.ganharXP = (quantidade = 1) => {
     quantidade = Number(quantidade) || 0;
-    if (quantidade <= 0) return;
+    if (quantidade <= 0) return Promise.resolve();
 
     const xpAnterior = window.playerXP;
     window.playerXP += quantidade;
-    exibirAnimacaoXP(quantidade);
+    const animacaoXP = exibirAnimacaoXP(quantidade);
 
     // Calcula se o jogador atingiu um novo patamar de 5 XP
     const novosPontos = Math.floor(window.playerXP / 5) - Math.floor(xpAnterior / 5);
@@ -307,6 +314,8 @@ window.ganharXP = (quantidade = 1) => {
     if (typeof window.salvarProgressoSkills === 'function') {
         window.salvarProgressoSkills();
     }
+
+    return animacaoXP;
 };
 
 /**

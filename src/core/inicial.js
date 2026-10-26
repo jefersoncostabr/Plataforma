@@ -966,8 +966,31 @@ window.proximoNivel = async function() {
 
         if (sobreviveu) {
             window.ativarModoRunner(false);
+            let animacaoRecompensaXP = Promise.resolve();
+
+            // A recompensa só é concedida após a conclusão bem-sucedida.
+            if (!dataFase.bonusXPPremiado && typeof window.ganharXP === 'function') {
+                const dificuldadeXP = String(window.gameDifficulty || 'normal')
+                    .trim()
+                    .toLowerCase();
+
+                const recompensaXP = dificuldadeXP === 'easy'
+                    ? 4
+                    : dificuldadeXP === 'hard'
+                        ? 12
+                        : 8;
+
+                dataFase.bonusXPPremiado = true;
+                animacaoRecompensaXP = Promise.resolve(window.ganharXP(recompensaXP));
+            }
+
+            // Mantém a recompensa visível e aguarda o segundo completo antes de avançar.
+            await Promise.all([
+                animacaoRecompensaXP,
+                new Promise(resolve => setTimeout(resolve, 1000))
+            ]);
         } else {
-            return; // Se morreu ou resetou, interrompe o fluxo de proximoNivel
+            return; // Morte ou interrupção: não concede recompensa nem avança.
         }
     }
 
