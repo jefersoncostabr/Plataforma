@@ -2556,7 +2556,19 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         // Aplica os valores ao elemento (reutilizando a lógica de direção)
         elemento.style.left = controle.x + 'px';
         elemento.style.bottom = controle.y + 'px';
-        elemento.style.transform = controle.direcao === 'e' ? 'scaleX(-1)' : 'scaleX(1)';
+        const direcaoFator = controle.direcao === 'e' ? -1 : 1;
+        let angulo = 0;
+
+        if (!controle.noChao) {
+            const inclinacaoMax = 20;
+            const velReferencia = 6;
+            const fator = Math.max(-1, Math.min(1, controle.velocidadeY / velReferencia));
+
+            angulo = -(controle.direcao === 'e' ? 1 : -1) * fator * inclinacaoMax;
+        }
+
+        elemento.style.transform =
+            `rotate(${angulo.toFixed(1)}deg) scaleX(${direcaoFator})`;
 
         sincronizarVisuaisEquipamentos();
         

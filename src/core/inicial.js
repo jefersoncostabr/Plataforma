@@ -907,6 +907,18 @@ window.proximoNivel = async function() {
     if (runnerBonusValido && typeof window.ativarModoRunner === 'function' && !window.__emModoRunnerTransicao) {
         window.__emModoRunnerTransicao = true;
 
+        // Guarda os recursos antes do bônus para devolver o que for gasto durante o Runner.
+        const controleAntesDoBonus = window.playerControle;
+        const recursosAntesDoBonus = controleAntesDoBonus ? {
+            dano: controleAntesDoBonus.dano,
+            temEscudo: controleAntesDoBonus.temEscudo,
+            escudoVermelho: controleAntesDoBonus.escudoVermelho,
+            escudoProtegido: controleAntesDoBonus.escudoProtegido,
+            temArma: controleAntesDoBonus.temArma,
+            municao: controleAntesDoBonus.municao,
+            heldWeaponType: controleAntesDoBonus.heldWeaponType
+        } : null;
+
         const caminhoFaseBonus = String(window.faseAtualPathRelativo || window.faseAtualNome || '');
         const nivelCampanha = caminhoFaseBonus.match(/nivel_(\d+)/i)?.[1] || '1';
         window.TutorialControles?.mostrarMensagem?.(
@@ -957,41 +969,83 @@ window.proximoNivel = async function() {
             window.__timerRunnerTimeout = intervaloRunner;
         });
 
-        const sobreviveu = window.__emModoRunnerTransicao && window.faseAtualData?.modoRunner && 
-                           window.playerControle && !window.playerControle.estaMorrendo;
+        const jogador = window.playerControle;
+        const sobreviveu = Boolean(
+            window.__emModoRunnerTransicao
+            && window.faseAtualData?.modoRunner
+            && jogador
+            && !jogador.estaMorrendo
+        );
+        const morreuNoBonus = Boolean(
+            window.__emModoRunnerTransicao
+            && window.faseAtualData?.modoRunner
+            && jogador?.estaMorrendo
+        );
 
         window.__emModoRunnerTransicao = false;
         if (window.__timerRunnerTimeout) clearInterval(window.__timerRunnerTimeout);
         window.__timerRunnerTimeout = null;
 
-        if (sobreviveu) {
+        if (!sobreviveu && !morreuNoBonus) {
             window.ativarModoRunner(false);
-            let animacaoRecompensaXP = Promise.resolve();
+            return; // Interrupções que não foram conclusão nem morte não avançam a fase.
+        }
 
-            // A recompensa só é concedida após a conclusão bem-sucedida.
-            if (!dataFase.bonusXPPremiado && typeof window.ganharXP === 'function') {
-                const dificuldadeXP = String(window.gameDifficulty || 'normal')
-                    .trim()
-                    .toLowerCase();
+        window.ativarModoRunner(false);
 
-                const recompensaXP = dificuldadeXP === 'easy'
-                    ? 4
-                    : dificuldadeXP === 'hard'
-                        ? 12
-                        : 8;
+        // Restaura os recursos da campanha tanto na vitória quanto na morte.
+        if (controleAntesDoBonus && recursosAntesDoBonus) {
+            Object.assign(controleAntesDoBonus, recursosAntesDoBonus);
 
-                dataFase.bonusXPPremiado = true;
-                animacaoRecompensaXP = Promise.resolve(window.ganharXP(recompensaXP));
+            // Cancela o estado e a animação de morte antes de carregar a próxima fase.
+            controleAntesDoBonus.estaMorrendo = false;
+            controleAntesDoBonus.framesMorrendo = 0;
+            controleAntesDoBonus.velocidadeY = 0;
+            controleAntesDoBonus.velocidadeKnockback = 0;
+            controleAntesDoBonus.framesKnockbackRestante = 0;
+
+            window.atualizarVisualEscudo?.();
+            window.atualizarHUD?.();
+
+            const armaElemento = document.getElementById('player-weapon');
+            if (armaElemento) {
+                armaElemento.style.filter = controleAntesDoBonus.municao <= 0
+                    ? 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(30)'
+                    : 'none';
             }
 
-            // Mantém a recompensa visível e aguarda o segundo completo antes de avançar.
-            await Promise.all([
-                animacaoRecompensaXP,
-                new Promise(resolve => setTimeout(resolve, 1000))
-            ]);
-        } else {
-            return; // Morte ou interrupção: não concede recompensa nem avança.
+            if (typeof window.salvarInventarioDoControle === 'function') {
+                window.salvarInventarioDoControle(controleAntesDoBonus);
+            }
         }
+
+        let animacaoRecompensaXP = Promise.resolve();
+
+        // Somente quem sobreviveu recebe a recompensa.
+        if (
+            sobreviveu
+            && !dataFase.bonusXPPremiado
+            && typeof window.ganharXP === 'function'
+        ) {
+            const dificuldadeXP = String(window.gameDifficulty || 'normal')
+                .trim()
+                .toLowerCase();
+
+            const recompensaXP = dificuldadeXP === 'easy'
+                ? 4
+                : dificuldadeXP === 'hard'
+                    ? 12
+                    : 8;
+
+            dataFase.bonusXPPremiado = true;
+            animacaoRecompensaXP = Promise.resolve(window.ganharXP(recompensaXP));
+        }
+
+        // Vitória e morte aguardam o mesmo segundo antes de avançar.
+        await Promise.all([
+            animacaoRecompensaXP,
+            new Promise(resolve => setTimeout(resolve, 1000))
+        ]);
     }
 
     const proximoIndice = window.nivelAtual + 1;
