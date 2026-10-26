@@ -238,6 +238,13 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         if (configTipo?.zIndex !== undefined) {
             tile.style.zIndex = String(configTipo.zIndex);
         }
+        tile.dataset.gridCoord = coord.toLowerCase();
+        if (
+            spriteFinal.includes('/tronco/tronco_baixo.png')
+            || spriteFinal.includes('/tronco/tronco_cima.png')
+        ) {
+            tile.dataset.quebravel = 'true';
+        }
         adicionarAoLayer(tile, layerDestino);
     });
 
