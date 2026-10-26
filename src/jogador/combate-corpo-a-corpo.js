@@ -53,8 +53,9 @@
             if (controle.chuteDuploAtivo && typeof window.criarVfxAtaqueForte === 'function') {
                 const hitboxAtaque = criarHitboxAtaque();
                 window.criarVfxAtaqueForte({
-                    x: hitboxAtaque.x + (hitboxAtaque.largura / 2),
-                    y: hitboxAtaque.y + (hitboxAtaque.altura / 2)
+                    x: hitboxAtaque.x + (hitboxAtaque.largura / 2) + (controle.direcao === 'd' ? 16 : -16),
+                    y: hitboxAtaque.y + (hitboxAtaque.altura / 2),
+                    direcao: controle.direcao
                 });
             }
 

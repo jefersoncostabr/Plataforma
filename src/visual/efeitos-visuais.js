@@ -383,7 +383,7 @@ window.criarAnimacaoImpacto2Frames = function(opcoes = {}) {
     return impacto;
 };
 
-window.criarVfxAtaqueForte = function({ x, y, largura = 56, altura = 56 } = {}) {
+window.criarVfxAtaqueForte = function({ x, y, largura = 56, altura = 56, direcao = 'd' } = {}) {
     if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
 
     const vfx = document.createElement('img');
@@ -391,6 +391,7 @@ window.criarVfxAtaqueForte = function({ x, y, largura = 56, altura = 56 } = {}) 
     vfx.className = 'vfx-ataque-forte';
     vfx.alt = '';
     vfx.draggable = false;
+    vfx.style.setProperty('--vfx-flip-x', direcao === 'e' ? '-1' : '1');
 
     vfx.style.left = `${Math.round(x - largura / 2)}px`;
     vfx.style.bottom = `${Math.round(y - altura / 2)}px`;

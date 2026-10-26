@@ -251,7 +251,7 @@ body {
 @keyframes vfx-ataque-forte {
     0% {
         opacity: 0;
-        transform: scale(0.35) rotate(-40deg);
+        transform: scaleX(var(--vfx-flip-x, 1)) scale(0.35) rotate(-15deg);
     }
 
     25% {
@@ -260,11 +260,11 @@ body {
 
     70% {
         opacity: 1;
-        transform: scale(1.15) rotate(25deg);
+        transform: scaleX(var(--vfx-flip-x, 1)) scale(1.15) rotate(10deg);
     }
 
     100% {
         opacity: 0;
-        transform: scale(1.55) rotate(65deg);
+        transform: scaleX(var(--vfx-flip-x, 1)) scale(1.55) rotate(25deg);
     }
 }
