@@ -2208,6 +2208,18 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             }
         }
 
+        if (controle.chutando && typeof obterHitboxAtaque === 'function') {
+            const hitboxAtaqueTronco = obterHitboxAtaque();
+            if (!(controle.troncosAtingidosNesteChute instanceof Set)) {
+                controle.troncosAtingidosNesteChute = new Set();
+            }
+            window.BlocosQuebraveis?.receberDanoPorHitbox(
+                hitboxAtaqueTronco,
+                1,
+                controle.troncosAtingidosNesteChute
+            );
+        }
+
         if (controle.chutando && typeof obterHitboxAtaque === 'function' && typeof detectarColisaoHitbox === 'function' && Array.isArray(window.itensColetaveis)) {
             const hitboxAtaque = obterHitboxAtaque();
             for (let i = window.itensColetaveis.length - 1; i >= 0; i--) {
@@ -2452,6 +2464,10 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 }
 
                 const hitCenario = verificarColisaoComTiles(proj.x, proj.y, config.PROJETIL_LARGURA, config.PROJETIL_ALTURA, window.plataformas);
+
+                if (hitCenario?.tipo === 'tronco' && hitCenario.quebravel) {
+                    window.BlocosQuebraveis?.receberDano(hitCenario.coord, 1, 'projétil');
+                }
 
                 // Remove o projétil se bater em algo ou sair muito longe dos limites do mundo
                 const limiteDireito = (window.mundoLargura || 640) + 100;

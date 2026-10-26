@@ -163,6 +163,11 @@
         blocoQuebrado.add(coord);
         delete estadoBlocos[coord];
 
+        console.info(`[BlocoQuebravel] Iniciando animação de quebra: ${coord}`, {
+            tipo: blocoInfo.tipoQuebravel,
+            elementoEncontrado: !!elemento || !!obterElementoPorCoord(coord)
+        });
+
         if (!elemento) {
             elemento = obterElementoPorCoord(coord);
         }
@@ -190,33 +195,112 @@
         const height = elemento.style.height || '32px';
         const layer = elemento.parentNode;
 
-        const fragEsq = document.createElement('img');
-        fragEsq.src = src;
-        fragEsq.className = 'fragmento-tronco fragmento-tronco-esquerda';
-        fragEsq.style.left = left;
-        fragEsq.style.bottom = bottom;
-        fragEsq.style.width = width;
-        fragEsq.style.height = height;
+        const fragCima = document.createElement('img');
+        fragCima.src = src;
+        fragCima.className = 'fragmento-tronco fragmento-tronco-cima';
+        fragCima.style.left = left;
+        fragCima.style.bottom = bottom;
+        fragCima.style.width = width;
+        fragCima.style.height = height;
 
-        const fragDir = document.createElement('img');
-        fragDir.src = src;
-        fragDir.className = 'fragmento-tronco fragmento-tronco-direita';
-        fragDir.style.left = left;
-        fragDir.style.bottom = bottom;
-        fragDir.style.width = width;
-        fragDir.style.height = height;
+        const fragBaixo = document.createElement('img');
+        fragBaixo.src = src;
+        fragBaixo.className = 'fragmento-tronco fragmento-tronco-baixo';
+        fragBaixo.style.left = left;
+        fragBaixo.style.bottom = bottom;
+        fragBaixo.style.width = width;
+        fragBaixo.style.height = height;
 
-        layer.appendChild(fragEsq);
-        layer.appendChild(fragDir);
+        layer.appendChild(fragCima);
+        layer.appendChild(fragBaixo);
 
         elemento.remove();
 
         setTimeout(() => {
-            fragEsq.remove();
-            fragDir.remove();
+            fragCima.remove();
+            fragBaixo.remove();
         }, 400);
 
         delete window.plataformas[coord];
+    }
+
+    function receberDano(coord, dano = 1, origem = 'desconhecida') {
+        const chave = String(coord || '').trim().toLowerCase();
+        const bloco = window.plataformas?.[chave];
+
+        if (!bloco || bloco.quebravel !== true || bloco.tipoQuebravel !== 'troncoVertical') {
+            console.warn('[TroncoVertical] Dano ignorado: coordenada não aponta para tronco vertical quebrável.', {
+                coord: chave,
+                bloco
+            });
+            return false;
+        }
+
+        const vidaAntes = Number(bloco.vidaAtual ?? bloco.vidaMax ?? 6);
+        const danoAplicado = Math.max(1, Number(dano) || 1);
+        bloco.vidaMax = Number(bloco.vidaMax ?? 6);
+        bloco.vidaAtual = Math.max(0, vidaAntes - danoAplicado);
+
+        console.info(`[TroncoVertical] Acerto (${origem}) em ${chave}: ${vidaAntes} -> ${bloco.vidaAtual}/${bloco.vidaMax}`, {
+            dano: danoAplicado,
+            bloco
+        });
+
+        const elemento = obterElementoPorCoord(chave);
+        if (elemento) {
+            elemento.classList.remove('bloco-quebravel-flash');
+            void elemento.offsetWidth;
+            elemento.classList.add('bloco-quebravel-flash');
+        } else {
+            console.warn(`[TroncoVertical] Não encontrei o elemento visual para ${chave}.`, {
+                seletorEsperado: 'img[data-grid-coord][data-quebravel="true"]'
+            });
+        }
+
+        if (bloco.vidaAtual <= 0) {
+            quebrarBloco(chave, elemento);
+        }
+
+        return true;
+    }
+
+    function receberDanoPorHitbox(hitbox, dano = 1, atingidosNesteAtaque) {
+        if (!hitbox || !window.plataformas || typeof window.parseCoordGrid !== 'function') return false;
+
+        for (const [coord, bloco] of Object.entries(window.plataformas)) {
+            if (
+                !bloco
+                || bloco.tipo !== 'tronco'
+                || bloco.quebravel !== true
+                || bloco.tipoQuebravel !== 'troncoVertical'
+            ) continue;
+
+            if (atingidosNesteAtaque instanceof Set && atingidosNesteAtaque.has(coord)) continue;
+
+            const partes = window.parseCoordGrid(coord);
+            if (!partes) continue;
+
+            const esquerdaBloco = partes.col * 32 + Number(bloco.xOffset || 0);
+            const direitaBloco = esquerdaBloco + Number(bloco.width || 32);
+            const baixoBloco = partes.row * 32;
+            const topoBloco = baixoBloco + Number(bloco.height || 32);
+            const esquerdaAtaque = Number(hitbox.x || 0);
+            const direitaAtaque = esquerdaAtaque + Number(hitbox.largura || 0);
+            const baixoAtaque = Number(hitbox.y || 0);
+            const topoAtaque = baixoAtaque + Number(hitbox.altura || 0);
+            const sobrepoe = direitaAtaque > esquerdaBloco
+                && esquerdaAtaque < direitaBloco
+                && topoAtaque > baixoBloco
+                && baixoAtaque < topoBloco;
+
+            if (!sobrepoe) continue;
+
+            if (atingidosNesteAtaque instanceof Set) atingidosNesteAtaque.add(coord);
+            receberDano(coord, dano, 'chute');
+            return true;
+        }
+
+        return false;
     }
 
     function atualizar(dtMs) {
@@ -277,6 +361,12 @@
         }
     }
 
+    function reiniciarFase() {
+        for (const coord of Object.keys(estadoBlocos)) delete estadoBlocos[coord];
+        blocoQuebrado.clear();
+        console.info('[BlocoQuebravel] Estado de quebra reiniciado para a nova fase.');
+    }
+
     let ultimoTempo = performance.now();
     function loop() {
         const agora = performance.now();
@@ -292,7 +382,10 @@
 
     window.BlocosQuebraveis = {
         obterNivelPeso,
-        quebrar: quebrarBloco
+        quebrar: quebrarBloco,
+        receberDano,
+        receberDanoPorHitbox,
+        reiniciarFase
     };
 
     if (document.readyState === 'loading') {

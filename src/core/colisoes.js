@@ -185,6 +185,8 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
                         if (colisaoVertical || colisaoLateral) {
                             return {
                                 tipo: 'tronco',
+                                coord,
+                                quebravel: bloco.quebravel === true,
                                 esquerdaReal: esquerdaLateral,
                                 direitaReal: direitaLateral,
                                 topoReal: topoReal,

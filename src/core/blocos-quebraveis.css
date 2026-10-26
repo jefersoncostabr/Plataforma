@@ -23,34 +23,34 @@
     z-index: 25;
 }
 
-.fragmento-tronco-esquerda {
-    clip-path: polygon(0 0, 16px 0, 16px 32px, 0 32px);
-    animation: fragmento-tronco-esquerda 0.35s ease-out forwards;
+.fragmento-tronco-cima {
+    clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
+    animation: fragmento-tronco-cima 0.35s ease-out forwards;
 }
 
-.fragmento-tronco-direita {
-    clip-path: polygon(16px 0, 32px 0, 32px 32px, 16px 32px);
-    animation: fragmento-tronco-direita 0.35s ease-out forwards;
+.fragmento-tronco-baixo {
+    clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
+    animation: fragmento-tronco-baixo 0.35s ease-out forwards;
 }
 
-@keyframes fragmento-tronco-esquerda {
+@keyframes fragmento-tronco-cima {
     0% {
-        transform: translateX(0);
+        transform: translateY(0);
         opacity: 1;
     }
     100% {
-        transform: translateX(-6px);
+        transform: translateY(-6px);
         opacity: 0;
     }
 }
 
-@keyframes fragmento-tronco-direita {
+@keyframes fragmento-tronco-baixo {
     0% {
-        transform: translateX(0);
+        transform: translateY(0);
         opacity: 1;
     }
     100% {
-        transform: translateX(6px);
+        transform: translateY(6px);
         opacity: 0;
     }
 }

@@ -242,6 +242,7 @@ function renderizarPlataformas(idPalco, imagemPath, plataformaData) {
         if (
             spriteFinal.includes('/tronco/tronco_baixo.png')
             || spriteFinal.includes('/tronco/tronco_cima.png')
+            || spriteFinal.includes('/tronco/tronco_vertica.png')
         ) {
             tile.dataset.quebravel = 'true';
         }

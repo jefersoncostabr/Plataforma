@@ -44,6 +44,7 @@
             }
 
             controle.tempoChute = Number(config.tempoChute ?? 0);
+            controle.troncosAtingidosNesteChute = new Set();
             const cooldownBaseChute = Number(config.cooldownChute ?? 0);
             const multiplicadorCooldownChute = Number(controle.multiplicadorCooldownChute ?? 1);
             controle.cooldownChute = cooldownBaseChute > 0

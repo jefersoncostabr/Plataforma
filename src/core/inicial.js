@@ -408,6 +408,7 @@ async function carregarFase(nomeArquivo) {
     if (typeof renderizarPlataformas === 'function') {
         // Garante que o objeto de colisão global contenha todos os blocos sólidos (Terra + Neve)
         window.plataformas = {};
+        window.BlocosQuebraveis?.reiniciarFase();
         window.arbustosFrente = []; // Inicializa o array global para arbustos
 
         function obterCoordEntradaPlataforma(entrada) {
@@ -448,7 +449,11 @@ async function carregarFase(nomeArquivo) {
                 sideXOffset: 9,
                 sideWidth: 14,
                 yOffset: 0,
-                height: 32
+                height: 32,
+                quebravel: true,
+                tipoQuebravel: 'troncoVertical',
+                vidaMax: 6,
+                vidaAtual: 6
             };
         });
 
