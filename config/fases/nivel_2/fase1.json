@@ -21,6 +21,15 @@
         1,
         0
     ],
+    "humanoAleatorio": [
+        0
+    ],
+    "cabecaoAleatorio": [
+        0
+    ],
+    "ninjaAleatorio": [
+        0
+    ],
     "faseBonus": false,
     "qualBonus": 0,
     "nivelBonus": "a",
@@ -154,15 +163,12 @@
         "a39",
         "a40"
     ],
-    "humanoAleatorio": [
-        0
-    ],
     "plataformasTerraInferior2": [
         "e17"
     ],
     "plataformasArbustoFrente": [
         "b12",
-        "b14"
+        "b15"
     ],
     "plataformasTerraPico": [
         "c6"
@@ -185,5 +191,14 @@
     "plataformasGramaPico5": [
         "d28",
         "e31"
+    ],
+    "plataformasTroncoBaixo": [
+        {
+            "coord": "b14",
+            "type": "troncoBaixo"
+        }
+    ],
+    "plataformasEstacaBaixo": [
+        "d17"
     ]
 }

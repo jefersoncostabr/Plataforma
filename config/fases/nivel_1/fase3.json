@@ -1,6 +1,7 @@
 {
     "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
+    "posicaoInicialBB": "",
     "objetivo": "e40",
     "fundoFrente": [
         {
@@ -434,6 +435,18 @@
         0,
         0
     ],
+    "humanoAleatorio": [
+        0
+    ],
+    "cabecaoAleatorio": [
+        0
+    ],
+    "ninjaAleatorio": [
+        0
+    ],
+    "faseBonus": false,
+    "qualBonus": 0,
+    "nivelBonus": "a",
     "plataformas": [
         "a1",
         {
@@ -609,7 +622,14 @@
     "plataformasTerraInferior": [
         "b15"
     ],
-    "humanoAleatorio": [
-        1
+    "plataformasTroncoBaixo": [
+        {
+            "coord": "h17",
+            "type": "troncoBaixo"
+        },
+        {
+            "coord": "k2",
+            "type": "troncoBaixo"
+        }
     ]
 }

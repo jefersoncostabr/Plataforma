@@ -1,7 +1,8 @@
 {
-    "proporcao": "1x1",
+    "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
-    "objetivo": "f19",
+    "posicaoInicialBB": "",
+    "objetivo": "e39",
     "posicaoAlavanca": "",
     "posicaoRoboDesativado": "",
     "posicaoRoboAberto": "",
@@ -11,33 +12,543 @@
     "posicaoCachorro": "",
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
-    "chefes": [
+    "itens": {
+        "restauracao": "b26",
+        "municao_plus": "b22"
+    },
+    "inimigoAleatorio": [
+        0,
+        0
+    ],
+    "humanoAleatorio": [
+        0
+    ],
+    "cabecaoAleatorio": [
+        0
+    ],
+    "ninjaAleatorio": [
+        0
+    ],
+    "faseBonus": false,
+    "qualBonus": 0,
+    "nivelBonus": "a",
+    "plataformas": [
+        "a1",
         {
-            "id": "chefe-1779303734679-872",
-            "coord": "b13",
-            "etapas": [
-                {
-                    "baseNpc": "inimigo_comum"
-                },
-                {
-                    "baseNpc": "inimigo_comum",
-                    "equipamentos": [
-                        "escudo"
-                    ]
-                },
-                {
-                    "baseNpc": "inimigo_comum",
-                    "equipamentos": [
-                        "bota",
-                        "revolver"
-                    ]
-                }
-            ],
-            "ativaBooleanoAoDerrotar": false
+            "coord": "g5",
+            "type": "plataforma"
+        },
+        {
+            "coord": "i4",
+            "type": "plataforma"
+        },
+        {
+            "coord": "j1",
+            "type": "plataforma"
+        },
+        {
+            "coord": "j2",
+            "type": "plataforma"
+        },
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8",
+        "a12",
+        "a13",
+        "a17",
+        "a18",
+        "a22",
+        "a24",
+        "a26",
+        "a34",
+        "a35",
+        "a36",
+        "a37",
+        "a38",
+        "a39",
+        "a40"
+    ],
+    "plataformasEstacaSup": [
+        "a9",
+        "a10",
+        "a11",
+        "a14",
+        "a15",
+        "a16",
+        "a19",
+        "a20",
+        "a21",
+        "a23",
+        "a25",
+        "a27",
+        "a28",
+        "a30",
+        "a31",
+        "a32",
+        "a33"
+    ],
+    "plataformasTroncoBaixo": [
+        {
+            "coord": "b9",
+            "type": "troncoBaixo"
+        },
+        {
+            "coord": "b10",
+            "type": "troncoBaixo"
+        },
+        {
+            "coord": "b11",
+            "type": "troncoBaixo"
+        },
+        {
+            "coord": "b14",
+            "type": "troncoBaixo"
         }
     ],
-    "inimigoAleatorio": [1, 0],
-    "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20"
+    "plataformasTroncoCima": [
+        {
+            "coord": "b15",
+            "type": "troncoCima"
+        },
+        {
+            "coord": "b16",
+            "type": "troncoCima"
+        },
+        {
+            "coord": "c19",
+            "type": "troncoCima"
+        },
+        {
+            "coord": "c20",
+            "type": "troncoCima"
+        },
+        {
+            "coord": "c21",
+            "type": "troncoCima"
+        },
+        {
+            "coord": "d23",
+            "type": "troncoCima"
+        },
+        {
+            "coord": "d25",
+            "type": "troncoCima"
+        },
+        {
+            "coord": "d30",
+            "type": "troncoCima"
+        },
+        {
+            "coord": "d31",
+            "type": "troncoCima"
+        },
+        {
+            "coord": "e27",
+            "type": "troncoCima"
+        },
+        {
+            "coord": "e28",
+            "type": "troncoCima"
+        }
+    ],
+    "humano": [
+        {
+            "coord": "c7",
+            "type": "humano"
+        },
+        {
+            "coord": "e20",
+            "type": "humano"
+        },
+        {
+            "coord": "e36",
+            "type": "humano"
+        },
+        {
+            "coord": "e38",
+            "type": "humano"
+        },
+        {
+            "coord": "e40",
+            "type": "humano"
+        },
+        {
+            "coord": "f1",
+            "type": "humano"
+        }
+    ],
+    "plataformasTerraSuperior": [
+        "e1",
+        "e2",
+        "e3",
+        "e4",
+        "e5",
+        "e6"
+    ],
+    "fundoFrente": [
+        {
+            "idSprite": "canto2.png",
+            "x": 160,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto2.png",
+            "x": 96,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto2.png",
+            "x": 64,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 128,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 64,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 96,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 96,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 64,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 64,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 32,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 32,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 0,
+            "y": 256,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 0,
+            "y": 224,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 0,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 32,
+            "y": 192,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 32,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 0,
+            "y": 160,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto3.png",
+            "x": 160,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "canto3.png",
+            "x": 128,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "funil2.png",
+            "x": 96,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 64,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 32,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 0,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 32,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 0,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 0,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 0,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 32,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 32,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 64,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 64,
+            "y": 64,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 64,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 96,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 128,
+            "y": 128,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 96,
+            "y": 96,
+            "escala": 1
+        },
+        {
+            "idSprite": "borda2.png",
+            "x": 96,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 256,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 288,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 320,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 416,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 448,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 480,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 576,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 608,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 640,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 704,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 768,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 832,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 864,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 928,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 960,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 992,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "fundo.png",
+            "x": 1024,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "borda3.png",
+            "x": 896,
+            "y": 0,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequeno.png",
+            "x": 160,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequeno.png",
+            "x": 224,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequeno.png",
+            "x": 384,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequeno.png",
+            "x": 544,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequeno.png",
+            "x": 1088,
+            "y": 32,
+            "escala": 1
+        },
+        {
+            "idSprite": "arbusto_pequeno.png",
+            "x": 1216,
+            "y": 32,
+            "escala": 1
+        }
     ]
 }

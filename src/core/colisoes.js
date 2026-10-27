@@ -307,7 +307,8 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
                                 esquerdaReal,
                                 direitaReal,
                                 temColisaoVertical: true,
-                                temColisaoLateral: colisaoLateral
+                                temColisaoLateral: bloco.plataformaUnidirecional === true ? false : colisaoLateral,
+                                plataformaUnidirecional: bloco.plataformaUnidirecional === true
                             };
                         }
                     } else if (bloco.direcao === 'inferior') {
@@ -330,7 +331,8 @@ function verificarColisaoComTiles(x, y, largura, altura, plataformaObj) {
                                 esquerdaReal,
                                 direitaReal,
                                 temColisaoVertical: true,
-                                temColisaoLateral: colisaoLateral
+                                temColisaoLateral: bloco.plataformaUnidirecional === true ? false : colisaoLateral,
+                                plataformaUnidirecional: bloco.plataformaUnidirecional === true
                             };
                         }
                     }

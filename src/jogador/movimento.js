@@ -2031,7 +2031,14 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             }
 
             // Se for colisão com o teto de um robô aberto e o jogador estiver subindo, ignora.
-            if (hit && hit.tipo === 'meio' && hit.direcao === 'superior' && incY > 0) {
+            if (
+                hit
+                && incY > 0
+                && (
+                    hit.plataformaUnidirecional === true
+                    || (hit.tipo === 'meio' && hit.direcao === 'superior')
+                )
+            ) {
                 return false;
             }
 

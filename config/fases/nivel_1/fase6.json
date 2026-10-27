@@ -1929,5 +1929,19 @@
     ],
     "plataformasArbustoFrente": [
         "b37"
+    ],
+    "plataformasTroncoCima": [
+        {
+            "coord": "u32",
+            "type": "troncoCima"
+        },
+        {
+            "coord": "w34",
+            "type": "troncoCima"
+        },
+        {
+            "coord": "y36",
+            "type": "troncoCima"
+        }
     ]
 }

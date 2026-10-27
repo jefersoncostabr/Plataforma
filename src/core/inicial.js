@@ -510,7 +510,8 @@ async function carregarFase(nomeArquivo) {
                     yOffset: 20,
                     height: 12,
                     quebravel: true,
-                    tipoQuebravel: 'tronco'
+                    tipoQuebravel: 'tronco',
+                    plataformaUnidirecional: true
                 };
             });
         }
@@ -525,7 +526,8 @@ async function carregarFase(nomeArquivo) {
                     yOffset: 0,
                     height: 16,
                     quebravel: true,
-                    tipoQuebravel: 'tronco'
+                    tipoQuebravel: 'tronco',
+                    plataformaUnidirecional: true
                 };
             });
         }
