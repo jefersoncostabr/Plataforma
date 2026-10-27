@@ -247,6 +247,31 @@
         });
 
         const elemento = obterElementoPorCoord(chave);
+        window.AudioManager?.playSFX('impacto', 0.65);
+
+        const partesCoord = typeof window.parseCoordGrid === 'function'
+            ? window.parseCoordGrid(chave)
+            : null;
+        const impactoX = partesCoord
+            ? (partesCoord.col * 32) + 16
+            : (parseFloat(elemento?.style.left) || 0) + 16;
+        const impactoY = partesCoord
+            ? (partesCoord.row * 32) + 16
+            : (parseFloat(elemento?.style.bottom) || 0) + 16;
+
+        if (typeof window.criarAnimacaoImpacto2Frames === 'function') {
+            window.criarAnimacaoImpacto2Frames({
+                x: impactoX,
+                y: impactoY,
+                largura: 28,
+                altura: 28,
+                frameDurationMs: 55,
+                opacidade: 1
+            });
+        } else {
+            console.warn('[TroncoVertical] VFX de impacto indisponível: criarAnimacaoImpacto2Frames não foi carregada.');
+        }
+
         if (elemento) {
             elemento.classList.remove('bloco-quebravel-flash');
             void elemento.offsetWidth;
@@ -258,6 +283,7 @@
         }
 
         if (bloco.vidaAtual <= 0) {
+            window.AudioManager?.playSFX('madeiraquebrando', 0.75);
             quebrarBloco(chave, elemento);
         }
 
