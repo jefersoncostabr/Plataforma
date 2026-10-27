@@ -9,6 +9,17 @@ const codigoEntidades = fs.readFileSync(
     path.join(raiz, 'src/visual/animacoes-entidades.js'),
     'utf8'
 );
+const codigoMovimento = fs.readFileSync(
+    path.join(raiz, 'src/jogador/movimento.js'),
+    'utf8'
+);
+const marcadorInicioPlanagem = '        // Ao planar, inclina o personagem somente enquanto ele realmente se desloca.';
+const marcadorFimPlanagem = '\n\n        sincronizarVisuaisEquipamentos();';
+const inicioPlanagem = codigoMovimento.indexOf(marcadorInicioPlanagem);
+const fimPlanagem = codigoMovimento.indexOf(marcadorFimPlanagem, inicioPlanagem);
+assert.notEqual(inicioPlanagem, -1, 'Lógica de inclinação do planar não encontrada');
+assert.notEqual(fimPlanagem, -1, 'Fim da lógica de inclinação do planar não encontrado');
+const codigoPlanagem = codigoMovimento.slice(inicioPlanagem, fimPlanagem);
 
 function criarContexto() {
     const sandbox = {
@@ -86,4 +97,32 @@ test('entidade ou elemento ausente não causa erro', () => {
     assert.doesNotThrow(() => aplicarInclinacaoVertical(null));
     assert.doesNotThrow(() => aplicarInclinacaoVertical({}));
     assert.doesNotThrow(() => aplicarInclinacaoVertical({ elemento: null }));
+});
+
+function obterTransformacaoPlanagem({ deslocamento, esquerda = false, direita = false }) {
+    const elemento = { style: { transform: '' } };
+    const sandbox = {
+        controle: {
+            jetpackAtivo: true,
+            jetpackHovering: true,
+            x: 100 + deslocamento,
+            direcao: deslocamento < 0 ? 'e' : 'd'
+        },
+        xAnterior: 100,
+        elemento,
+        acaoAtiva: acao => acao === 'esquerda' ? esquerda : direita,
+        Math
+    };
+    vm.runInNewContext(codigoPlanagem, sandbox);
+    return elemento.style.transform;
+}
+
+test('inclina durante o planar somente enquanto uma tecla lateral está pressionada', () => {
+    assert.equal(obterTransformacaoPlanagem({ deslocamento: 3, direita: true }), 'rotate(12deg) scaleX(1)');
+    assert.equal(obterTransformacaoPlanagem({ deslocamento: -3, esquerda: true }), 'rotate(-12deg) scaleX(-1)');
+});
+
+test('zera a inclinação ao soltar as teclas laterais mesmo com inércia', () => {
+    assert.equal(obterTransformacaoPlanagem({ deslocamento: 3 }), 'rotate(0deg) scaleX(1)');
+    assert.equal(obterTransformacaoPlanagem({ deslocamento: -3 }), 'rotate(0deg) scaleX(-1)');
 });

@@ -79,7 +79,6 @@
             const agoraMs = (typeof performance !== 'undefined' && typeof performance.now === 'function') ? performance.now() : Date.now();
             const temTatsumaki = Array.isArray(window.playerSkills) && window.playerSkills.includes('Tatsumaki Senpukyaku');
             if (temTatsumaki && acaoAtiva('baixo') && acaoAtiva('chute') && (controle.cooldownChute || 0) === 0 && !controle.chuteDuploAtivo && !(controle.chuteDuploCooldownAte && agoraMs < controle.chuteDuploCooldownAte)) {
-                console.log('[ATAQUE] Novo ataque (baixo + chute) ativado');
                 controle.estaAgachado = false;
                 controle.chuteDuploAtivo = true;
                 controle.chutesRestantes = 2;

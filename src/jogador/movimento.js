@@ -2594,6 +2594,19 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         window.aplicarInclinacaoVertical(controle, {
             sentido: -1
         });
+        // Ao planar, inclina o personagem somente enquanto ele realmente se desloca.
+        // Soltar as teclas laterais remove a inclinação imediatamente, mesmo com inércia.
+        if (controle.jetpackAtivo && controle.jetpackHovering) {
+            const deslocamentoHorizontal = controle.x - xAnterior;
+            const teclaLateralPressionada = acaoAtiva('esquerda') || acaoAtiva('direita');
+            const estaEmMovimentoHorizontal = teclaLateralPressionada
+                && Math.abs(deslocamentoHorizontal) > 0.1;
+            const anguloPlanagem = estaEmMovimentoHorizontal
+                ? (deslocamentoHorizontal > 0 ? 12 : -12)
+                : 0;
+            const flipHorizontal = controle.direcao === 'e' ? -1 : 1;
+            elemento.style.transform = `rotate(${anguloPlanagem}deg) scaleX(${flipHorizontal})`;
+        }
 
         sincronizarVisuaisEquipamentos();
         

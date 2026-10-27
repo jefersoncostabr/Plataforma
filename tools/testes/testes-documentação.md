@@ -65,7 +65,7 @@ Verifica as recompensas de XP por dificuldade, o atraso de 1 segundo, a animaç�
 node --test tools/testes/player-jump-tilt.test.cjs
 ```
 
-Verifica a função compartilhada usada pelo jogador, pelos pets e pelos inimigos: inclinação ao subir e cair, direção do giro, espelhamento para a esquerda, rotação zero no chão, limite de 20 graus e desativação durante o jetpack. Também verifica que entradas sem entidade ou elemento não causam erro.
+Verifica a função compartilhada usada pelo jogador, pelos pets e pelos inimigos: inclinação ao subir e cair, direção do giro, espelhamento para a esquerda, rotação zero no chão, limite de 20 graus e desativação durante o jetpack. Também cobre a inclinação do jogador ao planar: inclina enquanto uma tecla lateral está pressionada e zera imediatamente ao soltar, mesmo com inércia. Verifica ainda que entradas sem entidade ou elemento não causam erro.
 
 ### Inclinação dos inimigos durante o pulo
 

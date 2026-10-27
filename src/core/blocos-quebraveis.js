@@ -163,11 +163,6 @@
         blocoQuebrado.add(coord);
         delete estadoBlocos[coord];
 
-        console.info(`[BlocoQuebravel] Iniciando animação de quebra: ${coord}`, {
-            tipo: blocoInfo.tipoQuebravel,
-            elementoEncontrado: !!elemento || !!obterElementoPorCoord(coord)
-        });
-
         if (!elemento) {
             elemento = obterElementoPorCoord(coord);
         }
@@ -240,11 +235,6 @@
         const danoAplicado = Math.max(1, Number(dano) || 1);
         bloco.vidaMax = Number(bloco.vidaMax ?? 6);
         bloco.vidaAtual = Math.max(0, vidaAntes - danoAplicado);
-
-        console.info(`[TroncoVertical] Acerto (${origem}) em ${chave}: ${vidaAntes} -> ${bloco.vidaAtual}/${bloco.vidaMax}`, {
-            dano: danoAplicado,
-            bloco
-        });
 
         const elemento = obterElementoPorCoord(chave);
         window.AudioManager?.playSFX('impacto', 0.65);
@@ -390,7 +380,6 @@
     function reiniciarFase() {
         for (const coord of Object.keys(estadoBlocos)) delete estadoBlocos[coord];
         blocoQuebrado.clear();
-        console.info('[BlocoQuebravel] Estado de quebra reiniciado para a nova fase.');
     }
 
     let ultimoTempo = performance.now();

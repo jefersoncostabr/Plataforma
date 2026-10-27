@@ -202,7 +202,6 @@ function gerarPosicaoAleatoria(plataformas) {
  * @param {number} tipoEquipamento - Tipo de equipamento do inimigo (0=sem, 1=revólver, 2=escudo, 3=bota, 4=jetpack, 5=feno, 6=garra, 7=cinto, 8=colete, 9=todos)
  */
 function criarInimigoAleatorio(plataformas, tipoEquipamento = 0) {
-    console.log(`[Inimigo] Chamada para criar inimigo aleatório. Tipo solicitado: ${tipoEquipamento}`);
     const posicao = gerarPosicaoAleatoria(plataformas);
     
     if (!posicao) {
