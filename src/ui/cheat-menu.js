@@ -415,12 +415,29 @@
         return true;
     }
 
+    function irParaFaseTeste() {
+        const caminho = '../../config/fases/fase_teste.json';
+
+        if (typeof window.carregarFase !== 'function') {
+            console.error('[Cheats] A função carregarFase não está disponível.');
+            return;
+        }
+
+        window.toggleCheatMenu();
+
+        Promise.resolve(window.carregarFase(caminho))
+            .catch((erro) => {
+                console.error('[Cheats] Erro ao carregar a fase de teste:', erro);
+            });
+    }
+
     // Opções do menu
     function getCheatOptions() {
         return [
             { label: 'PRÓX. FASE', action: () => window.proximoNivel?.(), closeOnClick: true },
             { label: 'GIVE ALL', action: giveAllCheat, closeOnClick: true },
             { id: 'go-to-phase', label: 'IR PARA', action: abrirSeletorFaseCheat, closeOnClick: false },
+            { id: 'fase-teste', label: 'FASE TESTE', action: irParaFaseTeste, closeOnClick: true },
             { label: 'GANHAR XP', action: () => window.ganharXP?.(10), closeOnClick: true },
             { label: 'AIRDROP', action: () => { if(window.playerControle) { window.playerControle.teclas['5'] = true; setTimeout(()=>window.playerControle.teclas['5']=false,100); } }, closeOnClick: true },
             { label: 'SPAWN INIMIGO ALEATÓRIO', action: () => spawnInimigoCheat('aleatorio'), closeOnClick: true },

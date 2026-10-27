@@ -22,7 +22,7 @@ Os testes automatizados usam o próprio Node.js; não precisam de instalação d
 Abra o terminal na pasta principal do projeto e execute:
 
 ```powershell
-node --test tools/testes/controls-menu-css.test.cjs tools/testes/phase-editor-random-enemies.test.cjs tools/testes/combat-tatsumaki-vfx.test.cjs tools/testes/bonus-phase.test.cjs tools/testes/player-jump-tilt.test.cjs tools/testes/enemy-jump-tilt.test.cjs
+node --test tools/testes/controls-menu-css.test.cjs tools/testes/phase-editor-random-enemies.test.cjs tools/testes/combat-tatsumaki-vfx.test.cjs tools/testes/bonus-phase.test.cjs tools/testes/player-jump-tilt.test.cjs tools/testes/enemy-jump-tilt.test.cjs tools/testes/tronco-quebravel.test.cjs
 ```
 
 O Node.js mostra o resultado de cada teste:
@@ -74,6 +74,14 @@ node --test tools/testes/enemy-jump-tilt.test.cjs
 ```
 
 Executa o trecho real de atualização visual da IA dos inimigos com a função compartilhada. Verifica a inclinação ao subir e cair, o sentido corrigido, o espelhamento para a esquerda, a rotação zero no chão e a desativação durante o jetpack.
+
+### Troncos quebráveis
+
+```powershell
+node --test tools/testes/tronco-quebravel.test.cjs
+```
+
+Verifica os 6 pontos de vida do tronco vertical, o dano único por chute, os efeitos de impacto, a animação de quebra horizontal e a colisão unidirecional dos troncos baixo e cima.
 
 ---
 

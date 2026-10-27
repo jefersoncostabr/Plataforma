@@ -954,6 +954,12 @@ async function carregarFase(nomeArquivo) {
 
 // Avança para próxima fase
 window.proximoNivel = async function() {
+    // Retorna ao menu principal se concluiu a fase de teste
+    if (String(window.faseAtualPathRelativo || '').toLowerCase().includes('fase_teste.json')) {
+        if (typeof window.togglePauseMenu === 'function') window.togglePauseMenu();
+        return;
+    }
+
     // Retorna ao menu se em modo treino
     if (window.isTraining) {
         window.isTraining = false;

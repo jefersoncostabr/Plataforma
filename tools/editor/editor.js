@@ -21,6 +21,7 @@ const PHASES_BASE_PATH = '../../config/fases/';
 const PHASES_MANIFEST_PATH = `${PHASES_BASE_PATH}manifesto-fases.json`;
 const PHASE_DISCOVERY_CANDIDATES = [
     'treino.json',
+    'fase_teste.json',
     ...Array.from({ length: 50 }, (_, i) => `nivel_1/fase${i + 1}.json`),
     ...Array.from({ length: 50 }, (_, i) => `nivel_2/fase${i + 1}.json`)
 ];
