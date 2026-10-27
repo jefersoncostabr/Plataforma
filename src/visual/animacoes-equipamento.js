@@ -718,17 +718,6 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
                 const def = window.itemDefinitions?.[proximo];
                 if (def?.spriteEquipado) armaElemento.src = def.spriteEquipado;
             }
-            console.info('[ARMAS][TROCA-E] Troca de arma pela tecla E\n' + JSON.stringify({
-                armaAnterior,
-                municaoAnterior,
-                armaNova: proximo,
-                municaoNova: controle.municao,
-                fonteMunicao,
-                municaoPorArma: controle.municaoPorArma,
-                itensNoInventario: controle.inventario,
-                itemNoCinto: controle.cintoSlot?.tipo ?? null,
-                municaoNoCinto: controle.cintoSlot?.dados?.municao ?? null
-            }, null, 2));
             window.AudioManager?.playSFX('recarga', 0.4);
         }
 

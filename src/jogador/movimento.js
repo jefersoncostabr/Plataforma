@@ -14,6 +14,17 @@
  * @param {string} spriteCarregando5 - Sprite de carregamento frame 5.
  * @param {string} spriteCarregando6 - Sprite de carregamento frame 6.
  */
+function consumirMunicaoArmaAtiva(controle) {
+    if (!controle) return 0;
+
+    controle.municao = Math.max(0, Number(controle.municao || 0) - 1);
+    controle.municaoPorArma = controle.municaoPorArma || {};
+    if (controle.heldWeaponType === 'revolver' || controle.heldWeaponType === 'doze') {
+        controle.municaoPorArma[controle.heldWeaponType] = controle.municao;
+    }
+    return controle.municao;
+}
+
 window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spriteChute, spriteNoAr, spriteCarregando1, spriteCarregando2, spriteCarregando3, spriteCarregando4, spriteCarregando5, spriteCarregando6) {
     const elemento = document.getElementById(id);
     if (!elemento) return;
@@ -1597,28 +1608,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         const armaNaMao = !controle.temCinto || (controle.selecaoCinto !== 'escudo');
         if (acaoAtiva('tiro') && controle.cooldownTiro === 0 && controle.temArma && !controle.itensGuardadosNoCinto && controle.municao > 0 && armaNaMao) {
             controle.cooldownTiro = config.cooldownTiro; 
-            controle.municao--;
-            controle.municaoPorArma = controle.municaoPorArma || {};
-            if (controle.heldWeaponType === 'revolver' || controle.heldWeaponType === 'doze') {
-                controle.municaoPorArma[controle.heldWeaponType] = controle.municao;
-            }
-            console.info('[ARMAS][TIRO] Disparo do jogador\n' + JSON.stringify({
-                arma: controle.heldWeaponType || 'desconhecida',
-                municaoRestante: controle.municao,
-                temArma: controle.temArma,
-                tipoNoCinto: controle.cintoSlot?.tipo ?? null,
-                municaoNoCinto: controle.cintoSlot?.dados?.municao ?? null,
-                municaoPorArma: controle.municaoPorArma || {}
-            }, null, 2));
-            if (controle.municao === 0) {
-                console.warn('[ARMAS][TIRO] Arma ativa ficou sem munição\n' + JSON.stringify({
-                    arma: controle.heldWeaponType || 'desconhecida',
-                    tipoNoCinto: controle.cintoSlot?.tipo ?? null,
-                    municaoNoCinto: controle.cintoSlot?.dados?.municao ?? null,
-                    municaoPorArma: controle.municaoPorArma || {},
-                    inventario: controle.inventario
-                }, null, 2));
-            }
+            consumirMunicaoArmaAtiva(controle);
             window.AudioManager?.playSFX('disparo', 0.5);
             const dir = controle.direcao === 'd' ? 1 : -1;
             
