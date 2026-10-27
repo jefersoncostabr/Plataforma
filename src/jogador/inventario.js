@@ -219,6 +219,7 @@
             temArma: !!controle.temArma,
             municao: Number(controle.municao || 0),
             heldWeaponType: controle.heldWeaponType || (controle.inventario.includes('doze') ? 'doze' : (controle.inventario.includes('revolver') ? 'revolver' : null)),
+            municaoPorArma: { ...(controle.municaoPorArma || {}) },
             temBota: !!controle.temBota,
             botaVermelha: !!controle.botaVermelha,
             botaUsosDash: Number(controle.botaUsosDash || 0),
@@ -393,6 +394,9 @@
         controle.escudoProtegido = Number(inventarioSalvo.escudoProtegido || 0);
         controle.temArma = !!inventarioSalvo.temArma;
         controle.municao = Number(inventarioSalvo.municao || 0);
+        controle.municaoPorArma = (inventarioSalvo.municaoPorArma && typeof inventarioSalvo.municaoPorArma === 'object')
+            ? { ...inventarioSalvo.municaoPorArma }
+            : {};
         controle.temBota = !!inventarioSalvo.temBota;
         controle.botaVermelha = !!inventarioSalvo.botaVermelha;
         controle.botaUsosDash = Number(inventarioSalvo.botaUsosDash || 0);
@@ -409,7 +413,16 @@
         if (controle.inventario.includes('revolver') || controle.inventario.includes('doze')) {
             controle.temArma = true;
             controle.heldWeaponType = inventarioSalvo.heldWeaponType || (controle.inventario.includes('doze') ? 'doze' : 'revolver');
+            if (!Number.isFinite(Number(controle.municaoPorArma[controle.heldWeaponType]))) {
+                controle.municaoPorArma[controle.heldWeaponType] = controle.municao;
+            }
         }
+        [controle.cintoSlot, ...(controle.coleteSlots || [])].forEach((slotArma) => {
+            if (slotArma && (slotArma.tipo === 'revolver' || slotArma.tipo === 'doze')
+                && !Number.isFinite(Number(controle.municaoPorArma[slotArma.tipo]))) {
+                controle.municaoPorArma[slotArma.tipo] = Number(slotArma.dados?.municao ?? (slotArma.tipo === 'doze' ? 2 : 5));
+            }
+        });
         const escudoArmazenado = controle.cintoSlot?.tipo === 'escudo'
             || controle.coleteSlots.some((slot) => slot?.tipo === 'escudo');
         if (controle.inventario.includes('escudo') && !escudoArmazenado) {
@@ -547,6 +560,10 @@
 
         const mMax = (controle.heldWeaponType === 'doze') ? 2 : 5;
         controle.municao = mMax;
+        controle.municaoPorArma = controle.municaoPorArma || {};
+        if (controle.heldWeaponType === 'revolver' || controle.heldWeaponType === 'doze') {
+            controle.municaoPorArma[controle.heldWeaponType] = mMax;
+        }
 
         if (Array.isArray(controle.inventario) && controle.inventario.includes('bota')) {
             controle.temBota = true;
@@ -584,6 +601,11 @@
         const tipo = item?.tipo || itemData?.id || null;
         const regra = obterRegraColete(tipo) || {};
         const dadosOriginais = (item?.dados && typeof item.dados === 'object') ? item.dados : {};
+        const municaoInformada = item?.municao ?? dadosOriginais?.municao;
+        const municaoPadrao = Number(itemData?.efeitos?.jogador?.municao ?? (tipo === 'doze' ? 2 : 5));
+        const municaoArmazenada = (tipo === 'revolver' || tipo === 'doze')
+            ? (municaoInformada != null && Number.isFinite(Number(municaoInformada)) ? Number(municaoInformada) : municaoPadrao)
+            : undefined;
         return {
             tipo,
             nome: obterNomeCanonicoItem(tipo, itemData, item?.nome),
@@ -594,7 +616,7 @@
             quantidade: Number.isFinite(item?.quantidade) ? Math.max(1, item.quantidade) : 1,
             dados: {
                 ...dadosOriginais,
-                municao: Number.isFinite(Number(item?.municao ?? dadosOriginais?.municao)) ? Number(item?.municao ?? dadosOriginais?.municao) : undefined,
+                municao: municaoArmazenada,
                 escudoProtegido: Number.isFinite(Number(item?.escudoProtegido ?? dadosOriginais?.escudoProtegido)) ? Number(item?.escudoProtegido ?? dadosOriginais?.escudoProtegido) : undefined,
                 escudoVermelho: !!(item?.escudoVermelho ?? dadosOriginais?.escudoVermelho),
                 botaUsosDash: Number.isFinite(Number(item?.botaUsosDash ?? dadosOriginais?.botaUsosDash)) ? Number(item?.botaUsosDash ?? dadosOriginais?.botaUsosDash) : undefined,
@@ -714,6 +736,8 @@
             const ganhoMunicao = Number.isFinite(ganhoBruto) && ganhoBruto > 0 ? ganhoBruto : 1;
 
             controle.municao = Math.min(maxMunicao, municaoAtual + ganhoMunicao);
+            controle.municaoPorArma = controle.municaoPorArma || {};
+            controle.municaoPorArma[armaEquipada] = controle.municao;
             window.AudioManager?.playSFX('recarga', 0.6);
             salvarInventario();
             atualizarMochilaUI();
@@ -841,6 +865,18 @@
                 controle.heldWeaponType = tipo;
                 const munPadrao = (tipo === 'doze') ? 2 : 5;
                 controle.municao = Number(extras?.municao ?? itemData?.efeitos?.jogador?.municao ?? munPadrao);
+                controle.municaoPorArma = controle.municaoPorArma || {};
+                controle.municaoPorArma[tipo] = controle.municao;
+                console.info('[ARMAS] Arma aplicada ao jogador\n' + JSON.stringify({
+                    tipo,
+                    municaoRecebida: extras?.municao ?? null,
+                    municaoConfigurada: itemData?.efeitos?.jogador?.municao ?? null,
+                    municaoFinal: controle.municao,
+                    extras,
+                    armaAtivaAposAplicacao: controle.heldWeaponType,
+                    tipoNoSlotDoCinto: controle.cintoSlot?.tipo ?? null,
+                    municaoNoSlotDoCinto: controle.cintoSlot?.dados?.municao ?? null
+                }, null, 2));
                 window.AudioManager?.playSFX('recarga', 0.6);
                 if (armaElemento) {
                     if (itemData?.spriteEquipado) armaElemento.src = itemData.spriteEquipado;
@@ -951,6 +987,10 @@
             if (indiceLivre < 0) return false;
 
             controle.coleteSlots[indiceLivre] = criarEntradaColete(item, itemData);
+            if (controle.coleteSlots[indiceLivre]?.tipo === 'revolver' || controle.coleteSlots[indiceLivre]?.tipo === 'doze') {
+                controle.municaoPorArma = controle.municaoPorArma || {};
+                controle.municaoPorArma[controle.coleteSlots[indiceLivre].tipo] = controle.coleteSlots[indiceLivre].dados?.municao;
+            }
             salvarInventario();
             atualizarMochilaUI();
             return true;
@@ -1012,6 +1052,8 @@
                             const armaEl = obterElementos().armaElemento;
                             const maxBalas = (controle.heldWeaponType === 'doze') ? 2 : 5;
                             controle.municao = maxBalas;
+                            controle.municaoPorArma = controle.municaoPorArma || {};
+                            controle.municaoPorArma[controle.heldWeaponType] = maxBalas;
                             // Efeito Visual de Recarga Plus
                             if (armaEl) {
                                 const filtroOriginal = armaEl.style.filter;
@@ -1069,6 +1111,8 @@
             if (tipo === 'revolver' || tipo === 'doze') {
                 controle.temArma = false;
                 controle.municao = 0;
+                controle.municaoPorArma = controle.municaoPorArma || {};
+                if (tipo === 'revolver' || tipo === 'doze') controle.municaoPorArma[tipo] = 0;
                 if (armaElemento) armaElemento.style.display = 'none';
                 return true;
             }
@@ -1235,6 +1279,20 @@
             if (controle.cintoSlot) return false;
 
             controle.cintoSlot = criarEntradaColete(item, itemData);
+            if (item.tipo === 'revolver' || item.tipo === 'doze') {
+                controle.municaoPorArma = controle.municaoPorArma || {};
+                controle.municaoPorArma[item.tipo] = controle.cintoSlot.dados?.municao;
+            }
+            if (item.tipo === 'revolver' || item.tipo === 'doze') {
+                console.info('[ARMAS][CINTO] Arma armazenada\n' + JSON.stringify({
+                    tipo: controle.cintoSlot.tipo,
+                    municaoArmazenada: controle.cintoSlot.dados?.municao,
+                    municaoRecebida: item.municao ?? item.dados?.municao ?? null,
+                    municaoPadrao: itemData?.efeitos?.jogador?.municao ?? (item.tipo === 'doze' ? 2 : 5),
+                    tipoDaArmaAtiva: controle.heldWeaponType,
+                    municaoDaArmaAtiva: controle.municao
+                }, null, 2));
+            }
             salvarInventario();
             atualizarMochilaUI();
             return true;
@@ -1443,8 +1501,37 @@
             const houveTrocaDeArma = !!(ehTipoArma(tipoSlot) && controle.temArma && ehTipoArma(armaAntesTipo) && armaAntesTipo !== tipoSlot);
 
             const itemData = window.itemDefinitions?.[tipoSlot] || null;
-            const aplicou = aplicarItemNoCorpo(tipoSlot, itemData, slot.dados || {});
+            const dadosArmaSelecionada = { ...(slot.dados || {}) };
+            if (ehTipoArma(tipoSlot) && houveTrocaDeArma && Number(dadosArmaSelecionada.municao) <= 0) {
+                const municaoPadrao = Number(itemData?.efeitos?.jogador?.municao ?? (tipoSlot === 'doze' ? 2 : 5));
+                console.warn('[ARMAS][CINTO] Arma diferente estava com munição zerada no slot; aplicando munição padrão\n' + JSON.stringify({
+                    armaAnterior: armaAntesTipo,
+                    municaoArmaAnterior: armaAntesMunicao,
+                    armaSelecionada: tipoSlot,
+                    municaoEncontradaNoSlot: dadosArmaSelecionada.municao,
+                    municaoAplicada: municaoPadrao,
+                    dadosSlot: slot.dados
+                }, null, 2));
+                dadosArmaSelecionada.municao = municaoPadrao;
+            }
+            console.info('[ARMAS][CINTO] Tentando equipar item do cinto\n' + JSON.stringify({
+                armaAnterior: armaAntesTipo,
+                municaoArmaAnterior: armaAntesMunicao,
+                armaSelecionada: tipoSlot,
+                municaoNoSlot: dadosArmaSelecionada.municao,
+                trocaDeArma: houveTrocaDeArma,
+                slotCompleto: slot
+            }, null, 2));
+            const aplicou = aplicarItemNoCorpo(tipoSlot, itemData, dadosArmaSelecionada);
             if (!aplicou) return false;
+
+            console.info('[ARMAS][CINTO] Equipagem concluída\n' + JSON.stringify({
+                armaAtiva: controle.heldWeaponType,
+                municaoAtiva: controle.municao,
+                tipoNoSlotAntesDaTroca: tipoSlot,
+                itemRestanteNoCinto: controle.cintoSlot?.tipo ?? null,
+                municaoRestanteNoCinto: controle.cintoSlot?.dados?.municao ?? null
+            }, null, 2));
 
             if (houveTrocaDeArma) {
                 const itemAnteriorData = window.itemDefinitions?.[armaAntesTipo] || null;
@@ -1472,6 +1559,14 @@
 
         function usarOuDroparItemDoCinto() {
             const slot = obterSlotCinto();
+            console.info('[ARMAS][CINTO] Ação solicitada no slot do cinto\n' + JSON.stringify({
+                slotTipo: slot?.tipo ?? null,
+                slotMunicao: slot?.dados?.municao ?? null,
+                armaAtiva: controle.heldWeaponType ?? null,
+                municaoAtiva: controle.municao,
+                temArma: controle.temArma,
+                tipoRetornoDaAcao: 'pendente'
+            }, null, 2));
             // Impede que materiais de crafting sumam ou sejam dropados ao apertar Enter no menu
             if (slot?.tipo === 'scrap') {
                 return { acao: 'nenhum' };
@@ -1485,11 +1580,14 @@
             }
 
             if (usarItemDoCinto()) {
+                console.info('[ARMAS][CINTO] Resultado da ação: arma/item usado.');
                 return { acao: 'usado' };
             }
             if (droparItemDoCinto()) {
+                console.warn('[ARMAS][CINTO] Resultado da ação: item não foi usado e foi dropado.');
                 return { acao: 'dropado' };
             }
+            console.warn('[ARMAS][CINTO] Resultado da ação: nenhuma ação realizada.');
             return { acao: 'nenhum' };
         }
 
@@ -1768,6 +1866,10 @@
                         // controle.municao = Math.min(maxMunicao, municaoAtual + 1);
                         // Recarrega o pente completamente ao coletar a caixa
                         controle.municao = maxMunicao;
+                        controle.municaoPorArma = controle.municaoPorArma || {};
+                        if (controle.heldWeaponType === 'revolver' || controle.heldWeaponType === 'doze') {
+                            controle.municaoPorArma[controle.heldWeaponType] = maxMunicao;
+                        }
                         window.AudioManager?.playSFX('recarga', 0.6);
                         salvarInventario();
                         atualizarMochilaUI();
@@ -1892,6 +1994,8 @@
                 extras.municao = controle.municao;
                 controle.temArma = false;
                 controle.municao = 0;
+                controle.municaoPorArma = controle.municaoPorArma || {};
+                controle.municaoPorArma[tipo] = 0;
                 if (armaElemento) armaElemento.style.display = 'none';
             } else if (tipo === 'escudo') {
                 extras.escudoProtegido = controle.escudoProtegido;

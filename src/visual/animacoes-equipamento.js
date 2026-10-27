@@ -665,6 +665,13 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
             Array.isArray(controle.inventario) && controle.inventario.includes(tipo)
         );
 
+        controle.municaoPorArma = controle.municaoPorArma || {};
+        const armaAnterior = controle.heldWeaponType;
+        const municaoAnterior = Number(controle.municao || 0);
+        if (armaAnterior === 'revolver' || armaAnterior === 'doze') {
+            controle.municaoPorArma[armaAnterior] = municaoAnterior;
+        }
+
         const ciclo = [];
         if (temEscudo) ciclo.push('escudo');
         ciclo.push(...armasNoInventario);
@@ -691,10 +698,37 @@ function criarSistemaVisuaisEquipamentos(opcoes = {}) {
         } else {
             controle.selecaoCinto = 'arma';
             controle.heldWeaponType = proximo;
+            let municaoProxima = controle.municaoPorArma[proximo];
+            let fonteMunicao = 'municaoPorArma';
+
+            if (!Number.isFinite(Number(municaoProxima))) {
+                const slotArma = [controle.cintoSlot, ...(controle.coleteSlots || [])]
+                    .find((slot) => slot?.tipo === proximo);
+                municaoProxima = slotArma?.dados?.municao;
+                fonteMunicao = slotArma ? 'slot de armazenamento' : 'padrão da arma';
+            }
+
+            if (!Number.isFinite(Number(municaoProxima))) {
+                municaoProxima = window.itemDefinitions?.[proximo]?.efeitos?.jogador?.municao ?? (proximo === 'doze' ? 2 : 5);
+            }
+
+            controle.municao = Math.max(0, Number(municaoProxima));
+            controle.municaoPorArma[proximo] = controle.municao;
             if (armaElemento) {
                 const def = window.itemDefinitions?.[proximo];
                 if (def?.spriteEquipado) armaElemento.src = def.spriteEquipado;
             }
+            console.info('[ARMAS][TROCA-E] Troca de arma pela tecla E\n' + JSON.stringify({
+                armaAnterior,
+                municaoAnterior,
+                armaNova: proximo,
+                municaoNova: controle.municao,
+                fonteMunicao,
+                municaoPorArma: controle.municaoPorArma,
+                itensNoInventario: controle.inventario,
+                itemNoCinto: controle.cintoSlot?.tipo ?? null,
+                municaoNoCinto: controle.cintoSlot?.dados?.municao ?? null
+            }, null, 2));
             window.AudioManager?.playSFX('recarga', 0.4);
         }
 

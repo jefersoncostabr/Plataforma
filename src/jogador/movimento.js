@@ -209,6 +209,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         cooldownDanoEspinho: 0,
         municao: 0, // Inicia sem munição
         temArma: false, // Inicia sem a capacidade de atirar
+        municaoPorArma: {},
         temEscudo: false, // Inicia sem escudo
         temGarra: false,
         temGarraPuxo: false,
@@ -1597,6 +1598,27 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         if (acaoAtiva('tiro') && controle.cooldownTiro === 0 && controle.temArma && !controle.itensGuardadosNoCinto && controle.municao > 0 && armaNaMao) {
             controle.cooldownTiro = config.cooldownTiro; 
             controle.municao--;
+            controle.municaoPorArma = controle.municaoPorArma || {};
+            if (controle.heldWeaponType === 'revolver' || controle.heldWeaponType === 'doze') {
+                controle.municaoPorArma[controle.heldWeaponType] = controle.municao;
+            }
+            console.info('[ARMAS][TIRO] Disparo do jogador\n' + JSON.stringify({
+                arma: controle.heldWeaponType || 'desconhecida',
+                municaoRestante: controle.municao,
+                temArma: controle.temArma,
+                tipoNoCinto: controle.cintoSlot?.tipo ?? null,
+                municaoNoCinto: controle.cintoSlot?.dados?.municao ?? null,
+                municaoPorArma: controle.municaoPorArma || {}
+            }, null, 2));
+            if (controle.municao === 0) {
+                console.warn('[ARMAS][TIRO] Arma ativa ficou sem munição\n' + JSON.stringify({
+                    arma: controle.heldWeaponType || 'desconhecida',
+                    tipoNoCinto: controle.cintoSlot?.tipo ?? null,
+                    municaoNoCinto: controle.cintoSlot?.dados?.municao ?? null,
+                    municaoPorArma: controle.municaoPorArma || {},
+                    inventario: controle.inventario
+                }, null, 2));
+            }
             window.AudioManager?.playSFX('disparo', 0.5);
             const dir = controle.direcao === 'd' ? 1 : -1;
             
