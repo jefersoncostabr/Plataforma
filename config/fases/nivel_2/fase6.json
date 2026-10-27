@@ -1,6 +1,7 @@
 {
-    "proporcao": "1x1",
+    "proporcao": "1x2",
     "posicaoInicialJogador": "b2",
+    "posicaoInicialBB": "",
     "objetivo": "f19",
     "posicaoAlavanca": "",
     "posicaoRoboDesativado": "",
@@ -11,33 +12,91 @@
     "posicaoCachorro": "",
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
-    "chefes": [
-        {
-            "id": "chefe-1779303734679-872",
-            "coord": "b13",
-            "etapas": [
-                {
-                    "baseNpc": "inimigo_comum"
-                },
-                {
-                    "baseNpc": "inimigo_comum",
-                    "equipamentos": [
-                        "escudo"
-                    ]
-                },
-                {
-                    "baseNpc": "inimigo_comum",
-                    "equipamentos": [
-                        "bota",
-                        "revolver"
-                    ]
-                }
-            ],
-            "ativaBooleanoAoDerrotar": false
-        }
+    "itens": {
+        "revolver": [
+            "b16",
+            "b23",
+            "b31",
+            "b39"
+        ]
+    },
+    "inimigoAleatorio": [
+        1,
+        0
     ],
-    "inimigoAleatorio": [1, 0],
+    "humanoAleatorio": [
+        0
+    ],
+    "cabecaoAleatorio": [
+        0
+    ],
+    "ninjaAleatorio": [
+        0
+    ],
+    "faseBonus": false,
+    "qualBonus": 0,
+    "nivelBonus": "a",
     "plataformas": [
-        "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11", "a12", "a13", "a14", "a15", "a16", "a17", "a18", "a19", "a20"
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "a5",
+        "a6",
+        "a7",
+        "a8",
+        "a9",
+        "a10",
+        "a11",
+        "a12",
+        "a13",
+        "a14",
+        "a15",
+        "a16",
+        "a17",
+        "a18",
+        "a19",
+        "a20",
+        "a21",
+        "a22",
+        "a23",
+        "a24",
+        "a25",
+        "a26",
+        "a27",
+        "a28",
+        "a29",
+        "a30",
+        "a31",
+        "a32",
+        "a33",
+        "a34",
+        "a35",
+        "a36",
+        "a37",
+        "a38",
+        "a39",
+        "a40"
+    ],
+    "inimigo_revolver": [
+        "b9"
+    ],
+    "humano": [
+        {
+            "coord": "b17",
+            "type": "humano"
+        },
+        {
+            "coord": "b24",
+            "type": "humano"
+        },
+        {
+            "coord": "b32",
+            "type": "humano"
+        },
+        {
+            "coord": "b40",
+            "type": "humano"
+        }
     ]
 }

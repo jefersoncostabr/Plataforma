@@ -405,16 +405,12 @@
         function podeInstalarBasePortatil() {
             const posicao = obterPosicaoCraftNoGrid();
             const areaValida = areaValidaParaNovoCraft(posicao);
-            
-            console.log('[CRAFT] podeInstalarBasePortatil: Área válida?', areaValida);
             return areaValida;
-            return areaValidaParaNovoCraft(posicao);
         }
 
         function instalarBasePortatilDoSlot(dados = {}) {
             const craftPersistido = obterCraftPersistido();
             const faseAtual = obterNomeFaseAtual();
-            console.log('[CRAFT] instalarBasePortatilDoSlot:', { craftPersistido, faseAtual, craftsAtivos: window.craftsAtivos });
 
             const posicao = obterPosicaoCraftNoGrid();
             if (!areaValidaParaNovoCraft(posicao)) {

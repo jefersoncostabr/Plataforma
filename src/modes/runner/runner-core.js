@@ -205,9 +205,8 @@
      * Permite ativar o modo runner via console a qualquer momento.
      * Agora limpa a fase atual para criar um ambiente do zero.
      */
-    window.ativarModoRunner = function(ativar, param) {
-        if (ativar) {
-            console.info(`[Runner] Iniciando Modo Runner... Limpando ambiente anterior.`);
+window.ativarModoRunner = function(ativar, param) {
+            if (ativar) {
 
             // Determina as velocidades base e máxima (Requisito: Níveis de dificuldade)
             let vBase = RUNNER_CONFIG.presets.easy.base;
@@ -289,8 +288,6 @@
                 window.atualizarCamera = originalAtualizarCamera;
                 originalAtualizarCamera = null;
             }
-
-            console.info(`[Runner] Modo Runner DESATIVADO.`);
         }
     };
 
@@ -399,7 +396,6 @@
                     // Reset do estado das features ao mudar de bioma
                     currentSaltosState.tilesRemainingInCurrentFeature = 0;
                     consecutiveSpikesCount = 0;
-                    console.log(`[Runner] Mudando bioma para: ${RUNNER_CONFIG.segmentos[indiceSegmentoAtual]}`);
                 }
             }
             

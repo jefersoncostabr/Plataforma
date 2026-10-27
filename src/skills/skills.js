@@ -419,6 +419,22 @@ window.toggleSkillMenu = async () => {
     }
 };
 
+// Usado em transições de fase para limpar também o overlay e o listener,
+// não apenas a flag global do menu.
+window.fecharMenuSkillsParaTransicao = () => {
+    const overlayExiste = !!document.getElementById('skill-tree-overlay');
+    if (!window.isSkillMenuOpen && !overlayExiste) return false;
+
+    window.isSkillMenuOpen = false;
+    window.removeEventListener('keydown', handleSkillMenuInput);
+    fecharMenuSkillsUI();
+    if (typeof window.setPausado === 'function') {
+        window.setPausado(false, 'skills');
+    }
+    window.TutorialControles?.sincronizarVisibilidade?.();
+    return true;
+};
+
 function handleSkillMenuInput(e) {
     if (!window.isSkillMenuOpen || !window.skillsData) return;
 

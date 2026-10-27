@@ -870,11 +870,9 @@
             }
 
             if (tipo === 'base_portatil') {
-                console.log('[INVENTARIO] Tentando instalar base portátil', { extras, controle });
                 const instalouBase = typeof window.instalarBasePortatilDoSlot === 'function'
                     ? window.instalarBasePortatilDoSlot(extras || {})
                     : false;
-                console.log('[INVENTARIO] Resultado instalarBasePortatilDoSlot:', instalouBase);
                 if (!instalouBase) return false;
                 salvarInventario();
                 atualizarMochilaUI();
@@ -1762,15 +1760,6 @@
                 // Arma sem munição informada é considerada nova e começa carregada.
                 // Se o item trouxer munição, ela representa a munição restante da arma usada.
                 const dadosArmaColetada = prepararDadosArmaColetada(item, itemData);
-                console.info('[ARMA][COLETA] Item de arma detectado: ' + JSON.stringify({
-                    tipo: item.tipo,
-                    itemNovo: !Number.isFinite(Number(item.municao ?? item.dados?.municao)),
-                    municaoRecebida: item.municao ?? item.dados?.municao ?? null,
-                    municaoCalculada: dadosArmaColetada.municao,
-                    armaEquipada,
-                    municaoAtual: controle.municao,
-                    inventario: controle.inventario
-                }));
                 // Sem arma na mão: comportamento primário é equipar.
                 if (!controle.temArma || !armaEquipada) {
                     const equipou = aplicarItemNoCorpo(item.tipo, itemData, dadosArmaColetada);

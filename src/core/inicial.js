@@ -171,6 +171,9 @@ function resetarJogadorParaZeroMantendoSkills(opcoes = {}) {
  */
 function forcarDestravamentoGeral(entidade) {
     if (!entidade) return;
+
+    // Fecha as skills pelo ciclo de vida oficial antes de zerar as flags da fase.
+    window.fecharMenuSkillsParaTransicao?.();
     
     // Limpa estados lógicos de bloqueio
     entidade.stunned = false;
@@ -188,6 +191,7 @@ function forcarDestravamentoGeral(entidade) {
 
     // Limpa flags globais de UI que travam o input
     window.isPaused = false;
+    window.__pauseOwners?.clear?.();
     window.isMenuOpen = false;
     window.isSkillMenuOpen = false;
     window.isMochilaMenuOpen = false;

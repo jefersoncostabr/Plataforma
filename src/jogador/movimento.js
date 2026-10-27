@@ -1248,18 +1248,15 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
         // Também entra em stealth quando já chega agachado no centro do arbusto.
         if (!controle.interagiuComArbusto && podeEntrarStealthNoArbusto && controle.estaAgachado) {
-            console.log('%cPersonagem entrou em stealth ao chegar agachado no centro do arbusto!', 'color: blue;');
             controle.interagiuComArbusto = true;
         }
 
         // Detecta quando o jogador sai da colisão ou levanta para resetar o estado e avisar no console
         if ((!colidindoNoArbusto || !controle.estaAgachado) && controle.interagiuComArbusto) {
-            console.log('%cPersonagem saiu da colisão ou levantou do arbusto!', 'color: red;');
             // Se saiu do arbusto ainda agachado, concede grace period de 2s de stealth
             if (!colidindoNoArbusto && controle.estaAgachado) {
                 const STEALTH_POS_ARBUSTO_FRAMES = 120; // ~2 segundos a 60fps
                 controle.stealthPosArbusto = STEALTH_POS_ARBUSTO_FRAMES;
-                console.log('%c[STEALTH] Grace period de 2s ativado (saiu do arbusto agachado)', 'color: green; font-weight: bold;');
             }
             controle.interagiuComArbusto = false;
         }
@@ -1269,12 +1266,8 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
             // Cancela o grace period se o jogador levantar enquanto está ativo
             if (!controle.estaAgachado) {
                 controle.stealthPosArbusto = 0;
-                console.log('%c[STEALTH] Grace period cancelado (jogador levantou)', 'color: orange;');
             } else {
                 controle.stealthPosArbusto--;
-                if (controle.stealthPosArbusto === 0) {
-                    console.log('%c[STEALTH] Grace period encerrado', 'color: orange;');
-                }
             }
         }
 
