@@ -726,7 +726,7 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         return Number(window.GAME_CONSTANTS?.INIMIGO_COMUM_ID ?? 0);
     }
 
-    function aplicarEquipamentosEtapaBoss(inimigo, etapa) {
+    function aplicarEquipamentosConfigurados(inimigo, etapa) {
         const equipamentos = new Set(Array.isArray(etapa?.equipamentos) ? etapa.equipamentos : []);
 
         inimigo.temArma = equipamentos.has('revolver') || equipamentos.has('doze');
@@ -739,6 +739,8 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
         inimigo.temColete = equipamentos.has('colete');
         inimigo.temBateria = equipamentos.has('bateria');
     }
+
+    const aplicarEquipamentosEtapaBoss = aplicarEquipamentosConfigurados;
 
     function prepararInventarioInicialInimigo(inimigo, tipo) {
         inimigo.inventario = [];
@@ -911,6 +913,25 @@ function iniciarIAInimigos(velocidade = 1, spriteParado, spriteAndando, spriteCh
 
             // Inicialização visual centralizada
             window.inicializarVisualEquipamentoEntidade(inimigoObj, inimigoImg.parentElement, config);
+
+            if (Array.isArray(inimigoObj.equipamentosIniciais) && !inimigoObj.isBoss) {
+                aplicarEquipamentosConfigurados(inimigoObj, {
+                    equipamentos: inimigoObj.equipamentosIniciais
+                });
+                delete inimigoObj.equipamentosIniciais;
+                window.inicializarVisualEquipamentoEntidade(inimigoObj, inimigoImg.parentElement, config);
+                window.sincronizarAcessoriosEntidade(inimigoObj, {
+                    armaElemento: inimigoObj.armaElemento,
+                    escudoElemento: inimigoObj.escudoElemento,
+                    botaElemento: inimigoObj.botaElemento,
+                    jetpackElemento: inimigoObj.jetpackElemento,
+                    garraElemento: inimigoObj.garraElemento,
+                    cintoElemento: inimigoObj.cintoElemento,
+                    coleteElemento: inimigoObj.coleteElemento,
+                    bateriaElemento: inimigoObj.bateriaElemento,
+                }, { forçarSincroniaGarra: true });
+                prepararInventarioInicialInimigo(inimigoObj, inimigoObj.tipo);
+            }
 
             if (tipo === 11 && inimigoObj.bateriaElemento) {
                 inimigoObj.bateriaElemento.style.left = pos.x + 'px';

@@ -30,7 +30,7 @@
         ]
     },
     "inimigoAleatorio": [
-        1,
+        0,
         0
     ],
     "humanoAleatorio": [
@@ -86,5 +86,21 @@
         "a38",
         "a39",
         "a40"
+    ],
+    "inimigosComplexos": [
+        {
+            "id": "inimigo-complexo-1793225097121-613",
+            "coord": "e22",
+            "baseNpc": "ninja",
+            "equipamentos": [
+                "revolver",
+                "jetpack",
+                "colete",
+                "doze",
+                "escudo",
+                "bota",
+                "cinto"
+            ]
+        }
     ]
 }

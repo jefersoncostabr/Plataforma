@@ -67,6 +67,15 @@ body {
     user-select: none;
 }
 
+.complex-enemy-item {
+    color: #8de0ff;
+    font-size: 13px;
+    line-height: 24px;
+    text-align: center;
+    font-weight: 700;
+    user-select: none;
+}
+
 .boss-editor-overlay {
     position: fixed;
     inset: 0;

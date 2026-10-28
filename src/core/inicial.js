@@ -840,6 +840,33 @@ async function carregarFase(nomeArquivo) {
                 bossAtivaBooleanoAoDerrotar: !!chefe.ativaBooleanoAoDerrotar
             });
         });
+
+        const inimigosComplexos = Array.isArray(fase.inimigosComplexos)
+            ? fase.inimigosComplexos
+            : [];
+
+        inimigosComplexos.forEach((inimigo) => {
+            if (!inimigo || typeof inimigo !== 'object') return;
+
+            const baseNpc = String(inimigo.baseNpc || 'inimigo_comum').trim().toLowerCase();
+            const chaveJSON = ({
+                humano: 'humano',
+                cabecao: 'cabecao',
+                ninja: 'ninja'
+            })[baseNpc] || 'inimigo_comum';
+
+            const tipo = Number(
+                tipoPorChave[chaveJSON] ?? window.GAME_CONSTANTS?.INIMIGO_COMUM_ID ?? 0
+            );
+
+            inimigosParaReset.push({
+                tipo,
+                pos: { coord: String(inimigo.coord || '').trim(), direcao: 'e' },
+                equipamentosIniciais: Array.isArray(inimigo.equipamentos)
+                    ? inimigo.equipamentos
+                    : []
+            });
+        });
         
         resetarInimigos(inimigosParaReset);
     }

@@ -159,6 +159,8 @@
             elementos.forEach(el => el.remove());
             const marcadoresChefe = stage.querySelectorAll('.editor-boss-marker');
             marcadoresChefe.forEach(el => el.remove());
+            const marcadoresComplexo = stage.querySelectorAll('.editor-complex-enemy-marker');
+            marcadoresComplexo.forEach(el => el.remove());
 
             const fundoFrente = Array.isArray(faseData.fundoFrente) ? faseData.fundoFrente : [];
             fundoFrente.forEach((entrada) => {
@@ -236,6 +238,40 @@
                 marker.style.textShadow = '0 0 8px rgba(255, 216, 74, 0.6)';
                 marker.style.pointerEvents = 'none';
                 marker.style.zIndex = '42';
+                stage.appendChild(marker);
+            });
+
+            const inimigosComplexos = Array.isArray(faseData.inimigosComplexos)
+                ? faseData.inimigosComplexos
+                : [];
+
+            inimigosComplexos.forEach((inimigo) => {
+                const coord = String(inimigo?.coord || '').trim();
+                const partes = typeof coordToParts === 'function'
+                    ? coordToParts(coord)
+                    : null;
+
+                if (!partes) return;
+
+                const marker = document.createElement('div');
+                marker.className = 'editor-complex-enemy-marker';
+                marker.textContent = 'IC';
+                marker.title = `Inimigo complexo: ${inimigo.baseNpc || 'inimigo_comum'}`;
+                marker.style.position = 'absolute';
+                marker.style.left = (partes.col * TILE_SIZE) + 'px';
+                marker.style.bottom = (partes.row * TILE_SIZE) + 'px';
+                marker.style.width = `${TILE_SIZE}px`;
+                marker.style.height = `${TILE_SIZE}px`;
+                marker.style.display = 'flex';
+                marker.style.alignItems = 'center';
+                marker.style.justifyContent = 'center';
+                marker.style.fontSize = '11px';
+                marker.style.fontWeight = '700';
+                marker.style.color = '#8de0ff';
+                marker.style.background = 'rgba(10, 40, 55, 0.85)';
+                marker.style.pointerEvents = 'none';
+                marker.style.zIndex = '43';
+
                 stage.appendChild(marker);
             });
 

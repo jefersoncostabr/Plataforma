@@ -367,6 +367,43 @@
         merged.chefes = [...porId.values()].sort((a, b) => sortCoords(a.coord, b.coord));
         if (merged.chefes.length === 0) delete merged.chefes;
 
+        const inimigosComplexosEntrada = Array.isArray(merged.inimigosComplexos)
+            ? merged.inimigosComplexos
+            : [];
+
+        const complexosPorId = new Map();
+
+        inimigosComplexosEntrada.forEach((inimigo, indice) => {
+            if (!inimigo || typeof inimigo !== 'object') return;
+
+            const coord = String(inimigo.coord || '').trim();
+            if (!coord) return;
+
+            const basesValidas = ['inimigo_comum', 'humano', 'cabecao', 'ninja'];
+            const baseInformada = String(inimigo.baseNpc || '').trim().toLowerCase();
+            const baseNpc = basesValidas.includes(baseInformada)
+                ? baseInformada
+                : 'inimigo_comum';
+
+            const equipamentos = Array.isArray(inimigo.equipamentos)
+                ? [...new Set(
+                    inimigo.equipamentos
+                        .map((item) => String(item || '').trim().toLowerCase())
+                        .filter((item) => equipamentosValidos.has(item))
+                )]
+                : [];
+
+            const id = String(inimigo.id || `inimigo-complexo-${indice + 1}`).trim();
+            complexosPorId.set(id, { id, coord, baseNpc, equipamentos });
+        });
+
+        merged.inimigosComplexos = [...complexosPorId.values()]
+            .sort((a, b) => sortCoords(a.coord, b.coord));
+
+        if (merged.inimigosComplexos.length === 0) {
+            delete merged.inimigosComplexos;
+        }
+
         merged.inimigoAleatorio = Array.isArray(merged.inimigoAleatorio) && merged.inimigoAleatorio.length >= 2
             ? [Number(merged.inimigoAleatorio[0] || 0), Number(merged.inimigoAleatorio[1] || 0)]
             : [1, 0];

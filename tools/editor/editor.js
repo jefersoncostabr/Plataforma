@@ -43,6 +43,14 @@ const BOSS_BASE_OPTIONS = [
 const BOSS_EQUIP_OPTIONS = ['revolver', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete', 'doze', 'bateria'];
 const BOSS_MAX_STAGES = Math.max(1, Number(window.EditorConfig?.BOSS_MAX_STAGES ?? 5));
 let chefeRascunhoPosicionamento = null;
+let inimigoComplexoRascunhoPosicionamento = null;
+
+const COMPLEX_ENEMY_BASE_OPTIONS = [
+    { value: 'inimigo_comum', label: 'Inimigo comum' },
+    { value: 'humano', label: 'Humano' },
+    { value: 'cabecao', label: 'Cabeção' },
+    { value: 'ninja', label: 'Ninja' }
+];
 
 const stage = document.getElementById('game-stage');
 const stageArea = document.getElementById('stage-area');
@@ -167,6 +175,54 @@ function removerChefePorCoord(coord) {
     const antes = faseData.chefes.length;
     faseData.chefes = faseData.chefes.filter((chefe) => String(chefe?.coord || '').trim() !== String(coord || '').trim());
     return faseData.chefes.length !== antes;
+}
+
+function obterInimigosComplexosLista() {
+    if (!Array.isArray(faseData.inimigosComplexos)) {
+        faseData.inimigosComplexos = [];
+    }
+    return faseData.inimigosComplexos;
+}
+
+function obterInimigoComplexoPorCoord(coord) {
+    return obterInimigosComplexosLista().find(
+        (inimigo) => String(inimigo?.coord || '').trim() === String(coord || '').trim()
+    ) || null;
+}
+
+function removerInimigoComplexoPorCoord(coord) {
+    const lista = obterInimigosComplexosLista();
+    const tamanhoAntes = lista.length;
+
+    faseData.inimigosComplexos = lista.filter(
+        (inimigo) => String(inimigo?.coord || '').trim() !== String(coord || '').trim()
+    );
+
+    return faseData.inimigosComplexos.length !== tamanhoAntes;
+}
+
+function normalizarInimigoComplexo(inimigo = {}) {
+    const basesValidas = COMPLEX_ENEMY_BASE_OPTIONS.map((opcao) => opcao.value);
+    const equipamentosValidos = BOSS_EQUIP_OPTIONS;
+
+    const baseNpc = basesValidas.includes(inimigo.baseNpc)
+        ? inimigo.baseNpc
+        : 'inimigo_comum';
+
+    const equipamentos = Array.isArray(inimigo.equipamentos)
+        ? [...new Set(
+            inimigo.equipamentos
+                .map((equipamento) => String(equipamento || '').trim().toLowerCase())
+                .filter((equipamento) => equipamentosValidos.includes(equipamento))
+        )]
+        : [];
+
+    return {
+        id: String(inimigo.id || `inimigo-complexo-${Date.now()}-${Math.floor(Math.random() * 1000)}`),
+        coord: String(inimigo.coord || '').trim(),
+        baseNpc,
+        equipamentos
+    };
 }
 
 function normalizarEtapasChefe(etapas) {
@@ -386,6 +442,113 @@ function abrirModalConfigChefe(chefeAtual = null) {
     render();
 }
 
+function abrirModalInimigoComplexo(inimigoAtual = null) {
+    let overlay = document.getElementById('boss-editor-overlay');
+
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'boss-editor-overlay';
+        overlay.className = 'boss-editor-overlay';
+        document.body.appendChild(overlay);
+    }
+
+    const rascunho = normalizarInimigoComplexo(inimigoAtual || {});
+    const equipamentos = [...rascunho.equipamentos];
+
+    overlay.innerHTML = '';
+    overlay.style.display = 'flex';
+
+    const modal = document.createElement('div');
+    modal.className = 'boss-editor-modal';
+
+    const titulo = document.createElement('h3');
+    titulo.className = 'boss-editor-title';
+    titulo.textContent = inimigoAtual ? 'Editar inimigo complexo' : 'Novo inimigo complexo';
+    modal.appendChild(titulo);
+
+    const dica = document.createElement('p');
+    dica.className = 'boss-editor-hint';
+    dica.textContent = 'Escolha o tipo de inimigo e os equipamentos. Este inimigo não terá transformação.';
+    modal.appendChild(dica);
+
+    const seletorBase = document.createElement('select');
+    COMPLEX_ENEMY_BASE_OPTIONS.forEach((opcao) => {
+        const item = document.createElement('option');
+        item.value = opcao.value;
+        item.textContent = opcao.label;
+        seletorBase.appendChild(item);
+    });
+    seletorBase.value = rascunho.baseNpc;
+    modal.appendChild(seletorBase);
+
+    const grade = document.createElement('div');
+    grade.className = 'boss-equip-grid';
+
+    BOSS_EQUIP_OPTIONS.forEach((equipamento) => {
+        const label = document.createElement('label');
+        const checkbox = document.createElement('input');
+
+        checkbox.type = 'checkbox';
+        checkbox.checked = equipamentos.includes(equipamento);
+        checkbox.onchange = () => {
+            const indice = equipamentos.indexOf(equipamento);
+
+            if (checkbox.checked && indice < 0) {
+                equipamentos.push(equipamento);
+            } else if (!checkbox.checked && indice >= 0) {
+                equipamentos.splice(indice, 1);
+            }
+        };
+
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(` ${equipamento}`));
+        grade.appendChild(label);
+    });
+
+    modal.appendChild(grade);
+
+    const acoes = document.createElement('div');
+    acoes.className = 'boss-modal-actions';
+
+    const cancelar = document.createElement('button');
+    cancelar.type = 'button';
+    cancelar.textContent = 'Cancelar';
+    cancelar.onclick = () => {
+        overlay.style.display = 'none';
+        overlay.innerHTML = '';
+    };
+
+    const confirmar = document.createElement('button');
+    confirmar.type = 'button';
+    confirmar.textContent = 'Confirmar';
+    confirmar.onclick = () => {
+        const configurado = normalizarInimigoComplexo({
+            ...rascunho,
+            baseNpc: seletorBase.value,
+            equipamentos
+        });
+
+        if (inimigoAtual?.coord) {
+            configurado.coord = inimigoAtual.coord;
+            removerInimigoComplexoPorCoord(inimigoAtual.coord);
+            obterInimigosComplexosLista().push(configurado);
+            aplicarFaseDataEditor(faseData);
+        } else {
+            inimigoComplexoRascunhoPosicionamento = configurado;
+            alert('Configuração salva. Agora clique no palco para posicionar o inimigo complexo.');
+        }
+
+        overlay.style.display = 'none';
+        overlay.innerHTML = '';
+        atualizarVisual();
+    };
+
+    acoes.appendChild(cancelar);
+    acoes.appendChild(confirmar);
+    modal.appendChild(acoes);
+    overlay.appendChild(modal);
+}
+
 function obterLegendaCoord(coord) {
     const PLATFORM_DEFS = window.EditorConfig?.PLATFORM_DEFS || [];
     const ENEMY_DEFS = window.EditorConfig?.ENEMY_DEFS || [];
@@ -523,6 +686,11 @@ window.onload = async () => {
             if (tipo === 'chefe') {
                 chefeRascunhoPosicionamento = null;
                 abrirModalConfigChefe(null);
+            }
+
+            if (tipo === 'inimigo_complexo') {
+                inimigoComplexoRascunhoPosicionamento = null;
+                abrirModalInimigoComplexo(null);
             }
         },
         getItemDefinitions: () => itemDefinitions,
@@ -1060,6 +1228,12 @@ function adicionarElemento(coord) {
         return;
     }
 
+    const inimigoComplexoExistente = obterInimigoComplexoPorCoord(coord);
+    if (inimigoComplexoExistente && itemSelecionado !== 'inimigo_complexo') {
+        abrirModalInimigoComplexo(inimigoComplexoExistente);
+        return;
+    }
+
     if (itemSelecionado === 'chefe') {
         const chefeExistente = obterChefePorCoord(coord);
         if (chefeExistente) {
@@ -1073,14 +1247,38 @@ function adicionarElemento(coord) {
         }
 
         removerChefePorCoord(coord);
-        const chefeFinal = {
+        obterChefesLista().push({
             id: chefeRascunhoPosicionamento.id || gerarIdChefe(),
             coord,
             etapas: normalizarEtapasChefe(chefeRascunhoPosicionamento.etapas),
             ativaBooleanoAoDerrotar: !!chefeRascunhoPosicionamento.ativaBooleanoAoDerrotar
-        };
-        obterChefesLista().push(chefeFinal);
+        });
+
         chefeRascunhoPosicionamento = null;
+        aplicarFaseDataEditor(faseData);
+        return;
+    }
+
+    if (itemSelecionado === 'inimigo_complexo') {
+        const existente = obterInimigoComplexoPorCoord(coord);
+
+        if (existente) {
+            abrirModalInimigoComplexo(existente);
+            return;
+        }
+
+        if (!inimigoComplexoRascunhoPosicionamento) {
+            abrirModalInimigoComplexo(null);
+            return;
+        }
+
+        removerInimigoComplexoPorCoord(coord);
+        obterInimigosComplexosLista().push(normalizarInimigoComplexo({
+            ...inimigoComplexoRascunhoPosicionamento,
+            coord
+        }));
+
+        inimigoComplexoRascunhoPosicionamento = null;
         aplicarFaseDataEditor(faseData);
         return;
     }
@@ -1248,6 +1446,8 @@ function removerElemento(coord) {
 
     if (faseData.posicaoMusgoRoboAberto === coord) faseData.posicaoMusgoRoboAberto = '';
     if (faseData.posicaoMusgoRoboDesativado === coord) faseData.posicaoMusgoRoboDesativado = '';
+
+    removerInimigoComplexoPorCoord(coord);
 
     aplicarFaseDataEditor(faseData);
 }
