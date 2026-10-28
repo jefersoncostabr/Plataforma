@@ -77,7 +77,7 @@
                         inimigo.presoPorPetTipo = pet.tipo;
                         inimigo.stunned = true;
                         inimigo.stunTimer = 100;
-                        window.AudioManager?.playSFX('madeiraQuebrando', 0.6);
+                        window.AudioManager?.playSFX('espada.mp3', 0.6);
                         alvoEncontrado = true;
                         break;
                     }

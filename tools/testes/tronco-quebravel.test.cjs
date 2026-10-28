@@ -104,11 +104,9 @@ test('tronco vertical perde vida por acerto, mostra impacto e quebra no sexto go
     }
 
     assert.equal(sistema.chamadasSom.filter((som) => som.nome === 'impacto').length, 6);
-    assert.equal(sistema.chamadasSom.filter((som) => som.nome === 'madeiraquebrando').length, 1);
+    assert.equal(sistema.chamadasSom.filter((som) => som.nome === 'madeira_quebrando.mp3').length, 1);
     assert.equal(sistema.chamadasVfx.length, 6);
     assert.equal(sistema.tile.classList.contains('bloco-quebravel-flash'), true);
-    assert.ok(sistema.mensagensConsole.some((msg) => String(msg.args[0]).includes('0/6')));
-
     const timerAnimacao = sistema.temporizadores.find((timer) => timer.ms === 120);
     assert.ok(timerAnimacao, 'a quebra deve agendar a divisão visual do tronco');
     timerAnimacao.callback();

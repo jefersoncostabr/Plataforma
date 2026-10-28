@@ -20,11 +20,13 @@ function carregarRegraReciclagem() {
 
 const slot = (itemTipo, extras = {}) => ({ ocupado: 'true', itemTipo, ...extras });
 
-test('dois equipamentos válidos podem ser reciclados em scrap', () => {
+test('dois equipamentos ou um equipamento com SP podem ser reciclados em scrap', () => {
     const podeReciclar = carregarRegraReciclagem();
 
     assert.equal(podeReciclar(slot('revolver'), slot('escudo')), true);
     assert.equal(podeReciclar(slot('bateria'), slot('jetpack')), true);
+    assert.equal(podeReciclar(slot('revolver'), slot('skillpoint_display', { isSkillPoint: 'true' })), true);
+    assert.equal(podeReciclar(slot('skillpoint_display', { isSkillPoint: 'true' }), slot('bateria')), true);
 });
 
 test('munição, reparação, itens plus e itens que não são equipamentos não podem ser reciclados', () => {
@@ -35,10 +37,12 @@ test('munição, reparação, itens plus e itens que não são equipamentos não
     }
 });
 
-test('reciclagem exige dois itens ocupados e não aceita XP nem pontos de habilidade', () => {
+test('reciclagem exige ingredientes ocupados, aceita SP e rejeita XP', () => {
     const podeReciclar = carregarRegraReciclagem();
 
     assert.equal(podeReciclar(slot('revolver'), { itemTipo: 'escudo' }), false);
     assert.equal(podeReciclar(slot('revolver', { isXP: 'true' }), slot('escudo')), false);
-    assert.equal(podeReciclar(slot('revolver'), slot('escudo', { isSkillPoint: 'true' })), false);
+    assert.equal(podeReciclar(slot('revolver'), { ...slot('skillpoint_display', { isSkillPoint: 'true' }), ocupado: 'false' }), false);
+    assert.equal(podeReciclar(slot('revolver'), slot('skillpoint_display', { isSkillPoint: 'true' })), true);
+    assert.equal(podeReciclar(slot('revolver'), slot('skillpoint_display', { isSkillPoint: 'true', isXP: 'true' })), false);
 });

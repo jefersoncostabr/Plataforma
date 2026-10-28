@@ -1195,6 +1195,9 @@ window.proximoNivel = async function() {
                 return;
             }
             // Suporte para Novo Jogo+: Busca a base no inventário antes de reiniciar a campanha
+            const skillsParaPreservar = [...new Set((Array.isArray(window.playerSkills) ? window.playerSkills : [])
+                .map(skill => String(skill || '').trim())
+                .filter(Boolean))];
             const slotsNG = [window.playerControle?.cintoSlot, ...(window.playerControle?.coleteSlots || [])];
             const baseNoBolsoNG = slotsNG.find(s => s === 'base_portatil' || s?.tipo === 'base_portatil');
             
@@ -1234,8 +1237,18 @@ window.proximoNivel = async function() {
                     window.salvarInventarioDoControle(window.playerControle);
                 }
             }
+            // O Novo Jogo+ zera XP e pontos, mas mantém as skills já adquiridas.
+            window.playerXP = 0;
+            window.skillPoints = 0;
+            window.playerSkills = skillsParaPreservar;
+            if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
+            if (typeof window.salvarProgressoSkills === 'function') window.salvarProgressoSkills();
             salvarFaseAtual(window.niveis[indiceFaseInicial]);
             await window.reiniciarJogo(false, { indiceFaseInicialSlot: indiceFaseInicial });
+            // Garante a lista mesmo que o carregamento da fase inicial tenha refeito o estado do jogador.
+            window.playerSkills = skillsParaPreservar;
+            if (typeof window.aplicarEfeitosSkills === 'function') window.aplicarEfeitosSkills();
+            if (typeof window.atualizarHUD === 'function') window.atualizarHUD();
         }
     }
 };

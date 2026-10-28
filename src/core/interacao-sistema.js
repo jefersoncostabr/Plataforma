@@ -8,11 +8,19 @@
     ]);
 
     function podeReciclarEmScrap(s1, s2) {
-        return s1.ocupado === 'true' && s2.ocupado === 'true'
-            && s1.isSkillPoint !== 'true' && s2.isSkillPoint !== 'true'
-            && s1.isXP !== 'true' && s2.isXP !== 'true'
-            && EQUIPAMENTOS_RECICLAVEIS.has(s1.itemTipo)
+        const item1Reciclavel = s1.ocupado === 'true'
+            && s1.isSkillPoint !== 'true' && s1.isXP !== 'true'
+            && EQUIPAMENTOS_RECICLAVEIS.has(s1.itemTipo);
+        const item2Reciclavel = s2.ocupado === 'true'
+            && s2.isSkillPoint !== 'true' && s2.isXP !== 'true'
             && EQUIPAMENTOS_RECICLAVEIS.has(s2.itemTipo);
+        const doisEquipamentos = item1Reciclavel && item2Reciclavel;
+        const skillPoint2 = s2.ocupado === 'true' && s2.isSkillPoint === 'true' && s2.isXP !== 'true';
+        const skillPoint1 = s1.ocupado === 'true' && s1.isSkillPoint === 'true' && s1.isXP !== 'true';
+        const equipamentoComSkillPoint = (item1Reciclavel && skillPoint2)
+            || (item2Reciclavel && skillPoint1);
+
+        return doisEquipamentos || equipamentoComSkillPoint;
     }
 
     window.isInteractionMenuOpen = false;
@@ -1122,7 +1130,7 @@ inventarioContainer.addEventListener('dragover', (evento) => {
                                 });
                                 atualizarResultadoCrafting();
                                 renderizarListaInventario();
-                                window.AudioManager?.playSFX('recarga', 0.8);
+                                window.AudioManager?.playSFX('crafting.mp3', 0.8);
                         };
 
                         overlay.addEventListener('click', (e) => {

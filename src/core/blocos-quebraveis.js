@@ -273,7 +273,7 @@
         }
 
         if (bloco.vidaAtual <= 0) {
-            window.AudioManager?.playSFX('madeiraquebrando', 0.75);
+            window.AudioManager?.playSFX('madeira_quebrando.mp3', 0.75);
             quebrarBloco(chave, elemento);
         }
 

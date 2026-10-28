@@ -70,7 +70,8 @@
         },
 
         playSFX: function(nome, volume = 0.5) {
-            const caminho = `${GENERAL_SFX_PATH}${nome}.wav`;
+            const arquivo = /\.(wav|mp3)$/i.test(nome) ? nome : `${nome}.wav`;
+            const caminho = `${GENERAL_SFX_PATH}${arquivo}`;
             const volFinal = Math.max(0, Math.min(1, volume * this.masterVolume));
             // console.log(`[AudioManager] playSFX: ${nome} | Vol: ${volFinal.toFixed(2)} | Caminho: ${caminho}`);
             

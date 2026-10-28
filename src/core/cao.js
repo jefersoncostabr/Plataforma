@@ -463,7 +463,7 @@
                         }
 
                         // Efeito sonoro do impacto
-                        window.AudioManager?.playSFX('madeiraQuebrando', 0.6);
+                        window.AudioManager?.playSFX('espada.mp3', 0.6);
 
                         // Pequeno salto de recuo no pet
                         pet.velocidadeY = 4;

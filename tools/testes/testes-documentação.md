@@ -22,7 +22,7 @@ Os testes automatizados usam o próprio Node.js; não precisam de instalação d
 Abra o terminal na pasta principal do projeto e execute:
 
 ```powershell
-node --test tools/testes/controls-menu-css.test.cjs tools/testes/phase-editor-random-enemies.test.cjs tools/testes/combat-tatsumaki-vfx.test.cjs tools/testes/bonus-phase.test.cjs tools/testes/player-jump-tilt.test.cjs tools/testes/enemy-jump-tilt.test.cjs tools/testes/tronco-quebravel.test.cjs tools/testes/cheat-menu-phase-transition.test.cjs tools/testes/pet-follow-distance.test.cjs tools/testes/pet-animation.test.cjs
+node --test tools/testes/controls-menu-css.test.cjs tools/testes/phase-editor-random-enemies.test.cjs tools/testes/combat-tatsumaki-vfx.test.cjs tools/testes/bonus-phase.test.cjs tools/testes/player-jump-tilt.test.cjs tools/testes/enemy-jump-tilt.test.cjs tools/testes/tronco-quebravel.test.cjs tools/testes/cheat-menu-phase-transition.test.cjs tools/testes/pet-follow-distance.test.cjs tools/testes/pet-animation.test.cjs tools/testes/armas-cinto-municao.test.cjs tools/testes/crafting-reciclagem.test.cjs tools/testes/sons.test.cjs tools/testes/reiniciar-hard-preserva-skills.test.cjs
 ```
 
 O Node.js mostra o resultado de cada teste:
@@ -99,7 +99,31 @@ node --test tools/testes/cheat-menu-phase-transition.test.cjs
 
 Executa a lógica real do menu cheats para verificar a seleção de fase, o fechamento do menu antes do carregamento, a validação de entrada inválida e a limpeza do menu de skills e dos estados de pausa na transição.
 
----
+### Armas, cinto e munição
+
+```powershell
+node --test tools/testes/armas-cinto-municao.test.cjs
+```
+
+### Crafting e reciclagem
+
+```powershell
+node --test tools/testes/crafting-reciclagem.test.cjs
+```
+
+### Sons
+
+```powershell
+node --test tools/testes/sons.test.cjs
+```
+
+### Reiniciar hard preservando skills
+
+```powershell
+node --test tools/testes/reiniciar-hard-preserva-skills.test.cjs
+```
+
+Verifica que, ao reiniciar em modo hard, as skills desbloqueadas são preservadas conforme o comportamento esperado.
 
 ---
 
@@ -108,5 +132,5 @@ Executa a lógica real do menu cheats para verificar a seleção de fase, o fech
 | O que fazer | Comando / ação | Resultado esperado |
 |-------------|----------------|---------------------|
 | Verificar Node.js | `node --version` | Número da versão ✅ |
-| Rodar todos os testes | `node --test ...` | Saída com `pass` ou `fail` |
-| Rodar um teste específico | `node --test <arquivo>` | Saída com `pass` ou `fail` |
+| Rodar todos os testes | `node --test tools/testes/*.test.cjs` | Saída com `pass` ou `fail` |
+| Rodar um teste específico | `node --test tools/testes/<arquivo>.test.cjs` | Saída com `pass` ou `fail` |
