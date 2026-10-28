@@ -3,6 +3,17 @@
     let cacheInteracoes = null;
     let overlayAtual = null;
     let onKeyDownAtual = null;
+    const EQUIPAMENTOS_RECICLAVEIS = new Set([
+        'revolver', 'doze', 'escudo', 'bota', 'jetpack', 'garra', 'cinto', 'colete', 'bateria'
+    ]);
+
+    function podeReciclarEmScrap(s1, s2) {
+        return s1.ocupado === 'true' && s2.ocupado === 'true'
+            && s1.isSkillPoint !== 'true' && s2.isSkillPoint !== 'true'
+            && s1.isXP !== 'true' && s2.isXP !== 'true'
+            && EQUIPAMENTOS_RECICLAVEIS.has(s1.itemTipo)
+            && EQUIPAMENTOS_RECICLAVEIS.has(s2.itemTipo);
+    }
 
     window.isInteractionMenuOpen = false;
     window.interactionPauseApplied = false;
@@ -530,9 +541,7 @@
                         {
                             id: 'reciclagem',
                             resultado: () => 'scrap',
-                            check: (s1, s2) => (s1.ocupado === "true" && s2.ocupado === "true")
-                                && ((s1.isSkillPoint === "true") !== (s2.isSkillPoint === "true"))
-                                && s1.itemTipo !== 'scrap' && s2.itemTipo !== 'scrap'
+                            check: podeReciclarEmScrap
                         }
                     ];
 

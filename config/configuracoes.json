@@ -123,6 +123,7 @@
     "minVelocidadePousoSom": -6,
     "velocidadePlayer": 3,
     "velocidadeCao": 3,
+    "distanciaMinimaCaoSeguir": 30,
     "coyoteTimeSegundos": 0.1,
     "coyoteTimeSegundosPets": 0.06,
     "coyoteTimeSegundosBB": 0.06,

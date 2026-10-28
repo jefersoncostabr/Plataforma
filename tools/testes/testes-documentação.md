@@ -22,7 +22,7 @@ Os testes automatizados usam o próprio Node.js; não precisam de instalação d
 Abra o terminal na pasta principal do projeto e execute:
 
 ```powershell
-node --test tools/testes/controls-menu-css.test.cjs tools/testes/phase-editor-random-enemies.test.cjs tools/testes/combat-tatsumaki-vfx.test.cjs tools/testes/bonus-phase.test.cjs tools/testes/player-jump-tilt.test.cjs tools/testes/enemy-jump-tilt.test.cjs tools/testes/tronco-quebravel.test.cjs
+node --test tools/testes/controls-menu-css.test.cjs tools/testes/phase-editor-random-enemies.test.cjs tools/testes/combat-tatsumaki-vfx.test.cjs tools/testes/bonus-phase.test.cjs tools/testes/player-jump-tilt.test.cjs tools/testes/enemy-jump-tilt.test.cjs tools/testes/tronco-quebravel.test.cjs tools/testes/cheat-menu-phase-transition.test.cjs tools/testes/pet-follow-distance.test.cjs tools/testes/pet-animation.test.cjs
 ```
 
 O Node.js mostra o resultado de cada teste:
@@ -32,6 +32,14 @@ O Node.js mostra o resultado de cada teste:
 ---
 
 ## ▶️ Rodar apenas um teste
+
+### Pets: distância de acompanhamento e animação
+
+```powershell
+node --test tools/testes/pet-follow-distance.test.cjs tools/testes/pet-animation.test.cjs
+```
+
+Verifica que o cão usa a distância configurada de 30 pixels, que o gato continua usando o padrão de 45 pixels e que cão e gato recebem os sprites de andar corretos.
 
 ### Menu de controles
 
@@ -83,11 +91,15 @@ node --test tools/testes/tronco-quebravel.test.cjs
 
 Verifica os 6 pontos de vida do tronco vertical, o dano único por chute, os efeitos de impacto, a animação de quebra horizontal e a colisão unidirecional dos troncos baixo e cima.
 
+### Menu cheats e troca de fase
+
+```powershell
+node --test tools/testes/cheat-menu-phase-transition.test.cjs
+```
+
+Executa a lógica real do menu cheats para verificar a seleção de fase, o fechamento do menu antes do carregamento, a validação de entrada inválida e a limpeza do menu de skills e dos estados de pausa na transição.
+
 ---
-
-## 🐾 Teste manual dos pets
-
-O arquivo `teste-animacao-pets.html` **não** é um teste automatizado e **não** roda com `node --test`. Abra-o no navegador para conferir as animações dos pets. 🎮
 
 ---
 
@@ -98,4 +110,3 @@ O arquivo `teste-animacao-pets.html` **não** é um teste automatizado e **não*
 | Verificar Node.js | `node --version` | Número da versão ✅ |
 | Rodar todos os testes | `node --test ...` | Saída com `pass` ou `fail` |
 | Rodar um teste específico | `node --test <arquivo>` | Saída com `pass` ou `fail` |
-| Testar animações dos pets | Abrir `teste-animacao-pets.html` no navegador | Animações visíveis no navegador 🐾 |
