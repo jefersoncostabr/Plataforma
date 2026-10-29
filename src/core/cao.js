@@ -1,14 +1,17 @@
 (function () {
     const CAO_STORAGE_KEY = 'plataformaCaoResgatado';
     const GATO_STORAGE_KEY = 'plataformaGatoResgatado';
+    const GALINHA_STORAGE_KEY = 'plataformaGalinhaResgatada';
 
     window.isCaoResgatado = localStorage.getItem(CAO_STORAGE_KEY) === 'true';
     window.caoNaBase = localStorage.getItem('plataformaCaoNaBase') === 'true';
     window.isGatoResgatado = localStorage.getItem(GATO_STORAGE_KEY) === 'true';
     window.gatoNaBase = localStorage.getItem('plataformaGatoNaBase') === 'true';
+    window.isGalinhaResgatada = localStorage.getItem(GALINHA_STORAGE_KEY) === 'true';
+    window.galinhaNaBase = localStorage.getItem('plataformaGalinhaNaBase') === 'true';
 
     // Estado para múltiplos pets
-    window.idPetsAtivos = { cao: 0, gato: 0 };
+    window.idPetsAtivos = { cao: 0, gato: 0, galinha: 0 };
     let config = {}; // Variável para armazenar as configurações do jogo
 
     /**
@@ -31,7 +34,9 @@
         const img = document.createElement('img');
         const spriteBase = tipo === 'cao' 
             ? (config.spriteCao || '../../assets/personagem/cao_parado.png')
-            : (config.spriteGato || '../../assets/personagem/gato_parado.png');
+            : tipo === 'gato'
+                ? (config.spriteGato || '../../assets/personagem/gato_parado.png')
+                : (config.spriteGalinha || '../../assets/personagem/galinha/galinha_parado.png');
             
         img.src = spriteBase;
         img.id = idElemento;
@@ -74,7 +79,9 @@
             spriteParado: spriteBase,
             spriteAndando: tipo === 'cao' 
                 ? (config.spriteCaoAndando || '../../assets/personagem/cao_mov.png')
-                : (config.spriteGatoAndando || '../../assets/personagem/gato_andando.png'),
+                : tipo === 'gato'
+                    ? (config.spriteGatoAndando || '../../assets/personagem/gato_andando.png')
+                    : (config.spriteGalinhaAndando || '../../assets/personagem/galinha/galinha_andando.png'),
             estaSeguindo: true,    // Novo: controla se o NPC deve seguir o player
             ultimoToqueQ: 0,       // Restaurado para Double Tap
             qPressionadoAnterior: false, // Restaurado para Double Tap
@@ -87,7 +94,8 @@
 
         // REGISTRO GLOBAL
         if (tipo === 'cao') window.caoEntidade = pet;
-        else window.gatoEntidade = pet;
+        else if (tipo === 'gato') window.gatoEntidade = pet;
+        else if (tipo === 'galinha') window.galinhaEntidade = pet;
         
         requestAnimationFrame(() => cicloVidaPet(pet, meuId));
     };
@@ -96,6 +104,7 @@
     window.inicializarCaoNPC = (x, y, cfg) => window.inicializarPetNPC('cao', x, y, cfg);
     window.iniciarCao = (pos, cfg) => window.inicializarPetNPC('cao', pos.x, pos.y, cfg);
     window.iniciarGato = (pos, cfg) => window.inicializarPetNPC('gato', pos.x, pos.y, cfg);
+    window.iniciarGalinha = (pos, cfg) => window.inicializarPetNPC('galinha', pos.x, pos.y, cfg);
 
     function cicloVidaPet(pet, idControle) {
         // Se o pet foi reinicializado, este loop antigo deve morrer
@@ -104,16 +113,20 @@
         }
 
         // Se o pet foi desativado (enviado para a base), removemos ele da fase e paramos o ciclo de vida
-        const naBase = pet.tipo === 'cao' ? window.caoNaBase : window.gatoNaBase;
+        const naBase = pet.tipo === 'cao' ? window.caoNaBase : pet.tipo === 'gato' ? window.gatoNaBase : window.galinhaNaBase;
         if (naBase) {
             if (pet.elemento) pet.elemento.remove();
             if (pet.tipo === 'cao' && window.caoEntidade === pet) window.caoEntidade = null;
             if (pet.tipo === 'gato' && window.gatoEntidade === pet) window.gatoEntidade = null;
+            if (pet.tipo === 'galinha' && window.galinhaEntidade === pet) window.galinhaEntidade = null;
             return;
         }
 
         const player = window.playerControle;
-        const alvoSeguimento = (window.controlandoBB && window.bbEntidade) ? window.bbEntidade : player;
+        const alvoPrincipalSeguimento = (window.controlandoBB && window.bbEntidade) ? window.bbEntidade : player;
+        const alvoSeguimento = pet.tipo === 'galinha' && window.gatoEntidade && !window.gatoNaBase
+            ? window.gatoEntidade
+            : alvoPrincipalSeguimento;
         
         // 1. Processamento de Lógica e Física (Apenas se o jogo NÃO estiver pausado)
         if (!window.isPaused && pet && window.config) {
@@ -333,7 +346,9 @@
                 } else {
                     xAlvoPet = alvoSeguimento ? alvoSeguimento.x : pet.x;
                     yAlvoPet = alvoSeguimento ? alvoSeguimento.y : pet.y;
-                    distSeguir = (pet.tipo === 'cao' ? config.distanciaMinimaCaoSeguir : config.distanciaMinimaGatoSeguir) || 45;
+                    distSeguir = pet.tipo === 'galinha'
+                        ? 12
+                        : (pet.tipo === 'cao' ? config.distanciaMinimaCaoSeguir : config.distanciaMinimaGatoSeguir) || 45;
                 }
 
                 const alvoAcimaPet = yAlvoPet > pet.y + 40;
@@ -671,15 +686,18 @@
      * Chamada pelo gaiola.js quando o player colide.
      */
     window.libertarPet = function (tipo, gaiolaObj) {
-        const key = tipo === 'cao' ? CAO_STORAGE_KEY : GATO_STORAGE_KEY;
+        const key = tipo === 'cao' ? CAO_STORAGE_KEY : tipo === 'gato' ? GATO_STORAGE_KEY : GALINHA_STORAGE_KEY;
         if (localStorage.getItem(key) === 'true') return;
 
         if (tipo === 'cao') {
             window.isCaoResgatado = true;
             window.TutorialControles?.registrarItemColetado?.('cao');
-        } else {
+        } else if (tipo === 'gato') {
             window.isGatoResgatado = true;
             window.TutorialControles?.registrarItemColetado?.('gato');
+        } else {
+            window.isGalinhaResgatada = true;
+            window.TutorialControles?.registrarItemColetado?.('galinha');
         }
         
         localStorage.setItem(key, 'true');
@@ -693,7 +711,8 @@
             if (gaiolaObj.elementoPet) gaiolaObj.elementoPet.remove();
             
             if (tipo === 'cao') window.iniciarCao({ x: gaiolaObj.x, y: gaiolaObj.y }, config || window.config);
-            else window.iniciarGato({ x: gaiolaObj.x, y: gaiolaObj.y }, config || window.config);
+            else if (tipo === 'gato') window.iniciarGato({ x: gaiolaObj.x, y: gaiolaObj.y }, config || window.config);
+            else window.iniciarGalinha({ x: gaiolaObj.x, y: gaiolaObj.y }, config || window.config);
             
             if (typeof window.criarEfeitoParticulas === 'function') {
                 window.criarEfeitoParticulas(gaiolaObj.x + 16, gaiolaObj.y + 16, 'madeira');
@@ -706,19 +725,25 @@
 
         window.isCaoResgatado = false;
         window.isGatoResgatado = false;
+        window.isGalinhaResgatada = false;
         window.caoNaBase = false;
         window.gatoNaBase = false;
+        window.galinhaNaBase = false;
 
         localStorage.removeItem(CAO_STORAGE_KEY);
         localStorage.removeItem(GATO_STORAGE_KEY);
+        localStorage.removeItem(GALINHA_STORAGE_KEY);
         localStorage.removeItem('plataformaCaoNaBase');
         localStorage.removeItem('plataformaGatoNaBase');
+        localStorage.removeItem('plataformaGalinhaNaBase');
 
         if (removerPetsAtivos) {
             if (window.caoEntidade?.elemento) window.caoEntidade.elemento.remove();
             if (window.gatoEntidade?.elemento) window.gatoEntidade.elemento.remove();
+            if (window.galinhaEntidade?.elemento) window.galinhaEntidade.elemento.remove();
             window.caoEntidade = null;
             window.gatoEntidade = null;
+            window.galinhaEntidade = null;
         }
 
         return true;

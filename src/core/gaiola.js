@@ -16,7 +16,7 @@
     window.criarGaiola = function (pos, gameConfig, tipo = 'cao') {
         config = gameConfig;
 
-        const resgatado = tipo === 'cao' ? window.isCaoResgatado : window.isGatoResgatado;
+        const resgatado = tipo === 'cao' ? window.isCaoResgatado : tipo === 'gato' ? window.isGatoResgatado : window.isGalinhaResgatada;
         if (resgatado) {
             return null; // Não cria a gaiola se o pet já foi resgatado
         }
@@ -25,7 +25,9 @@
         const elementoPetFundo = document.createElement('img');
         const spritePet = tipo === 'cao' 
             ? (config.spriteCao || '../../assets/personagem/cao_parado.png')
-            : (config.spriteGato || '../../assets/personagem/gato_parado.png');
+            : tipo === 'gato'
+                ? (config.spriteGato || '../../assets/personagem/gato_parado.png')
+                : (config.spriteGalinha || '../../assets/personagem/galinha/galinha_parado.png');
             
         elementoPetFundo.src = spritePet;
         elementoPetFundo.style.position = 'absolute';
@@ -92,7 +94,7 @@
 
         for (let i = gaiolasAtivas.length - 1; i >= 0; i--) {
             const g = gaiolasAtivas[i];
-            const resgatado = g.tipo === 'cao' ? window.isCaoResgatado : window.isGatoResgatado;
+            const resgatado = g.tipo === 'cao' ? window.isCaoResgatado : g.tipo === 'gato' ? window.isGatoResgatado : window.isGalinhaResgatada;
             
             if (!resgatado && typeof detectarColisaoHitbox === 'function') {
                 const colidiu = detectarColisaoHitbox(playerHitbox, g.hitbox, 0, 0, 0);

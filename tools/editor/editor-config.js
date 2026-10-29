@@ -100,7 +100,9 @@
         { type: 'gaiola', stateKey: 'posicaoGaiola', sprite: '../../assets/personagem/gaiola1.png', label: 'Gaiola com Cão', kind: 'single' },
         { type: 'cachorro', stateKey: 'posicaoCachorro', sprite: '../../assets/personagem/cao_parado.png', label: 'Cachorro (NPC)', kind: 'single' },
         { type: 'gaiolaGato', stateKey: 'posicaoGaiolaGato', sprite: '../../assets/personagem/gaiola1.png', label: 'Gaiola com Gato', kind: 'single' },
-        { type: 'gato', stateKey: 'posicaoGato', sprite: '../../assets/personagem/gato_parado.png', label: 'Gato (NPC)', kind: 'single' }
+        { type: 'gato', stateKey: 'posicaoGato', sprite: '../../assets/personagem/gato_parado.png', label: 'Gato (NPC)', kind: 'single' },
+        { type: 'gaiolaGalinha', stateKey: 'posicaoGaiolaGalinha', sprite: '../../assets/personagem/gaiola1.png', label: 'Gaiola com Galinha', kind: 'single' },
+        { type: 'galinha', stateKey: 'posicaoGalinha', sprite: '../../assets/personagem/galinha/galinha_parado.png', label: 'Galinha (NPC)', kind: 'single' }
     ];
 
     const ALL_DEFS = [...PLATFORM_DEFS, ...ENEMY_DEFS, ...SYSTEM_DEFS];
@@ -122,6 +124,8 @@
             posicaoCachorro: '',
             posicaoGaiolaGato: '',
             posicaoGato: '',
+            posicaoGaiolaGalinha: '',
+            posicaoGalinha: '',
             chefes: [],
             itens: {},
             inimigoAleatorio: [1, 0],

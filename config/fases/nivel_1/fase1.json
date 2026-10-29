@@ -230,6 +230,8 @@
     "posicaoCachorro": "",
     "posicaoGaiolaGato": "",
     "posicaoGato": "",
+    "posicaoGaiolaGalinha": "d22",
+    "posicaoGalinha": "",
     "inimigoAleatorio": [
         0,
         0
@@ -403,12 +405,6 @@
         "b12",
         "b17",
         "b36"
-    ],
-    "ninja": [
-        {
-            "coord": "g22",
-            "type": "ninja"
-        }
     ],
     "plataformasTroncoVertical": [
         {

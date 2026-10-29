@@ -69,7 +69,7 @@ const __debugIdle = false;
         controle._idle2sUltimoMs = controle._idle2sUltimoMs ?? __agoraMs;
     }
 
-    const desativarRespiracaoOciosaPet = controle?.tipo === 'cao' || controle?.tipo === 'gato';
+    const desativarRespiracaoOciosaPet = controle?.tipo === 'cao' || controle?.tipo === 'gato' || controle?.tipo === 'galinha';
 
     const agoraMs = (typeof performance !== 'undefined' && typeof performance.now === 'function')
         ? performance.now()

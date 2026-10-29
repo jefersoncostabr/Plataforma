@@ -793,6 +793,7 @@ async function carregarFase(nomeArquivo) {
 
         processarPet('cao', window.isCaoResgatado, window.caoNaBase, fase.posicaoGaiola, window.iniciarCao);
         processarPet('gato', window.isGatoResgatado, window.gatoNaBase, fase.posicaoGaiolaGato, window.iniciarGato);
+        processarPet('galinha', window.isGalinhaResgatada, window.galinhaNaBase, fase.posicaoGaiolaGalinha, window.iniciarGalinha);
         // Verificação de compatibilidade de gaiolas (log removido)
     }
 

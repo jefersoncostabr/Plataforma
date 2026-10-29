@@ -315,6 +315,8 @@
                         criarIcone(coord, '../../assets/personagem/cao_parado.png', 'editor-npc-fundo');
                     } else if (def.type === 'gaiolaGato') {
                         criarIcone(coord, '../../assets/personagem/gato_parado.png', 'editor-npc-fundo');
+                    } else if (def.type === 'gaiolaGalinha') {
+                        criarIcone(coord, '../../assets/personagem/galinha/galinha_parado.png', 'editor-npc-fundo');
                     }
                     criarIcone(coord, def.sprite, def.className || '');
                 }

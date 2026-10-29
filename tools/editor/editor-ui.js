@@ -239,6 +239,25 @@
                     catSistemas.appendChild(container);
                 }
 
+                // Injeção da Gaiola com Galinha
+                if (!catSistemas.querySelector('[data-type="gaiolaGalinha"]')) {
+                    const container = document.createElement('div');
+                    container.className = 'palette-item';
+                    container.setAttribute('data-type', 'gaiolaGalinha');
+                    container.title = 'Gaiola com Galinha';
+                    container.style.position = 'relative';
+                    container.style.display = 'inline-block';
+                    container.style.width = '32px';
+                    container.style.height = '32px';
+
+                    container.innerHTML = `
+                        <img src="../../assets/personagem/galinha/galinha_parado.png" style="position:absolute; left:0; top:0; width:32px; height:32px; image-rendering:pixelated; pointer-events:none;">
+                        <img src="../../assets/personagem/gaiola1.png" style="position:absolute; left:0; top:0; width:32px; height:32px; image-rendering:pixelated; pointer-events:none;">
+                    `;
+
+                    catSistemas.appendChild(container);
+                }
+
                 // Injeção do Gato (NPC) livre
                 if (!catSistemas.querySelector('[data-type="gato"]')) {
                     const imgGato = document.createElement('img');
@@ -247,6 +266,16 @@
                     imgGato.setAttribute('data-type', 'gato');
                     imgGato.title = 'Gato (NPC)';
                     catSistemas.appendChild(imgGato);
+                }
+
+                // Injeção da Galinha (NPC) livre
+                if (!catSistemas.querySelector('[data-type="galinha"]')) {
+                    const imgGalinha = document.createElement('img');
+                    imgGalinha.src = '../../assets/personagem/galinha/galinha_parado.png';
+                    imgGalinha.className = 'palette-item';
+                    imgGalinha.setAttribute('data-type', 'galinha');
+                    imgGalinha.title = 'Galinha (NPC)';
+                    catSistemas.appendChild(imgGalinha);
                 }
 
                 // Ajuste do Inimigo Completo (Fundo Dourado + Sprite Parado)
