@@ -359,8 +359,33 @@
         if (!petContainer) return;
 
         const petsDisponiveis = [
-            { id: 'cao', resgatado: window.isCaoResgatado, naBase: 'caoNaBase', key: 'plataformaCaoNaBase', sprite: 'cao_coletavel.png', spawn: window.iniciarCao, entidade: 'caoEntidade' },
-            { id: 'gato', resgatado: window.isGatoResgatado, naBase: 'gatoNaBase', key: 'plataformaGatoNaBase', sprite: 'gato_coletavel.png', spawn: window.iniciarGato, entidade: 'gatoEntidade' }
+            {
+                id: 'cao',
+                resgatado: window.isCaoResgatado,
+                naBase: 'caoNaBase',
+                key: 'plataformaCaoNaBase',
+                sprite: 'cao_coletavel.png',
+                spawn: window.iniciarCao,
+                entidade: 'caoEntidade'
+            },
+            {
+                id: 'gato',
+                resgatado: window.isGatoResgatado,
+                naBase: 'gatoNaBase',
+                key: 'plataformaGatoNaBase',
+                sprite: 'gato_coletavel.png',
+                spawn: window.iniciarGato,
+                entidade: 'gatoEntidade'
+            },
+            {
+                id: 'galinha',
+                resgatado: window.isGalinhaResgatada,
+                naBase: 'galinhaNaBase',
+                key: 'plataformaGalinhaNaBase',
+                sprite: 'galinha/galinha_parado.png',
+                spawn: window.iniciarGalinha,
+                entidade: 'galinhaEntidade'
+            }
         ];
 
         petsDisponiveis.forEach(pet => {

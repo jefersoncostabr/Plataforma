@@ -134,3 +134,79 @@ Verifica que, ao reiniciar em modo hard, as skills desbloqueadas são preservada
 | Verificar Node.js | `node --version` | Número da versão ✅ |
 | Rodar todos os testes | `node --test tools/testes/*.test.cjs` | Saída com `pass` ou `fail` |
 | Rodar um teste específico | `node --test tools/testes/<arquivo>.test.cjs` | Saída com `pass` ou `fail` |
+
+---
+
+## 🗒️ Sugestões de testes para adicionar
+
+Testes pendentes, organizados por área do jogo. Ainda não implementados.
+
+### Jogador (`src/jogador/controles.js`, `src/jogador/combate-corpo-a-corpo.js`)
+
+- Movimento lateral e pulo (simples e duplo)
+- Interação com parede
+- Desaceleração no ar
+- Golpe corpo a corpo: cooldown de ataque e alcance da hitbox
+- Aplicação de dano ao inimigo pelo golpe
+- Tomar dano: redução de vida, cura, morte
+- Invencibilidade temporária após receber dano
+
+### Itens e inventário (`src/itens/itens.js`, `src/ui/mochila.js`)
+
+- Equipar e desequipar arma
+- Usar item de cura
+- Usar item plus (XP/SP)
+- Limites de pilha de itens
+- Adicionar e remover item da mochila
+- Capacidade máxima da mochila
+- Ordenação de slots e slot vazio
+
+### UI (`src/ui/hud.js`)
+
+- Atualizar barra de vida
+- Atualizar munição da arma ativa
+- Atualizar XP e moedas/scrap
+- Troca de arma refletida no HUD
+
+### Pets (`src/core/cao.js`)
+
+- Cão seguir o jogador com distância configurada
+- Interação do pet com a gaiola
+- Latido/ataque do pet
+- Resgate de pet: `libertarPet`, `resetarResgateCao`
+- Persistência do resgate no localStorage
+
+### Editor de fases (`tools/editor/`)
+
+- Salvar e carregar fase
+- Adicionar e remover bloco
+- Definir spawn do jogador
+- Colocar inimigo na fase
+- Definir etapa de chefe
+- Exportar JSON da fase
+
+### Sistema
+
+- Salvamento e carregamento de jogo (save state): fases desbloqueadas, skills, inventário
+- Transições de fase: carregar próxima fase, resetar estado da fase, tela de carregamento
+- Menu de pausa: abrir/fechar, opções (continuar, reiniciar, voltar ao menu), sobreposição ao jogo
+
+### Colisões e física
+
+- Player com plataforma: pisar e atravessar plataforma unidirecional por baixo
+- Player com inimigo: dano, recuo, invencibilidade
+- Projetil/ataque com inimigo e cenário
+
+### Áudio (`AudioManager`)
+
+- Tocar música de fundo e parar música
+- Ajustar volume
+- SFX sobrepostos
+- Carregamento falho de arquivo
+
+### Configurações (`config/configuracoes.json`)
+
+- Carregar configuração
+- Salvar configuração
+- Valores padrão quando ausente
+- Resolução e controles remapeáveis

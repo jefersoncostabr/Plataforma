@@ -19,7 +19,8 @@ function criarAmbiente() {
         localStorage: { getItem: () => null },
         document: {
             getElementById: (id) => id === 'game-stage' ? palco : elementos.get(id) || null,
-            createElement: () => ({ style: {}, remove() { elementos.delete(this.id); } })
+            createElement: () => ({ style: {}, remove() { elementos.delete(this.id); } }),
+            addEventListener: () => {}
         },
         requestAnimationFrame: () => {}
     };
