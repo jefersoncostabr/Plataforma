@@ -58,7 +58,23 @@ test('galinha controlada anima caminhada, voo e interação com E usando sprites
 
     assert.match(pets, /apertouE\s*&&\s*!pet\.ePressionadoAnterior/);
     assert.match(pets, /pet\.tempoAnimacaoInteracao\s*=\s*Date\.now\(\)\s*\+\s*250/);
-    assert.match(pets, /if\s*\(!pet\.noChao\)\s*\{[\s\S]*?pet\.spriteVoandoInteragindo[\s\S]*?pet\.spriteVoando/);
-    assert.match(pets, /else\s+if\s*\(interagindo\)\s*\{[\s\S]*?pet\.spriteParadoInteragindo/);
-    assert.match(pets, /else\s+if\s*\(pet\.movendoHorizontal\)\s*\{[\s\S]*?pet\.spriteAndando/);
+    assert.match(pets, /if\s*\(interagindo\)\s*\{\s*pet\.elemento\.src\s*=\s*pet\.noChao\s*\?\s*pet\.spriteParadoInteragindo\s*:\s*pet\.spriteVoandoInteragindo/);
+    assert.match(pets, /window\.atualizarAnimacao\(\s*pet,\s*pet\.elemento,\s*pet\.spriteParado,\s*pet\.spriteAndando,\s*pet\.spriteVoando/);
+});
+
+test('animação de caminhada alterna entre os sprites parado e andando', () => {
+    const pets = ler('src/core/cao.js');
+    const animacaoNormal = ler('src/jogador/animacao.js');
+
+    assert.match(pets, /window\.atualizarAnimacao\(\s*pet,\s*pet\.elemento,\s*pet\.spriteParado,\s*pet\.spriteAndando/);
+    assert.match(animacaoNormal, /if\s*\(controle\.contadorAnimacao\s*>=\s*10\)\s*\{\s*controle\.frameAtual\s*=\s*controle\.frameAtual\s*===\s*0\s*\?\s*1\s*:\s*0/);
+    assert.match(animacaoNormal, /controle\.frameAtual\s*===\s*0\s*\?\s*spriteParado\s*:\s*spriteAndando/);
+    assert.match(animacaoNormal, /desativarRespiracaoOciosaPet\s*=\s*controle\?\.tipo\s*===\s*'cao'\s*\|\|\s*controle\?\.tipo\s*===\s*'gato'\s*\|\|\s*controle\?\.tipo\s*===\s*'galinha'/);
+    assert.match(pets, /const modoDebug\s*=\s*window\.controlandoGalinha\s*\?\s*'CONTROLADA'\s*:\s*'NORMAL'/);
+    assert.match(pets, /window\.DEBUG_ANIMACAO_GALINHA\s*===\s*true[\s\S]*?Diagnóstico ativado\./);
+    assert.match(pets, /srcSelecionado:\s*srcAtual/);
+    assert.match(pets, /srcCarregado:\s*pet\.elemento\.currentSrc/);
+    assert.match(pets, /Sprite selecionado\./);
+    assert.match(pets, /Estado atual\./);
+    assert.match(pets, /console\.error\('\[ANIMACAO GALINHA\] Falha ao carregar sprite\.'/);
 });

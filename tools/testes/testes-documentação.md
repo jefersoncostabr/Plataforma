@@ -133,6 +133,46 @@ node --test tools/testes/reiniciar-hard-preserva-skills.test.cjs
 
 Verifica que, ao reiniciar em modo hard, as skills desbloqueadas são preservadas conforme o comportamento esperado.
 
+### Jogador: controles, movimento e combate
+
+```powershell
+node --test tools/testes/jogador.test.cjs
+```
+
+Verifica entrada lateral, pulo simples e duplo, desaceleração no ar, colisão horizontal com parede, cooldown e alcance do chute, dano e derrota do inimigo, dano por estaca com cooldown de proteção e restauração de vida.
+
+### Itens: mochila e inventário
+
+```powershell
+node --test tools/testes/itens-inventario.test.cjs
+```
+
+Verifica coleta, equipagem e desequipagem de arma, uso de restauração, capacidade do colete, pilhas de até cinco unidades, inclusão e remoção de itens, ordem dos slots e preservação de slots vazios. Também verifica o consumo do Airdrop Plus armazenado.
+
+### HUD
+
+```powershell
+node --test tools/testes/hud.test.cjs
+```
+
+Verifica corações restantes, pontos de skill, escudo e ocultação do HUD sem a skill Visão.
+
+### Pets, salvamentos e editor
+
+```powershell
+node --test tools/testes/outros-blocos.test.cjs
+```
+
+Verifica resgate e persistência do cão, interação da gaiola, mordida e entrada do latido do cão, isolamento e limpeza de slots de salvamento, controles remapeados, importação/exportação JSON do editor, salvamento no servidor ou em rascunho local, adição/remoção de blocos, pausa e colisões entre hitboxes.
+
+### AudioManager
+
+```powershell
+node --test tools/testes/audio-manager.test.cjs
+```
+
+Verifica persistência e limites do volume mestre, reprodução de SFX simultâneos, limpeza após falha de carregamento e interrupção dos sons ativos.
+
 ---
 
 ## 📌 Resumo rápido
@@ -149,49 +189,20 @@ Verifica que, ao reiniciar em modo hard, as skills desbloqueadas são preservada
 
 Testes pendentes, organizados por área do jogo. Ainda não implementados.
 
-### Jogador (`src/jogador/controles.js`, `src/jogador/combate-corpo-a-corpo.js`)
-
-- Movimento lateral e pulo (simples e duplo)
-- Interação com parede
-- Desaceleração no ar
-- Golpe corpo a corpo: cooldown de ataque e alcance da hitbox
-- Aplicação de dano ao inimigo pelo golpe
-- Tomar dano: redução de vida, cura, morte
-- Invencibilidade temporária após receber dano
-
 ### Itens e inventário (`src/itens/itens.js`, `src/ui/mochila.js`)
 
-- Equipar e desequipar arma
-- Usar item de cura
-- Usar item plus (XP/SP)
-- Limites de pilha de itens
-- Adicionar e remover item da mochila
-- Capacidade máxima da mochila
-- Ordenação de slots e slot vazio
+- Usar item plus de XP/SP (o projeto só possui Airdrop Plus e munição plus; o Airdrop Plus já tem teste de consumo)
 
 ### UI (`src/ui/hud.js`)
 
-- Atualizar barra de vida
 - Atualizar munição da arma ativa
 - Atualizar XP e moedas/scrap
 - Troca de arma refletida no HUD
 
-### Pets (`src/core/cao.js`)
-
-- Cão seguir o jogador com distância configurada
-- Interação do pet com a gaiola
-- Latido/ataque do pet
-- Resgate de pet: `libertarPet`, `resetarResgateCao`
-- Persistência do resgate no localStorage
-
 ### Editor de fases (`tools/editor/`)
 
-- Salvar e carregar fase
-- Adicionar e remover bloco
 - Definir spawn do jogador
 - Colocar inimigo na fase
-- Definir etapa de chefe
-- Exportar JSON da fase
 
 ### Sistema
 
@@ -208,13 +219,10 @@ Testes pendentes, organizados por área do jogo. Ainda não implementados.
 ### Áudio (`AudioManager`)
 
 - Tocar música de fundo e parar música
-- Ajustar volume
-- SFX sobrepostos
-- Carregamento falho de arquivo
 
 ### Configurações (`config/configuracoes.json`)
 
 - Carregar configuração
 - Salvar configuração
 - Valores padrão quando ausente
-- Resolução e controles remapeáveis
+- Resolução de tela

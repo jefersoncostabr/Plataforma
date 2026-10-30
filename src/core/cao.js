@@ -38,6 +38,13 @@
                 ? (config.spriteGato || '../../assets/personagem/gato_parado.png')
                 : (config.spriteGalinha || '../../assets/personagem/galinha/galinha_parado.png');
             
+        if (tipo === 'galinha') {
+            img.addEventListener('error', () => {
+                console.error('[ANIMACAO GALINHA] Falha ao carregar sprite.', {
+                    src: img.currentSrc || img.src
+                });
+            });
+        }
         img.src = spriteBase;
         img.id = idElemento;
         img.className = `npc-pet npc-${tipo}`;
@@ -679,29 +686,22 @@
             const apertouE = !!(teclas['e'] || teclas['E'] || teclas['KeyE']);
             const interagindo = apertouE || agora < (pet.tempoAnimacaoInteracao || 0);
 
-            if (!pet.noChao) {
-                pet.elemento.src = interagindo
-                    ? pet.spriteVoandoInteragindo
-                    : pet.spriteVoando;
+            if (interagindo) {
+                pet.elemento.src = pet.noChao
+                    ? pet.spriteParadoInteragindo
+                    : pet.spriteVoandoInteragindo;
                 pet.contadorAnimacao = 0;
                 pet.frameAtual = 0;
-            } else if (interagindo) {
-                pet.elemento.src = pet.spriteParadoInteragindo;
-                pet.contadorAnimacao = 0;
-                pet.frameAtual = 0;
-            } else if (pet.movendoHorizontal) {
-                pet.contadorAnimacao = (pet.contadorAnimacao || 0) + 1;
-                if (pet.contadorAnimacao >= 10) {
-                    pet.frameAtual = pet.frameAtual === 0 ? 1 : 0;
-                    pet.elemento.src = pet.frameAtual === 0
-                        ? pet.spriteParado
-                        : pet.spriteAndando;
-                    pet.contadorAnimacao = 0;
-                }
-            } else {
-                pet.elemento.src = pet.spriteParado;
-                pet.contadorAnimacao = 0;
-                pet.frameAtual = 0;
+            } else if (typeof window.atualizarAnimacao === 'function') {
+                window.atualizarAnimacao(
+                    pet,
+                    pet.elemento,
+                    pet.spriteParado,
+                    pet.spriteAndando,
+                    pet.spriteVoando,
+                    null,
+                    null
+                );
             }
         } else if (pet.mordendo) {
             pet.elemento.src = pet.tipo === 'cao'
@@ -709,6 +709,42 @@
                 : (config.spriteGatoMordendo || '../../assets/personagem/gato_mordendo.png');
         } else if (typeof window.atualizarAnimacao === 'function') {
             window.atualizarAnimacao(pet, pet.elemento, pet.spriteParado, pet.spriteAndando, null, null, null);
+        }
+
+        if (pet.tipo === 'galinha' && window.DEBUG_ANIMACAO_GALINHA === true) {
+            const srcAtual = pet.elemento.src;
+            const agoraDebug = Date.now();
+            const modoDebug = window.controlandoGalinha ? 'CONTROLADA' : 'NORMAL';
+            const diagnostico = {
+                modo: modoDebug,
+                controlando: !!window.controlandoGalinha,
+                noChao: pet.noChao,
+                movendoHorizontal: pet.movendoHorizontal,
+                frameAtual: pet.frameAtual,
+                contadorAnimacao: pet.contadorAnimacao,
+                srcSelecionado: srcAtual,
+                srcCarregado: pet.elemento.currentSrc || '',
+                carregado: pet.elemento.complete,
+                largura: pet.elemento.naturalWidth,
+                altura: pet.elemento.naturalHeight
+            };
+
+            if (!pet._diagnosticoAnimacaoGalinhaIniciado) {
+                pet._diagnosticoAnimacaoGalinhaIniciado = true;
+                console.log(`[ANIMACAO GALINHA - ${modoDebug}] Diagnóstico ativado.`, diagnostico);
+            }
+
+            if (pet._ultimoSpriteAnimacaoDebug !== srcAtual) {
+                pet._ultimoSpriteAnimacaoDebug = srcAtual;
+                console.log(`[ANIMACAO GALINHA - ${modoDebug}] Sprite selecionado.`, diagnostico);
+            }
+
+            if (agoraDebug - (pet._ultimoLogEstadoAnimacaoGalinha || 0) >= 250) {
+                pet._ultimoLogEstadoAnimacaoGalinha = agoraDebug;
+                console.log(`[ANIMACAO GALINHA - ${modoDebug}] Estado atual.`, diagnostico);
+            }
+        } else if (pet.tipo === 'galinha') {
+            pet._diagnosticoAnimacaoGalinhaIniciado = false;
         }
 
         pet.elemento.style.left = pet.x + 'px';
