@@ -82,6 +82,15 @@
                 : tipo === 'gato'
                     ? (config.spriteGatoAndando || '../../assets/personagem/gato_andando.png')
                     : (config.spriteGalinhaAndando || '../../assets/personagem/galinha/galinha_andando.png'),
+            spriteVoando: tipo === 'galinha'
+                ? (config.spriteGalinhaVoando || '../../assets/personagem/galinha/galinha_voando.png')
+                : null,
+            spriteParadoInteragindo: tipo === 'galinha'
+                ? (config.spriteGalinhaParadoInteragindo || '../../assets/personagem/galinha/galinha_parado_interagindo.png')
+                : null,
+            spriteVoandoInteragindo: tipo === 'galinha'
+                ? (config.spriteGalinhaVoandoInteragindo || '../../assets/personagem/galinha/galinha_voando_interagindo.png')
+                : null,
             estaSeguindo: true,    // Novo: controla se o NPC deve seguir o player
             ultimoToqueQ: 0,       // Restaurado para Double Tap
             qPressionadoAnterior: false, // Restaurado para Double Tap
@@ -159,6 +168,11 @@
 
             if (sendoControlado) {
                 const teclas = window.playerControle?.teclas || {};
+                const apertouE = !!(teclas['e'] || teclas['E'] || teclas['KeyE']);
+                if (apertouE && !pet.ePressionadoAnterior) {
+                    pet.tempoAnimacaoInteracao = Date.now() + 250;
+                }
+                pet.ePressionadoAnterior = apertouE;
 
                 if (typeof window.atualizarCamera === 'function') {
                     window.cameraZoomFactor = 1.5;
@@ -659,8 +673,38 @@
         }
 
         // Sincronização Visual
-        if (pet.mordendo) {
-            pet.elemento.src = pet.tipo === 'cao' 
+        if (pet.tipo === 'galinha') {
+            const agora = Date.now();
+            const teclas = window.playerControle?.teclas || {};
+            const apertouE = !!(teclas['e'] || teclas['E'] || teclas['KeyE']);
+            const interagindo = apertouE || agora < (pet.tempoAnimacaoInteracao || 0);
+
+            if (!pet.noChao) {
+                pet.elemento.src = interagindo
+                    ? pet.spriteVoandoInteragindo
+                    : pet.spriteVoando;
+                pet.contadorAnimacao = 0;
+                pet.frameAtual = 0;
+            } else if (interagindo) {
+                pet.elemento.src = pet.spriteParadoInteragindo;
+                pet.contadorAnimacao = 0;
+                pet.frameAtual = 0;
+            } else if (pet.movendoHorizontal) {
+                pet.contadorAnimacao = (pet.contadorAnimacao || 0) + 1;
+                if (pet.contadorAnimacao >= 10) {
+                    pet.frameAtual = pet.frameAtual === 0 ? 1 : 0;
+                    pet.elemento.src = pet.frameAtual === 0
+                        ? pet.spriteParado
+                        : pet.spriteAndando;
+                    pet.contadorAnimacao = 0;
+                }
+            } else {
+                pet.elemento.src = pet.spriteParado;
+                pet.contadorAnimacao = 0;
+                pet.frameAtual = 0;
+            }
+        } else if (pet.mordendo) {
+            pet.elemento.src = pet.tipo === 'cao'
                 ? (config.spriteCaoMordendo || '../../assets/personagem/cao_mordendo.png')
                 : (config.spriteGatoMordendo || '../../assets/personagem/gato_mordendo.png');
         } else if (typeof window.atualizarAnimacao === 'function') {

@@ -40,3 +40,25 @@ test('jogador e câmera acompanham a galinha durante o controle e as transiçõe
     assert.match(abertura, /window\.controlandoGalinha\s*=\s*false/);
     assert.match(resgateBB, /window\.controlandoGalinha\s*=\s*false/);
 });
+
+test('galinha controlada anima caminhada, voo e interação com E usando sprites existentes', () => {
+    const pets = ler('src/core/cao.js');
+    const sprites = [
+        'assets/personagem/galinha/galinha_andando.png',
+        'assets/personagem/galinha/galinha_voando.png',
+        'assets/personagem/galinha/galinha_parado_interagindo.png',
+        'assets/personagem/galinha/galinha_voando_interagindo.png'
+    ];
+
+    for (const sprite of sprites) {
+        assert.equal(fs.existsSync(path.join(raiz, sprite)), true, `sprite ausente: ${sprite}`);
+        assert.ok(pets.includes(sprite.replace('assets/personagem/', '../../assets/personagem/')),
+            `o ciclo da galinha deve usar ${sprite}`);
+    }
+
+    assert.match(pets, /apertouE\s*&&\s*!pet\.ePressionadoAnterior/);
+    assert.match(pets, /pet\.tempoAnimacaoInteracao\s*=\s*Date\.now\(\)\s*\+\s*250/);
+    assert.match(pets, /if\s*\(!pet\.noChao\)\s*\{[\s\S]*?pet\.spriteVoandoInteragindo[\s\S]*?pet\.spriteVoando/);
+    assert.match(pets, /else\s+if\s*\(interagindo\)\s*\{[\s\S]*?pet\.spriteParadoInteragindo/);
+    assert.match(pets, /else\s+if\s*\(pet\.movendoHorizontal\)\s*\{[\s\S]*?pet\.spriteAndando/);
+});

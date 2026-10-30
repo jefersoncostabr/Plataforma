@@ -47,7 +47,7 @@ Verifica que o cão usa a distância configurada de 30 pixels, que o gato contin
 node --test tools/testes/galinha-controle.test.cjs
 ```
 
-Verifica que a galinha pode ser assumida com Q quando o jogador tem Adestramento, recebe os comandos de movimento, retorna ao jogador com dois toques em Q e é incluída no foco da câmera e na limpeza de estado durante transições.
+Verifica que a galinha pode ser assumida com Q quando o jogador tem Adestramento, recebe os comandos de movimento, retorna ao jogador com dois toques em Q e é incluída no foco da câmera e na limpeza de estado durante transições. Também verifica os sprites existentes para caminhada, voo e interação com E, além da lógica que os seleciona.
 
 ### Menu de controles
 
