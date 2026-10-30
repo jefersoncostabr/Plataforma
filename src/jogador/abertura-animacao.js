@@ -114,6 +114,7 @@
 
             window.controlandoCao = false;
             window.controlandoGato = false;
+            window.controlandoGalinha = false;
 
             if (typeof window.controlarBB === 'function') {
                 window.controlarBB();

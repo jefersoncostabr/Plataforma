@@ -154,7 +154,8 @@
             }
 
             const sendoControlado = (pet.tipo === 'cao' && window.controlandoCao) ||
-                                    (pet.tipo === 'gato' && window.controlandoGato);
+                                    (pet.tipo === 'gato' && window.controlandoGato) ||
+                                    (pet.tipo === 'galinha' && window.controlandoGalinha);
 
             if (sendoControlado) {
                 const teclas = window.playerControle?.teclas || {};
@@ -240,7 +241,8 @@
                     const agora = Date.now();
                     if (agora - (pet.ultimoToqueQ || 0) < 300) {
                         if (pet.tipo === 'cao') window.controlandoCao = false;
-                        else window.controlandoGato = false;
+                        else if (pet.tipo === 'gato') window.controlandoGato = false;
+                        else if (pet.tipo === 'galinha') window.controlandoGalinha = false;
 
                         if (window.retornoControlePetParaBB && window.bbEntidade) {
                             window.controlandoBB = true;

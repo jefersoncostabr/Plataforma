@@ -648,7 +648,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         controle,
         callbacks: {
             onAgachar: () => {
-                if (window.controlandoCao || window.controlandoBB) return; // Bloqueia agachar enquanto controla o cão/bb
+                if (window.controlandoCao || window.controlandoGalinha || window.controlandoBB) return; // Bloqueia agachar enquanto controla o cão/bb
                 if (controle.estaoAberto || controle.abrindo || controle.fechando) return;
                 if (controle.estaAgachado) return;
                 const descartouEquipamentosVermelhos = descartarEquipamentosVermelhosAoAgachar();
@@ -660,7 +660,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 }
             },
             onLevantar: () => {
-                if (window.controlandoCao || window.controlandoBB) return; // Bloqueia levantar enquanto controla o cão/bb
+                if (window.controlandoCao || window.controlandoGalinha || window.controlandoBB) return; // Bloqueia levantar enquanto controla o cão/bb
                 tentarLevantarJogador();
             },
             onDebugApagarEquipamento: () => {
@@ -1126,7 +1126,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         // Verifica se o jogador quer assumir o controle do cachorro (Abaixar + Colisão + 'Q')
         const apertouQ = (controle.teclas['q'] || controle.teclas['Q']);
         
-        if (!window.controlandoCao && !window.controlandoGato && !window.controlandoBB && apertouQ) {
+        if (!window.controlandoCao && !window.controlandoGato && !window.controlandoGalinha && !window.controlandoBB && apertouQ) {
             // Verifica se o jogador possui a habilidade necessária para controlar pets
             if (window.PetAbilities && !window.PetAbilities.podeSerControlado(true)) {
                 // Trava de Habilidade: Se não tiver a skill, apenas sinaliza o erro e continua o loop
@@ -1165,6 +1165,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
                     if (tentarTroca(window.caoEntidade, 'controlandoCao') || 
                         tentarTroca(window.gatoEntidade, 'controlandoGato') ||
+                        tentarTroca(window.galinhaEntidade, 'controlandoGalinha') ||
                         tentarTroca(window.bbEntidade, 'controlandoBB')) {
                         if (typeof window.definirZoomCamera === 'function') window.definirZoomCamera(1.5);
                         else window.cameraZoomFactor = 1.5;
@@ -1211,19 +1212,19 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         const apertouBaixoOuS = !!(controle.teclas['ArrowDown'] || controle.teclas['s'] || controle.teclas['S']);
 
         if (apertouE && !controle.ePressionado) {
-            const interagiuComMusgo = (!window.controlandoCao && !window.controlandoGato && !window.controlandoBB)
+            const interagiuComMusgo = (!window.controlandoCao && !window.controlandoGato && !window.controlandoGalinha && !window.controlandoBB)
                 ? !!window.interagirComMusgoAlvo?.(controle, controle.teclas)
                 : false;
-            const interagiuComAlavanca = (!interagiuComMusgo && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB)
+            const interagiuComAlavanca = (!interagiuComMusgo && !window.controlandoCao && !window.controlandoGato && !window.controlandoGalinha && !window.controlandoBB)
                 ? !!window.interagirComAlavanca?.(controle, controle.teclas, { exigeAgachado: true })
                 : false;
             const interagiuComRoboDesativado = (!interagiuComMusgo && !interagiuComAlavanca
                 && Number(controle.cooldownInteracaoRoboAposMusgo || 0) <= 0
-                && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB)
+                && !window.controlandoCao && !window.controlandoGato && !window.controlandoGalinha && !window.controlandoBB)
                 ? !!window.interagirComRoboDesativado?.(controle, controle.teclas)
                 : false;
             
-            if (!interagiuComMusgo && !interagiuComAlavanca && !interagiuComRoboDesativado && !controle.interagiuComArbusto && !window.controlandoCao && !window.controlandoGato && !window.controlandoBB && !controle.estaAgachado && controle.temCinto) {
+            if (!interagiuComMusgo && !interagiuComAlavanca && !interagiuComRoboDesativado && !controle.interagiuComArbusto && !window.controlandoCao && !window.controlandoGato && !window.controlandoGalinha && !window.controlandoBB && !controle.estaAgachado && controle.temCinto) {
                 if (typeof sistemaVisuaisEquipamentos.alternarEquipamentoSelecao === 'function') {
                     sistemaVisuaisEquipamentos.alternarEquipamentoSelecao();
                 }
@@ -1237,6 +1238,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
         const podeEntrarStealthNoArbusto = colidindoNoArbusto
             && !window.controlandoCao
             && !window.controlandoGato
+            && !window.controlandoGalinha
             && !window.controlandoBB;
 
         if (apertouBaixoOuS && !controle.baixoPressionado && podeEntrarStealthNoArbusto && podeAgacharSemBloqueio()) {
@@ -1273,7 +1275,7 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
 
         controle.baixoPressionado = apertouBaixoOuS;
 
-        if (window.controlandoCao || window.controlandoGato || window.controlandoBB) {
+        if (window.controlandoCao || window.controlandoGato || window.controlandoGalinha || window.controlandoBB) {
             processarEsperaJogador();
             requestAnimationFrame(atualizar);
             return;
@@ -1371,7 +1373,10 @@ window.iniciarMovimentacao = async function(id, spriteParado, spriteAndando, spr
                 atualizarAnimacao(controle, elemento, sParado, sAndando, sNoAr, sAgachado, sAgachadoAndando);
             }
             sincronizarVisuaisEquipamentos();
-            const petFoco = window.controlandoCao ? window.caoEntidade : (window.controlandoGato ? window.gatoEntidade : window.bbEntidade);
+            const petFoco = window.controlandoCao ? window.caoEntidade
+                : window.controlandoGato ? window.gatoEntidade
+                : window.controlandoGalinha ? window.galinhaEntidade
+                : window.bbEntidade;
             if (typeof window.atualizarCamera === 'function' && petFoco) {
                 // Usa centro da hitbox com pequeno ajuste à esquerda para enquadramento melhor (configurável).
                 const ajusteEsquerdaPet = Number(config.cameraAjusteEsquerdaPetBB ?? 32);

@@ -22,7 +22,7 @@ Os testes automatizados usam o próprio Node.js; não precisam de instalação d
 Abra o terminal na pasta principal do projeto e execute:
 
 ```powershell
-node --test tools/testes/controls-menu-css.test.cjs tools/testes/phase-editor-random-enemies.test.cjs tools/testes/combat-tatsumaki-vfx.test.cjs tools/testes/bonus-phase.test.cjs tools/testes/player-jump-tilt.test.cjs tools/testes/enemy-jump-tilt.test.cjs tools/testes/tronco-quebravel.test.cjs tools/testes/cheat-menu-phase-transition.test.cjs tools/testes/pet-follow-distance.test.cjs tools/testes/pet-animation.test.cjs tools/testes/armas-cinto-municao.test.cjs tools/testes/crafting-reciclagem.test.cjs tools/testes/sons.test.cjs tools/testes/reiniciar-hard-preserva-skills.test.cjs
+node --test tools/testes/controls-menu-css.test.cjs tools/testes/phase-editor-random-enemies.test.cjs tools/testes/combat-tatsumaki-vfx.test.cjs tools/testes/bonus-phase.test.cjs tools/testes/player-jump-tilt.test.cjs tools/testes/enemy-jump-tilt.test.cjs tools/testes/tronco-quebravel.test.cjs tools/testes/cheat-menu-phase-transition.test.cjs tools/testes/pet-follow-distance.test.cjs tools/testes/pet-animation.test.cjs tools/testes/galinha-controle.test.cjs tools/testes/armas-cinto-municao.test.cjs tools/testes/crafting-reciclagem.test.cjs tools/testes/sons.test.cjs tools/testes/reiniciar-hard-preserva-skills.test.cjs
 ```
 
 O Node.js mostra o resultado de cada teste:
@@ -40,6 +40,14 @@ node --test tools/testes/pet-follow-distance.test.cjs tools/testes/pet-animation
 ```
 
 Verifica que o cão usa a distância configurada de 30 pixels, que o gato continua usando o padrão de 45 pixels e que cão e gato recebem os sprites de andar corretos.
+
+### Controle da galinha com Adestramento
+
+```powershell
+node --test tools/testes/galinha-controle.test.cjs
+```
+
+Verifica que a galinha pode ser assumida com Q quando o jogador tem Adestramento, recebe os comandos de movimento, retorna ao jogador com dois toques em Q e é incluída no foco da câmera e na limpeza de estado durante transições.
 
 ### Menu de controles
 

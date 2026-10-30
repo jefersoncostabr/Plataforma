@@ -243,7 +243,8 @@ window.recolocarCameraNoJogador = function() {
     // Se um pet/BB assumiu o foco, usa ele como alvo igual ao loop principal.
     const petFoco = window.controlandoCao ? window.caoEntidade
         : (window.controlandoGato ? window.gatoEntidade
-        : (window.controlandoBB ? window.bbEntidade : null));
+        : (window.controlandoGalinha ? window.galinhaEntidade
+        : (window.controlandoBB ? window.bbEntidade : null)));
     const alvo = petFoco || controle;
     const alvoX = Number(alvo.x || 0) + Number(alvo.offsetX || controle.offsetX || 0)
         + (Number(alvo.largura || controle.largura || 20) / 2);

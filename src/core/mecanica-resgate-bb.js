@@ -141,6 +141,7 @@
 
         window.controlandoCao = false;
         window.controlandoGato = false;
+        window.controlandoGalinha = false;
 
         // Pets ativos aguardam no lugar até o BB encostar para voltar a seguir.
         if (window.caoEntidade) window.caoEntidade.estaSeguindo = false;

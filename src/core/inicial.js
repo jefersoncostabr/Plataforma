@@ -9,6 +9,7 @@ window.nivelAtual = 0;
 window.isTraining = false; // Flag para identificar se o jogador está no modo treino
 window.controlandoCao = false; // Flag para identificar se o jogador está controlando o cachorro
 window.controlandoGato = false; // Flag para identificar se o jogador está controlando o gato
+window.controlandoGalinha = false; // Flag para identificar se o jogador está controlando a galinha
 window.intervalInimigoAleatorio = null; // Armazena o ID do setInterval para inimigo aleatório
 window.timeoutPrimeiroInimigoAleatorio = null; // Armazena o timeout do primeiro inimigo
 window.intervalHumanoAleatorio = null; // Ciclo para humano aleatório
