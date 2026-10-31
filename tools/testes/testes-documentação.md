@@ -22,7 +22,7 @@ Os testes automatizados usam o próprio Node.js; não precisam de instalação d
 Abra o terminal na pasta principal do projeto e execute:
 
 ```powershell
-node --test tools/testes/controls-menu-css.test.cjs tools/testes/phase-editor-random-enemies.test.cjs tools/testes/combat-tatsumaki-vfx.test.cjs tools/testes/bonus-phase.test.cjs tools/testes/player-jump-tilt.test.cjs tools/testes/enemy-jump-tilt.test.cjs tools/testes/tronco-quebravel.test.cjs tools/testes/cheat-menu-phase-transition.test.cjs tools/testes/pet-follow-distance.test.cjs tools/testes/pet-animation.test.cjs tools/testes/galinha-controle.test.cjs tools/testes/armas-cinto-municao.test.cjs tools/testes/crafting-reciclagem.test.cjs tools/testes/sons.test.cjs tools/testes/reiniciar-hard-preserva-skills.test.cjs
+node --test tools/testes/controls-menu-css.test.cjs tools/testes/phase-editor-random-enemies.test.cjs tools/testes/combat-tatsumaki-vfx.test.cjs tools/testes/bonus-phase.test.cjs tools/testes/player-jump-tilt.test.cjs tools/testes/enemy-jump-tilt.test.cjs tools/testes/tronco-quebravel.test.cjs tools/testes/cheat-menu-phase-transition.test.cjs tools/testes/pet-follow-distance.test.cjs tools/testes/pet-animation.test.cjs tools/testes/galinha-controle.test.cjs tools/testes/armas-cinto-municao.test.cjs tools/testes/crafting-reciclagem.test.cjs tools/testes/sons.test.cjs tools/testes/reiniciar-hard-preserva-skills.test.cjs tools/testes/jogador.test.cjs tools/testes/itens-inventario.test.cjs tools/testes/hud.test.cjs tools/testes/outros-blocos.test.cjs tools/testes/audio-manager.test.cjs tools/testes/hud-arma-xp.test.cjs tools/testes/editor-spawn-inimigo.test.cjs tools/testes/save-slots.test.cjs tools/testes/colisoes.test.cjs tools/testes/configuracoes.test.cjs tools/testes/audio-musica.test.cjs
 ```
 
 O Node.js mostra o resultado de cada teste:
@@ -157,6 +157,14 @@ node --test tools/testes/hud.test.cjs
 
 Verifica corações restantes, pontos de skill, escudo e ocultação do HUD sem a skill Visão.
 
+### HUD: casos extremos de exibição
+
+```powershell
+node --test tools/testes/hud-arma-xp.test.cjs
+```
+
+Verifica que skillPoints negativos são exibidos como zero, que ícones de escudo não aparecem quando a proteção está esgotada e que todos os corações ficam cheios quando não há dano.
+
 ### Pets, salvamentos e editor
 
 ```powershell
@@ -172,6 +180,46 @@ node --test tools/testes/audio-manager.test.cjs
 ```
 
 Verifica persistência e limites do volume mestre, reprodução de SFX simultâneos, limpeza após falha de carregamento e interrupção dos sons ativos.
+
+### Áudio: música de fundo
+
+```powershell
+node --test tools/testes/audio-musica.test.cjs
+```
+
+Verifica que `createSFX` cria sons com loop configurável rastreados em `_activeSounds`, que `stopAllSounds` pausa sons em loop e limpa a lista, e que `playPasso` não sobrepõe chamadas enquanto o passo anterior não terminou.
+
+### Editor de fases: spawn e inimigos
+
+```powershell
+node --test tools/testes/editor-spawn-inimigo.test.cjs
+```
+
+Verifica que a fase vazia tem `posicaoInicialJogador` com valor padrão, que `normalizeFaseData` preserva a posição do jogador quando definida, que `ENEMY_DEFS` inclui inimigo melee e atirador e que os arrays de inimigos são inicializados vazios na fase nova.
+
+### Slots de salvamento
+
+```powershell
+node --test tools/testes/save-slots.test.cjs
+```
+
+Verifica que o slot ativo padrão é `slot1` e pode ser trocado, que a dificuldade é salva e travada corretamente após `lockDifficultyForSlot`, que um slot ocupado é detectado após gravar dado e que `clearSlot` remove todos os dados do slot.
+
+### Colisões
+
+```powershell
+node --test tools/testes/colisoes.test.cjs
+```
+
+Verifica que `detectarColisaoHitbox` retorna `true` quando hitboxes se sobrepõem e `false` quando estão afastadas, e que `verificarAreaTotalmenteLivre` bloqueia posições ocupadas por tiles sólidos.
+
+### Configurações
+
+```powershell
+node --test tools/testes/configuracoes.test.cjs
+```
+
+Verifica que `configuracoes.json` é um JSON válido, que contém os campos de física obrigatórios (`velocidadePlayer`, `forcaPuloPlayer`, `gravidadePlayer`) com valores positivos, que `faseInicial` está definida e que `escudoTirosProtegidos` é um número válido.
 
 ---
 
@@ -193,20 +241,8 @@ Testes pendentes, organizados por área do jogo. Ainda não implementados.
 
 - Usar item plus de XP/SP (o projeto só possui Airdrop Plus e munição plus; o Airdrop Plus já tem teste de consumo)
 
-### UI (`src/ui/hud.js`)
-
-- Atualizar munição da arma ativa
-- Atualizar XP e moedas/scrap
-- Troca de arma refletida no HUD
-
-### Editor de fases (`tools/editor/`)
-
-- Definir spawn do jogador
-- Colocar inimigo na fase
-
 ### Sistema
 
-- Salvamento e carregamento de jogo (save state): fases desbloqueadas, skills, inventário
 - Transições de fase: carregar próxima fase, resetar estado da fase, tela de carregamento
 - Menu de pausa: abrir/fechar, opções (continuar, reiniciar, voltar ao menu), sobreposição ao jogo
 
@@ -215,14 +251,3 @@ Testes pendentes, organizados por área do jogo. Ainda não implementados.
 - Player com plataforma: pisar e atravessar plataforma unidirecional por baixo
 - Player com inimigo: dano, recuo, invencibilidade
 - Projetil/ataque com inimigo e cenário
-
-### Áudio (`AudioManager`)
-
-- Tocar música de fundo e parar música
-
-### Configurações (`config/configuracoes.json`)
-
-- Carregar configuração
-- Salvar configuração
-- Valores padrão quando ausente
-- Resolução de tela
